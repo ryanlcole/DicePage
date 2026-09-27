@@ -199,36 +199,39 @@ Resources:
             "image/webp", "image/gif", "text/plain", "application/octet-stream"
         }
 
-        ENDEMAR_WORLD_IMAGES = [
-            ("assets/worlds/geonaph/v1/maps/geonaph_art_master_v1.png",
-             "assets/images/world/endomar/endomar_art_master_v1.png"),
-            ("assets/worlds/geonaph/v1/maps/geonaph_composite_static_v1.png",
-             "assets/images/world/endomar/endomar_composite_static_v1.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_0_layer_0_ocean_floor.png",
-             "assets/images/world/endomar/tier_0_layer_0_ocean_floor.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_0_layer_4_ocean_depth.png",
-             "assets/images/world/endomar/tier_0_layer_4_ocean_depth.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_0_layer_9_ocean_surface.png",
-             "assets/images/world/endomar/tier_0_layer_9_ocean_surface.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_1_layer_0_coast_shallows.png",
-             "assets/images/world/endomar/tier_1_layer_0_coast_shallows.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_1_layer_1_low_plains.png",
-             "assets/images/world/endomar/tier_1_layer_1_low_plains.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_1_layer_2_valleys.png",
-             "assets/images/world/endomar/tier_1_layer_2_valleys.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_1_layer_3_rivers_lakes.png",
-             "assets/images/world/endomar/tier_1_layer_3_rivers_lakes.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_1_layer_4_forests_wetlands.png",
-             "assets/images/world/endomar/tier_1_layer_4_forests_wetlands.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_1_layer_6_surface_special.png",
-             "assets/images/world/endomar/tier_1_layer_6_surface_special.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_2_layer_0_hills_uplands.png",
-             "assets/images/world/endomar/tier_2_layer_0_hills_uplands.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_2_layer_3_mountains_cliffs.png",
-             "assets/images/world/endomar/tier_2_layer_3_mountains_cliffs.png"),
-            ("assets/worlds/geonaph/v1/layers/tier_2_layer_5_peaks_volcanoes.png",
-             "assets/images/world/endomar/tier_2_layer_5_peaks_volcanoes.png")
+        ENDEMAR_WORLD_SOURCE_PREFIXES = [
+            "assets/worlds/geonaph/v1/maps/",
+            "assets/worlds/geonaph/v1/layers/"
         ]
+
+        def endemar_world_target(source_key):
+            name = source_key.rsplit("/", 1)[-1]
+            if name.startswith("geonaph_"):
+                name = "endomar_" + name[len("geonaph_"):]
+            return "assets/images/world/endomar/" + name
+
+        def list_endemar_world_images():
+            keys = []
+            for source_prefix in ENDEMAR_WORLD_SOURCE_PREFIXES:
+                continuation = None
+                while True:
+                    args = {
+                        "Bucket": PUBLIC_ASSET_BUCKET,
+                        "Prefix": source_prefix,
+                        "MaxKeys": 1000
+                    }
+                    if continuation:
+                        args["ContinuationToken"] = continuation
+                    result = s3.list_objects_v2(**args)
+                    for item in result.get("Contents", []):
+                        key = item.get("Key") or ""
+                        if key.lower().endswith(".png"):
+                            keys.append(key)
+                    if not result.get("IsTruncated"):
+                        break
+                    continuation = result.get("NextContinuationToken")
+            return sorted(set(keys))
+
 
         def response(status, body=None, location=None):
             headers = {
@@ -740,8 +743,11 @@ Resources:
                 if asset_set != "endomar" or scope != "world":
                     return response(400, {"error": "Unsupported game asset import"})
 
+                source_keys = list_endemar_world_images()
                 imported, skipped, missing = [], [], []
-                for source_rel, target_rel in ENDEMAR_WORLD_IMAGES:
+
+                for source_rel in source_keys:
+                    target_rel = endemar_world_target(source_rel)
                     target_key = prefix + target_rel
                     try:
                         s3.head_object(Bucket=BUCKET, Key=target_key)
@@ -776,9 +782,10 @@ Resources:
                         raise
 
                 return response(200, {
-                    "ok": True,
+                    "ok": bool(source_keys) and bool(imported or skipped),
                     "assetSet": "endomar",
                     "scope": "world",
+                    "sourceCount": len(source_keys),
                     "imported": imported,
                     "skipped": skipped,
                     "missing": missing
