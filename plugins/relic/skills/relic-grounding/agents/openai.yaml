@@ -1,0 +1,7 @@
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "relic"
+      description: "Persistent ReLiC grounding, continuity, provenance, identity, truth-domain, and private memory tools."
+      transport: "streamable_http"
+      url: "https://relicgamemaster.com/mcp"
