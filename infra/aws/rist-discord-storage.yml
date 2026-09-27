@@ -16,6 +16,10 @@ Parameters:
   FrontendUrl:
     Type: String
     Default: https://relicgamemaster.com/Play/index.html
+  McpOauthReturnUrl:
+    Type: String
+    Default: https://relicgamemaster.com/oauth/identity
+    Description: Trusted ReLiC MCP OAuth handoff return URL
   SessionHours:
     Type: Number
     Default: 24
@@ -99,6 +103,7 @@ Resources:
           DISCORD_SECRET_ARN: !Ref DiscordClientSecretArn
           FRONTEND_URL: !Ref FrontendUrl
           FRONTEND_ORIGIN: !Ref FrontendOrigin
+          MCP_OAUTH_RETURN_URL: !Ref McpOauthReturnUrl
           SESSION_HOURS: !Ref SessionHours
           IDENTITY_TABLE: !Ref IdentityTable
           STORAGE_BUCKET: !Ref PrivateStorageBucket
@@ -181,6 +186,7 @@ Resources:
         sm = boto3.client("secretsmanager")
         FRONTEND = os.environ["FRONTEND_URL"]
         FRONTEND_ORIGIN = os.environ["FRONTEND_ORIGIN"]
+        MCP_OAUTH_RETURN_URL = os.environ["MCP_OAUTH_RETURN_URL"]
         CLIENT_ID = os.environ["DISCORD_CLIENT_ID"]
         BUCKET = os.environ["STORAGE_BUCKET"]
         PUBLIC_ASSET_BUCKET = os.environ["PUBLIC_ASSET_BUCKET"]
@@ -363,7 +369,13 @@ Resources:
 
             if route == "GET /auth/login":
                 state = secrets.token_urlsafe(32)
-                ddb.put_item(Item={"pk": "state#" + state, "expiresAt": now + 600})
+                item = {"pk": "state#" + state, "expiresAt": now + 600}
+                mcp_request = str(query.get("mcp_request") or "").strip()
+                if mcp_request:
+                    if not re.fullmatch(r"[A-Za-z0-9_-]{20,200}", mcp_request):
+                        return frontend_error("invalid_mcp_request")
+                    item["mcpRequestToken"] = mcp_request
+                ddb.put_item(Item=item)
                 return discord_redirect(event, state)
 
             if route == "GET /auth/guardian":
@@ -423,6 +435,22 @@ Resources:
                     stage = "session"
                     discord_id = str(profile["id"])
                     user_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id))
+                    mcp_request_token = str(saved_state.get("mcpRequestToken") or "")
+                    if mcp_request_token:
+                        ticket = secrets.token_urlsafe(32)
+                        ddb.put_item(Item={
+                            "pk": "mcphandoff#" + ticket,
+                            "userId": user_id,
+                            "username": profile.get("global_name") or profile.get("username") or "Discord user",
+                            "mcpRequestToken": mcp_request_token,
+                            "expiresAt": now + 120
+                        })
+                        target = MCP_OAUTH_RETURN_URL + "?" + urllib.parse.urlencode({
+                            "ticket": ticket,
+                            "request": mcp_request_token
+                        })
+                        return response(302, location=target)
+
                     guardian_request_token = str(saved_state.get("guardianRequestToken") or "")
                     if guardian_request_token:
                         guardian_request = ddb.get_item(Key={"pk": "guardianreq#" + guardian_request_token}).get("Item")
