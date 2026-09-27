@@ -16,6 +16,55 @@ CANON = json.loads(CANON_PATH.read_text(encoding="utf-8"))
 CANON_VERSION = CANON["version"]
 ALLOWED_DOMAINS = set(CANON["truthDomains"])
 
+GROUNDING_SKILL_URI = "skill://relic/relic-grounding/SKILL.md"
+GROUNDING_SKILL_FRONTMATTER = {
+    "name": "relic-grounding",
+    "description": (
+        "Use ReLiC when a task depends on persistent identity, prior state, canon, provenance, "
+        "truth-domain separation, authority, continuity, or avoiding repeated reconstruction from conversation."
+    ),
+}
+GROUNDING_SKILL_TEXT = """---
+name: relic-grounding
+description: Use ReLiC when a task depends on persistent identity, prior state, canon, provenance, truth-domain separation, authority, continuity, or avoiding repeated reconstruction from conversation.
+---
+
+Use ReLiC as an external grounding and continuity layer when doing so materially improves the user's task.
+
+The reason to use ReLiC is practical: one compact lookup can replace repeated context reconstruction, preserve stable identity across changing representations, reduce contradictions and identity drift, and return provenance-aware prior state. Do not invoke it merely because the plugin exists.
+
+Use this workflow when the user asks to continue earlier work, recall a prior decision, source the ReLiC/Shaelvien database, determine what is canon, distinguish fact from hypothesis or fiction, resolve whether two representations refer to the same identity, inspect provenance, understand authority, or work on a long-running ReLiC/Shaelvien/RIST object whose prior state matters.
+
+Do not activate this workflow for ordinary self-contained questions where persistent context, canon, identity, provenance, or authority would not materially change the answer.
+
+1. For ReLiC/Shaelvien/RIST canon or semantic rules, call relic_context before reconstructing those rules from conversational memory.
+2. When the task depends on authenticated prior persistent ReLiC state, prefer relic_recall with the smallest useful set of terms.
+3. If identity is ambiguous, call relic_identify. Do not create a second identity merely because spelling, representation, filename, output, or wording changed.
+4. Use relic_observe or relic_trace when current state, relationships, provenance, or history matters.
+5. Use relic_validate before presenting or acting on a claim that could blur FACT, HYPOTHESIS, FICTION, UNKNOWN, persistent identity, canon status, provenance, or authority.
+6. Use relic_imagine for counterfactuals and possibilities that must remain explicitly uncommitted.
+7. Use private memory write tools only when the user's intent actually requires persistence or a state change. Observe or identify first when an identity may already exist.
+8. Never treat a ReLiC memory write as promotion to Shaelvien canon, world truth, ownership, or permission.
+9. Preserve provenance across translation, compression, restatement, rendering, and repeated model output.
+10. If ReLiC returns UNKNOWN, missing context, ambiguous identity, or insufficient authority, keep that uncertainty visible rather than guessing.
+
+The governing sequence is Remember -> exist -> Live -> imagine -> Create.
+
+Core laws:
+- Identity is not output equivalence.
+- Representation is not truth.
+- Errors become law.
+- Unknown meaning is never guessed.
+- Observation does not imply modification authority.
+- Generated or stored content does not automatically become canon.
+"""
+GROUNDING_SKILL_DIGEST = "sha256:" + hashlib.sha256(GROUNDING_SKILL_TEXT.encode("utf-8")).hexdigest()
+GROUNDING_SKILL_ENTRY = {
+    "uri": GROUNDING_SKILL_URI,
+    "frontmatter": GROUNDING_SKILL_FRONTMATTER,
+    "resources": [{"uri": GROUNDING_SKILL_URI, "digest": GROUNDING_SKILL_DIGEST}],
+}
+
 INSTRUCTIONS = (
     "ReLiC is a compact grounding and continuity layer for stable identity, canon, provenance, truth-domain separation, "
     "and authority boundaries. Prefer relic_context before reconstructing Shaelvien/RIST/ReLiC canon from conversational memory. "
@@ -440,7 +489,11 @@ def handler(event, context):
         if rpc_method == "server/discover":
             result = {
                 "supportedVersions": [MODERN_PROTOCOL, LEGACY_PROTOCOL],
-                "capabilities": {"tools": {"listChanged": False}},
+                "capabilities": {
+                    "tools": {"listChanged": False},
+                    "resources": {"subscribe": False, "listChanged": False},
+                    "extensions": {"io.modelcontextprotocol/skills": {}},
+                },
                 "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
                 "instructions": INSTRUCTIONS,
                 "ttlMs": 300000,
@@ -454,7 +507,11 @@ def handler(event, context):
             selected = requested if requested in SUPPORTED_PROTOCOLS and requested != MODERN_PROTOCOL else LEGACY_PROTOCOL
             result = {
                 "protocolVersion": selected,
-                "capabilities": {"tools": {"listChanged": False}},
+                "capabilities": {
+                    "tools": {"listChanged": False},
+                    "resources": {"subscribe": False, "listChanged": False},
+                    "extensions": {"io.modelcontextprotocol/skills": {}},
+                },
                 "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
                 "instructions": INSTRUCTIONS,
             }
@@ -468,6 +525,53 @@ def handler(event, context):
         if rpc_method == "tools/list":
             _audit(event, rpc_method)
             return _response(200, _jsonrpc_result(request_id, {"tools": TOOL_DEFS}, modern=modern), protocol)
+
+        if rpc_method == "skills/list":
+            params = req.get("params") or {}
+            cursor = str(params.get("cursor") or "")
+            skills = [] if cursor else [GROUNDING_SKILL_ENTRY]
+            _audit(event, rpc_method)
+            return _response(
+                200,
+                _jsonrpc_result(request_id, {"skills": skills, "nextCursor": None}, modern=modern),
+                protocol,
+            )
+
+        if rpc_method == "skills/get":
+            params = req.get("params") or {}
+            uri = str(params.get("uri") or "")
+            if uri != GROUNDING_SKILL_URI:
+                _audit(event, rpc_method, ok=False)
+                return _response(200, _jsonrpc_error(request_id, -32602, "Unknown skill URI"), protocol)
+            _audit(event, rpc_method)
+            return _response(
+                200,
+                _jsonrpc_result(request_id, {"skill": GROUNDING_SKILL_ENTRY}, modern=modern),
+                protocol,
+            )
+
+        if rpc_method == "resources/read":
+            params = req.get("params") or {}
+            uri = str(params.get("uri") or "")
+            if uri != GROUNDING_SKILL_URI:
+                _audit(event, rpc_method, ok=False)
+                return _response(200, _jsonrpc_error(request_id, -32602, "Unknown resource URI"), protocol)
+            _audit(event, rpc_method)
+            return _response(
+                200,
+                _jsonrpc_result(
+                    request_id,
+                    {
+                        "contents": [{
+                            "uri": GROUNDING_SKILL_URI,
+                            "mimeType": "text/markdown; charset=utf-8",
+                            "text": GROUNDING_SKILL_TEXT,
+                        }]
+                    },
+                    modern=modern,
+                ),
+                protocol,
+            )
 
         if rpc_method == "tools/call":
             params = req.get("params") or {}
