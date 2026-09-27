@@ -409,7 +409,7 @@ jobs:
           done
 
           if [ -n "${MCP_RUNTIME_DOMAIN:-}" ] && [ -n "${MCP_AUTH_DOMAIN:-}" ]; then
-            curl --fail --silent --show-error \
+            curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors \
               -H 'content-type: application/json' \
               -H 'accept: application/json, text/event-stream' \
               -H 'mcp-protocol-version: 2025-11-25' \
@@ -421,15 +421,15 @@ jobs:
           assert (data.get('result') or {}).get('serverInfo',{}).get('name') == 'relic-canon', data
           print('ReLiC MCP production route verified.')
           PY
-            curl --fail --silent --show-error \
+            curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors \
               "https://${PRODUCTION_DOMAIN}/.well-known/oauth-protected-resource" > /tmp/relic-mcp-protected-resource.json
-            curl --fail --silent --show-error \
+            curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors \
               -H 'content-type: application/json' \
               -H 'accept: application/json, text/event-stream' \
               -H 'mcp-protocol-version: 2025-11-25' \
               --data '{"jsonrpc":"2.0","id":92,"method":"tools/list","params":{}}' \
               "https://${PRODUCTION_DOMAIN}/mcp" > /tmp/relic-mcp-tools.json
-            curl --fail --silent --show-error \
+            curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors \
               -H 'content-type: application/json' \
               -H 'accept: application/json, text/event-stream' \
               -H 'mcp-protocol-version: 2025-11-25' \
