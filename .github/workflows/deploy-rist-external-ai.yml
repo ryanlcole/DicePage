@@ -15,6 +15,7 @@ on:
       - 'infra/aws/relic_mcp_protocol.py'
       - 'infra/aws/relic-canon.json'
       - 'infra/aws/test_rist_relic_mcp.py'
+      - 'plugins/relic/skills/relic-grounding/SKILL.md'
       - 'infra/aws/rist_eios_bridge.py'
       - 'infra/aws/rist_eios_context.py'
       - 'infra/aws/rist_eios_domain_knowledge.py'
