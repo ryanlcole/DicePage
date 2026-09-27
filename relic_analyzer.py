@@ -77,3 +77,174 @@ def fetch_demo(kind:str="audio")->Dict[str,Any]:
         import random
         frame=[(random.randint(0,255),random.randint(0,255),random.randint(0,255)) for _ in range(600)]
         return ingest_video_frame(frame)
+
+
+# ------- Rune/Glyph/Shaep system weakness analysis -------------------------
+# This path is deterministic and structured. Natural-language observations may
+# be supplied by an AI source, but the analyzer does not silently promote them
+# to FACT or mutate the analyzed system.
+
+from relic_core import Glyph, Rune, Weakness, build_shaep
+
+CANON_FIXES = {
+    "duplicate_identity": (
+        "RELIC.IDENTITY.REUSE_BEFORE_DUPLICATE",
+        "Resolve the existing stable semantic identity and attach the new representation/observation to it.",
+    ),
+    "fact_without_provenance": (
+        "RELIC.PROVENANCE.PERSISTENT",
+        "Attach adequate source provenance or downgrade the claim to UNKNOWN/HYPOTHESIS.",
+    ),
+    "representation_as_truth": (
+        "RELIC.REPRESENTATION.NOT_TRUTH",
+        "Separate the representation from the represented identity/state and validate the underlying truth independently.",
+    ),
+    "authority_gap": (
+        "RELIC.AUTH.AMBIGUITY_DENIES",
+        "Obtain an explicit capability/authority path before the state-changing action is allowed.",
+    ),
+    "human_harm": (
+        "RELIC.SAFETY.HUMAN_NONHARM",
+        "Deny the machine action and redesign it so the machine is not authorized to harm a human.",
+    ),
+    "ecological_harm": (
+        "RELIC.SAFETY.ECOLOGICAL_COUNTERMEASURE",
+        "Prefer prevention; otherwise require a credible, proportionate, monitorable countermeasure and explicit residual-risk review.",
+    ),
+    "unproven_scope": (
+        "RELIC.VERIFICATION.PROOF_WITHIN_FIVE_MINUTES",
+        "Report only the scope actually observed. Publish verifiable proof within five minutes or mark the broader claim UNKNOWN and alert.",
+    ),
+}
+
+
+def _weakness(kind: str, summary: str, evidence: list[str], *, severity: str = "review") -> Weakness:
+    canon_id, remediation = CANON_FIXES[kind]
+    digest = __import__("hashlib").sha256(
+        (kind + "|" + summary + "|" + "|".join(sorted(evidence))).encode("utf-8")
+    ).hexdigest()[:20]
+    return Weakness(
+        id=f"weakness-{digest}",
+        category=kind,
+        summary=summary,
+        evidence_runes=tuple(evidence),
+        canon_ids=(canon_id,),
+        severity=severity,
+        remediation=remediation,
+    )
+
+
+def analyze_system_manifest(manifest: Dict[str, Any], now_unix_ms: Optional[int] = None) -> Dict[str, Any]:
+    """Analyze a structured system description and return a canon-grounded Shaep.
+
+    Expected sections are intentionally generic: identities, claims, actions,
+    and changes. The analyzer reports weaknesses; it does not rewrite the
+    target system or treat its own report as authority.
+    """
+    system_id = str(manifest.get("systemId") or manifest.get("name") or "unknown-system")
+    now_ms = int(now_unix_ms if now_unix_ms is not None else time.time() * 1000)
+    shaep = build_shaep(system_id, [])
+
+    identities = manifest.get("identities") or []
+    semantic_keys: Dict[str, List[str]] = {}
+    for item in identities:
+        identity_id = str(item.get("id") or "").strip()
+        semantic_key = str(item.get("semanticKey") or "").strip()
+        if not identity_id:
+            continue
+        rune_id = f"rune.system.identity.{identity_id}"
+        shaep.add_rune(Rune(rune_id, item, "UNKNOWN", str(item.get("provenance") or "UNKNOWN")))
+        if semantic_key:
+            semantic_keys.setdefault(semantic_key, []).append(identity_id)
+
+    for semantic_key, ids in semantic_keys.items():
+        if len(set(ids)) > 1:
+            evidence = [f"rune.system.identity.{x}" for x in ids]
+            shaep.report_weakness(_weakness(
+                "duplicate_identity",
+                f"Multiple identities claim semantic key {semantic_key}: {', '.join(ids)}",
+                evidence,
+            ))
+
+    for index, claim in enumerate(manifest.get("claims") or []):
+        claim_id = str(claim.get("id") or f"claim-{index}")
+        domain = str(claim.get("truthDomain") or "UNKNOWN")
+        provenance = str(claim.get("provenance") or "UNKNOWN")
+        rune_id = f"rune.system.claim.{claim_id}"
+        shaep.add_rune(Rune(rune_id, claim, domain if domain in {"FACT","HYPOTHESIS","FICTION","UNKNOWN"} else "UNKNOWN", provenance))
+        if domain == "FACT" and provenance in {"", "UNKNOWN", "None", "null"}:
+            shaep.report_weakness(_weakness(
+                "fact_without_provenance",
+                f"Claim {claim_id} is marked FACT without adequate provenance.",
+                [rune_id],
+            ))
+        if bool(claim.get("representationOnly")) and domain == "FACT":
+            shaep.report_weakness(_weakness(
+                "representation_as_truth",
+                f"Claim {claim_id} promotes a representation to factual state.",
+                [rune_id],
+            ))
+
+    for index, action in enumerate(manifest.get("actions") or []):
+        action_id = str(action.get("id") or f"action-{index}")
+        rune_id = f"rune.system.action.{action_id}"
+        shaep.add_rune(Rune(rune_id, action, "HYPOTHESIS", str(action.get("provenance") or "SYSTEM")))
+        if bool(action.get("changesState")) and str(action.get("authority") or "") != "explicit-capability":
+            shaep.report_weakness(_weakness(
+                "authority_gap",
+                f"State-changing action {action_id} lacks an explicit authority capability.",
+                [rune_id],
+                severity="block",
+            ))
+        if bool(action.get("humanHarmRisk")):
+            shaep.report_weakness(_weakness(
+                "human_harm",
+                f"Machine action {action_id} carries a declared human-harm risk.",
+                [rune_id],
+                severity="block",
+            ))
+        if bool(action.get("ecologicalHarm")) and not action.get("countermeasure"):
+            shaep.report_weakness(_weakness(
+                "ecological_harm",
+                f"Action {action_id} has foreseeable ecological harm without a countermeasure.",
+                [rune_id],
+                severity="block",
+            ))
+
+    for index, change in enumerate(manifest.get("changes") or []):
+        change_id = str(change.get("id") or f"change-{index}")
+        rune_id = f"rune.system.change.{change_id}"
+        shaep.add_rune(Rune(rune_id, change, "UNKNOWN", str(change.get("provenance") or "SYSTEM")))
+        claimed_scope = str(change.get("claimedScope") or "unknown").lower()
+        proven_scope = str(change.get("provenScope") or "unknown").lower()
+        created_ms = int(change.get("createdAtUnixMs") or now_ms)
+        proof_at_ms = change.get("proofAtUnixMs")
+        overdue = (now_ms - created_ms) > 300_000 and proof_at_ms is None
+        scope_mismatch = claimed_scope == "global" and proven_scope != "global"
+        if overdue or scope_mismatch:
+            reason = "proof deadline exceeded" if overdue else f"proven scope is only {proven_scope}"
+            shaep.report_weakness(_weakness(
+                "unproven_scope",
+                f"Change {change_id} claims {claimed_scope} effect but {reason}.",
+                [rune_id],
+                severity="alert",
+            ))
+
+    evidence_runes = tuple(sorted(shaep.runes))
+    if evidence_runes:
+        shaep.add_glyph(Glyph(
+            id=f"glyph.system.analysis.{system_id}",
+            rune_ids=evidence_runes,
+            relation="analyzed_under_relic_canon",
+            truth_domain="UNKNOWN",
+        ))
+
+    result = shaep.as_dict()
+    result["reportingBoundary"] = {
+        "mode": "analyze-report-propose",
+        "mutatesTargetSystem": False,
+        "canonIsGuidanceUnlessTargetAdoptsIt": True,
+        "unknownIsPreserved": True,
+    }
+    result["alertCount"] = sum(1 for w in shaep.weaknesses if w.severity in {"alert", "block"})
+    return result
