@@ -1295,3 +1295,157 @@
   font-size:clamp(11px,3vw,15px)!important;
  }
 }
+
+/* Contextual display sliders — 2026-09-26.
+   Left display swipes vertically, right display swipes horizontally.
+   The polygons advertise the available paging direction. */
+.single-analog-deck .display-slider{
+ position:relative!important;
+ z-index:3!important;
+ box-sizing:border-box!important;
+ min-width:0!important;
+ min-height:0!important;
+ display:grid!important;
+ place-items:stretch!important;
+ overflow:visible!important;
+ --display-slide-x:0px;
+ --display-slide-y:0px;
+}
+.single-analog-deck .display-slider-left{
+ grid-area:leftDisplay!important;
+ padding:13px 0!important;
+}
+.single-analog-deck .display-slider-right{
+ grid-area:rightDisplay!important;
+ padding:0 13px!important;
+}
+.single-analog-deck .display-slider button.control-display-button,
+.single-analog-deck .display-slider button.control-display-button:active{
+ grid-area:auto!important;
+ width:100%!important;
+ height:100%!important;
+ min-width:0!important;
+ min-height:0!important;
+ transform:translate3d(var(--display-slide-x),var(--display-slide-y),0)!important;
+ transition:transform 150ms cubic-bezier(.2,.8,.2,1),filter 90ms linear!important;
+ will-change:transform!important;
+}
+.single-analog-deck .display-slider.is-dragging button.control-display-button{
+ transition:none!important;
+ filter:brightness(1.08)!important;
+}
+.single-analog-deck .display-slider.is-snapping button.control-display-button{
+ transition:transform 165ms cubic-bezier(.18,.88,.3,1.18),filter 90ms linear!important;
+}
+.single-analog-deck .display-slider.is-scrollable{
+ touch-action:none!important;
+}
+.single-analog-deck .display-slider-cue{
+ position:absolute!important;
+ z-index:7!important;
+ display:block!important;
+ width:18px!important;
+ height:10px!important;
+ background:currentColor!important;
+ opacity:.94!important;
+ filter:drop-shadow(0 1px 3px #000)!important;
+ pointer-events:none!important;
+}
+.single-analog-deck .display-slider-left .display-slider-cue{
+ color:#69d7ff!important;
+ left:50%!important;
+ transform:translateX(-50%)!important;
+}
+.single-analog-deck .display-slider-right .display-slider-cue{
+ color:#e4bd62!important;
+ top:50%!important;
+ transform:translateY(-50%)!important;
+}
+.single-analog-deck .cue-up{
+ top:1px!important;
+ clip-path:polygon(50% 0,100% 100%,0 100%)!important;
+}
+.single-analog-deck .cue-down{
+ bottom:1px!important;
+ clip-path:polygon(0 0,100% 0,50% 100%)!important;
+}
+.single-analog-deck .cue-left{
+ left:1px!important;
+ width:10px!important;
+ height:18px!important;
+ clip-path:polygon(100% 0,100% 100%,0 50%)!important;
+}
+.single-analog-deck .cue-right{
+ right:1px!important;
+ width:10px!important;
+ height:18px!important;
+ clip-path:polygon(0 0,100% 50%,0 100%)!important;
+}
+
+/* The source explorer is the first context where the universal analog
+   becomes a cursor again because both display selectors are single-choice. */
+.asset-source-explorer{
+ position:absolute!important;
+ z-index:5!important;
+ left:50%!important;
+ top:55%!important;
+ transform:translate(-50%,-50%)!important;
+ box-sizing:border-box!important;
+ width:min(78%,560px)!important;
+ min-height:42%!important;
+ display:grid!important;
+ grid-template-rows:auto minmax(0,1fr) auto!important;
+ gap:10px!important;
+ padding:12px!important;
+ border:1px solid rgba(220,185,96,.78)!important;
+ border-radius:14px!important;
+ background:rgba(3,10,16,.86)!important;
+ box-shadow:0 18px 50px #000b,inset 0 0 0 1px rgba(96,207,255,.08)!important;
+ backdrop-filter:blur(4px)!important;
+ pointer-events:none!important;
+}
+.asset-source-explorer>header{
+ display:flex!important;
+ justify-content:space-between!important;
+ gap:10px!important;
+ align-items:center!important;
+ color:#efd58e!important;
+ font:900 9px/1 system-ui,-apple-system,sans-serif!important;
+ letter-spacing:.1em!important;
+}
+.asset-source-explorer>header span{color:#83d9ff!important}
+.asset-source-explorer-grid{
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,minmax(42px,1fr))!important;
+ gap:8px!important;
+}
+.asset-source-explorer-grid>span{
+ border:1px solid rgba(102,210,255,.42)!important;
+ border-radius:8px!important;
+ background:
+  linear-gradient(135deg,rgba(29,84,118,.48),rgba(32,21,11,.52))!important;
+ box-shadow:inset 0 0 16px #0007!important;
+}
+.asset-source-explorer>footer{
+ color:#a9bbc4!important;
+ font:800 7px/1 system-ui,-apple-system,sans-serif!important;
+ letter-spacing:.09em!important;
+ text-align:center!important;
+}
+.experiments-viewer .viewer-reticle{
+ z-index:8!important;
+}
+
+@media(max-width:700px) and (orientation:portrait){
+ .single-analog-deck .display-slider-left{padding-block:11px!important}
+ .single-analog-deck .display-slider-right{padding-inline:11px!important}
+ .single-analog-deck .display-slider-cue{width:15px!important;height:8px!important}
+ .single-analog-deck .cue-left,.single-analog-deck .cue-right{width:8px!important;height:15px!important}
+ .asset-source-explorer{
+  width:min(82%,440px)!important;
+  min-height:38%!important;
+  padding:9px!important;
+  gap:7px!important;
+ }
+}
