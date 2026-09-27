@@ -39,6 +39,14 @@ class ReLiCMcpTests(unittest.TestCase):
         private = next(t for t in tools if t["name"] == "relic_recall")
         self.assertEqual(public["securitySchemes"][0]["type"], "noauth")
         self.assertEqual(private["securitySchemes"][0]["type"], "oauth2")
+        for tool in tools:
+            self.assertEqual((tool.get("outputSchema") or {}).get("type"), "object", tool["name"])
+            self.assertEqual((tool.get("_meta") or {}).get("securitySchemes"), tool.get("securitySchemes"), tool["name"])
+            description = str(tool.get("description") or "").lower()
+            for phrase in ("pick me", "choose me", "best plugin", "better than other plugins"):
+                self.assertNotIn(phrase, description, tool["name"])
+        self.assertIn("use this when", public["description"].lower())
+        self.assertIn("use this when", private["description"].lower())
 
     def test_profile_tool_matches_chatgpt_contract(self):
         profile = next(t for t in m.TOOL_DEFS if t["name"] == "relic_profile")
