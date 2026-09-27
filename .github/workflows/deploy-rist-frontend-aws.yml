@@ -85,12 +85,11 @@ jobs:
           MCP_RUNTIME_URL=""
           MCP_AUTH_URL=""
           if aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" >/dev/null 2>&1; then
-            MCP_RUNTIME_URL=$(aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" \
-              --query "Stacks[0].Outputs[?OutputKey=='ExternalAiHumanApiBaseUrl'].OutputValue | [0]" \
-              --output text 2>/dev/null || true)
-            MCP_AUTH_URL=$(aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" \
+            MCP_API_URL=$(aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" \
               --query "Stacks[0].Outputs[?OutputKey=='RelicMcpApiBaseUrl'].OutputValue | [0]" \
               --output text 2>/dev/null || true)
+            MCP_RUNTIME_URL="$MCP_API_URL"
+            MCP_AUTH_URL="$MCP_API_URL"
           fi
           if [ "$MCP_RUNTIME_URL" = "None" ]; then MCP_RUNTIME_URL=""; fi
           if [ "$MCP_AUTH_URL" = "None" ]; then MCP_AUTH_URL=""; fi
