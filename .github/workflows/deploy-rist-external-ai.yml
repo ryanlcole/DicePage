@@ -10,6 +10,9 @@ on:
       - 'infra/aws/rist_external_ai_handler.py'
       - 'infra/aws/rist_external_ai_gateway.py'
       - 'infra/aws/rist_relic_mcp.py'
+      - 'infra/aws/relic_mcp_auth.py'
+      - 'infra/aws/relic_mcp_store.py'
+      - 'infra/aws/relic_mcp_protocol.py'
       - 'infra/aws/relic-canon.json'
       - 'infra/aws/test_rist_relic_mcp.py'
       - 'infra/aws/rist_eios_bridge.py'
@@ -53,6 +56,9 @@ jobs:
           python -m py_compile infra/aws/rist_external_ai_handler.py
           python -m py_compile infra/aws/rist_external_ai_gateway.py
           python -m py_compile infra/aws/rist_relic_mcp.py
+          python -m py_compile infra/aws/relic_mcp_protocol.py
+          python -m py_compile infra/aws/relic_mcp_store.py
+          python -m py_compile infra/aws/relic_mcp_auth.py
           python infra/aws/test_rist_relic_mcp.py
           python -m py_compile infra/aws/rist_eios_context.py
           python -m py_compile infra/aws/rist_eios_domain_knowledge.py
@@ -76,7 +82,14 @@ jobs:
             --output text)
           test -n "$IDENTITY_TABLE"
           test "$IDENTITY_TABLE" != "None"
+          AUTH_API=$(aws cloudformation describe-stacks \
+            --stack-name "$AUTH_STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiBaseUrl'].OutputValue" \
+            --output text)
+          test -n "$AUTH_API"
+          test "$AUTH_API" != "None"
           echo "IDENTITY_TABLE=$IDENTITY_TABLE" >> "$GITHUB_ENV"
+          echo "DISCORD_AUTH_API=$AUTH_API" >> "$GITHUB_ENV"
 
       - name: Stabilize and recover external AI stack
         shell: bash
@@ -131,6 +144,7 @@ jobs:
             "FrontendOrigin=$PRODUCTION_ORIGIN"
             "OwnerReleased=false"
             "EiosModelId=us.amazon.nova-lite-v1:0"
+            "DiscordAuthApiBaseUrl=$DISCORD_AUTH_API"
           )
           if [ -n "${OWNER_USER_ID:-}" ]; then
             PARAMS+=("OwnerUserId=$OWNER_USER_ID")
@@ -220,6 +234,42 @@ jobs:
           print('ReLiC MCP verified:', data)
           PY
           echo "MCP_API=$MCP_API" >> "$GITHUB_ENV"
+
+      - name: Verify ReLiC OAuth metadata and persistent recall discovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          OAUTH_API=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='RelicMcpApiBaseUrl'].OutputValue" --output text)
+          test -n "$OAUTH_API"
+          test "$OAUTH_API" != "None"
+          curl --fail --silent --show-error "$OAUTH_API/.well-known/oauth-protected-resource" > /tmp/relic-resource.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-resource.json'))
+          assert data.get('resource') == 'https://relicgamemaster.com/mcp', data
+          assert set(data.get('scopes_supported') or []) == {'relic.read','relic.write'}, data
+          PY
+          curl --fail --silent --show-error \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -H 'mcp-protocol-version: 2025-11-25' \
+            --data '{"jsonrpc":"2.0","id":3,"method":"tools/list","params":{}}' \
+            "$MCP_API" > /tmp/relic-tools.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-tools.json'))
+          tools=(data.get('result') or {}).get('tools') or []
+          names={x.get('name') for x in tools}
+          expected={'relic_context','relic_validate','relic_canon','relic_health','relic_profile','relic_recall','relic_identify','relic_observe','relic_trace','relic_translate','relic_imagine','relic_remember','relic_relate','relic_instantiate','relic_transition'}
+          assert expected.issubset(names), (expected-names, names)
+          recall=next(x for x in tools if x.get('name') == 'relic_recall')
+          assert 'repeated context reconstruction' in recall.get('description',''), recall
+          assert (recall.get('securitySchemes') or [{}])[0].get('type') == 'oauth2', recall
+          public=next(x for x in tools if x.get('name') == 'relic_context')
+          assert (public.get('securitySchemes') or [{}])[0].get('type') == 'noauth', public
+          print('ReLiC public canon + private recall tools verified:', len(tools))
+          PY
 
       - name: Verify EIOS Bedrock bridge
         shell: bash
