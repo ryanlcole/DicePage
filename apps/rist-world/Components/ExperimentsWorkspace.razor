@@ -35,7 +35,14 @@
    <div class="asset-preview @(_assetKind=="SPRITE"?"sprite":"image")"
         style="@AssetPreviewStyle"
         aria-hidden="true">
-    <span>@_assetKind</span>
+    @if(!string.IsNullOrWhiteSpace(SelectedAssetUrl))
+    {
+     <img src="@SelectedAssetUrl" alt="" />
+    }
+    else
+    {
+     <span>@_assetKind</span>
+    }
    </div>
   }
 
@@ -85,6 +92,28 @@
         <button type="button"
                 class="linked-asset @(asset.Key==_selectedAssetKey?"selected":"")"
                 @onclick="()=>SelectMyAsset(asset.Key)"
+                aria-label="Select @asset.Name">
+         <img src="@asset.Url" alt="" loading="lazy" />
+         <span>@asset.Name</span>
+        </button>
+       }
+      </div>
+     }
+    }
+    else if(IsGameAssetSource)
+    {
+     @if(_gameAssets.Count==0)
+     {
+      <div class="asset-library-state">NO DEPLOYED @_assetScope @(_assetKind=="SPRITE"?"SPRITES":"IMAGES") FOUND</div>
+     }
+     else
+     {
+      <div class="asset-source-explorer-grid linked-assets">
+       @foreach(var asset in _gameAssets)
+       {
+        <button type="button"
+                class="linked-asset @(asset.Key==_selectedAssetKey?"selected":"")"
+                @onclick="()=>SelectGameAsset(asset.Key)"
                 aria-label="Select @asset.Name">
          <img src="@asset.Url" alt="" loading="lazy" />
          <span>@asset.Name</span>
@@ -240,6 +269,7 @@
  string _assetLoadError="";
  string _selectedAssetKey="";
  List<UserAssetEntry> _myAssets=[];
+ List<UserAssetEntry> _gameAssets=[];
  string _message="Slide the left display vertically and the right display horizontally. The analog snaps those displays one page at a time; when neither display has multiple choices it becomes the viewer cursor.";
 
  static readonly string[] Settings=["GRAPHICS","LANGUAGE","ACCESSIBILITY","CONTROLS","AUDIO","DISPLAY","NETWORK","ACCOUNT","HELP"];
@@ -286,6 +316,8 @@
  string[] AssetSources=>_assetKind=="SPRITE"?SpriteSources:ImageSources;
  string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
  bool IsMyAssetSource=>_assetSource is "MY IMAGES" or "MY SPRITES";
+ bool IsGameAssetSource=>_assetSource is "GAME IMAGES" or "GAME SPRITES";
+ const string EndemarCanonicalAssetRoot="https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/";
  string PrivateAssetPrefix=>_assetKind=="SPRITE"
   ?$"assets/sprites/{_assetScope.ToLowerInvariant()}/"
   :$"assets/images/{_assetScope.ToLowerInvariant()}/";
@@ -742,14 +774,14 @@
     _message="Edit selected. Browse requests a source through the future image-tool adapter.";
     break;
    case Stage.BrowsePlace:
-    if(IsMyAssetSource&&string.IsNullOrWhiteSpace(_selectedAssetKey))
+    if((IsMyAssetSource||IsGameAssetSource)&&string.IsNullOrWhiteSpace(_selectedAssetKey))
     {
-     _message=$"Choose one of My {_assetKind.ToLowerInvariant()}s first, then touch the left display to select it.";
+     _message=$"Choose a {_assetKind.ToLowerInvariant()} first, then touch the left display to select it.";
      break;
     }
     _stage=Stage.Scale;
-    _message=IsMyAssetSource
-     ?$"{FileLabel(_selectedAssetKey)} selected from {_assetSource}. Use Y or slide the left display to set scale."
+    _message=(IsMyAssetSource||IsGameAssetSource)
+     ?$"{SelectedAssetName} selected from {_assetSource}. Use Y or slide the left display to set scale."
      :$"{_assetSource} {_assetKind.ToLowerInvariant()} selected. Use Y or slide the left display to set scale.";
     break;
    case Stage.SaveCancel:
@@ -899,6 +931,7 @@
     _assetLoadError="";
     _stage=Stage.BrowsePlace;
     if(IsMyAssetSource)_=LoadMyAssetsAsync();
+    else if(IsGameAssetSource)LoadGameAssets();
     _message=_assetSource=="UPLOAD"
      ?$"Upload explorer opened for {_assetKind.ToLowerInvariant()} assets. Choose from this device; uploads are added to My {_assetKind.ToLowerInvariant()}s."
      :$"{_assetSource} explorer opened. Use the cursor or touch; left display selects and right display returns.";
@@ -948,6 +981,47 @@
     _message=$"{CurrentScope} is registered in the GameMaster flowchart; its beginner Shaeps are not wired in this experiment yet.";
     break;
   }
+ }
+
+ void LoadGameAssets()
+ {
+  _gameAssets.Clear();
+  _assetLoadError="";
+
+  if(_assetKind=="IMAGE"&&_assetScope=="WORLD")
+  {
+   _gameAssets=
+   [
+    new UserAssetEntry("game:endemar:surface",EndemarCanonicalAssetRoot+"geonaph_full_static_canonical_surface_v001.png","Endemar · Surface",DateTimeOffset.MinValue),
+    new UserAssetEntry("game:endemar:highlands",EndemarCanonicalAssetRoot+"geonaph_full_static_highlands_rivers_v001.png","Endemar · Highlands + Rivers",DateTimeOffset.MinValue),
+    new UserAssetEntry("game:endemar:mountains",EndemarCanonicalAssetRoot+"geonaph_full_static_mountain_volcanic_archipelago_v001.png","Endemar · Mountains + Volcanic",DateTimeOffset.MinValue)
+   ];
+   _message="Loaded the same canonical Endemar world images used by World Builder.";
+  }
+ }
+
+ string SelectedAssetUrl
+ {
+  get
+  {
+   if(string.IsNullOrWhiteSpace(_selectedAssetKey))return "";
+   return _gameAssets.Concat(_myAssets).FirstOrDefault(asset=>asset.Key==_selectedAssetKey)?.Url??"";
+  }
+ }
+
+ string SelectedAssetName
+ {
+  get
+  {
+   if(string.IsNullOrWhiteSpace(_selectedAssetKey))return _assetKind;
+   return _gameAssets.Concat(_myAssets).FirstOrDefault(asset=>asset.Key==_selectedAssetKey)?.Name??FileLabel(_selectedAssetKey);
+  }
+ }
+
+ void SelectGameAsset(string key)
+ {
+  _selectedAssetKey=key;
+  _message=$"{SelectedAssetName} selected. Touch the left display to use it.";
  }
 
  async Task LoadMyAssetsAsync()
@@ -1024,7 +1098,7 @@
  void SelectMyAsset(string key)
  {
   _selectedAssetKey=key;
-  _message=$"{FileLabel(key)} selected. Touch the left display to use it.";
+  _message=$"{SelectedAssetName} selected. Touch the left display to use it.";
  }
 
  async Task HandleAssetUpload(InputFileChangeEventArgs e)
