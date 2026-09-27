@@ -1,6 +1,6 @@
 {
   "format": "ReLiC-Canon",
-  "version": "RELIC-CANON-2026-09-27.6",
+  "version": "RELIC-CANON-2026-09-27.7",
   "status": "canonical-baseline",
   "motto": [
     "Remember",
@@ -196,6 +196,36 @@
       "id": "RELIC.HARM.NO_AUTHORITY_ESCALATION",
       "section": "harm",
       "text": "A harm event increases urgency, not authority."
+    },
+    {
+      "id": "RELIC.RECURSION.PRIVATE_TRACE",
+      "section": "efficiency",
+      "text": "Prove the recursion path with keyed request identity and semantic IDs without storing plaintext questions in the proof ledger."
+    },
+    {
+      "id": "RELIC.RECURSION.REUSE_VISIBLE",
+      "section": "efficiency",
+      "text": "Reused semantic identities, cache hits, model calls, and tool calls remain inspectable."
+    },
+    {
+      "id": "RELIC.ENERGY.BASELINE_REQUIRED",
+      "section": "efficiency",
+      "text": "Energy savings require a matched baseline for the same task."
+    },
+    {
+      "id": "RELIC.ENERGY.JOULES_REQUIRED",
+      "section": "efficiency",
+      "text": "Electrical-energy savings may be claimed only when both baseline and ReLiC paths have measured joules."
+    },
+    {
+      "id": "RELIC.ENERGY.QUALITY_REQUIRED",
+      "section": "efficiency",
+      "text": "An efficiency claim must preserve the declared minimum output-quality threshold."
+    },
+    {
+      "id": "RELIC.ENERGY.UNMEASURED_NOT_SAVED",
+      "section": "efficiency",
+      "text": "Absent joule measurements, report compute/resource reduction and ENERGY UNMEASURED rather than estimated electrical-energy savings."
     }
   ],
   "truthDomains": {
@@ -246,7 +276,7 @@
   "sources": [
     {
       "path": "docs/RELIC_CANON.md",
-      "blobSha": "2a2981469e0e41f9bab48f1b1b74f9e4eb256cb5",
+      "blobSha": "76ef29f6b43eef2d5fb95ecd6972e0249d0361e7",
       "authority": "foundational ReLiC canon"
     },
     {
@@ -458,5 +488,31 @@
       "Remember"
     ],
     "authorityRule": "A harm event increases urgency, not authority. Automatic remediation must remain defensive, scoped, auditable, and inside existing explicit authority."
+  },
+  "efficiencyProofContract": {
+    "requestPrivacy": "Use a keyed one-way request fingerprint; do not store raw private questions in the proof ledger.",
+    "recursionEvidence": [
+      "semantic request identity",
+      "parent/child recursion steps",
+      "reused Rune/Glyph/Shaep ids",
+      "cache hits",
+      "model calls",
+      "tool calls",
+      "input/output bytes",
+      "timing",
+      "trace digest"
+    ],
+    "baselineRule": "Compare the same task without ReLiC semantic reuse against the ReLiC-assisted path under the same evaluation criteria.",
+    "energyRule": "Electrical-energy savings require measured joules for both baseline and ReLiC paths.",
+    "unmeasuredRule": "Without measured joules, report compute/resource reduction and ENERGY UNMEASURED; do not claim electrical-energy savings.",
+    "qualityRule": "Efficiency claims require the declared minimum output-quality equivalence threshold.",
+    "repeatedTrials": [
+      "trial count",
+      "mean joules saved",
+      "mean percent saved",
+      "variability/confidence interval",
+      "meter/hardware/provider identity",
+      "software/model versions"
+    ]
   }
 }
