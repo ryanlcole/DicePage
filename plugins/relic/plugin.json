@@ -33,8 +33,8 @@
           "Recall what ReLiC already knows about this subject before we reconstruct it from chat.",
           "Validate these claims against ReLiC truth-domain, provenance, identity, and authority rules."
         ],
-        "privacyPolicyURL": "https://relicgamemaster.com/privacy.html",
-        "termsOfServiceURL": "https://relicgamemaster.com/terms.html"
+        "privacyPolicyURL": "https://relicgamemaster.com/Game/privacy.html",
+        "termsOfServiceURL": "https://relicgamemaster.com/Game/terms.html"
       }
     }
   },
