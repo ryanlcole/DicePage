@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - live-alpha-rist-blazor-world
+      - 'relic-freeze-*'
     paths:
       - 'research/relic_science/**'
       - 'tests/test_relic_science.py'
