@@ -47,13 +47,13 @@
   @if(_stage==Stage.BrowsePlace)
   {
    <section class="asset-source-explorer" aria-label="@_assetSource explorer">
-    <header><strong>@_assetSource</strong><span>@_assetKind</span></header>
+    <header><strong>@_assetSource</strong><span>@_assetScope · @_assetKind</span></header>
 
     @if(_assetSource=="UPLOAD")
     {
      <div class="asset-upload-pane">
-      <strong>ADD TO MY @(_assetKind=="SPRITE"?"SPRITES":"IMAGES")</strong>
-      <span>Choose an image from this device. It is stored in your private RIST library and becomes available under My @(_assetKind=="SPRITE"?"Sprites":"Images").</span>
+      <strong>ADD @_assetScope TO MY @(_assetKind=="SPRITE"?"SPRITES":"IMAGES")</strong>
+      <span>Choose an image from this device. It is stored in your private RIST library under @_assetScope and becomes available under My @(_assetKind=="SPRITE"?"Sprites":"Images").</span>
       <InputFile OnChange="HandleAssetUpload"
                  accept="image/png,image/jpeg,image/webp,image/gif"
                  aria-label="Choose an image to add to your private library" />
@@ -75,7 +75,7 @@
      }
      else if(_myAssets.Count==0)
      {
-      <div class="asset-library-state">NO SAVED @(_assetKind=="SPRITE"?"SPRITES":"IMAGES") YET · CHOOSE UPLOAD</div>
+      <div class="asset-library-state">NO SAVED @_assetScope @(_assetKind=="SPRITE"?"SPRITES":"IMAGES") YET · CHOOSE UPLOAD</div>
      }
      else
      {
@@ -232,6 +232,7 @@
  int _assetX;
  int _assetY;
  string _assetKind="IMAGE";
+ string _assetScope="WORLD";
  string _assetSource="GAME IMAGES";
  string _assetMode="ADD";
  bool _savedAsset;
@@ -285,7 +286,10 @@
  string[] AssetSources=>_assetKind=="SPRITE"?SpriteSources:ImageSources;
  string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
  bool IsMyAssetSource=>_assetSource is "MY IMAGES" or "MY SPRITES";
- string PrivateAssetPrefix=>_assetKind=="SPRITE"?"assets/sprites/":"assets/images/";
+ string PrivateAssetPrefix=>_assetKind=="SPRITE"
+  ?$"assets/sprites/{_assetScope.ToLowerInvariant()}/"
+  :$"assets/images/{_assetScope.ToLowerInvariant()}/";
+ string EndemarSeedPrefix=>"assets/images/world/endomar/";
  string LeftSliderClass=>$"display-slider display-slider-left {(LeftDisplayOptionCount>1?"is-scrollable":"is-static")}";
  string RightSliderClass=>$"display-slider display-slider-right {(RightDisplayOptionCount>1?"is-scrollable":"is-static")}";
  string LeftDisplayTextClass=>DisplayTextClass(LeftDisplayValue);
@@ -962,10 +966,27 @@
    }
 
    var listing=await Auth.ListAsync(PrivateAssetPrefix);
+
+   if(_assetKind=="IMAGE"&&_assetScope=="WORLD")
+   {
+    var hasEndemarSeed=(listing?.Items??[])
+     .Any(item=>item.Key.StartsWith(EndemarSeedPrefix,StringComparison.OrdinalIgnoreCase));
+
+    if(!hasEndemarSeed)
+    {
+     _message="Copying the existing Endemar world artwork into My Images…";
+     await InvokeAsync(StateHasChanged);
+     var imported=await Auth.ImportGameAssetsAsync("endomar","world");
+     if(imported?.Ok==true)
+      _message=$"Endemar world artwork linked to My Images: {imported.Imported.Count} copied, {imported.Skipped.Count} already present.";
+     listing=await Auth.ListAsync(PrivateAssetPrefix);
+    }
+   }
+
    var items=(listing?.Items??[])
     .Where(item=>IsSupportedImageKey(item.Key))
     .OrderByDescending(item=>item.LastModified)
-    .Take(24)
+    .Take(48)
     .ToList();
 
    var tasks=items.Select(async item =>
@@ -1039,7 +1060,7 @@
    _assetSourceIndex=Array.IndexOf(AssetSources,_assetSource);
    if(_assetSourceIndex<0)_assetSourceIndex=0;
    _selectedAssetKey=key;
-   _message=$"{file.Name} added to {_assetSource}. It will stay linked to this account as Shaelvien grows.";
+   _message=$"{file.Name} added to {_assetScope} {_assetSource}. It will stay linked to this account as Shaelvien grows.";
 
    await LoadMyAssetsAsync();
    if(_myAssets.Any(asset=>asset.Key==key))_selectedAssetKey=key;
