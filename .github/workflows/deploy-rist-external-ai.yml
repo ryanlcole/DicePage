@@ -224,11 +224,24 @@ jobs:
             -H 'mcp-protocol-version: 2025-11-25' \
             --data '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"relic_health","arguments":{}}}' \
             "$MCP_API" > /tmp/relic-mcp-health.json
+          curl --fail --silent --show-error \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -H 'mcp-protocol-version: 2025-11-25' \
+            --data '{"jsonrpc":"2.0","id":23,"method":"skills/list","params":{}}' \
+            "$MCP_API" > /tmp/relic-mcp-skills.json
           python - <<'PY'
           import json
           init=json.load(open('/tmp/relic-mcp-init.json'))
           health=json.load(open('/tmp/relic-mcp-health.json'))
+          skills=json.load(open('/tmp/relic-mcp-skills.json'))
           assert init['result']['serverInfo']['name'] == 'relic-canon', init
+          extensions=(init['result'].get('capabilities') or {}).get('extensions') or {}
+          assert 'io.modelcontextprotocol/skills' in extensions, init
+          listed=(skills.get('result') or {}).get('skills') or []
+          assert len(listed) == 1, skills
+          assert listed[0].get('frontmatter',{}).get('name') == 'relic-grounding', skills
+          assert (listed[0].get('resources') or [{}])[0].get('digest','').startswith('sha256:'), skills
           data=health['result']['structuredContent']
           assert data['ok'] is True, data
           assert data['canonVersion'] == 'RELIC-CANON-2026-09-27.1', data
