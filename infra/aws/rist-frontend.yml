@@ -197,7 +197,7 @@ Resources:
                 OriginProtocolPolicy: https-only
                 OriginSSLProtocols: [TLSv1.2]
             - !Ref AWS::NoValue
-        OrderedCacheBehaviors:
+        CacheBehaviors:
           - !If
             - HasMcpRuntime
             - PathPattern: /mcp
