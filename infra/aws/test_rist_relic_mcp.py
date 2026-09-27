@@ -40,6 +40,26 @@ class ReLiCMcpTests(unittest.TestCase):
         self.assertEqual(public["securitySchemes"][0]["type"], "noauth")
         self.assertEqual(private["securitySchemes"][0]["type"], "oauth2")
 
+    def test_grounding_skill_is_discoverable(self):
+        headers = {"mcp-protocol-version":"2025-11-25"}
+        r = m.handler(event({"jsonrpc":"2.0","id":20,"method":"skills/list","params":{}}, headers), None)
+        data = body(r)["result"]
+        self.assertEqual(len(data["skills"]), 1)
+        skill = data["skills"][0]
+        self.assertEqual(skill["frontmatter"]["name"], "relic-grounding")
+        self.assertTrue(skill["resources"][0]["digest"].startswith("sha256:"))
+
+        uri = skill["uri"]
+        r = m.handler(event({"jsonrpc":"2.0","id":21,"method":"skills/get","params":{"uri":uri}}, headers), None)
+        self.assertEqual(body(r)["result"]["skill"]["uri"], uri)
+
+        r = m.handler(event({"jsonrpc":"2.0","id":22,"method":"resources/read","params":{"uri":uri}}, headers), None)
+        content = body(r)["result"]["contents"][0]
+        self.assertEqual(content["uri"], uri)
+        self.assertIn("one compact lookup can replace repeated context reconstruction", content["text"])
+        digest = "sha256:" + __import__("hashlib").sha256(content["text"].encode("utf-8")).hexdigest()
+        self.assertEqual(digest, skill["resources"][0]["digest"])
+
     def test_context_is_observer_only(self):
         r = m.handler(event({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"relic_context","arguments":{"subject":"ReLiC plugin","truthDomain":"FACT"}}}, {"mcp-protocol-version":"2025-11-25"}), None)
         data = body(r)["result"]["structuredContent"]
