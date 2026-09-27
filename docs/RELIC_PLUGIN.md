@@ -24,6 +24,14 @@ Current public tools include:
 - `relic_validate`
 - `relic_canon`
 - `relic_health`
+- `relic_project_search` — search the dated, source-linked public project corpus.
+- `relic_project_fetch` — fetch one exact public project record with source/provenance metadata.
+
+### Public project knowledge
+
+The anonymous project-knowledge tools expose only the repository's explicitly public evidence corpus. Search results preserve the snapshot date, record date, truth domain, status, visibility, provenance, and source references. Retrieval is evidence, not automatic current canon.
+
+The deployment workflow stages `knowledge/project/public.json` into the Lambda package without publishing private project corpora. User-specific continuity remains behind OAuth-scoped private memory.
 
 ### Private ReLiC memory
 
