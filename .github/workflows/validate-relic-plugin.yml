@@ -73,6 +73,25 @@ jobs:
           print('ReLiC portable plugin package verified:', len(cases), 'tool-selection cases')
           PY
 
+      - name: Package portable ReLiC plugin
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f relic-plugin.zip
+          (
+            cd plugins/relic
+            zip -q -r "$GITHUB_WORKSPACE/relic-plugin.zip" .
+          )
+          unzip -l relic-plugin.zip
+          unzip -p relic-plugin.zip plugin.json | python -m json.tool >/dev/null
+          unzip -p relic-plugin.zip mcp.json | python -m json.tool >/dev/null
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relic-plugin-portable
+          path: relic-plugin.zip
+          retention-days: 14
+
       - name: Verify production ReLiC MCP discovery
         if: ${{ github.event_name != 'push' }}
         shell: bash
