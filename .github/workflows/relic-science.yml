@@ -13,6 +13,8 @@ on:
       - 'tests/test_relic_core.py'
       - 'tests/test_relic_falsification.py'
       - 'tests/test_relic_morals.py'
+      - 'tests/test_relic_affect.py'
+      - 'relic_affect.py'
       - 'relic_morals.py'
       - 'research/relic_morals/**'
       - 'relic_core.py'
@@ -36,7 +38,7 @@ jobs:
       - name: Run deterministic ReLiC science tests
         run: |
           python -m pip install --upgrade pip pytest
-          python -m pytest -q tests/test_relic_science.py tests/test_relic_core.py tests/test_relic_falsification.py tests/test_relic_morals.py
+          python -m pytest -q tests/test_relic_science.py tests/test_relic_core.py tests/test_relic_falsification.py tests/test_relic_morals.py tests/test_relic_affect.py
 
       - name: Print Infoton audit
         run: python research/relic_science/infoton_audit.py --pretty
