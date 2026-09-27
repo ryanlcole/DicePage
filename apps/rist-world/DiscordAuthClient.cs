@@ -507,6 +507,12 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     public async Task<StorageList?> ListAsync(string prefix = "maps/")
         => await SendAsync<StorageList>(HttpMethod.Get, "/storage/list?prefix=" + Uri.EscapeDataString(prefix));
 
+    public async Task<GameAssetImportResult?> ImportGameAssetsAsync(string assetSet, string scope)
+        => await SendAsync<GameAssetImportResult>(
+            HttpMethod.Post,
+            "/storage/import-game-assets",
+            new { assetSet, scope });
+
     public async Task<string?> DownloadUrlAsync(string key)
     {
         using var request = new HttpRequestMessage(
@@ -615,4 +621,10 @@ public sealed class DiscordAuthClient(HttpClient http, IJSRuntime js)
     public sealed record DownloadResponse(string Url);
     public sealed record StorageItem(string Key, long Size, DateTimeOffset LastModified);
     public sealed record StorageList(List<StorageItem> Items, bool Truncated);
+    public sealed record GameAssetImportResult(
+        bool Ok,
+        string AssetSet,
+        string Scope,
+        List<string> Imported,
+        List<string> Skipped);
 }
