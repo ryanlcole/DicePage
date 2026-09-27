@@ -246,6 +246,7 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='RelicMcpApiBaseUrl'].OutputValue" --output text)
           test -n "$OAUTH_API"
           test "$OAUTH_API" != "None"
+          export OAUTH_API MCP_API
           curl --fail --silent --show-error "$OAUTH_API/.well-known/oauth-protected-resource" > /tmp/relic-resource.json
           python - <<'PY'
           import json
