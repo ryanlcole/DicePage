@@ -43,7 +43,7 @@ class ReLiCMcpTests(unittest.TestCase):
     def test_context_is_observer_only(self):
         r = m.handler(event({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"relic_context","arguments":{"subject":"ReLiC plugin","truthDomain":"FACT"}}}, {"mcp-protocol-version":"2025-11-25"}), None)
         data = body(r)["result"]["structuredContent"]
-        self.assertEqual(data["mode"], "read-only-observer")
+        self.assertEqual(data["mode"], "observer-first")
         self.assertFalse(data["continuity"]["authoritativeStateConnected"])
         self.assertTrue(any(p["id"] == "RELIC.REPRESENTATION.NOT_TRUTH" for p in data["governingPrinciples"]))
 
@@ -59,6 +59,15 @@ class ReLiCMcpTests(unittest.TestCase):
         data = body(r)["result"]
         self.assertTrue(data["isError"])
         self.assertIn("mcp/www_authenticate", data["_meta"])
+
+    def test_health_distinguishes_memory_from_authority(self):
+        r = m.handler(event({"jsonrpc":"2.0","id":40,"method":"tools/call","params":{"name":"relic_health","arguments":{}}}, {"mcp-protocol-version":"2025-11-25"}), None)
+        data = body(r)["result"]["structuredContent"]
+        self.assertEqual(data["mode"], "observer-first")
+        self.assertTrue(data["publicCanonReadOnly"])
+        self.assertTrue(data["privateMemoryWritesExposed"])
+        self.assertFalse(data["privateMemoryIsAuthoritativeWorldTruth"])
+        self.assertFalse(data["authoritativeWritesExposed"])
 
     def test_modern_discovery(self):
         req = {"jsonrpc":"2.0","id":5,"method":"server/discover","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}
