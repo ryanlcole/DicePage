@@ -133,6 +133,17 @@ jobs:
       - name: Validate frontend stack
         run: aws cloudformation validate-template --template-body file://infra/aws/rist-frontend.yml >/dev/null
 
+      - name: Enforce learned CloudFront cache-behavior constraint
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -q '^[[:space:]]*OrderedCacheBehaviors:' infra/aws/rist-frontend.yml; then
+            echo "::error::Known ReLiC deployment regression: CloudFormation AWS::CloudFront::Distribution uses CacheBehaviors, not OrderedCacheBehaviors."
+            exit 1
+          fi
+          grep -q '^[[:space:]]*CacheBehaviors:' infra/aws/rist-frontend.yml
+          echo "Known CloudFront MCP routing regression is guarded."
+
       - name: Deploy protected frontend origin and CloudFront through execution role
         shell: bash
         run: |
