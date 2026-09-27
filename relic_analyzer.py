@@ -249,11 +249,22 @@ def analyze_system(system: Mapping[str, Any]) -> Dict[str, Any]:
                 severity="alert",
             )
 
+    shaep_payload = out.as_dict()
     return {
         "format": "ReLiC-Analysis",
         "mode": "analyze-report-propose",
         "mutationAuthority": False,
-        "shaep": out.as_dict(),
+        "audit": {
+            "trustRequired": False,
+            "canonRule": "RELIC.AUDIT.TRUST_NOT_REQUIRED",
+            "shaepId": out.id,
+            "evidenceRuneIds": sorted(out.runes.keys()),
+            "glyphIds": sorted(out.glyphs.keys()),
+            "weaknessIds": [x.id for x in out.weaknesses],
+            "knownFailuresVisible": True,
+            "independentReviewSupported": True,
+        },
+        "shaep": shaep_payload,
         "summary": {
             "runes": len(out.runes),
             "glyphs": len(out.glyphs),
