@@ -12,6 +12,8 @@ SERVER_INFO = {
 
 TRUTH_DOMAINS = ("FACT", "HYPOTHESIS", "FICTION", "UNKNOWN")
 PROVENANCE_ORIGINS = ("HUMAN", "OUTSIDER_AI", "SHAELVIEN_EI", "UNKNOWN")
+READ_SECURITY = [{"type": "oauth2", "scopes": ["relic.read"]}]
+WRITE_SECURITY = [{"type": "oauth2", "scopes": ["relic.read", "relic.write"]}]
 
 INSTRUCTIONS = (
     "ReLiC preserves identity separately from representation. Representation is not truth. "
@@ -41,6 +43,16 @@ PROVENANCE_SCHEMA = _obj({
 
 TOOLS = [
     {
+        "name": "relic_profile",
+        "title": "ReLiC account profile",
+        "description": "Read the authenticated ReLiC account identity used to scope all private persistent memory.",
+        "inputSchema": _obj(),
+        "securitySchemes": READ_SECURITY,
+        "_meta": {"openai/profile": True},
+        "securitySchemes": READ_SECURITY,
+        "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    },
+    {
         "name": "relic_identify",
         "title": "Identify persistent ReLiC identity",
         "description": "Resolve a label or alias to persistent identities in the authenticated user's ReLiC memory. Call this before creating an identity so spelling or representation does not become identity.",
@@ -48,6 +60,7 @@ TOOLS = [
             "query": {"type": "string", "minLength": 1, "maxLength": 300},
             "limit": {"type": "integer", "minimum": 1, "maximum": 20, "default": 10},
         }, ["query"]),
+        "securitySchemes": READ_SECURITY,
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
     {
@@ -59,6 +72,7 @@ TOOLS = [
             "relationshipDepth": {"type": "integer", "minimum": 0, "maximum": 2, "default": 1},
             "maxEntities": {"type": "integer", "minimum": 1, "maximum": 40, "default": 20},
         }, ["terms"]),
+        "securitySchemes": READ_SECURITY,
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
     {
@@ -70,6 +84,7 @@ TOOLS = [
             "includeEvents": {"type": "boolean", "default": False},
             "relationshipDepth": {"type": "integer", "minimum": 0, "maximum": 3, "default": 1},
         }, ["entityId"]),
+        "securitySchemes": READ_SECURITY,
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
     {
@@ -80,6 +95,7 @@ TOOLS = [
             "entityId": {"type": "string", "minLength": 1, "maxLength": 200},
             "depth": {"type": "integer", "minimum": 0, "maximum": 5, "default": 2},
         }, ["entityId"]),
+        "securitySchemes": READ_SECURITY,
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
     {
@@ -89,6 +105,7 @@ TOOLS = [
         "inputSchema": _obj({
             "terms": {"type": "array", "minItems": 1, "maxItems": 50, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
         }, ["terms"]),
+        "securitySchemes": READ_SECURITY,
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
     {
@@ -104,6 +121,7 @@ TOOLS = [
                 "sourceRef": {"type": "string", "maxLength": 1000},
             }, ["truthDomain"], True),
         }, ["claim"]),
+        "securitySchemes": READ_SECURITY,
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
     {
@@ -115,6 +133,7 @@ TOOLS = [
             "purpose": {"type": "string", "minLength": 1, "maxLength": 500},
             "changes": {"type": "array", "minItems": 1, "maxItems": 100, "items": {"type": "object"}},
         }, ["purpose", "changes"]),
+        "securitySchemes": READ_SECURITY,
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
     {
@@ -132,6 +151,7 @@ TOOLS = [
             "sourceRef": {"type": "string", "maxLength": 1000},
             "observation": {"type": "string", "maxLength": 4000},
         }, ["label", "entityType", "truthDomain", "provenance"]),
+        "securitySchemes": WRITE_SECURITY,
         "annotations": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
     },
     {
@@ -147,6 +167,7 @@ TOOLS = [
             "sourceRef": {"type": "string", "maxLength": 1000},
             "qualifiers": {"type": "object"},
         }, ["sourceId", "relationType", "targetId", "truthDomain", "provenance"]),
+        "securitySchemes": WRITE_SECURITY,
         "annotations": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
     },
     {
@@ -163,6 +184,7 @@ TOOLS = [
             "basisEntityIds": {"type": "array", "maxItems": 50, "items": {"type": "string", "maxLength": 200}},
             "commitReason": {"type": "string", "minLength": 1, "maxLength": 1000},
         }, ["label", "entityType", "truthDomain", "provenance", "commitReason"]),
+        "securitySchemes": WRITE_SECURITY,
         "annotations": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
     },
     {
@@ -178,6 +200,7 @@ TOOLS = [
             "reason": {"type": "string", "minLength": 1, "maxLength": 1000},
             "expectedRevision": {"type": "integer", "minimum": 1},
         }, ["entityId", "toState", "truthDomain", "provenance", "reason"]),
+        "securitySchemes": WRITE_SECURITY,
         "annotations": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
     },
 ]
@@ -254,6 +277,8 @@ def validate_tool_arguments(name, args):
 
 def call_tool(name, args, store):
     args = validate_tool_arguments(name, args)
+    if name == "relic_profile":
+        return store.profile()
     if name == "relic_identify":
         return store.identify(args["query"], int(args.get("limit", 10)))
     if name == "relic_context":
