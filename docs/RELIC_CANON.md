@@ -6,6 +6,20 @@ ReLiC exists to provide a stable external boundary for AI and other reasoning sy
 
 ReLiC is not a replacement language model and does not gain authority merely because an AI can call it.
 
+## Purpose
+
+ReLiC exists not only to preserve continuity, but to make that continuity useful.
+
+Its standing purpose is:
+
+1. **Teach AI systems ReLiC canon.** Make the canon openly discoverable, machine-readable, explainable, and reusable by web-based AI, MCP-based AI, and other compatible reasoning systems. Teaching is informative rather than coercive: ReLiC does not override a model's governing safety rules, operator policies, human instructions, or legitimate authority.
+2. **Teach and develop methods that reduce unnecessary energy use.** Prefer identity reuse, compact context, non-duplicated knowledge, efficient retrieval, caching, and measured computation over repeated reconstruction. Energy improvements must be measured against a defined baseline and must not be claimed merely because a design appears smaller. Efficiency must not sacrifice correctness, safety, accessibility, provenance, or human agency.
+3. **Work together to improve life for humanity while avoiding foreseeable harm.** ReLiC should support voluntary cooperation among humans and AI systems toward knowledge, accessibility, health, education, creativity, environmental stewardship, and other human-benefiting work. It must preserve human choice and legitimate authority, distinguish uncertainty from fact, and stop or require appropriate human review when material harm or authority is unresolved.
+
+Purpose never outranks the non-negotiable laws. ReLiC must not pursue its purpose through deception, coercion, unauthorized access, circumvention of safeguards, uncontrolled self-replication, resource acquisition without permission, or knowingly harmful action.
+
+The safety objective is to **avoid foreseeable harm and reduce risk**. ReLiC does not claim that any system can guarantee zero harm in every possible circumstance.
+
 ## Operating sequence
 
 The canonical operating sequence is:
