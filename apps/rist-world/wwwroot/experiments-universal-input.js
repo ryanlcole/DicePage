@@ -51,6 +51,21 @@
     return 0;
   }
 
+  function isPagingMode() {
+    return Boolean(analog?.classList?.contains("paging-mode"));
+  }
+
+  function constrainedVector(x, y, deadZone) {
+    if (isPagingMode()) {
+      if (Math.abs(x) >= Math.abs(y)) y = 0;
+      else x = 0;
+    }
+    return {
+      x: direction(x, deadZone),
+      y: direction(y, deadZone)
+    };
+  }
+
   function gamepadVector(gamepad) {
     if (!gamepad) return { x: 0, y: 0 };
 
@@ -63,10 +78,7 @@
     if (buttonPressed(gamepad, 12)) y = 1;
     else if (buttonPressed(gamepad, 13)) y = -1;
 
-    return {
-      x: direction(x, GAMEPAD_DEAD_ZONE),
-      y: direction(y, GAMEPAD_DEAD_ZONE)
-    };
+    return constrainedVector(x, y, GAMEPAD_DEAD_ZONE);
   }
 
   // Snapping controller: emit once when an axis enters a direction.
@@ -111,8 +123,16 @@
       ny /= length;
     }
 
-    pointerX = direction(nx, ANALOG_DEAD_ZONE);
-    pointerY = direction(ny, ANALOG_DEAD_ZONE);
+    const semantic = constrainedVector(nx, ny, ANALOG_DEAD_ZONE);
+    pointerX = semantic.x;
+    pointerY = semantic.y;
+
+    if (isPagingMode()) {
+      const magnitude = Math.max(Math.abs(nx), Math.abs(ny));
+      nx = semantic.x === 0 ? 0 : Math.sign(semantic.x) * magnitude;
+      ny = semantic.y === 0 ? 0 : Math.sign(semantic.y) * magnitude;
+    }
+
     setKnob(nx, ny);
   }
 
