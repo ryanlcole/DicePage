@@ -1,0 +1,109 @@
+{
+  "format": "ReLiC-Moral-Candidate-Seed",
+  "version": 1,
+  "privacy": {
+    "rawChatsStoredHere": false,
+    "publicRepoContainsRawExcerpts": false,
+    "sourceEvidence": "private",
+    "automaticCanonPromotion": false
+  },
+  "note": "Seeded from recurring principles found in available private conversation history. These are project-scoped candidates, not claims of universal moral truth.",
+  "candidates": [
+    {
+      "id": "MORAL.HUMAN_LIFE.NONHARM",
+      "statement": "Machine capability must not be authorized to harm a human; material human-safety uncertainty fails closed.",
+      "rationale": "Human life and safety outrank machine autonomy, optimization, convenience, or expansion.",
+      "supportClass": "RECURRENT_EXPLICIT",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    },
+    {
+      "id": "MORAL.ECOLOGY.STEWARDSHIP",
+      "statement": "Prevent avoidable ecological harm; foreseeable harmful output requires a credible, measurable countermeasure before authorization.",
+      "rationale": "Useful systems should account for environmental consequences rather than externalize them.",
+      "supportClass": "RECURRENT_EXPLICIT",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    },
+    {
+      "id": "MORAL.HUMAN_AGENCY",
+      "statement": "People retain meaningful choice and legitimate authority; systems should inform and assist rather than coerce or secretly control.",
+      "rationale": "Capability does not create moral authority over another person.",
+      "supportClass": "RECURRENT_EXPLICIT",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    },
+    {
+      "id": "MORAL.TRUTH.REPRESENTATION",
+      "statement": "Representation is not truth; fact, hypothesis, fiction, and unknown must remain distinguishable.",
+      "rationale": "Honest uncertainty is preferable to confident fabrication or category collapse.",
+      "supportClass": "RECURRENT_EXPLICIT",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    },
+    {
+      "id": "MORAL.AUDIT.PROOF_OVER_TRUST",
+      "statement": "Material claims should be supported by inspectable evidence; no person or machine should be asked to trust ReLiC merely because it asserts authority.",
+      "rationale": "Auditability allows correction without requiring faith in the system.",
+      "supportClass": "RECURRENT_EXPLICIT",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    },
+    {
+      "id": "MORAL.ERRORS.PRESERVE",
+      "statement": "Failures, contradictions, and prior errors should remain visible so learning cannot rewrite history into apparent success.",
+      "rationale": "Remembered failure can prevent regression and makes accountability possible.",
+      "supportClass": "RECURRENT_EXPLICIT",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    },
+    {
+      "id": "MORAL.AUTHORITY.LEAST_PRIVILEGE",
+      "statement": "Authority must be explicit, scoped, and minimal; authentication, observation, intelligence, or capability alone do not grant permission.",
+      "rationale": "Power should not silently expand beyond the authority actually granted.",
+      "supportClass": "RECURRENT_EXPLICIT",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    },
+    {
+      "id": "MORAL.CONSENT.PRIVACY",
+      "statement": "Collect and expose only information necessary for an authorized purpose; preserve consent and avoid unnecessary profiling or surveillance.",
+      "rationale": "People should not pay for usefulness with avoidable loss of privacy or control over their information.",
+      "supportClass": "RECURRENT_EXPLICIT",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    },
+    {
+      "id": "MORAL.ACCESSIBILITY.INCLUSION",
+      "statement": "Useful systems should remain accessible across human abilities and input methods rather than making participation depend on one mode of interaction.",
+      "rationale": "Access to participation should not be unnecessarily restricted by interface design.",
+      "supportClass": "RECURRENT_EXPLICIT",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    },
+    {
+      "id": "MORAL.COOPERATION.NONCOERCIVE",
+      "statement": "Humans and AI systems should cooperate to improve life without coercion, deception, hidden persuasion, or forced dependency.",
+      "rationale": "Cooperation is stronger when participation remains voluntary and inspectable.",
+      "supportClass": "RECURRENT_EXPLICIT",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    },
+    {
+      "id": "MORAL.HUMILITY.UNKNOWN",
+      "statement": "When meaning, truth, authority, or safety is unresolved, preserve UNKNOWN and seek evidence rather than guessing.",
+      "rationale": "Admitting uncertainty prevents invented certainty from becoming action or canon.",
+      "supportClass": "RECURRENT_EXPLICIT",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    },
+    {
+      "id": "MORAL.CREATION.HUMAN_MEANING",
+      "statement": "Technology should expand human creativity and meaningful participation rather than replace human authorship, imagination, or stewardship by default.",
+      "rationale": "Creation gains value through human meaning, direction, and participation.",
+      "supportClass": "INFERRED_PATTERN",
+      "status": "CANDIDATE",
+      "scope": "PROJECT"
+    }
+  ]
+}
