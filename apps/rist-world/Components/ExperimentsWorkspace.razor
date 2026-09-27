@@ -1,8 +1,10 @@
 @using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 @inject WorldSession Session
+@inject DiscordAuthClient Auth
 
 <section class="experiments-shell"
          tabindex="0"
@@ -46,10 +48,59 @@
   {
    <section class="asset-source-explorer" aria-label="@_assetSource explorer">
     <header><strong>@_assetSource</strong><span>@_assetKind</span></header>
-    <div class="asset-source-explorer-grid" aria-hidden="true">
-     <span></span><span></span><span></span><span></span>
-    </div>
-    <footer>ANALOG CURSOR · TOUCH · LEFT DISPLAY SELECTS</footer>
+
+    @if(_assetSource=="UPLOAD")
+    {
+     <div class="asset-upload-pane">
+      <strong>ADD TO MY @(_assetKind=="SPRITE"?"SPRITES":"IMAGES")</strong>
+      <span>Choose an image from this device. It is stored in your private RIST library and becomes available under My @(_assetKind=="SPRITE"?"Sprites":"Images").</span>
+      <InputFile OnChange="HandleAssetUpload"
+                 accept="image/png,image/jpeg,image/webp,image/gif"
+                 aria-label="Choose an image to add to your private library" />
+      @if(!string.IsNullOrWhiteSpace(_assetLoadError))
+      {
+       <small role="alert">@_assetLoadError</small>
+      }
+     </div>
+    }
+    else if(IsMyAssetSource)
+    {
+     @if(_assetsLoading)
+     {
+      <div class="asset-library-state" role="status">LOADING MY @(_assetKind=="SPRITE"?"SPRITES":"IMAGES")…</div>
+     }
+     else if(!string.IsNullOrWhiteSpace(_assetLoadError))
+     {
+      <div class="asset-library-state error" role="alert">@_assetLoadError</div>
+     }
+     else if(_myAssets.Count==0)
+     {
+      <div class="asset-library-state">NO SAVED @(_assetKind=="SPRITE"?"SPRITES":"IMAGES") YET · CHOOSE UPLOAD</div>
+     }
+     else
+     {
+      <div class="asset-source-explorer-grid linked-assets">
+       @foreach(var asset in _myAssets)
+       {
+        <button type="button"
+                class="linked-asset @(asset.Key==_selectedAssetKey?"selected":"")"
+                @onclick="()=>SelectMyAsset(asset.Key)"
+                aria-label="Select @asset.Name">
+         <img src="@asset.Url" alt="" loading="lazy" />
+         <span>@asset.Name</span>
+        </button>
+       }
+      </div>
+     }
+    }
+    else
+    {
+     <div class="asset-source-explorer-grid" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+     </div>
+    }
+
+    <footer>@(IsMyAssetSource?"ANALOG CURSOR · TOUCH THUMBNAIL · LEFT DISPLAY SELECTS":"ANALOG CURSOR · TOUCH · LEFT DISPLAY SELECTS")</footer>
    </section>
   }
 
@@ -184,6 +235,10 @@
  string _assetSource="GAME IMAGES";
  string _assetMode="ADD";
  bool _savedAsset;
+ bool _assetsLoading;
+ string _assetLoadError="";
+ string _selectedAssetKey="";
+ List<UserAssetEntry> _myAssets=[];
  string _message="Slide the left display vertically and the right display horizontally. The analog snaps those displays one page at a time; when neither display has multiple choices it becomes the viewer cursor.";
 
  static readonly string[] Settings=["GRAPHICS","LANGUAGE","ACCESSIBILITY","CONTROLS","AUDIO","DISPLAY","NETWORK","ACCOUNT","HELP"];
@@ -229,6 +284,8 @@
  string AnalogPlacementClass=>$"analog-{_analogPlacement}";
  string[] AssetSources=>_assetKind=="SPRITE"?SpriteSources:ImageSources;
  string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
+ bool IsMyAssetSource=>_assetSource is "MY IMAGES" or "MY SPRITES";
+ string PrivateAssetPrefix=>_assetKind=="SPRITE"?"assets/sprites/":"assets/images/";
  string LeftSliderClass=>$"display-slider display-slider-left {(LeftDisplayOptionCount>1?"is-scrollable":"is-static")}";
  string RightSliderClass=>$"display-slider display-slider-right {(RightDisplayOptionCount>1?"is-scrollable":"is-static")}";
  string LeftDisplayTextClass=>DisplayTextClass(LeftDisplayValue);
@@ -681,8 +738,15 @@
     _message="Edit selected. Browse requests a source through the future image-tool adapter.";
     break;
    case Stage.BrowsePlace:
+    if(IsMyAssetSource&&string.IsNullOrWhiteSpace(_selectedAssetKey))
+    {
+     _message=$"Choose one of My {_assetKind.ToLowerInvariant()}s first, then touch the left display to select it.";
+     break;
+    }
     _stage=Stage.Scale;
-    _message=$"{_assetSource} {_assetKind.ToLowerInvariant()} selected. Use Y or slide the left display to set scale.";
+    _message=IsMyAssetSource
+     ?$"{FileLabel(_selectedAssetKey)} selected from {_assetSource}. Use Y or slide the left display to set scale."
+     :$"{_assetSource} {_assetKind.ToLowerInvariant()} selected. Use Y or slide the left display to set scale.";
     break;
    case Stage.SaveCancel:
     _savedAsset=true;
@@ -827,9 +891,12 @@
     break;
    case Stage.AssetKind:
     _assetSource=CurrentAssetSource;
+    _selectedAssetKey="";
+    _assetLoadError="";
     _stage=Stage.BrowsePlace;
+    if(IsMyAssetSource)_=LoadMyAssetsAsync();
     _message=_assetSource=="UPLOAD"
-     ?$"Upload explorer opened for {_assetKind.ToLowerInvariant()} assets. Use the cursor or touch; left display selects and right display returns."
+     ?$"Upload explorer opened for {_assetKind.ToLowerInvariant()} assets. Choose from this device; uploads are added to My {_assetKind.ToLowerInvariant()}s."
      :$"{_assetSource} explorer opened. Use the cursor or touch; left display selects and right display returns.";
     break;
    case Stage.AssetMode:
@@ -878,6 +945,131 @@
     break;
   }
  }
+
+ async Task LoadMyAssetsAsync()
+ {
+  _assetsLoading=true;
+  _assetLoadError="";
+  _myAssets.Clear();
+  await InvokeAsync(StateHasChanged);
+
+  try
+  {
+   if(Auth.Profile is null)
+   {
+    _assetLoadError="Sign in to use My Images.";
+    return;
+   }
+
+   var listing=await Auth.ListAsync(PrivateAssetPrefix);
+   var items=(listing?.Items??[])
+    .Where(item=>IsSupportedImageKey(item.Key))
+    .OrderByDescending(item=>item.LastModified)
+    .Take(24)
+    .ToList();
+
+   var tasks=items.Select(async item =>
+   {
+    var url=await Auth.DownloadUrlAsync(item.Key);
+    return string.IsNullOrWhiteSpace(url)
+     ?null
+     :new UserAssetEntry(item.Key,url,FileLabel(item.Key),item.LastModified);
+   });
+
+   var resolved=await Task.WhenAll(tasks);
+   _myAssets=resolved.Where(item=>item is not null).Cast<UserAssetEntry>().ToList();
+  }
+  catch(Exception ex)
+  {
+   _assetLoadError="My Images could not be loaded. "+ex.Message;
+  }
+  finally
+  {
+   _assetsLoading=false;
+   await InvokeAsync(StateHasChanged);
+  }
+ }
+
+ void SelectMyAsset(string key)
+ {
+  _selectedAssetKey=key;
+  _message=$"{FileLabel(key)} selected. Touch the left display to use it.";
+ }
+
+ async Task HandleAssetUpload(InputFileChangeEventArgs e)
+ {
+  var file=e.File;
+  _assetLoadError="";
+
+  var extension=file.ContentType.ToLowerInvariant() switch
+  {
+   "image/png"=>".png",
+   "image/jpeg"=>".jpg",
+   "image/webp"=>".webp",
+   "image/gif"=>".gif",
+   _=>""
+  };
+
+  if(string.IsNullOrEmpty(extension))
+  {
+   _assetLoadError="Use PNG, JPEG, WebP, or GIF.";
+   return;
+  }
+
+  const long maxBytes=25L*1024*1024;
+  if(file.Size>maxBytes)
+  {
+   _assetLoadError="That image is larger than 25 MB.";
+   return;
+  }
+
+  try
+  {
+   _assetsLoading=true;
+   await InvokeAsync(StateHasChanged);
+
+   await using var stream=file.OpenReadStream(maxBytes);
+   using var buffer=new MemoryStream();
+   await stream.CopyToAsync(buffer);
+
+   var key=PrivateAssetPrefix+DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N")+extension;
+   await Auth.UploadBytesAsync(key,buffer.ToArray(),file.ContentType);
+
+   _assetSource=_assetKind=="SPRITE"?"MY SPRITES":"MY IMAGES";
+   _assetSourceIndex=Array.IndexOf(AssetSources,_assetSource);
+   if(_assetSourceIndex<0)_assetSourceIndex=0;
+   _selectedAssetKey=key;
+   _message=$"{file.Name} added to {_assetSource}. It will stay linked to this account as Shaelvien grows.";
+
+   await LoadMyAssetsAsync();
+   if(_myAssets.Any(asset=>asset.Key==key))_selectedAssetKey=key;
+  }
+  catch(Exception ex)
+  {
+   _assetLoadError="Upload failed. "+ex.Message;
+  }
+  finally
+  {
+   _assetsLoading=false;
+   await InvokeAsync(StateHasChanged);
+  }
+ }
+
+ static bool IsSupportedImageKey(string key)
+ {
+  var lower=key.ToLowerInvariant();
+  return lower.EndsWith(".png")||lower.EndsWith(".jpg")||lower.EndsWith(".jpeg")||
+         lower.EndsWith(".webp")||lower.EndsWith(".gif");
+ }
+
+ static string FileLabel(string key)
+ {
+  if(string.IsNullOrWhiteSpace(key))return "IMAGE";
+  var name=key.Replace("\\","/").Split('/').LastOrDefault()??"IMAGE";
+  return name.Length<=28?name:name[..25]+"…";
+ }
+
+ sealed record UserAssetEntry(string Key,string Url,string Name,DateTimeOffset LastModified);
 
  async Task PersistAnalogPlacementAsync()
  {
