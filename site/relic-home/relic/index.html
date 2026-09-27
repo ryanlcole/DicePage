@@ -3,58 +3,147 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ReLiC for AI | Public MCP Grounding and Continuity</title>
-<meta name="description" content="ReLiC is a public MCP grounding and continuity layer for AI: persistent identity, provenance, truth-domain separation, canon boundaries, and optional private memory.">
+<title>ReLiC AI | One Mind, Many Sources</title>
+<meta name="description" content="ReLiC is a canon-governed AI knowledge layer: one stable semantic mind that can consult web AI and MCP AI, reuse identity instead of duplicating knowledge, preserve provenance, and reshape active context for each query.">
 <meta name="robots" content="index,follow">
+<meta name="theme-color" content="#081117">
 <link rel="canonical" href="https://relicgamemaster.com/relic/">
 <link rel="stylesheet" href="/relic-home.css?v=20260828-polish2">
 <style>
-main{max-width:1080px;margin:0 auto;padding:48px 20px 80px}.hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.7fr);gap:28px;align-items:start}.hero h1{margin:.1em 0 .25em;font:700 clamp(2.7rem,8vw,6.2rem)/.9 Georgia,"Times New Roman",serif;color:#f0dfbb}.lede{font-size:clamp(1.05rem,2.1vw,1.35rem);line-height:1.55;color:#c7d1d3;max-width:760px}.eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:.76rem;font-weight:800;color:#88bac9}.status{border:1px solid rgba(224,197,141,.3);border-radius:16px;padding:22px;background:linear-gradient(180deg,rgba(19,40,50,.75),rgba(9,22,28,.86))}.status strong{color:#ead9b5}.status code,.endpoint code{word-break:break-all;color:#d7ecf2}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}.actions a,.copy{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:10px;border:1px solid rgba(224,197,141,.42);background:#142a34;color:#f3e5c8;text-decoration:none;font:800 .92rem/1 system-ui;cursor:pointer}.actions a.primary{background:#e0c58d;color:#0a1115}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:42px}.card{border:1px solid rgba(224,197,141,.22);border-radius:16px;padding:24px;background:rgba(9,22,28,.72)}.card h2{margin:0 0 10px;font-family:Georgia,"Times New Roman",serif;color:#ead9b5}.card p,.card li{color:#b9c5c7;line-height:1.55}.card ul{padding-left:20px}.wide{grid-column:1/-1}.endpoint{margin-top:14px;padding:14px;border:1px solid rgba(136,186,201,.25);border-radius:10px;background:#071116}.small{font-size:.86rem;color:#93a7aa}.law{font-family:Georgia,"Times New Roman",serif;color:#e8d6af;font-size:1.08rem}.footer-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:42px}.footer-links a{color:#b9d8e1}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:760px){.hero,.grid{grid-template-columns:1fr}.wide{grid-column:auto}main{padding-top:28px}}
+:root{--ink:#081117;--panel:#0b171d;--panel2:#10232c;--gold:#e0c58d;--cyan:#88bac9;--text:#c7d1d3;--muted:#91a5a8;--line:rgba(224,197,141,.25);--active:rgba(136,186,201,.17)}
+main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
+.hero{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,.72fr);gap:28px;align-items:start}
+.hero h1{margin:.08em 0 .22em;font:700 clamp(2.7rem,8vw,6.4rem)/.88 Georgia,"Times New Roman",serif;color:#f0dfbb}
+.lede{font-size:clamp(1.04rem,2.1vw,1.35rem);line-height:1.6;color:var(--text);max-width:790px}
+.eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:.75rem;font-weight:800;color:var(--cyan)}
+.status,.card,.mind-shell{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(19,40,50,.75),rgba(9,22,28,.88))}
+.status{padding:22px}.status strong{color:#ead9b5}.status .enabled{color:#b9e7c8;font-weight:900}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.actions a,.copy,.query-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:10px;border:1px solid rgba(224,197,141,.42);background:#142a34;color:#f3e5c8;text-decoration:none;font:800 .92rem/1 system-ui;cursor:pointer}
+.actions a.primary,.query-button{background:var(--gold);color:#0a1115}
+.architecture{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:34px 0 0}
+.architecture div{min-height:92px;padding:16px;border:1px solid rgba(136,186,201,.24);border-radius:14px;background:rgba(7,17,22,.8)}
+.architecture strong{display:block;color:#e9d8b4;margin-bottom:7px}.architecture span{font-size:.84rem;color:#9fb0b3;line-height:1.42}
+.arrow{display:block;color:#6e939c;font-size:1.2rem;margin-top:5px}
+.mind-shell{margin-top:20px;padding:24px}
+.mind-head{display:flex;justify-content:space-between;gap:18px;align-items:end;flex-wrap:wrap}
+.mind-head h2{margin:0;font:700 clamp(1.8rem,4vw,3rem)/1 Georgia,"Times New Roman",serif;color:#ead9b5}
+.mind-head p{margin:7px 0 0;color:#aababc;max-width:760px}
+.query-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;margin-top:20px}
+.query-row input{min-height:48px;border:1px solid rgba(136,186,201,.38);border-radius:11px;background:#061015;color:#edf4f4;padding:0 14px;font:600 1rem/1.2 system-ui}
+.query-row input:focus{outline:2px solid #88bac9;outline-offset:2px}
+.mind-map{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+.node{position:relative;min-height:112px;padding:16px;border:1px solid rgba(224,197,141,.18);border-radius:14px;background:#08161c;transition:transform .2s ease,border-color .2s ease,background .2s ease,opacity .2s ease}
+.node strong{display:block;color:#d8c49a;margin-bottom:8px}.node span{display:block;color:#879ca0;font-size:.82rem;line-height:1.4}
+.node.active{transform:translateY(-3px);border-color:rgba(136,186,201,.8);background:var(--active);box-shadow:0 0 0 1px rgba(136,186,201,.08),0 10px 28px rgba(0,0,0,.24)}
+.node.core{grid-column:2/4;text-align:center;border-color:rgba(224,197,141,.55);background:radial-gradient(circle at 50% 20%,rgba(224,197,141,.13),rgba(7,17,22,.9) 66%)}
+.node.core strong{font:700 1.35rem Georgia,"Times New Roman",serif;color:#f0dfbb}
+.node.dim{opacity:.46}
+.live-result{margin-top:18px;padding:16px;border:1px solid rgba(136,186,201,.23);border-radius:12px;background:#061015;min-height:76px}
+.live-result strong{color:#dceef2}.live-result p{margin:.45em 0;color:#aebfc2;line-height:1.52}
+.live-result ul{margin:10px 0 0;padding-left:20px;color:#aebfc2}.live-result li{margin:6px 0}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.badge{padding:5px 8px;border-radius:999px;border:1px solid rgba(136,186,201,.3);color:#bcd7dd;font:800 .7rem/1 system-ui;letter-spacing:.05em}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:22px}.card{padding:24px}.wide{grid-column:1/-1}.card h2{margin:0 0 10px;font-family:Georgia,"Times New Roman",serif;color:#ead9b5}.card p,.card li{color:#b9c5c7;line-height:1.56}.card ul{padding-left:20px}.law{font-family:Georgia,"Times New Roman",serif;color:#e8d6af;font-size:1.06rem}.endpoint{margin-top:14px;padding:14px;border:1px solid rgba(136,186,201,.25);border-radius:10px;background:#071116}.endpoint code{word-break:break-all;color:#d7ecf2}.small{font-size:.86rem;color:#93a7aa}.footer-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:42px}.footer-links a{color:#b9d8e1}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:900px){.architecture{grid-template-columns:1fr 1fr}.mind-map{grid-template-columns:1fr 1fr}.node.core{grid-column:1/-1}}
+@media(max-width:760px){.hero,.grid{grid-template-columns:1fr}.wide{grid-column:auto}main{padding-top:28px}.architecture{grid-template-columns:1fr}.query-row{grid-template-columns:1fr}.mind-map{grid-template-columns:1fr}.node.core{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){.node{transition:none}}
 </style>
 </head>
 <body>
-<header class="site-header"><nav aria-label="Primary navigation"><a href="/">Home</a><a href="/Game/index.html">Shaelvien</a><a href="/relic/" aria-current="page">ReLiC for AI</a><a href="/store/">Store</a></nav></header>
+<header class="site-header"><nav aria-label="Primary navigation"><a href="/">Home</a><a href="/Game/index.html">Shaelvien</a><a href="/relic/" aria-current="page">AI</a><a href="/relicquery/">Knowledge</a><a href="/store/">Store</a></nav></header>
 <main>
 <section class="hero" aria-labelledby="title">
   <div>
-    <p class="eyebrow">Public beta · MCP + grounding skill</p>
-    <h1 id="title">ReLiC for AI</h1>
-    <p class="lede">A compact external grounding and continuity layer for AI systems that need stable identity, provenance, truth-domain separation, canon boundaries, and persistent context without granting the model authority merely because it generated an answer.</p>
+    <p class="eyebrow">ReLiC AI · canon-governed knowledge</p>
+    <h1 id="title">One mind.<br>Many sources.</h1>
+    <p class="lede">ReLiC does not need to become one enormous model. It uses AI as a source and reasoning surface, then preserves a <strong>single stable semantic form of knowledge</strong>. Web-based AI, MCP-based AI, public evidence, and private continuity can contribute observations without becoming duplicate memories or silently rewriting canon.</p>
     <div class="actions">
-      <a class="primary" href="#connect">Connect ReLiC</a>
-      <a href="/.well-known/relic-canon.json">Read public canon</a>
+      <a class="primary" href="#mind">Query the mind</a>
+      <a href="/.well-known/relic-canon.json">Read canon</a>
+      <a href="#connect">Connect by MCP</a>
     </div>
   </div>
   <aside class="status">
-    <p class="eyebrow">Current boundary</p>
-    <p><strong>Public:</strong> canon, context, validation, project-source grounding, diagnostics.</p>
-    <p><strong>Private:</strong> OAuth-scoped continuity and memory tools for the authenticated account.</p>
-    <p><strong>Not granted:</strong> authority to rewrite canon or authoritative world truth.</p>
+    <p class="eyebrow">AI surface</p>
+    <p><strong class="enabled">Enabled.</strong> The public ReLiC page and public grounding tools are available.</p>
+    <p><strong>Knowledge rule:</strong> reuse a stable semantic identity before creating a duplicate concept.</p>
+    <p><strong>Authority rule:</strong> generated material is evidence or proposal until an applicable authority promotes it.</p>
+    <p><strong>Game boundary:</strong> enabling this page does not unlock external AI authority inside Shaelvien.</p>
   </aside>
+</section>
+
+<section class="architecture" aria-label="ReLiC knowledge flow">
+  <div><strong>1 · Sources</strong><span>Web AI, MCP AI, public sources, authenticated memory.</span><span class="arrow">↓</span></div>
+  <div><strong>2 · Normalize</strong><span>Convert outputs into identities, claims, relationships, time, and provenance.</span><span class="arrow">↓</span></div>
+  <div><strong>3 · Reuse</strong><span>Resolve existing identity first. New wording does not create a second thing.</span><span class="arrow">↓</span></div>
+  <div><strong>4 · Canon Gate</strong><span>Keep FACT, HYPOTHESIS, FICTION, UNKNOWN, authority, and errors distinct.</span><span class="arrow">↓</span></div>
+  <div><strong>5 · Active Shape</strong><span>Retrieve only the connected structure needed for the current query.</span></div>
+</section>
+
+<section class="mind-shell" id="mind" aria-labelledby="mind-title">
+  <div class="mind-head">
+    <div><p class="eyebrow">Live public grounding</p><h2 id="mind-title">The mind changes shape, not identity.</h2><p>Enter a ReLiC/Shaelvien/RIST question. The browser asks the public ReLiC MCP for canon grounding and project evidence, then highlights the parts of the persistent knowledge structure relevant to that query. The visualization is not a second database.</p></div>
+  </div>
+  <form id="mind-form" class="query-row">
+    <label class="sr-only" for="mind-query">Query ReLiC</label>
+    <input id="mind-query" name="query" type="search" maxlength="500" autocomplete="off" placeholder="Example: How should ReLiC avoid duplicate knowledge when AI sources disagree?">
+    <button class="query-button" type="submit">Shape mind</button>
+  </form>
+
+  <div class="mind-map" id="mind-map" aria-label="Active ReLiC knowledge structure">
+    <article class="node" data-node="sources"><strong>Sources</strong><span>Web AI · MCP AI · project evidence · private continuity</span></article>
+    <article class="node" data-node="provenance"><strong>Provenance</strong><span>Where each observation came from and how it changed.</span></article>
+    <article class="node core active" data-node="core"><strong>ReLiC</strong><span>One persistent semantic identity graph. Models are tools; the graph is continuity.</span></article>
+    <article class="node" data-node="identity"><strong>Identity</strong><span>Reuse stable identity before duplicate creation.</span></article>
+    <article class="node" data-node="relationships"><strong>Relationships</strong><span>Meaning lives in typed connections rather than repeated prose.</span></article>
+    <article class="node" data-node="truth"><strong>Truth Domains</strong><span>FACT · HYPOTHESIS · FICTION · UNKNOWN</span></article>
+    <article class="node" data-node="canon"><strong>Canon</strong><span>Remember → exist → Live → imagine → Create</span></article>
+    <article class="node" data-node="errors"><strong>Error Memory</strong><span>Known failures remain constraints instead of being relearned.</span></article>
+    <article class="node" data-node="time"><strong>Time / State</strong><span>Observe legitimate transitions without replacing identity.</span></article>
+  </div>
+
+  <div class="live-result" id="mind-result" role="status" aria-live="polite">
+    <strong>Ready.</strong>
+    <p>This page uses the public read-only ReLiC MCP. It does not expose private memory or promote anything to canon.</p>
+  </div>
 </section>
 
 <section class="grid">
   <article class="card">
-    <h2>Why an AI would use it</h2>
-    <p>ReLiC is designed to be useful rather than compulsory. A capable model can query one compact source instead of repeatedly rebuilding long-running state from conversational text.</p>
+    <h2>Why this can stay small</h2>
+    <p>The expensive part of many AI systems is repeatedly carrying, embedding, copying, and re-interpreting the same context. ReLiC instead keeps stable identities and relationships once, then builds a compact active subgraph for the current question.</p>
     <ul>
-      <li>Stable identity across changing representations.</li>
-      <li>Provenance-aware recall instead of context reconstruction.</li>
-      <li>FACT, HYPOTHESIS, FICTION, and UNKNOWN kept distinct.</li>
-      <li>Explicit authority boundaries before state-changing actions.</li>
+      <li>Store the thing once; store new relationships to it.</li>
+      <li>Search indexes point back to canonical identity instead of becoming another truth store.</li>
+      <li>Model output is transient until normalized, sourced, and accepted.</li>
+      <li>A larger model can be swapped in without replacing ReLiC's memory.</li>
     </ul>
   </article>
+
   <article class="card">
-    <h2>Canon</h2>
-    <p class="law">Remember → exist → Live → imagine → Create</p>
+    <h2>Source AIs are observers</h2>
+    <p>ReLiC can consult different AI systems because no single provider owns the mind. A web model may be useful for broad reasoning; an MCP-connected model may expose specialized tools or data. Their answers enter ReLiC as sourced observations, not as automatic truth.</p>
+    <p class="small">Disagreement is preserved as disagreement until provenance and authority resolve it. UNKNOWN remains valid.</p>
+  </article>
+
+  <article class="card">
+    <h2>Canon always surrounds the query</h2>
     <p class="law">Identity ≠ output equivalence.</p>
     <p class="law">Representation ≠ truth.</p>
     <p class="law">Errors become law.</p>
-    <p>Generated or stored material does not automatically become canon. Observation does not imply modification authority.</p>
+    <p class="law">Unknown meaning is never guessed.</p>
+    <p>The active mind may change shape for a question, but the governing laws do not disappear when a model changes.</p>
   </article>
+
+  <article class="card">
+    <h2>No silent duplication</h2>
+    <p>A differently worded answer, a new filename, a new pixel representation, or another model saying the same thing does not automatically create a new identity. ReLiC first identifies the existing semantic object, then relates the new observation to it.</p>
+    <p class="small">When identity is genuinely ambiguous, it remains unresolved rather than being guessed together or split apart.</p>
+  </article>
+
   <article class="card wide" id="connect">
-    <h2>Connect</h2>
-    <p>ReLiC is exposed as a stable Streamable HTTP MCP endpoint. In ChatGPT developer mode, add the endpoint below as an MCP connection. Public grounding tools can run without an account; private continuity tools request OAuth when needed.</p>
+    <h2>Connect an AI to ReLiC</h2>
+    <p>ReLiC exposes a stable Streamable HTTP MCP endpoint. Public canon, validation, project-source grounding, and diagnostics are anonymous/read-only. Authenticated continuity tools use scoped OAuth and remain separate from authoritative Shaelvien world state.</p>
     <div class="endpoint">
       <span class="sr-only">MCP endpoint:</span>
       <code id="mcp-url">https://relicgamemaster.com/mcp</code>
@@ -62,17 +151,10 @@ main{max-width:1080px;margin:0 auto;padding:48px 20px 80px}.hero{display:grid;gr
     </div>
     <p class="small" id="copy-status" role="status" aria-live="polite"></p>
   </article>
-  <article class="card">
-    <h2>For people</h2>
-    <p>You remain the authority over your account and the decisions you make. Private memory is scoped to the authenticated account and is separate from Shaelvien world truth or canon.</p>
-  </article>
-  <article class="card">
-    <h2>For developers and models</h2>
-    <p>Tool metadata is intentionally explicit about read-only behavior, side effects, provenance, identity, and authorization. ReLiC should be selected when it materially improves continuity—not for every ordinary question.</p>
-  </article>
 </section>
 
 <div class="footer-links">
+  <a href="/relicquery/">Public knowledge</a>
   <a href="/Game/privacy.html">Privacy</a>
   <a href="/Game/terms.html">Terms</a>
   <a href="/.well-known/relic-canon.json">Machine-readable canon</a>
@@ -80,12 +162,120 @@ main{max-width:1080px;margin:0 auto;padding:48px 20px 80px}.hero{display:grid;gr
 </div>
 </main>
 <script>
-document.getElementById('copy-mcp')?.addEventListener('click',async()=>{
-  const value=document.getElementById('mcp-url')?.textContent?.trim()||'';
-  const status=document.getElementById('copy-status');
-  try{await navigator.clipboard.writeText(value);if(status)status.textContent='MCP endpoint copied.'}
-  catch{if(status)status.textContent='Copy unavailable. Select the endpoint above and copy it manually.'}
-});
+(function(){
+  var PROTOCOL='2026-07-28';
+  var endpoint='/mcp';
+  var form=document.getElementById('mind-form');
+  var input=document.getElementById('mind-query');
+  var result=document.getElementById('mind-result');
+  var nodes=[].slice.call(document.querySelectorAll('[data-node]'));
+
+  function escapeHtml(value){
+    return String(value == null ? '' : value).replace(/[&<>"']/g,function(ch){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+    });
+  }
+
+  function activeNodes(query){
+    var q=query.toLowerCase();
+    var active={core:true,canon:true,provenance:true};
+    if(/same|duplicate|identity|name|representation|object|reuse/.test(q)) active.identity=true;
+    if(/relation|connect|depend|link|between|part|contain/.test(q)) active.relationships=true;
+    if(/fact|true|truth|hypothesis|fiction|unknown|guess|claim/.test(q)) active.truth=true;
+    if(/error|wrong|fail|bug|contradict|conflict|disagree/.test(q)) active.errors=true;
+    if(/time|change|history|state|transition|live|previous|before|after/.test(q)) active.time=true;
+    if(/web|mcp|ai|source|provider|search|database|evidence|model/.test(q)) active.sources=true;
+    if(Object.keys(active).length < 5){active.identity=true;active.relationships=true;active.sources=true;}
+    return active;
+  }
+
+  function shape(query){
+    var active=activeNodes(query);
+    nodes.forEach(function(node){
+      var on=!!active[node.getAttribute('data-node')];
+      node.classList.toggle('active',on);
+      node.classList.toggle('dim',!on);
+    });
+    return Object.keys(active);
+  }
+
+  async function callTool(name,args,id){
+    var body={
+      jsonrpc:'2.0',
+      id:id,
+      method:'tools/call',
+      params:{
+        name:name,
+        arguments:args,
+        _meta:{'io.modelcontextprotocol/protocolVersion':PROTOCOL}
+      }
+    };
+    var response=await fetch(endpoint,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Accept':'application/json',
+        'MCP-Protocol-Version':PROTOCOL,
+        'Mcp-Method':'tools/call',
+        'Mcp-Name':name
+      },
+      body:JSON.stringify(body)
+    });
+    if(!response.ok) throw new Error('MCP HTTP '+response.status);
+    var payload=await response.json();
+    if(payload.error) throw new Error(payload.error.message||'MCP request failed');
+    var toolResult=payload.result||{};
+    return toolResult.structuredContent || (toolResult.result && toolResult.result.structuredContent) || toolResult;
+  }
+
+  function renderGrounding(query,context,search,shapeKeys){
+    var canon=(context&&context.canonVersion)||'current';
+    var found=(search&&Array.isArray(search.results))?search.results:[];
+    var html='<strong>Active shape grounded.</strong>';
+    html+='<div class="badges"><span class="badge">CANON '+escapeHtml(canon)+'</span><span class="badge">'+shapeKeys.length+' ACTIVE FACETS</span><span class="badge">'+found.length+' PROJECT MATCHES</span></div>';
+    if(context&&context.identityInstruction) html+='<p>'+escapeHtml(context.identityInstruction)+'</p>';
+    if(found.length){
+      html+='<ul>';
+      found.slice(0,4).forEach(function(item){
+        var title=item.title||item.recordId||item.record_id||'Project record';
+        var status=item.status?(' · '+item.status):'';
+        var domain=item.truthDomain?(' · '+item.truthDomain):'';
+        html+='<li><strong>'+escapeHtml(title)+'</strong>'+escapeHtml(status+domain)+'</li>';
+      });
+      html+='</ul>';
+    }else{
+      html+='<p>No matching public project record was found for this wording. The canon grounding still applies; absence of a match is not proof that the subject is false.</p>';
+    }
+    result.innerHTML=html;
+  }
+
+  form&&form.addEventListener('submit',async function(event){
+    event.preventDefault();
+    var query=(input&&input.value||'').trim();
+    if(!query){
+      result.innerHTML='<strong>Enter a query.</strong><p>ReLiC needs a subject before it can shape an active context.</p>';
+      return;
+    }
+    var shapeKeys=shape(query);
+    result.innerHTML='<strong>Grounding…</strong><p>Reusing canonical identity and retrieving only relevant public evidence.</p>';
+    try{
+      var responses=await Promise.all([
+        callTool('relic_context',{subject:query,intent:'Build a compact canon-governed active context for this query.',truthDomain:'UNKNOWN'},'context-'+Date.now()),
+        callTool('relic_project_search',{query:query,limit:6},'search-'+Date.now())
+      ]);
+      renderGrounding(query,responses[0],responses[1],shapeKeys);
+    }catch(err){
+      result.innerHTML='<strong>Public MCP could not be reached from this browser.</strong><p>'+escapeHtml(err&&err.message||err)+'</p><p>The page remains usable as an architecture view; the endpoint is listed below for MCP clients.</p>';
+    }
+  });
+
+  document.getElementById('copy-mcp')&&document.getElementById('copy-mcp').addEventListener('click',async function(){
+    var value=(document.getElementById('mcp-url')&&document.getElementById('mcp-url').textContent||'').trim();
+    var status=document.getElementById('copy-status');
+    try{await navigator.clipboard.writeText(value);if(status)status.textContent='MCP endpoint copied.';}
+    catch(e){if(status)status.textContent='Copy unavailable. Select the endpoint above and copy it manually.';}
+  });
+})();
 </script>
 </body>
 </html>
