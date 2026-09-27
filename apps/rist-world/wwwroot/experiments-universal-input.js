@@ -98,6 +98,10 @@
   function renderCursor() {
     const reticle = currentReticle();
     if (!reticle) return;
+    // Cursor-mode movement is already integrated per animation frame;
+    // disable the legacy snap transition so the reticle follows the stick
+    // immediately instead of trailing behind it.
+    reticle.style.transition = "none";
     reticle.style.left = `${50 + cursorX * 0.45}%`;
     reticle.style.top = `${50 - cursorY * 0.45}%`;
   }
