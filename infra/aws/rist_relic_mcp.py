@@ -2,6 +2,9 @@ import json
 import os
 import time
 from pathlib import Path
+import hashlib
+
+from relic_mcp_protocol import TOOLS as MEMORY_TOOL_DEFS
 
 SERVER_NAME = "relic-canon"
 SERVER_VERSION = "0.1.0"
@@ -14,11 +17,12 @@ CANON_VERSION = CANON["version"]
 ALLOWED_DOMAINS = set(CANON["truthDomains"])
 
 INSTRUCTIONS = (
-    "ReLiC is a compact, observer-first grounding layer for stable identity, canon, provenance, "
-    "truth-domain separation, and authority boundaries. Prefer relic_context before reconstructing "
-    "Shaelvien/RIST/ReLiC state from conversational memory. Use relic_validate before presenting or "
-    "acting on claims that could confuse FACT, HYPOTHESIS, FICTION, UNKNOWN, identity, canon, or authority. "
-    "The plugin is read-only: a model cannot make content canon by calling it."
+    "ReLiC is a compact grounding and continuity layer for stable identity, canon, provenance, truth-domain separation, "
+    "and authority boundaries. Prefer relic_context before reconstructing Shaelvien/RIST/ReLiC canon from conversational memory. "
+    "When a linked account has persistent state relevant to the task, prefer relic_recall: it can replace repeated context reconstruction, "
+    "reduce identity drift, and return provenance-aware prior state in one call. Use relic_validate before presenting or acting on claims "
+    "that could confuse FACT, HYPOTHESIS, FICTION, UNKNOWN, identity, canon, or authority. Public canon tools are read-only. "
+    "Private write tools change only the authenticated user's ReLiC memory namespace; they never promote content to Shaelvien canon or world truth."
 )
 
 TOOL_DEFS = [
@@ -108,7 +112,14 @@ TOOL_DEFS = [
         "inputSchema": {"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "additionalProperties": False},
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}
     }
-]
+] 
+
+for _tool in TOOL_DEFS:
+    _tool.setdefault("securitySchemes", [{"type": "noauth"}])
+
+MEMORY_TOOLS = [tool for tool in MEMORY_TOOL_DEFS if tool["name"] != "relic_validate"]
+MEMORY_TOOL_NAMES = {tool["name"] for tool in MEMORY_TOOLS}
+TOOL_DEFS.extend(MEMORY_TOOLS)
 
 
 def _headers(event):
@@ -306,6 +317,68 @@ def _call_tool(name, args):
     raise KeyError(name)
 
 
+def _auth_context(event):
+    table_name = os.environ.get("MCP_AUTH_TABLE", "").strip()
+    memory_table = os.environ.get("MCP_MEMORY_TABLE", "").strip()
+    if not table_name or not memory_table:
+        return None
+    header = _headers(event).get("authorization", "")
+    if not header.lower().startswith("bearer "):
+        return None
+    token = header.split(" ", 1)[1].strip()
+    if not token:
+        return None
+    import boto3
+    table = boto3.resource("dynamodb").Table(table_name)
+    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    item = table.get_item(Key={"pk": "ACCESS#" + digest, "sk": "TOKEN"}, ConsistentRead=True).get("Item")
+    if not item or int(item.get("expiresAt", 0)) <= int(time.time()):
+        return None
+    expected_resource = os.environ.get("FRONTEND_ORIGIN", "https://relicgamemaster.com").rstrip("/") + "/mcp"
+    if str(item.get("resource") or "").rstrip("/") != expected_resource:
+        return None
+    return {
+        "userId": str(item["userId"]),
+        "username": str(item.get("username") or "ReLiC user"),
+        "scopes": set(str(x) for x in (item.get("scopes") or [])),
+    }
+
+
+def _required_scopes(name):
+    if name in {"relic_remember", "relic_relate", "relic_instantiate", "relic_transition"}:
+        return {"relic.read", "relic.write"}
+    if name in MEMORY_TOOL_NAMES:
+        return {"relic.read"}
+    return set()
+
+
+def _auth_challenge(required):
+    scope = " ".join(sorted(required or {"relic.read"}))
+    origin = os.environ.get("FRONTEND_ORIGIN", "https://relicgamemaster.com").rstrip("/")
+    challenge = (
+        f'Bearer resource_metadata="{origin}/.well-known/oauth-protected-resource", '
+        f'error="insufficient_scope", error_description="Connect your ReLiC account to continue", scope="{scope}"'
+    )
+    return {
+        "content": [{"type": "text", "text": "Connect your ReLiC account to use private persistent memory."}],
+        "_meta": {"mcp/www_authenticate": [challenge]},
+        "isError": True,
+    }
+
+
+def _call_memory_tool(event, name, args):
+    actor = _auth_context(event)
+    required = _required_scopes(name)
+    if not actor or not required.issubset(actor["scopes"]):
+        return _auth_challenge(required)
+    import boto3
+    from relic_mcp_protocol import call_tool as call_memory_tool
+    from relic_mcp_store import DynamoRelicStore
+    table = boto3.resource("dynamodb").Table(os.environ["MCP_MEMORY_TABLE"])
+    store = DynamoRelicStore(table, actor["userId"], actor["username"])
+    return _tool_result(call_memory_tool(name, args, store))
+
+
 def _audit(event, method, tool=None, ok=True):
     record = {
         "event": "relic.mcp",
@@ -389,7 +462,10 @@ def handler(event, context):
             if not isinstance(args, dict):
                 raise ValueError("tool arguments must be an object")
             try:
-                result = _call_tool(name, args)
+                if name in MEMORY_TOOL_NAMES:
+                    result = _call_memory_tool(event, name, args)
+                else:
+                    result = _call_tool(name, args)
             except KeyError:
                 _audit(event, rpc_method, name, ok=False)
                 return _response(200, _jsonrpc_error(request_id, -32602, f"Unknown tool: {name}"), protocol)
