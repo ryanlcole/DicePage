@@ -48,6 +48,24 @@ TOOLS = [
         "title": "ReLiC account profile",
         "description": "Read the authenticated ReLiC account identity used to scope all private persistent memory.",
         "inputSchema": _obj(),
+        "outputSchema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "description": "Opaque stable ReLiC profile identifier for the authenticated account."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Display name for the authenticated ReLiC profile."
+                }
+            },
+            "required": ["id"],
+            "additionalProperties": False
+        },
         "securitySchemes": READ_SECURITY,
         "_meta": {"openai/profile": True},
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
