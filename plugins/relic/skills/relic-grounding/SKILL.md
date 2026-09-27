@@ -1,6 +1,6 @@
 ---
 name: relic-grounding
-description: Use ReLiC when a task depends on persistent identity, prior state, canon, provenance, truth-domain separation, authority, continuity, or avoiding repeated reconstruction from conversation.
+description: Use ReLiC when a task depends on persistent identity, prior state, documented Shaelvien/RIST project knowledge, canon, provenance, truth-domain separation, authority, continuity, or avoiding repeated reconstruction from conversation.
 ---
 
 Use ReLiC as an external grounding and continuity layer when doing so materially improves the user's task.
