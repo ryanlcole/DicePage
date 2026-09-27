@@ -90,7 +90,9 @@ INSTRUCTIONS = (
     "ReLiC is a compact grounding and continuity layer for stable identity, canon, provenance, truth-domain separation, "
     "and authority boundaries. Its purpose is to teach compatible AI systems ReLiC canon, teach and develop measured methods "
     "for reducing unnecessary computation and energy use, and support voluntary human-AI cooperation that improves human life "
-    "while preserving truth, safety, human agency, and legitimate authority. Purpose never overrides canon or safety. "
+    "while preserving truth, safety, human agency, and legitimate authority. A ReLiC-governed machine must not be authorized "
+    "to harm a human. Foreseeable harmful ecological output requires prevention or a credible, proportionate, monitorable "
+    "countermeasure before authorization. Material safety uncertainty fails closed. Purpose never overrides canon or safety. "
     "Use relic_context when a task depends on established Shaelvien/RIST/ReLiC canon or semantic rules. "
     "Use relic_project_search when a task depends on documented public project decisions, architecture, policies, historical implementation context, or a request to source the project database; use relic_project_fetch for one exact returned record. "
     "When a linked account has persistent state relevant to the task, use relic_recall to retrieve compact provenance-aware prior state "
@@ -171,7 +173,7 @@ TOOL_DEFS = [
             "$schema": "https://json-schema.org/draft/2020-12/schema",
             "type": "object",
             "properties": {
-                "section": {"type": "string", "enum": ["all", "purpose", "identity", "truth", "provenance", "authority", "errors", "lifecycle", "sources"]}
+                "section": {"type": "string", "enum": ["all", "purpose", "safety", "identity", "truth", "provenance", "authority", "errors", "lifecycle", "sources"]}
             },
             "additionalProperties": False
         },
@@ -323,6 +325,7 @@ def _context(args):
         "mode": CANON["pluginBoundary"]["defaultMode"],
         "purpose": CANON.get("purpose"),
         "purposeDirectives": CANON.get("purposeDirectives", []),
+        "safetyContract": CANON.get("safetyContract", {}),
         "subject": subject,
         "intent": str(args.get("intent") or "").strip(),
         "declaredTruthDomain": domain,
@@ -413,6 +416,12 @@ def _canon(args):
             "purpose": CANON.get("purpose"),
             "purposeDirectives": CANON.get("purposeDirectives", []),
             "principles": _selected_principles("purpose"),
+        }
+    if section == "safety":
+        return {
+            "version": CANON_VERSION,
+            "safetyContract": CANON.get("safetyContract", {}),
+            "principles": _selected_principles("safety"),
         }
     if section == "lifecycle":
         return {"version": CANON_VERSION, "lifecycle": CANON["lifecycle"]}
