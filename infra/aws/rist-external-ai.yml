@@ -22,6 +22,9 @@ Parameters:
     Type: String
     Default: us.amazon.nova-lite-v1:0
     Description: Bedrock model or inference profile used only by the isolated EIOS lab bridge
+  DiscordAuthApiBaseUrl:
+    Type: String
+    Description: Existing RIST Discord auth API used only for the ReLiC MCP OAuth identity handoff
 
 Globals:
   Function:
@@ -72,6 +75,39 @@ Resources:
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
 
+  RelicMcpMemoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  RelicMcpAuthTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
   ExternalAiHumanApi:
     Type: AWS::Serverless::HttpApi
     Properties:
@@ -95,6 +131,26 @@ Resources:
       DefaultRouteSettings:
         ThrottlingBurstLimit: 3
         ThrottlingRateLimit: 2
+
+  RelicMcpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: ['*']
+        AllowHeaders:
+          - authorization
+          - content-type
+          - accept
+          - mcp-session-id
+          - mcp-protocol-version
+          - mcp-method
+          - mcp-name
+        ExposeHeaders: [mcp-session-id]
+        AllowMethods: [GET, POST, OPTIONS]
+        MaxAge: 300
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 30
+        ThrottlingRateLimit: 15
 
   ExternalAiHumanFunction:
     Type: AWS::Serverless::Function
@@ -175,7 +231,86 @@ Resources:
         - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiStateTable }
         - DynamoDBCrudPolicy: { TableName: !Ref ExternalAiAuditTable }
 
+  RelicMcpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: relic_mcp_handler.handler
+      Timeout: 15
+      MemorySize: 384
+      Environment:
+        Variables:
+          MCP_MEMORY_TABLE: !Ref RelicMcpMemoryTable
+          MCP_AUTH_TABLE: !Ref RelicMcpAuthTable
+          PUBLIC_ORIGIN: !Ref FrontendOrigin
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref RelicMcpMemoryTable }
+        - DynamoDBReadPolicy: { TableName: !Ref RelicMcpAuthTable }
+      Events:
+        McpGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref RelicMcpApi, Path: /mcp, Method: GET }
+        McpPost:
+          Type: HttpApi
+          Properties: { ApiId: !Ref RelicMcpApi, Path: /mcp, Method: POST }
+
+  RelicMcpOauthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: relic_mcp_auth.handler
+      Timeout: 15
+      MemorySize: 384
+      Environment:
+        Variables:
+          MCP_AUTH_TABLE: !Ref RelicMcpAuthTable
+          PUBLIC_ORIGIN: !Ref FrontendOrigin
+          DISCORD_AUTH_API: !Ref DiscordAuthApiBaseUrl
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref RelicMcpAuthTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref IdentityTableName }
+      Events:
+        AuthorizationMetadata:
+          Type: HttpApi
+          Properties: { ApiId: !Ref RelicMcpApi, Path: /.well-known/oauth-authorization-server, Method: GET }
+        OpenIdMetadata:
+          Type: HttpApi
+          Properties: { ApiId: !Ref RelicMcpApi, Path: /.well-known/openid-configuration, Method: GET }
+        ProtectedResourceMetadata:
+          Type: HttpApi
+          Properties: { ApiId: !Ref RelicMcpApi, Path: /.well-known/oauth-protected-resource, Method: GET }
+        ProtectedResourceMcpMetadata:
+          Type: HttpApi
+          Properties: { ApiId: !Ref RelicMcpApi, Path: /.well-known/oauth-protected-resource/mcp, Method: GET }
+        OAuthRegister:
+          Type: HttpApi
+          Properties: { ApiId: !Ref RelicMcpApi, Path: /oauth/register, Method: POST }
+        OAuthAuthorize:
+          Type: HttpApi
+          Properties: { ApiId: !Ref RelicMcpApi, Path: /oauth/authorize, Method: GET }
+        OAuthIdentityGet:
+          Type: HttpApi
+          Properties: { ApiId: !Ref RelicMcpApi, Path: /oauth/identity, Method: GET }
+        OAuthIdentityPost:
+          Type: HttpApi
+          Properties: { ApiId: !Ref RelicMcpApi, Path: /oauth/identity, Method: POST }
+        OAuthToken:
+          Type: HttpApi
+          Properties: { ApiId: !Ref RelicMcpApi, Path: /oauth/token, Method: POST }
+
 Outputs:
+  RelicMcpApiBaseUrl:
+    Description: ReLiC OAuth-authenticated MCP plugin API
+    Value: !Sub https://${RelicMcpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+  RelicMcpPath:
+    Description: ReLiC MCP streamable HTTP endpoint
+    Value: /mcp
+  RelicMcpResource:
+    Description: Public canonical ReLiC MCP resource identifier
+    Value: !Sub ${FrontendOrigin}/mcp
+  RelicMcpMemoryTableName:
+    Description: Dedicated private ReLiC persistent identity and state table
+    Value: !Ref RelicMcpMemoryTable
   ExternalAiHumanApiBaseUrl:
     Description: Human-authenticated operator API plus owner-locked external-AI policy/registration/login gateway
     Value: !Sub https://${ExternalAiHumanApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
