@@ -26,6 +26,20 @@
       "forbiddenTools": []
     },
     {
+      "id": "public-project-source",
+      "prompt": "Source the ReLiC project database and tell me what is documented about Recursive Authority. Keep the record dates and provenance visible.",
+      "shouldActivateSkill": true,
+      "expectedAnyTools": [
+        "relic_project_search",
+        "relic_project_fetch"
+      ],
+      "forbiddenTools": [
+        "relic_remember",
+        "relic_transition"
+      ],
+      "expectedBehavior": "Use the public source-linked project corpus; distinguish dated evidence from current canon and do not write private memory."
+    },
+    {
       "id": "private-continuity",
       "prompt": "Continue the exact project decision we saved last time about this feature.",
       "shouldActivateSkill": true,
