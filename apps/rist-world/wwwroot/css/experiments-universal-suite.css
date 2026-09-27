@@ -1511,3 +1511,137 @@
   border-radius:14px!important;
  }
 }
+
+/* Linked private asset library — My Images/My Sprites use the authenticated
+   account storage already provided by RIST. The explorer remains touchable
+   while the viewer cursor stays visually above it. */
+.asset-source-explorer{
+ pointer-events:auto!important;
+}
+.asset-source-explorer .asset-upload-pane{
+ min-height:0!important;
+ display:grid!important;
+ place-content:center!important;
+ justify-items:center!important;
+ gap:10px!important;
+ padding:12px!important;
+ border:1px dashed rgba(99,211,255,.5)!important;
+ border-radius:10px!important;
+ background:rgba(5,22,34,.74)!important;
+ text-align:center!important;
+}
+.asset-source-explorer .asset-upload-pane>strong{
+ color:#f0d792!important;
+ font:900 clamp(10px,1vw,14px)/1.1 system-ui,-apple-system,sans-serif!important;
+ letter-spacing:.1em!important;
+}
+.asset-source-explorer .asset-upload-pane>span{
+ max-width:38em!important;
+ color:#b6ccd6!important;
+ font:700 clamp(8px,.8vw,11px)/1.35 system-ui,-apple-system,sans-serif!important;
+}
+.asset-source-explorer .asset-upload-pane input[type="file"]{
+ box-sizing:border-box!important;
+ width:min(100%,360px)!important;
+ min-height:44px!important;
+ padding:8px!important;
+ border:1px solid #5bcdf7!important;
+ border-radius:9px!important;
+ background:#082033!important;
+ color:#e8f8ff!important;
+ font:800 10px/1.2 system-ui,-apple-system,sans-serif!important;
+}
+.asset-source-explorer .asset-upload-pane small{
+ color:#ffbd9d!important;
+ font:800 8px/1.3 system-ui,-apple-system,sans-serif!important;
+}
+.asset-source-explorer .asset-library-state{
+ min-height:120px!important;
+ display:grid!important;
+ place-items:center!important;
+ padding:12px!important;
+ color:#b9d9e7!important;
+ border:1px dashed rgba(99,211,255,.34)!important;
+ border-radius:9px!important;
+ text-align:center!important;
+ font:900 9px/1.3 system-ui,-apple-system,sans-serif!important;
+ letter-spacing:.08em!important;
+}
+.asset-source-explorer .asset-library-state.error{
+ color:#ffbd9d!important;
+ border-color:rgba(255,151,109,.4)!important;
+}
+.asset-source-explorer-grid.linked-assets{
+ overflow:auto!important;
+ overscroll-behavior:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ align-content:start!important;
+ grid-auto-rows:minmax(72px,1fr)!important;
+}
+.asset-source-explorer .linked-asset{
+ appearance:none!important;
+ -webkit-appearance:none!important;
+ position:relative!important;
+ min-width:0!important;
+ min-height:72px!important;
+ margin:0!important;
+ padding:3px!important;
+ overflow:hidden!important;
+ border:1px solid rgba(102,210,255,.42)!important;
+ border-radius:8px!important;
+ background:#071621!important;
+ color:#d8edf5!important;
+ touch-action:manipulation!important;
+}
+.asset-source-explorer .linked-asset.selected{
+ border:2px solid #f0ca6d!important;
+ box-shadow:0 0 0 2px rgba(99,211,255,.28),0 0 16px rgba(240,202,109,.22)!important;
+}
+.asset-source-explorer .linked-asset img{
+ display:block!important;
+ width:100%!important;
+ height:100%!important;
+ min-height:66px!important;
+ object-fit:cover!important;
+ border-radius:5px!important;
+}
+.asset-source-explorer .linked-asset>span{
+ position:absolute!important;
+ left:4px!important;
+ right:4px!important;
+ bottom:4px!important;
+ overflow:hidden!important;
+ padding:4px 5px!important;
+ border-radius:4px!important;
+ background:rgba(0,0,0,.72)!important;
+ color:#f4e3ad!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+ font:800 6px/1 system-ui,-apple-system,sans-serif!important;
+ letter-spacing:.03em!important;
+}
+.asset-source-explorer .linked-asset:focus-visible,
+.asset-source-explorer .linked-asset:active{
+ outline:2px solid #fff0b7!important;
+ outline-offset:1px!important;
+}
+
+@media(max-width:700px) and (orientation:portrait){
+ .asset-source-explorer .asset-upload-pane{
+  padding:8px!important;
+  gap:7px!important;
+ }
+ .asset-source-explorer .asset-upload-pane input[type="file"]{
+  min-height:46px!important;
+  font-size:9px!important;
+ }
+ .asset-source-explorer-grid.linked-assets{
+  grid-auto-rows:minmax(60px,1fr)!important;
+ }
+ .asset-source-explorer .linked-asset{
+  min-height:60px!important;
+ }
+ .asset-source-explorer .linked-asset img{
+  min-height:54px!important;
+ }
+}
