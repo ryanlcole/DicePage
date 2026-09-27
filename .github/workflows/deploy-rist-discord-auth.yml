@@ -68,23 +68,6 @@ jobs:
             echo "Could not resolve AssetBucketName from $ASSET_STACK_NAME"; exit 1
           fi
           MCP_RETURN="$MCP_OAUTH_RETURN_URL"
-          if aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" >/dev/null 2>&1; then
-            for attempt in $(seq 1 30); do
-              STATUS=$(aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" --query 'Stacks[0].StackStatus' --output text 2>/dev/null || echo UNKNOWN)
-              if [[ "$STATUS" == *"COMPLETE" ]]; then
-                RELIC_OAUTH_API=$(aws cloudformation describe-stacks \
-                  --stack-name "$EXTERNAL_AI_STACK" \
-                  --query "Stacks[0].Outputs[?OutputKey=='RelicMcpApiBaseUrl'].OutputValue | [0]" \
-                  --output text)
-                if [ -n "$RELIC_OAUTH_API" ] && [ "$RELIC_OAUTH_API" != "None" ]; then
-                  MCP_RETURN="${RELIC_OAUTH_API%/}/oauth/identity"
-                  break
-                fi
-              fi
-              echo "Waiting for $EXTERNAL_AI_STACK ReLiC OAuth endpoint ($attempt/30)..."
-              sleep 5
-            done
-          fi
           echo "DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID" >> "$GITHUB_ENV"
           echo "DISCORD_SECRET_ARN=$DISCORD_SECRET_ARN" >> "$GITHUB_ENV"
           echo "PUBLIC_ASSET_BUCKET=$PUBLIC_ASSET_BUCKET" >> "$GITHUB_ENV"
