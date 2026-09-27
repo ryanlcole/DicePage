@@ -80,10 +80,9 @@ TOOL_DEFS = [
         "name": "relic_context",
         "title": "Ground with ReLiC canon",
         "description": (
-            "Use this when a task depends on established Shaelvien/RIST/ReLiC canon or semantic rules. "
-            "It returns stable canon rules, truth-domain boundaries, provenance references, lifecycle guidance, "
-            "and the current authority boundary. "
-            "Read-only; it never promotes generated content to canon."
+            "Use this when a Shaelvien/RIST/ReLiC task depends on established canon, truth domains, provenance, "
+            "identity rules, or authority boundaries. Prefer this before reconstructing project rules from chat memory. "
+            "For user-specific prior state use relic_recall instead. Read-only; it never promotes generated content to canon."
         ),
         "inputSchema": {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -106,10 +105,9 @@ TOOL_DEFS = [
         "name": "relic_validate",
         "title": "Validate against ReLiC canon",
         "description": (
-            "Check structured claims or a proposed action against ReLiC canon before output or execution. "
-            "Useful when a model may otherwise confuse representation with identity, a hypothesis with fact, "
-            "authentication with permission, generated material with canon, or a claim with missing provenance. "
-            "Returns deterministic boundary findings; it does not decide truth beyond the supplied evidence."
+            "Use this when a claim or proposed action could blur representation with identity, HYPOTHESIS with FACT, "
+            "authentication with permission, generated material with canon, or evidence with missing provenance. "
+            "Returns deterministic structural boundary findings; it does not establish external factual truth."
         ),
         "inputSchema": {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
