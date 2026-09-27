@@ -118,7 +118,7 @@ jobs:
           tools=json.load(open('/tmp/relic-tools.json'))
           assert init['result']['serverInfo']['name'] == 'relic-canon', init
           names={t.get('name') for t in tools['result']['tools']}
-          expected={'relic_context','relic_validate','relic_canon','relic_recall','relic_identify','relic_imagine','relic_remember'}
+          expected={'relic_context','relic_validate','relic_canon','relic_project_search','relic_project_fetch','relic_recall','relic_identify','relic_imagine','relic_remember'}
           assert expected.issubset(names), (expected-names, names)
           context=next(t for t in tools['result']['tools'] if t.get('name') == 'relic_context')
           recall=next(t for t in tools['result']['tools'] if t.get('name') == 'relic_recall')
