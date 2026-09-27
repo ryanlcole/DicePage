@@ -55,6 +55,11 @@ def test_analyzer_reports_canon_repairs_without_mutating_subject():
     }.issubset(categories)
     assert report["mode"] == "analyze-report-propose"
     assert report["mutationAuthority"] is False
+    assert report["audit"]["trustRequired"] is False
+    assert report["audit"]["canonRule"] == "RELIC.AUDIT.TRUST_NOT_REQUIRED"
+    assert report["audit"]["evidenceRuneIds"]
+    assert report["audit"]["knownFailuresVisible"] is True
+    assert all(item["canonIds"] for item in report["shaep"]["weaknesses"])
 
 
 def test_five_minute_change_proof_separates_claimed_and_observed_scope():
