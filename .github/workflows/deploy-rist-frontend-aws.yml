@@ -423,11 +423,46 @@ jobs:
           PY
             curl --fail --silent --show-error \
               "https://${PRODUCTION_DOMAIN}/.well-known/oauth-protected-resource" > /tmp/relic-mcp-protected-resource.json
+            curl --fail --silent --show-error \
+              -H 'content-type: application/json' \
+              -H 'accept: application/json, text/event-stream' \
+              -H 'mcp-protocol-version: 2025-11-25' \
+              --data '{"jsonrpc":"2.0","id":92,"method":"tools/list","params":{}}' \
+              "https://${PRODUCTION_DOMAIN}/mcp" > /tmp/relic-mcp-tools.json
+            curl --fail --silent --show-error \
+              -H 'content-type: application/json' \
+              -H 'accept: application/json, text/event-stream' \
+              -H 'mcp-protocol-version: 2025-11-25' \
+              --data '{"jsonrpc":"2.0","id":93,"method":"skills/list","params":{}}' \
+              "https://${PRODUCTION_DOMAIN}/mcp" > /tmp/relic-mcp-skills.json
             python - <<'PY'
           import json
           data=json.load(open('/tmp/relic-mcp-protected-resource.json'))
           assert data.get('resource') == 'https://relicgamemaster.com/mcp', data
-          print('ReLiC OAuth protected-resource discovery verified.')
+          assert data.get('authorization_servers') == ['https://relicgamemaster.com'], data
+          assert {'relic.read','relic.write'}.issubset(set(data.get('scopes_supported') or [])), data
+          tools=json.load(open('/tmp/relic-mcp-tools.json'))
+          listed=(tools.get('result') or {}).get('tools') or []
+          names={tool.get('name') for tool in listed}
+          expected={'relic_context','relic_validate','relic_canon','relic_health','relic_profile','relic_recall','relic_identify','relic_observe','relic_trace','relic_translate','relic_imagine','relic_remember','relic_relate','relic_instantiate','relic_transition'}
+          assert expected.issubset(names), (expected-names,names)
+          context=next(tool for tool in listed if tool.get('name') == 'relic_context')
+          recall=next(tool for tool in listed if tool.get('name') == 'relic_recall')
+          profile=next(tool for tool in listed if tool.get('name') == 'relic_profile')
+          assert (context.get('securitySchemes') or [{}])[0].get('type') == 'noauth', context
+          assert (recall.get('securitySchemes') or [{}])[0].get('type') == 'oauth2', recall
+          assert 'repeated context reconstruction' in recall.get('description',''), recall
+          assert (profile.get('_meta') or {}).get('openai/profile') is True, profile
+          schema=profile.get('outputSchema') or {}
+          assert schema.get('required') == ['id'], profile
+          assert schema.get('additionalProperties') is False, profile
+          assert set((schema.get('properties') or {}).keys()) == {'id','name'}, profile
+          skills=json.load(open('/tmp/relic-mcp-skills.json'))
+          skill_list=(skills.get('result') or {}).get('skills') or []
+          assert len(skill_list) == 1, skills
+          assert skill_list[0].get('frontmatter',{}).get('name') == 'relic-grounding', skills
+          assert (skill_list[0].get('resources') or [{}])[0].get('digest','').startswith('sha256:'), skills
+          print('ReLiC OAuth, profile contract, tool metadata, and grounding skill verified.')
           PY
           fi
 
