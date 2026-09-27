@@ -126,6 +126,31 @@
       "id": "RELIC.VERIFICATION.OBSERVED_SCOPE_ONLY",
       "section": "verification",
       "text": "The proven scope of a change is exactly the systems actually observed; evidence from limited connected systems is not global evidence."
+    },
+    {
+      "id": "RELIC.PROOF.FIVE_MINUTES",
+      "section": "proof",
+      "text": "A claimed cross-system AI change must produce verifiable evidence within five minutes or the unsupported scope becomes UNPROVEN and raises an alert."
+    },
+    {
+      "id": "RELIC.PROOF.SCOPE_NOT_INFERENCE",
+      "section": "proof",
+      "text": "Observed scope and claimed scope remain separate; sampled systems do not prove global propagation."
+    },
+    {
+      "id": "RELIC.PROOF.UPDATES",
+      "section": "proof",
+      "text": "Authorized humans and connected systems should receive meaningful status updates, proof results, and failure alerts from the same canonical event stream."
+    },
+    {
+      "id": "RELIC.ANALYSIS.REPORT_CANON_REPAIR",
+      "section": "analysis",
+      "text": "When ReLiC finds a system weakness, report the evidence, cite applicable canon, and propose a repair without silently taking authority over the analyzed system."
+    },
+    {
+      "id": "RELIC.SEMANTICS.RUNE_GLYPH_SHAEP",
+      "section": "semantics",
+      "text": "ReLiC native reasoning uses Rune -> Glyph -> Shaep: atomic identity, contextual compound, stabilized reasoning structure."
     }
   ],
   "truthDomains": {
@@ -176,7 +201,7 @@
   "sources": [
     {
       "path": "docs/RELIC_CANON.md",
-      "blobSha": "235ec40dbcef6fb9fae3929a7ab508c676462f36",
+      "blobSha": "7af2886b2a5ead6b4be7677032cca2f0c1c03ea8",
       "authority": "foundational ReLiC canon"
     },
     {
@@ -252,15 +277,23 @@
     }
   },
   "semanticCore": {
-    "sequence": [
+    "nativeForm": "Rune->Glyph->Shaep",
+    "rune": "Atomic semantic identity, observation, value, operation, or constraint with explicit truth/provenance where applicable.",
+    "glyph": "Contextual compound assembled from resolved Runes while preserving their identities.",
+    "shaep": "Stabilized ReLiC reasoning/context structure assembled from Glyphs and relationships for one subject, query, or analysis.",
+    "uppercaseShaepBoundary": "ReLiC Shaep reasoning structures are distinct from the existing uppercase SHAEP media/archive format.",
+    "correctionPath": [
+      "Observe",
+      "Normalize",
       "Rune",
       "Glyph",
-      "Shaep"
+      "Shaep",
+      "Analyze",
+      "Report",
+      "Cite canon",
+      "Propose repair"
     ],
-    "Rune": "Atomic semantic identity, observation, value, operation, constraint, or relation endpoint; meaning is distinct from representation.",
-    "Glyph": "Compound/contextual meaning assembled from Runes and explicit relationships under defined conditions.",
-    "Shaep": "Stabilized ReLiC reasoning/context structure assembled from Runes and Glyphs for a subject, query, system, experiment, or state.",
-    "namingBoundary": "ReLiC Shaep is distinct from uppercase SHAEP, the Spatial Hot Preservation Object media/archive format."
+    "mutationRule": "Analysis reports evidence and proposes repairs through legitimate authority; it does not silently rewrite the analyzed system."
   },
   "systemAnalysis": {
     "mode": "observe-normalize-report-propose",
@@ -304,5 +337,23 @@
       "alerts"
     ],
     "singleHistoryRule": "Status updates, final proof, failure, and timeout alerts derive from the same canonical change record."
+  },
+  "proofContract": {
+    "windowSeconds": 300,
+    "rule": "A claimed cross-system or global AI change must produce verifiable evidence within five minutes or the unsupported scope becomes UNPROVEN and raises an alert.",
+    "scopeRule": "claimedScope and observedScope remain separate; sampled connected systems never prove global propagation.",
+    "updatesRule": "Authorized humans and connected systems should receive meaningful status updates, proof results, and failure alerts from the same canonical event stream.",
+    "fields": [
+      "changeId",
+      "description",
+      "claimedScope",
+      "observedScope",
+      "startedAt",
+      "deadline",
+      "evidence",
+      "status",
+      "updates",
+      "alerts"
+    ]
   }
 }
