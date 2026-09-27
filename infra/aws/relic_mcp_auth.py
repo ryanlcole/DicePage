@@ -113,6 +113,7 @@ def metadata():
         "token_endpoint_auth_methods_supported": ["none"],
         "scopes_supported": list(SCOPES),
         "resource_parameter_supported": True,
+        "authorization_response_iss_parameter_supported": True,
     }
 
 
@@ -257,7 +258,7 @@ def identity_consent_post(event):
     handoff_key, handoff, req_key, request = _load_handoff(ticket, request_token)
     identity.delete_item(Key=handoff_key)
     oauth.delete_item(Key=req_key)
-    params = {}
+    params = {"iss": AUTH_ISSUER}
     if str(form.get("decision") or "") != "allow":
         params["error"] = "access_denied"
         params["error_description"] = "The user denied ReLiC access."
