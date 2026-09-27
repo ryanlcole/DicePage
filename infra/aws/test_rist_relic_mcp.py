@@ -64,7 +64,9 @@ class ReLiCMcpTests(unittest.TestCase):
         r = m.handler(event({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"relic_context","arguments":{"subject":"ReLiC plugin","truthDomain":"FACT"}}}, {"mcp-protocol-version":"2025-11-25"}), None)
         data = body(r)["result"]["structuredContent"]
         self.assertEqual(data["mode"], "observer-first")
-        self.assertFalse(data["continuity"]["authoritativeStateConnected"])
+        self.assertFalse(data["continuity"]["authoritativeWorldStateConnected"])
+        self.assertTrue(data["continuity"]["privatePersistentMemoryAvailable"])
+        self.assertEqual(data["continuity"]["preferredPrivateTool"], "relic_recall")
         self.assertTrue(any(p["id"] == "RELIC.REPRESENTATION.NOT_TRUTH" for p in data["governingPrinciples"]))
 
     def test_validation_blocks_promotion_and_bad_identity(self):
