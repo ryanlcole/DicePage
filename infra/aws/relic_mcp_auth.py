@@ -361,6 +361,10 @@ def token(event):
         item = oauth.get_item(Key=key, ConsistentRead=True).get("Item")
         if not item or int(item.get("expiresAt", 0)) <= now() or item.get("clientId") != client_id:
             return json_response(400, {"error": "invalid_grant"})
+        if str(form.get("resource") or RESOURCE_ID).rstrip("/") != RESOURCE_ID:
+            return json_response(400, {"error": "invalid_target"})
+        if str(item.get("resource") or "").rstrip("/") != RESOURCE_ID:
+            return json_response(400, {"error": "invalid_grant"})
         requested = normalize_scopes(form.get("scope") or item.get("scopes") or [])
         original = set(item.get("scopes") or [])
         if not set(requested).issubset(original):
