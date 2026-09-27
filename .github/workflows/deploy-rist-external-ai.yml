@@ -286,6 +286,25 @@ jobs:
           assert (public.get('securitySchemes') or [{}])[0].get('type') == 'noauth', public
           print('ReLiC public canon + private recall tools verified:', len(tools))
           PY
+          curl --fail --silent --show-error \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -H 'mcp-protocol-version: 2025-11-25' \
+            --data '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"relic_recall","arguments":{"terms":["ReLiC"]}}}' \
+            "$MCP_API" > /tmp/relic-private-challenge.json
+          python - <<'PY'
+          import json
+          import os
+          data=json.load(open('/tmp/relic-private-challenge.json'))
+          result=data.get('result') or {}
+          assert result.get('isError') is True, data
+          challenges=(result.get('_meta') or {}).get('mcp/www_authenticate') or []
+          assert challenges, data
+          expected=os.environ['PRODUCTION_ORIGIN'].rstrip('/') + '/.well-known/oauth-protected-resource'
+          assert any(('resource_metadata="' + expected + '"') in value for value in challenges), challenges
+          assert any('relic.read' in value for value in challenges), challenges
+          print('ReLiC private recall OAuth challenge verified.')
+          PY
           echo "RELIC_OAUTH_API=$OAUTH_API" >> "$GITHUB_ENV"
 
       - name: Verify EIOS Bedrock bridge
