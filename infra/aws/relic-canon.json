@@ -97,23 +97,52 @@
     "Create": "Instantiate only through an authorized transition; creation does not retroactively make a proposal canon."
   },
   "pluginBoundary": {
-    "defaultMode": "read-only-observer",
+    "defaultMode": "observer-first",
     "modelMay": "request context, inspect canon, validate structured claims, trace provenance references",
     "modelMayNot": "promote generated content to canon, infer permission from authentication, rewrite governing canon, or convert a hypothesis into fact without authoritative evidence",
-    "writePolicy": "Public canon and authoritative Shaelvien world state remain read-only through ReLiC. Authenticated private ReLiC memory may record identities, relationships, provenance, and state history, but those writes never promote content to canon or change world truth.",
+    "writePolicy": "OAuth-scoped writes may change only the authenticated user's ReLiC memory namespace; no current plugin tool may promote canon or mutate authoritative Shaelvien/world state.",
     "privateMemory": {
-      "available": true,
-      "scope": "authenticated-user-only",
-      "purpose": "continuity, identity stability, provenance, and compact recall",
-      "authoritativeWorldWrite": false,
+      "authentication": "OAuth 2.1 authorization-code + PKCE",
+      "scopes": [
+        "relic.read",
+        "relic.write"
+      ],
+      "mayPersist": [
+        "identity",
+        "observations",
+        "relationships",
+        "provenance",
+        "hypotheses",
+        "versioned ReLiC memory state"
+      ],
+      "authoritativeWorldTruth": false,
       "canonPromotion": false
+    },
+    "publicCanon": {
+      "authentication": "none",
+      "mode": "read-only",
+      "purpose": "canonical grounding and structural validation without private user state"
+    },
+    "authoritativeReality": {
+      "mutationExposed": false,
+      "rule": "Authoritative Shaelvien/world mutation requires a separate applicable authority and commit path."
     }
   },
   "sources": [
     {
+      "path": "docs/RELIC_CANON.md",
+      "blobSha": "81e32592bf6337a15c8316b1856c8f644dd0fe97",
+      "authority": "foundational ReLiC canon"
+    },
+    {
       "path": "AGENTS.md",
-      "blobSha": "dd23f9029ec1cc093c54306dab1431736f060d81",
+      "blobSha": "6377c361c6b79b6d242f76f297242ca898e19b18",
       "authority": "repository entry point"
+    },
+    {
+      "path": "docs/SHAELVIEN_SEMANTIC_LANGUAGE.md",
+      "blobSha": "3a8057d58a6854f0a02336c5e73943d9faeaad1c",
+      "authority": "semantic identity, truth, provenance, and error contract"
     },
     {
       "path": "apps/rist-world/AUTHORITY_SYSTEM.md",
@@ -133,10 +162,6 @@
       "path": "infra/aws/rist_external_ai_gateway.py",
       "blobSha": "1708c68e34aca9981ad5061edaa6b6157d31ce3c",
       "authority": "external AI policy enforcement baseline"
-    },
-    {
-      "path": "owner canon",
-      "authority": "ReLiC doctrine: Remember, exist, Live, imagine, Create; Errors become law"
     }
   ]
 }
