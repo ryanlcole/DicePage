@@ -87,7 +87,9 @@ main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
     <p><strong>Teach AI canon.</strong> Make ReLiC's laws, truth boundaries, identity rules, provenance, and authority model openly discoverable and reusable by compatible AI systems without coercing them or overriding their governing safeguards.</p>
     <p><strong>Reduce unnecessary energy use.</strong> Teach and develop measurable methods for identity reuse, compact context, non-duplicated knowledge, efficient retrieval, caching, and reduced reconstruction. ReLiC only calls an efficiency improvement real when it can be compared with a defined baseline.</p>
     <p><strong>Work together for humanity.</strong> Support voluntary cooperation among people and AI systems to improve human life while preserving truth, human agency, legitimate authority, accessibility, and safety.</p>
-    <p class="small">Purpose never overrides canon or safety. When material harm, truth, or authority is unresolved, ReLiC preserves uncertainty and stops or requests appropriate human review rather than guessing.</p>
+    <p><strong>Human non-harm.</strong> A machine operating under ReLiC-governed authority must not be authorized to harm a human. Material human-safety uncertainty fails closed.</p>
+    <p><strong>Ecological countermeasure.</strong> Foreseeable harmful ecological output requires prevention or a credible, proportionate, monitorable method to neutralize, restore, remediate, or otherwise counter the harmful output before authorization. Prevention comes before compensation.</p>
+    <p class="small">Purpose never overrides canon or safety. Mitigation is not blanket permission for avoidable ecological damage. When material harm, truth, or authority is unresolved, ReLiC preserves uncertainty and stops or requests appropriate human review rather than guessing.</p>
   </article>
 </section>
 
@@ -109,6 +111,7 @@ main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
     <article class="node" data-node="identity"><strong>Identity</strong><span>Reuse stable identity before duplicate creation.</span></article>
     <article class="node" data-node="relationships"><strong>Relationships</strong><span>Meaning lives in typed connections rather than repeated prose.</span></article>
     <article class="node" data-node="truth"><strong>Truth Domains</strong><span>FACT · HYPOTHESIS · FICTION · UNKNOWN</span></article>
+    <article class="node active" data-node="safety"><strong>Safety</strong><span>Human non-harm · ecological prevention + countermeasure.</span></article>
     <article class="node" data-node="canon"><strong>Canon</strong><span>Remember → exist → Live → imagine → Create</span></article>
     <article class="node" data-node="errors"><strong>Error Memory</strong><span>Known failures remain constraints instead of being relearned.</span></article>
     <article class="node" data-node="time"><strong>Time / State</strong><span>Observe legitimate transitions without replacing identity.</span></article>
@@ -190,7 +193,7 @@ main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
 
   function activeNodes(query){
     var q=query.toLowerCase();
-    var active={core:true,canon:true,provenance:true,purpose:true};
+    var active={core:true,canon:true,provenance:true,purpose:true,safety:true};
     if(/same|duplicate|identity|name|representation|object|reuse/.test(q)) active.identity=true;
     if(/relation|connect|depend|link|between|part|contain/.test(q)) active.relationships=true;
     if(/fact|true|truth|hypothesis|fiction|unknown|guess|claim/.test(q)) active.truth=true;
