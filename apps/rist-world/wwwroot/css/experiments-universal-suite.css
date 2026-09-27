@@ -1449,3 +1449,65 @@
   gap:7px!important;
  }
 }
+
+/* Fixed display geometry — slider cues float over the displays and never
+   consume layout space. Text adapts to the fixed control shape instead. */
+.single-analog-deck .display-slider,
+.single-analog-deck .display-slider-left,
+.single-analog-deck .display-slider-right{
+ box-sizing:border-box!important;
+ width:100%!important;
+ height:100%!important;
+ min-width:0!important;
+ min-height:0!important;
+ padding:0!important;
+ margin:0!important;
+ align-self:stretch!important;
+ justify-self:stretch!important;
+}
+.single-analog-deck .display-slider button.control-display-button{
+ width:100%!important;
+ height:100%!important;
+ min-width:0!important;
+ min-height:0!important;
+ border-radius:16px!important;
+}
+.single-analog-deck button.control-display-button>strong.display-text{
+ max-width:100%!important;
+ white-space:nowrap!important;
+ overflow:hidden!important;
+ text-overflow:clip!important;
+ overflow-wrap:normal!important;
+ word-break:normal!important;
+ line-height:1!important;
+ letter-spacing:.035em!important;
+}
+.single-analog-deck button.control-display-button>strong.display-text-lg{
+ font-size:clamp(13px,3.55vw,17px)!important;
+}
+.single-analog-deck button.control-display-button>strong.display-text-md{
+ font-size:clamp(11px,3.1vw,15px)!important;
+ letter-spacing:.025em!important;
+}
+.single-analog-deck button.control-display-button>strong.display-text-sm{
+ font-size:clamp(10px,2.75vw,13px)!important;
+ letter-spacing:.015em!important;
+}
+.single-analog-deck button.control-display-button>strong.display-text-xs{
+ font-size:clamp(8px,2.35vw,11px)!important;
+ letter-spacing:0!important;
+}
+.single-analog-deck .display-slider-left .cue-up{top:4px!important}
+.single-analog-deck .display-slider-left .cue-down{bottom:4px!important}
+.single-analog-deck .display-slider-right .cue-left{left:4px!important}
+.single-analog-deck .display-slider-right .cue-right{right:4px!important}
+
+@media(max-width:700px) and (orientation:portrait){
+ .single-analog-deck .display-slider-left,
+ .single-analog-deck .display-slider-right{
+  padding:0!important;
+ }
+ .single-analog-deck .display-slider button.control-display-button{
+  border-radius:14px!important;
+ }
+}
