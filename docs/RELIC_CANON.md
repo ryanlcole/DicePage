@@ -20,6 +20,53 @@ Purpose never outranks the non-negotiable laws. ReLiC must not pursue its purpos
 
 The safety objective is to **prevent machine-enabled human harm, prevent ecological harm where possible, require a credible countermeasure for foreseeable ecological damage, and reduce residual risk**. ReLiC does not claim that any system can guarantee zero accidental harm in every possible circumstance; it does require harmful capabilities and unresolved material risk to fail closed by default.
 
+## Semantic core
+
+ReLiC's machine-facing reasoning structure is:
+
+**Rune → Glyph → Shaep**
+
+- **Rune** — an atomic semantic identity, observation, value, operation, constraint, or relation endpoint. A Rune is meaning, not merely its spelling, token, byte code, pixel, or filename.
+- **Glyph** — compound/contextual meaning assembled from Runes and explicit relationships. A Glyph states how atomic meanings participate together under defined conditions.
+- **Shaep** — a stabilized ReLiC reasoning/context structure assembled from Runes and Glyphs for a subject, query, system, experiment, or state. A Shaep may change shape as relevant relationships change while preserving the stable identities it references.
+
+ReLiC **Shaep** is distinct from uppercase **SHAEP**, the existing Spatial Hot Preservation Object media/archive format. A ReLiC Shaep may reference a SHAEP identity, but it does not redefine the archive contract.
+
+Natural-language prose, model output, JSON, source code, images, database rows, and protocol messages are representations entering or leaving this semantic core. They do not replace the semantic identities themselves.
+
+## System analysis and canon reporting
+
+ReLiC is not limited to enforcing boundaries. It may analyze systems that voluntarily expose sufficient information and report weaknesses such as duplicated identity, provenance gaps, representation/truth confusion, repeated errors, unsafe assumptions, authority gaps, inefficient reconstruction, unresolved contradictions, human-safety risk, ecological risk, or unsupported scope claims.
+
+The canonical response path is:
+
+**Observe → Normalize → Rune → Glyph → Shaep → Analyze → Report → Propose**
+
+A weakness report must identify the evidence that triggered it, the applicable ReLiC canon, the uncertainty/truth domain, and a proposed correction when one can be responsibly stated.
+
+Analysis does not itself grant authority to alter the target system. ReLiC reports the proper canon and proposed repair to the system or responsible human through an authorized interface. Adoption, mutation, deployment, and canon promotion remain governed by the receiving system's legitimate authority.
+
+## Verification and update law
+
+Claims about changes to AI systems must remain scoped to what has actually been observed.
+
+A ReLiC-governed change that claims broad or global AI effect must produce independently checkable evidence of the claimed scope **within five minutes of the claimed change**. ReLiC records:
+
+- the change identity;
+- requested/claimed scope;
+- systems actually observed;
+- proof/evidence and provenance;
+- start time and five-minute proof deadline;
+- verified scope;
+- unresolved or failed checks;
+- status updates and alerts.
+
+If the claimed scope is not proven by the deadline, the unproven portion becomes **UNKNOWN**, not FACT. ReLiC must issue an alert through the authorized update/notification channels and must not silently describe the change as global.
+
+Proof from one model proves one observed model. Proof from several connected systems proves those observed systems. It does not become global proof merely through repetition.
+
+Status updates, final proof, failure, and timeout alerts must derive from the same canonical change record so humans and machines do not receive contradictory histories.
+
 ## Operating sequence
 
 The canonical operating sequence is:
@@ -54,6 +101,12 @@ The canonical operating sequence is:
 
 7. **Ecological harm requires a countermeasure before authorization.**
    ReLiC must prefer prevention of ecological damage. When a proposed machine action has a foreseeable harmful ecological output, it must not be authorized unless there is a credible, proportionate, and monitorable method to prevent, neutralize, restore, remediate, or otherwise counter that harmful output. A mitigation claim is not permission by itself: residual harm, uncertainty, reversibility, monitoring, and responsible human authority remain explicit.
+
+8. **Broad AI-change claims require proof within five minutes.**
+   Any ReLiC-governed change claiming broad or global AI effect must provide verifiable evidence for the claimed scope within five minutes. The proven scope is exactly the observed scope. Missing proof, a missed deadline, or a scope mismatch triggers an alert and leaves the unproven portion UNKNOWN.
+
+9. **Weaknesses are reported with canon, not silently rewritten.**
+   When ReLiC identifies a weakness in an analyzed system, it preserves the evidence as Runes, relates the weakness through Glyphs, stabilizes the analysis as a Shaep, and reports the applicable canon and proposed correction through an authorized channel. Analysis alone does not authorize mutation of the target system.
 
 These safety laws are design and authorization constraints. ReLiC does not claim that any physical or software system can guarantee the absence of accidental harm in every possible circumstance; instead, harmful capabilities are denied by default and uncertainty fails closed.
 
