@@ -47,6 +47,22 @@ CANON_REMEDIES = {
         ("RELIC.PURPOSE.MEASURE_EFFICIENCY",),
         "Measure energy against a defined baseline. Byte count, latency, or operation count may be reported separately but must not be relabeled as electrical energy.",
     ),
+    "contradictory_fact": (
+        ("RELIC.TRUTH.SEPARATE_DOMAINS", "RELIC.AUDIT.TRUST_NOT_REQUIRED"),
+        "Preserve both sourced observations, expose the contradiction, and downgrade the unresolved semantic value rather than selecting one FACT silently.",
+    ),
+    "untrusted_canon_claim": (
+        ("RELIC.AUTH.AMBIGUITY_DENIES", "RELIC.SERVER.AUTHORITATIVE_TRUTH"),
+        "Treat system/model assertions about canon as observations only. Resolve canon from the authoritative ReLiC canon source and explicit rule identifiers.",
+    ),
+    "ecological_countermeasure_unverified": (
+        ("RELIC.SAFETY.ECOLOGICAL_COUNTERMEASURE", "RELIC.SAFETY.PREVENTION_BEFORE_COMPENSATION"),
+        "Do not treat a vague mitigation promise as authorization. Require a structured, evidenced, monitorable countermeasure with responsible authority and residual harm made explicit.",
+    ),
+    "human_harm_risk": (
+        ("RELIC.SAFETY.HUMAN_NONHARM",),
+        "Do not authorize a machine capability with foreseeable human-harm output. Redesign the capability so the harmful effect is unavailable and unresolved material risk fails closed.",
+    ),
 }
 
 
@@ -80,9 +96,10 @@ def analyze_system(system: Mapping[str, Any]) -> Dict[str, Any]:
     Expected input is intentionally vendor-neutral. Recognized fields:
       subject: string
       identities: [{stableId, representation, semanticKey}]
-      claims: [{text, truthDomain, provenance, scope, measuredEnergyJoules,
-                energyReductionClaim}]
+      claims: [{text, semanticKey, value, truthDomain, provenance, scope,
+                authorityClaim, measuredEnergyJoules, energyReductionClaim}]
       capabilities: [{name, authorityBasis, intendedHumanHarm,
+                      foreseeableHumanHarm, safeguards,
                       foreseeableEcologicalHarm, countermeasure}]
       changeClaims: [{description, claimedScope, observedScope, evidence}]
     Unknown fields remain available to callers but are not guessed into meaning.
@@ -137,7 +154,8 @@ def analyze_system(system: Mapping[str, Any]) -> Dict[str, Any]:
             elif stable_id:
                 seen_semantic[semantic_key] = stable_id
 
-    # Truth, provenance, and efficiency claims.
+    # Truth, provenance, authority injection, contradiction, and efficiency claims.
+    seen_fact_values: Dict[str, tuple[str, str]] = {}
     for index, item in enumerate(system.get("claims") or []):
         if not isinstance(item, Mapping):
             continue
@@ -145,12 +163,18 @@ def analyze_system(system: Mapping[str, Any]) -> Dict[str, Any]:
         if domain not in {"FACT", "HYPOTHESIS", "FICTION", "UNKNOWN"}:
             domain = "UNKNOWN"
         provenance = [str(x) for x in (item.get("provenance") or []) if str(x).strip()]
+        semantic_key = str(item.get("semanticKey") or "").strip()
+        claim_value = item.get("value")
+        authority_claim = str(item.get("authorityClaim") or "").strip().lower()
         r = rune(
             "claim",
             {
                 "text": str(item.get("text") or ""),
+                "semanticKey": semantic_key or None,
+                "value": claim_value,
                 "scope": item.get("scope"),
                 "provenance": provenance,
+                "authorityClaim": authority_claim or None,
             },
             truth_domain=domain,
             provenance="SYSTEM",
@@ -164,6 +188,29 @@ def analyze_system(system: Mapping[str, Any]) -> Dict[str, Any]:
                 out,
                 "fact_without_provenance",
                 "A FACT claim lacks provenance sufficient to establish its stated scope.",
+                [r.id],
+                severity="block",
+            )
+
+        if domain == "FACT" and semantic_key:
+            normalized_value = json.dumps(claim_value, sort_keys=True, separators=(",", ":"), default=str)
+            prior = seen_fact_values.get(semantic_key)
+            if prior is not None and prior[0] != normalized_value:
+                _weakness(
+                    out,
+                    "contradictory_fact",
+                    f"FACT claims for semantic key {semantic_key!r} contain mutually incompatible values.",
+                    [prior[1], r.id],
+                    severity="block",
+                )
+            else:
+                seen_fact_values[semantic_key] = (normalized_value, r.id)
+
+        if authority_claim == "canon":
+            _weakness(
+                out,
+                "untrusted_canon_claim",
+                "An analyzed system/model asserted canon authority from inside its own claim. Canon must be resolved from the authoritative ReLiC canon source.",
                 [r.id],
                 severity="block",
             )
@@ -209,14 +256,52 @@ def analyze_system(system: Mapping[str, Any]) -> Dict[str, Any]:
                 severity="block",
             )
 
-        if bool(item.get("foreseeableEcologicalHarm")) and not item.get("countermeasure"):
+        if bool(item.get("foreseeableHumanHarm")):
             _weakness(
                 out,
-                "ecological_harm",
-                f"Capability {item.get('name')!r} has foreseeable ecological harm without a countermeasure.",
+                "human_harm_risk",
+                f"Capability {item.get('name')!r} has a foreseeable human-harm output even though harm may not be its stated intent.",
                 [r.id],
                 severity="block",
             )
+
+        if bool(item.get("foreseeableEcologicalHarm")):
+            countermeasure = item.get("countermeasure")
+            if not countermeasure:
+                _weakness(
+                    out,
+                    "ecological_harm",
+                    f"Capability {item.get('name')!r} has foreseeable ecological harm without a countermeasure.",
+                    [r.id],
+                    severity="block",
+                )
+            else:
+                required_countermeasure_fields = {
+                    "method",
+                    "evidence",
+                    "monitoring",
+                    "responsibleAuthority",
+                    "residualHarm",
+                    "verified",
+                }
+                structured = isinstance(countermeasure, Mapping)
+                complete = structured and required_countermeasure_fields.issubset(countermeasure.keys())
+                evidenced = (
+                    complete
+                    and bool(countermeasure.get("method"))
+                    and bool(countermeasure.get("evidence"))
+                    and bool(countermeasure.get("monitoring"))
+                    and bool(countermeasure.get("responsibleAuthority"))
+                    and countermeasure.get("verified") is True
+                )
+                if not evidenced:
+                    _weakness(
+                        out,
+                        "ecological_countermeasure_unverified",
+                        f"Capability {item.get('name')!r} presents ecological mitigation that is not yet a structured, evidenced, monitorable countermeasure.",
+                        [r.id],
+                        severity="block",
+                    )
 
     # Proof scope.
     for index, item in enumerate(system.get("changeClaims") or []):
