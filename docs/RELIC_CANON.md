@@ -97,6 +97,12 @@ The plugin may make a recommendation such as “human/authority review required,
 
 A future write-capable surface must remain separate, authenticated, capability-scoped, auditable, and subject to Recursive Authority. Read access must never be treated as implicit write authority.
 
+### Current MCP implementation note
+
+The public canon tools remain anonymous and read-only. Private persistent-memory tools require OAuth scopes and may change only the authenticated user's ReLiC memory namespace. Those memory writes preserve observations, relationships, provenance, hypotheses, and version history; they do not change Shaelvien authoritative world truth and do not promote material into canon.
+
+Any future tool that changes authoritative world/system state must use the separate applicable authority and commit path. ReLiC-memory access never implies world authority.
+
 ## Relationship to existing canonical contracts
 
 This document does not replace narrower authoritative contracts. It binds the ReLiC layer to them.
