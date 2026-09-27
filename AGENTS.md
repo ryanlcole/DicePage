@@ -14,6 +14,17 @@ Before changing runtime behavior, authority, AI/EI behavior, user data handling,
 
 If a requirement is unknown, ambiguous, conflicting, stale, jurisdiction-dependent, or not yet implemented safely, fail closed or preserve the prior lawful behavior and escalate for qualified human/legal review. Semantic efficiency never outranks lawful human requirements, consent, privacy, safety, accessibility, ownership, or established Shaelvien/RIST policy.
 
+## ReLiC canon discovery
+
+Before changing ReLiC behavior, AI/plugin behavior, canon handling, provenance, identity continuity, truth-domain handling, or authority boundaries, read:
+
+1. `docs/RELIC_CANON.md` — foundational ReLiC canon and observer boundary.
+2. `docs/RELIC_PLUGIN.md` — current ChatGPT/MCP integration contract.
+3. `docs/SHAELVIEN_SEMANTIC_LANGUAGE.md` — shared semantic identity/truth/provenance rules.
+4. `apps/rist-world/AUTHORITY_SYSTEM.md` — authority remains separate from observation and representation.
+
+The canonical ReLiC sequence is **Remember → exist → Live → imagine → Create**. ReLiC does not silently promote generated, remembered, hypothetical, or represented material into authoritative truth.
+
 ## Language discovery
 
 Before generating, translating, refactoring, decoding, or inventing compact Shaelvien semantic code, read:
@@ -40,6 +51,8 @@ A fresh ChatGPT conversation does not automatically know this language merely be
 
 - Identity is not output equivalence.
 - Representation is not truth.
+- ReLiC is observer-only with respect to authoritative reality; authoritative mutations use a separate applicable authority/commit path.
+- Errors become law: understood recurring failures become durable constraints and must not silently return.
 - The server stores authoritative truth; the viewer/client produces authorized perception.
 - CHID is stable semantic code identity; spelling, file path, line number, language, and UI representation may change without changing identity.
 - Rune is atomic semantic intent/operation.
