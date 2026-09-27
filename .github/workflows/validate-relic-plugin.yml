@@ -1,0 +1,114 @@
+name: Validate ReLiC Plugin Package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'plugins/relic/**'
+      - 'docs/RELIC_CANON.md'
+      - 'docs/RELIC_PLUGIN.md'
+      - '.github/workflows/validate-relic-plugin.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate portable plugin JSON
+        run: |
+          set -euo pipefail
+          python -m json.tool plugins/relic/plugin.json >/dev/null
+          python -m json.tool plugins/relic/mcp.json >/dev/null
+          python -m json.tool plugins/relic/evals/tool-selection.json >/dev/null
+
+      - name: Verify ReLiC package contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          plugin=json.loads(Path('plugins/relic/plugin.json').read_text())
+          mcp=json.loads(Path('plugins/relic/mcp.json').read_text())
+          evals=json.loads(Path('plugins/relic/evals/tool-selection.json').read_text())
+          skill=Path('plugins/relic/skills/relic-grounding/SKILL.md').read_text()
+
+          assert plugin.get('$schema') == 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json', plugin
+          assert plugin.get('name') == 'relic', plugin
+          interface=((plugin.get('extensions') or {}).get('com.openai') or {}).get('interface') or {}
+          assert interface.get('displayName') == 'ReLiC', interface
+          assert interface.get('privacyPolicyURL') == 'https://relicgamemaster.com/privacy.html', interface
+          assert interface.get('termsOfServiceURL') == 'https://relicgamemaster.com/terms.html', interface
+
+          assert mcp.get('$schema') == 'https://agent-plugins.org/schemas/1.0.0/mcp.schema.json', mcp
+          server=(mcp.get('mcpServers') or {}).get('relic') or {}
+          assert server.get('type') == 'streamable-http', server
+          assert server.get('url') == 'https://relicgamemaster.com/mcp', server
+
+          assert skill.startswith('---\nname: relic-grounding\n'), skill[:120]
+          low=skill.lower()
+          for required in ('persistent identity','provenance','authority','unknown','relic_recall','relic_validate'):
+              assert required in low, required
+
+          cases=evals.get('cases') or []
+          assert any(c.get('shouldActivateSkill') is True for c in cases), cases
+          assert any(c.get('shouldActivateSkill') is False for c in cases), cases
+          ids=[c.get('id') for c in cases]
+          assert len(ids) == len(set(ids)), ids
+          print('ReLiC portable plugin package verified:', len(cases), 'tool-selection cases')
+          PY
+
+      - name: Verify production ReLiC MCP discovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://relicgamemaster.com/mcp'
+          curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -H 'mcp-protocol-version: 2025-11-25' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"relic-plugin-ci","version":"1"}}}' \
+            "$URL" > /tmp/relic-init.json
+
+          curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -H 'mcp-protocol-version: 2025-11-25' \
+            --data '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
+            "$URL" > /tmp/relic-tools.json
+
+          python - <<'PY'
+          import json
+          init=json.load(open('/tmp/relic-init.json'))
+          tools=json.load(open('/tmp/relic-tools.json'))
+          assert init['result']['serverInfo']['name'] == 'relic-canon', init
+          names={t.get('name') for t in tools['result']['tools']}
+          expected={'relic_context','relic_validate','relic_canon','relic_recall','relic_identify','relic_imagine','relic_remember'}
+          assert expected.issubset(names), (expected-names, names)
+          context=next(t for t in tools['result']['tools'] if t.get('name') == 'relic_context')
+          recall=next(t for t in tools['result']['tools'] if t.get('name') == 'relic_recall')
+          assert (context.get('securitySchemes') or [{}])[0].get('type') == 'noauth', context
+          assert (recall.get('securitySchemes') or [{}])[0].get('type') == 'oauth2', recall
+          print('Production ReLiC MCP discovery verified:', len(names), 'tools')
+          PY
+
+      - name: Verify production OAuth discovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors \
+            'https://relicgamemaster.com/.well-known/oauth-protected-resource' \
+            > /tmp/relic-oauth-resource.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-oauth-resource.json'))
+          assert data.get('resource') == 'https://relicgamemaster.com/mcp', data
+          scopes=set(data.get('scopes_supported') or [])
+          assert {'relic.read','relic.write'}.issubset(scopes), data
+          print('Production ReLiC OAuth metadata verified.')
+          PY
