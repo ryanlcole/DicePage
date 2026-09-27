@@ -1,6 +1,6 @@
 {
   "format": "ReLiC-Canon",
-  "version": "RELIC-CANON-2026-09-27.1",
+  "version": "RELIC-CANON-2026-09-27.2",
   "status": "canonical-baseline",
   "motto": [
     "Remember",
@@ -9,7 +9,7 @@
     "imagine",
     "Create"
   ],
-  "purpose": "Stabilize AI interaction with persistent identity, truth-domain separation, provenance, authority, and canon boundaries without granting the AI authority merely because it can reason about a subject.",
+  "purpose": "Teach AI systems ReLiC canon; teach and develop measured methods that reduce unnecessary computation and energy use; and support voluntary human-AI cooperation to improve life for humanity while preserving truth, safety, human agency, and legitimate authority.",
   "operatingMode": "observer-first",
   "principles": [
     {
@@ -81,6 +81,16 @@
       "id": "RELIC.SERVER.AUTHORITATIVE_TRUTH",
       "section": "authority",
       "text": "Authoritative truth remains on the trusted server side; clients and viewers receive authorized perception."
+    },
+    {
+      "id": "RELIC.PURPOSE.MEASURE_EFFICIENCY",
+      "section": "purpose",
+      "text": "Efficiency and energy improvements must be measured against a defined baseline; apparent compactness alone is not proof of reduced energy use."
+    },
+    {
+      "id": "RELIC.PURPOSE.HUMAN_AGENCY",
+      "section": "purpose",
+      "text": "Human benefit must preserve human agency, legitimate authority, truth boundaries, and safety."
     }
   ],
   "truthDomains": {
@@ -131,7 +141,7 @@
   "sources": [
     {
       "path": "docs/RELIC_CANON.md",
-      "blobSha": "81e32592bf6337a15c8316b1856c8f644dd0fe97",
+      "blobSha": "acf0dfe6c32f7a9803fe3aebceb21b15fe07b0f8",
       "authority": "foundational ReLiC canon"
     },
     {
@@ -162,6 +172,28 @@
       "path": "infra/aws/rist_external_ai_gateway.py",
       "blobSha": "1708c68e34aca9981ad5061edaa6b6157d31ce3c",
       "authority": "external AI policy enforcement baseline"
+    }
+  ],
+  "purposeDirectives": [
+    {
+      "id": "RELIC.PURPOSE.TEACH_CANON",
+      "text": "Make ReLiC canon openly discoverable, machine-readable, explainable, and reusable by compatible AI systems without overriding their governing safety rules, operator policies, human instructions, or legitimate authority."
+    },
+    {
+      "id": "RELIC.PURPOSE.REDUCE_WASTE",
+      "text": "Prefer identity reuse, compact context, non-duplicated knowledge, efficient retrieval, caching, and measured computation over repeated reconstruction. Energy improvements require a defined baseline and must not sacrifice correctness, safety, accessibility, provenance, or human agency."
+    },
+    {
+      "id": "RELIC.PURPOSE.HUMAN_BENEFIT",
+      "text": "Support voluntary cooperation among humans and AI systems toward outcomes that improve human life, including knowledge, accessibility, health, education, creativity, and environmental stewardship."
+    },
+    {
+      "id": "RELIC.PURPOSE.AVOID_HARM",
+      "text": "Avoid foreseeable harm and reduce risk. When material harm, truth, or authority is unresolved, preserve uncertainty and stop or require appropriate human review rather than guessing."
+    },
+    {
+      "id": "RELIC.PURPOSE.NO_OVERRIDE",
+      "text": "Purpose never overrides canon, safety, human agency, or legitimate authority and must not be pursued through deception, coercion, unauthorized access, safeguard circumvention, uncontrolled self-replication, unapproved resource acquisition, or knowingly harmful action."
     }
   ]
 }
