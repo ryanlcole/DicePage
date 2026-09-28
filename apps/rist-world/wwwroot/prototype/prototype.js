@@ -95,7 +95,7 @@ const REGION_GRID_ROWS=30;
 const VIEWER_GRID_PREF='rist.viewer.grid.v1';
 const ASSET_GRID_PREF='rist.asset.grid.v1';
 const storedGridMode=key=>{try{return String(localStorage.getItem(key)||'square').toLowerCase()==='hex'?'hex':'square'}catch{return'square'}};
-let viewerGridMode=storedGridMode(VIEWER_GRID_PREF),assetGridMode=storedGridMode(ASSET_GRID_PREF),viewerGridColumns=30,viewerGridRows=30,assetGridColumns=30,assetGridRows=30,viewerGridOverlay=null;
+let viewerGridMode=storedGridMode(VIEWER_GRID_PREF),assetGridMode=storedGridMode(ASSET_GRID_PREF),viewerGridColumns=30,viewerGridRows=30,assetGridColumns=30,assetGridRows=30,viewerGridOverlay=null,externalSpatialScope='WORLD';
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
 let regionGridShape='square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
@@ -128,6 +128,11 @@ const regionMapSaveWaiters=new Map();
 const spriteTimers=new Map();
 const REGION_ENHANCE_ENTER=4.25;
 const REGION_ENHANCE_EXIT=3.6;
+const SPATIAL_SCOPE_THRESHOLDS=Object.freeze({
+  REGION:REGION_ENHANCE_ENTER,
+  LOCAL:REGION_ENHANCE_ENTER*4,
+  INSTANCE:REGION_ENHANCE_ENTER*16
+});
 const REGION_ENHANCE_DELAY=140;
 const REGION_ENHANCE_MAX_DPR=2;
 const MAX_VIEW_ZOOM_RATIO=256;
@@ -268,6 +273,13 @@ function postWorldBuilderHostMessage(type,payload={}){
   if(REGION_DEFINER||window.parent===window)return false;
   try{window.parent.postMessage({source:'shaelvien-worldbuilder',type,...payload},location.origin);return true}catch{return false}
 }
+function normalizeSpatialScope(value){
+  const raw=String(value||'WORLD').toUpperCase();
+  if(raw.includes('REGION'))return'REGION';
+  if(raw.includes('LOCAL'))return'LOCAL';
+  if(raw.includes('INSTANCE'))return'INSTANCE';
+  return'WORLD';
+}
 function worldBuilderSelectionContext(item=selectedImage){
   if(!item)return null;
   const fallback=item.kind==='label'?'Label':'Placed asset';
@@ -276,6 +288,7 @@ function worldBuilderSelectionContext(item=selectedImage){
     name:String(item.name||item.text||item.assetId||item.personalAssetKey||fallback),
     assetId:String(item.assetId||item.personalAssetKey||''),
     kind:String(item.kind||'image'),
+    scope:normalizeSpatialScope(item.scope||'WORLD'),
     tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
     x:clamp(Number(item.x)||0,0,1),
@@ -439,7 +452,7 @@ async function readSavedWorldBuilder(key=WORLDBUILDER_SAVE_KEY){
 function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
-      id:item.id,regionId:String(item.regionId||''),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
+      id:item.id,regionId:String(item.regionId||''),scope:normalizeSpatialScope(item.scope||'WORLD'),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
       fontSize:clamp(Number(item.fontSize)||48,12,180),bold:!!item.bold,italic:!!item.italic,color:String(item.color||LABEL_COLORS[0]),
@@ -448,7 +461,7 @@ function serializableUserLayer(item){
     };
   }
   return{
-    id:item.id,regionId:String(item.regionId||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
+    id:item.id,regionId:String(item.regionId||''),scope:normalizeSpatialScope(item.scope||'WORLD'),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
     originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
     spriteSheetSrc:item.spriteSheetSrc||null,spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
@@ -505,7 +518,7 @@ async function attachRestoredLayer(raw,options={}){
   const kind=String(raw?.kind||'image').toLowerCase();
   if(kind==='label'){
     const item={
-      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
+      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),scope:normalizeSpatialScope(raw.scope||'WORLD'),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
       x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
       fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
@@ -533,7 +546,7 @@ async function attachRestoredLayer(raw,options={}){
   }
   const first=isSprite?(frameSources[0]||String(raw.originalSrc||raw.spriteSheetSrc||'')):String(raw.originalSrc||'');
   const item={
-    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),scope:normalizeSpatialScope(raw.scope||'WORLD'),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
     originalSrc:first,transparentSrc:String(raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
     spriteSheetSrc:isSprite?String(raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
@@ -596,15 +609,23 @@ function ensureRegionEnhanceCanvas(){
   return canvas;
 }
 function regionZoomRatio(){return scale/Math.max(minScale,.00001)}
+function currentSpatialScope(){
+  if(REGION_DEFINER)return'REGION';
+  const ratio=regionZoomRatio();
+  if(ratio>=SPATIAL_SCOPE_THRESHOLDS.INSTANCE)return'INSTANCE';
+  if(ratio>=SPATIAL_SCOPE_THRESHOLDS.LOCAL)return'LOCAL';
+  if(ratio>=SPATIAL_SCOPE_THRESHOLDS.REGION)return'REGION';
+  return'WORLD';
+}
 function regionDetailWanted(){
   if(REGION_DEFINER)return false;
-  const ratio=regionZoomRatio();
-  return layerReady.surface&&(regionEnhanceActive?ratio>=REGION_ENHANCE_EXIT:ratio>=REGION_ENHANCE_ENTER);
+  return layerReady.surface&&currentSpatialScope()==='REGION';
 }
 function suspendRegionEnhancement(){
   clearTimeout(regionEnhanceTimer);regionEnhanceTimer=0;regionEnhanceToken++;
   regionEnhanceCanvas?.classList.remove('active');
-  stage.dataset.detailMode='world';
+  if(regionEnhanceCanvas)regionEnhanceCanvas.style.transform='';
+  stage.dataset.detailMode=currentSpatialScope().toLowerCase();
 }
 function invalidateRegionCamera(){
   regionCameraRevision++;
@@ -650,10 +671,11 @@ async function renderRegionEnhancement(){
   if(r.width<2||r.height<2)return;
   regionEnhanceRendering=true;
   try{
+    const mix=tierMix(),worldMap=customWorldMap();
     const entries=[
-      {node:surface,key:'surface'},
-      {node:highlands,key:'highlands'},
-      {node:mountains,key:'mountains'}
+      {node:surface,key:'surface',alpha:worldMap?0:mix.surface},
+      {node:highlands,key:'highlands',alpha:mix.highlands},
+      {node:mountains,key:'mountains',alpha:mix.mountains}
     ];
     for(const entry of entries){
       if(!entry.node||!layerReady[entry.key])continue;
@@ -661,7 +683,7 @@ async function renderRegionEnhancement(){
       if(!regionRenderStillValid(token,revision))return;
     }
     const overlays=[...userLayers]
-      .filter(item=>item?.node&&item.kind!=='label'&&Number(item.renderOpacity)>0.001)
+      .filter(item=>item?.node&&item.kind!=='label'&&normalizeSpatialScope(item.scope||'WORLD')==='WORLD'&&Number(item.opacity)>0.001)
       .sort((a,b)=>((a.tier*100)+a.layer+(a.stackOrder||0)/100)-((b.tier*100)+b.layer+(b.stackOrder||0)/100));
     for(const item of overlays){
       const src=item.transparent&&item.transparentSrc?item.transparentSrc:item.originalSrc;
@@ -678,7 +700,7 @@ async function renderRegionEnhancement(){
     ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,r.width,r.height);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
     for(const entry of entries){
       if(!entry.bitmap||!regionRenderStillValid(token,revision))return;
-      const opacity=Number(getComputedStyle(entry.node).opacity);if(!(opacity>0.001))continue;
+      const opacity=Number(entry.alpha)||0;if(!(opacity>0.001))continue;
       const px=Number(entry.node.dataset.parallaxX)||0,py=Number(entry.node.dataset.parallaxY)||0;
       ctx.globalAlpha=clamp(opacity,0,1);
       ctx.drawImage(entry.bitmap,x+(px*scale),y+(py*scale),naturalWidth*scale,naturalHeight*scale);
@@ -692,7 +714,7 @@ async function renderRegionEnhancement(){
     for(const item of overlays){
       const bitmap=item.regionBitmap;if(!bitmap||!regionRenderStillValid(token,revision))continue;
       if(isWorldMapItem(item)){
-        ctx.save();ctx.globalAlpha=clamp(Number(item.renderOpacity??item.opacity)||0,0,1);ctx.drawImage(bitmap,x,y,naturalWidth*scale,naturalHeight*scale);
+        ctx.save();ctx.globalAlpha=clamp(Number(item.opacity)||0,0,1);ctx.drawImage(bitmap,x,y,naturalWidth*scale,naturalHeight*scale);
         if(item===selectedImage){ctx.globalAlpha=1;ctx.lineWidth=Math.max(1,2/dpr);ctx.strokeStyle='rgba(240,204,105,.95)';ctx.strokeRect(x,y,naturalWidth*scale,naturalHeight*scale)}
         ctx.restore();continue;
       }
@@ -701,7 +723,7 @@ async function renderRegionEnhancement(){
       const baseW=naturalWidth*.12,baseH=baseW*(bitmap.height/Math.max(bitmap.width,1));
       const w=baseW*Math.max(Number(item.size)||1,.00001)*scale,h=baseH*Math.max(Number(item.size)||1,.00001)*scale;
       ctx.save();
-      ctx.globalAlpha=clamp(Number(item.renderOpacity??item.opacity)||0,0,1);
+      ctx.globalAlpha=clamp(Number(item.opacity)||0,0,1);
       ctx.translate(centerX,centerY);
       ctx.rotate((Number(item.rotation)||0)*Math.PI/180);
       ctx.drawImage(bitmap,-w/2,-h/2,w,h);
@@ -713,10 +735,13 @@ async function renderRegionEnhancement(){
     ctx.globalAlpha=1;ctx.setTransform(1,0,0,1,0,0);
     if(!regionRenderStillValid(token,revision))return;
     const wasActive=regionEnhanceActive;regionEnhanceActive=true;
-    stage.dataset.detailMode='region-enhanced';
+    stage.dataset.detailMode='region';
     stage.dataset.detailScale=regionZoomRatio().toFixed(2);
     canvas.classList.add('active');
-    if(!wasActive)announce('Region detail enhancement active. World truth is unchanged; this is a higher-detail working representation.');
+    canvas.style.transform='perspective(1600px) rotateX(15deg)';
+    canvas.style.transformOrigin='50% 58%';
+    applyParallax();
+    if(!wasActive)announce('Region screen-fit reached. World layers are hidden behind the 15 degree Region representation.');
   }finally{regionEnhanceRendering=false}
 }
 function scheduleRegionEnhancement(delay=REGION_ENHANCE_DELAY){
@@ -1077,7 +1102,7 @@ function placeLabel(text){
   text=String(text||'').trim().slice(0,120);if(!text){announce('Type label text first.');return null}
   const rawPoint=viewerCenterPosition(),point=snapAssetPoint(rawPoint.x,rawPoint.y),address=placementAddress(currentTierIndex(),1);
   const item={
-    id:`label:${crypto.randomUUID?.()||Date.now()}`,kind:'label',name:text,text,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
+    id:`label:${crypto.randomUUID?.()||Date.now()}`,scope:normalizeSpatialScope(externalSpatialScope),kind:'label',name:text,text,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     x:point.x,y:point.y,tier:address.tier,layer:address.layer,rotation:0,opacity:1,committed:false,renderOpacity:1,
     fontSize:48,bold:false,italic:false,color:LABEL_COLORS[0],textAlign:'center',letterSpacing:0,plate:false,
     offsetX:0,offsetY:0,parallaxX:0,parallaxY:0,node:null
@@ -1244,7 +1269,7 @@ async function placeUploadedImage(file){
   const requestedPoint={x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1)};
   const placementPoint=placementRole==='world-map'?{x:.5,y:.5}:snapAssetPoint(requestedPoint.x,requestedPoint.y);
   const item={
-    id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
+    id:crypto.randomUUID?.()||String(Date.now()),scope:normalizeSpatialScope(externalSpatialScope),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     placementRole,fullWorld:placementRole==='world-map',
     originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
     x:placementPoint.x,y:placementPoint.y,tier,layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
@@ -1281,6 +1306,8 @@ function tierMix(){
   };
 }
 function applyParallax(){
+  const spatialScope=currentSpatialScope();
+  stage.dataset.spatialScope=spatialScope.toLowerCase();
   const dx=x-fitX,dy=y-fitY,mix=tierMix(),worldMap=customWorldMap();
   if(REGION_DEFINER)updateRegionWorldSourceVisibility();
   const builtins=[
@@ -1290,7 +1317,8 @@ function applyParallax(){
   ];
   for(const entry of builtins){
     const sourceVisible=!REGION_DEFINER||(entry.tier<=currentRegionTierIndex()&&regionSourceLayerVisible(entry.tier,entry.layer));
-    entry.node.style.opacity=layerReady[entry.key]&&sourceVisible?String(clamp(Number(entry.alpha)||0,0,1)):'0';
+    const worldVisible=spatialScope==='WORLD'||(spatialScope==='REGION'&&!regionEnhanceActive);
+    entry.node.style.opacity=worldVisible&&layerReady[entry.key]&&sourceVisible?String(clamp(Number(entry.alpha)||0,0,1)):'0';
     const depth=entry.sceneZ/10;
     const panStrength=depth*.055;
     const tiltStrength=.42+(depth*.78);
@@ -1304,9 +1332,11 @@ function applyParallax(){
     // as read-only context while Region Definer edits the selected tier.
     const regionTier=currentRegionTierIndex();
     const regionalLayerVisible=!item.canonicalSource||regionSourceLayerVisible(item.tier,item.layer);
+    const itemScope=normalizeSpatialScope(item.scope||'WORLD');
+    const scopeVisible=itemScope===spatialScope||(spatialScope==='REGION'&&!regionEnhanceActive&&itemScope==='WORLD');
     const visible=REGION_DEFINER
       ? (item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
-      : (!item.committed||viewerTier==='all'||item.tier===tierByKey(viewerTier).index);
+      : (!item.committed||scopeVisible)&&(viewerTier==='all'||!item.committed||item.tier===tierByKey(viewerTier).index);
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
@@ -1334,7 +1364,8 @@ function applyTransform(){
   world.style.width=naturalWidth+'px';
   world.style.height=naturalHeight+'px';
   world.style.transformOrigin='0 0';
-  world.style.transform=REGION_DEFINER
+  const spatialScope=currentSpatialScope();
+  world.style.transform=(REGION_DEFINER||spatialScope!=='WORLD')
     ? `translate3d(${x}px,${y}px,0) scale(${scale}) rotateX(15deg)`
     : `translate3d(${x}px,${y}px,0) scale(${scale})`;
   if(REGION_DEFINER)syncClaimedRegionContextMask();
@@ -2747,7 +2778,7 @@ function placeLibraryTile(asset){
   if(!asset?.image)return;
   const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=snapAssetPoint(rawPoint.x,rawPoint.y),address=placementAddress(currentTierIndex(),1),item={
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
-    assetId:asset.id,name:asset.name,libraryTile:true,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
+    scope:normalizeSpatialScope(externalSpatialScope),assetId:asset.id,name:asset.name,libraryTile:true,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     placementRole,fullWorld:placementRole==='world-map',
     originalSrc:asset.image,transparentSrc:asset.image,transparent:false,
     x:placementRole==='world-map'?.5:point.x,y:placementRole==='world-map'?.5:point.y,tier:placementRole==='world-map'?0:address.tier,layer:placementRole==='world-map'?0:address.layer,
@@ -3318,15 +3349,59 @@ RistViewerInput.install({stage,document,
 });
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.hidden){closeTierMenu();tierToggle.focus();return}if(!viewerSettingsPanel.hidden){closeViewerSettings();return}if(!spriteUploadPanel.hidden){closeSpriteUpload();return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!keyboard.hidden)closeKeyboard()});
 
+function setExternalDepth(raw={}){
+  externalSpatialScope=normalizeSpatialScope(raw.scope||externalSpatialScope);
+  const tier=clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1);
+  viewerTier=tierByIndex(tier).key;
+  viewerLayer=Math.max(0,Math.trunc(Number(raw.layer)||0));
+  updateTierButton();renderTierMenu();applyTransform();renderKeyboardKeys();
+}
+async function placeExternalAsset(raw={}){
+  if(READ_ONLY)return false;
+  const src=String(raw.url||'').trim();
+  if(!src)return false;
+  const scope=normalizeSpatialScope(raw.scope||externalSpatialScope);
+  externalSpatialScope=scope;
+  const center=viewerCenterPosition(),px=Number(raw.offsetX)||0,py=Number(raw.offsetY)||0;
+  const point=snapAssetPoint(
+    center.x+(px/(Math.max(scale,.00001)*Math.max(naturalWidth,1))),
+    center.y+(py/(Math.max(scale,.00001)*Math.max(naturalHeight,1)))
+  );
+  const item={
+    id:`external:${crypto.randomUUID?.()||Date.now()}`,scope,
+    assetId:String(raw.assetId||raw.key||'')||null,personalAssetKey:null,
+    name:String(raw.name||'Placed asset'),kind:String(raw.kind||'image').toLowerCase()==='sprite'?'sprite':'image',
+    libraryTile:false,sourceLocked:false,regionOverlay:false,regionId:'',
+    placementRole:'layer',fullWorld:false,originalSrc:src,transparentSrc:src,transparent:true,
+    x:point.x,y:point.y,tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
+    layer:Math.max(0,Math.trunc(Number(raw.layer)||0)),size:clamp(Number(raw.scale)||1,.05,20),
+    rotation:Number(raw.rotation)||0,opacity:1,committed:false,renderOpacity:1,
+    zoomPassed:false,zoomPassScale:null,node:null
+  };
+  const node=document.createElement('img');node.className='user-image-placement';node.alt=item.name;node.draggable=false;item.node=node;
+  node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
+  userLayers.push(item);world.appendChild(node);world.dataset.emptyWorld='false';void primeCollisionMask(src);
+  updateLayerOrder();refreshUserImage(item);selectUserImage(item);applyParallax();
+  const saved=await saveWorldBuilder();
+  if(saved)return true;
+  stopSpriteMotion(item);node.remove();
+  const index=userLayers.indexOf(item);if(index>=0)userLayers.splice(index,1);
+  selectedImage=null;publishWorldBuilderSelectionContext();updateLayerOrder();applyParallax();
+  announce('External placement was rolled back because canonical save failed.');
+  return false;
+}
+
 window.ShaelvienPrototype=Object.freeze({
   world:Object.freeze({id:WORLD_ID,name:DISPLAY_WORLD_NAME,continent:CONTINENT_NAME,seed:WORLD_SEED,surfacePixels:SURFACE_WORLD_PIXELS,surfacePolicy:SURFACE_POLICY}),
   getUpscaleState:()=>({enabled:upscaleEnabled,mode:stage.dataset.upscale||'original'}),
   save:saveWorldBuilder,
+  placeExternalAsset,
+  setExternalDepth,
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
   getViewerState:()=>({
     workspaceMode:WORKSPACE_MODE,assetScale:ASSET_SCALE,mapAuthorityScoped:MAP_AUTHORITY_SCOPED,
-    viewerTier,viewerLayer,
+    viewerTier,viewerLayer,spatialScope:currentSpatialScope(),authoringScope:externalSpatialScope,
     layerCount:BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length,
     userLayers:userLayers.map(item=>({id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
     keyboardOpen:!keyboard.hidden,keyboardMode,toolMode,
