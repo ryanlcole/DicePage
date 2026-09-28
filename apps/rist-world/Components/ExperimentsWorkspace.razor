@@ -942,8 +942,9 @@
     _message=$"Saved {_assetKind.ToLowerInvariant()} at {CurrentBuilderScope} Tier {_tier}, Layer {_layer}. Full-map review is active. Left continues here; right jumps along the {CurrentGameMasterPath} path.";
     break;
    case Stage.FullMapReview:
-    BeginBuilderScope(_builderChainIndex);
-    _message=$"Continuing {CurrentBuilderSuite}. The previous full-map viewer remains visible while you choose Tier and Layer.";
+    _stage=Stage.WorldBuilderTier;
+    SetPathMenuToNext(CurrentBuilderScope);
+    _message=$"Continuing {CurrentBuilderSuite}. The saved full-map viewer remains visible while you choose the next Tier and Layer.";
     break;
    case Stage.WorldBuilderTier:
     _stage=Stage.WorldBuilderLayer;
@@ -1140,6 +1141,120 @@
   return Task.CompletedTask;
  }
 
+ void BeginGameMasterPath()
+ {
+  var startNode=CurrentGameMasterPath=="CAMPAIGN BUILDER"?"LOCAL":"WORLD";
+  var builderIndex=BuilderIndexForNode(startNode);
+  if(builderIndex<0)builderIndex=0;
+
+  BeginBuilderScope(builderIndex);
+  SetPathMenuToNext(startNode);
+  _message=CurrentGameMasterPath switch
+  {
+   "CAMPAIGN BUILDER"=>"Campaign Builder starts local and builds outward. Choose Tier, Layer, then an A/V method; the right rail carries history, NPCs, encounters, region, world, lore, and the rest of the campaign path.",
+   "ADVANCED"=>"Advanced exposes the complete path graph on the right rail so you can jump anywhere. The left rail remains the current A/V or creation method.",
+   _=>"World Builder starts outside and works inward: World → Region → Local → Instance, then lore, history, NPCs, encounters, quests, campaign, and session."
+  };
+ }
+
+ void SelectArtMethod()
+ {
+  _artPhaseIndex=0;
+
+  switch(CurrentArtMethod)
+  {
+   case "IMPORT IMAGE":
+    PrepareAssetSource("IMAGE");
+    _message=$"{CurrentBuilderScope} import image. Slide the left display through Game Images, My Images, or Upload; the right rail still jumps through the GameMaster path.";
+    break;
+   case "SPRITE":
+    PrepareAssetSource("SPRITE");
+    _message=$"{CurrentBuilderScope} sprite. Slide the left display through Game Sprites, My Sprites, or Upload; the right rail still jumps through the GameMaster path.";
+    break;
+   case "DRAW":
+   case "CAD":
+   case "AUDIO":
+   case "VIDEO":
+    _stage=Stage.ArtPhase;
+    _message=$"{CurrentArtMethod} begins with {CurrentArtPhase}. Save each pass before moving to the next phase; the tool-specific controls will be added here as each adapter is wired.";
+    break;
+  }
+ }
+
+ void PrepareAssetSource(string kind)
+ {
+  _assetKind=kind;
+  _assetKindIndex=Array.IndexOf(AssetKinds,kind);
+  if(_assetKindIndex<0)_assetKindIndex=0;
+  _assetSourceIndex=0;
+  _assetSource=CurrentAssetSource;
+  _selectedAssetKey="";
+  _assetLoadError="";
+  _stage=Stage.AssetKind;
+ }
+
+ void OpenSelectedAssetSource()
+ {
+  _assetSource=CurrentAssetSource;
+  _selectedAssetKey="";
+  _assetLoadError="";
+  _stage=Stage.BrowsePlace;
+
+  if(IsMyAssetSource)_=LoadMyAssetsAsync();
+  else if(IsGameAssetSource)LoadGameAssets();
+
+  _message=_assetSource=="UPLOAD"
+   ?$"Upload explorer opened for {_assetKind.ToLowerInvariant()} assets. Choose from this device; uploads are added to My {_assetKind.ToLowerInvariant()}s."
+   :$"{_assetSource} explorer opened. Use the cursor or touch; left display selects and right display returns.";
+ }
+
+ static int BuilderIndexForNode(string node)=>node switch
+ {
+  "WORLD"=>0,
+  "REGION"=>1,
+  "LOCAL"=>2,
+  "INSTANCE"=>3,
+  _=>-1
+ };
+
+ void OpenPathTarget(string target)
+ {
+  if(string.Equals(target,"BACK",StringComparison.OrdinalIgnoreCase))
+  {
+   GoBack();
+   return;
+  }
+
+  var builderIndex=BuilderIndexForNode(target);
+  if(builderIndex>=0)
+  {
+   BeginBuilderScope(builderIndex);
+   SetPathMenuToNext(target);
+   _message=$"{CurrentBuilderSuite} opened from the {CurrentGameMasterPath} path. The recursive viewer remains visible.";
+   return;
+  }
+
+  _activeKnowledgeNode=target;
+  _stage=Stage.KnowledgeNode;
+  SetPathMenuToNext(target);
+  _message=$"{target} opened in the journal/lore rail. The map remains visible behind it; entry controls will be added without breaking the path.";
+ }
+
+ void SetPathMenuToNode(string node)
+ {
+  var menu=CurrentPathMenu;
+  var index=Array.FindIndex(menu,item=>string.Equals(item,node,StringComparison.OrdinalIgnoreCase));
+  _pathMenuIndex=index>=0?index:0;
+ }
+
+ void SetPathMenuToNext(string node)
+ {
+  var path=CurrentGuidedPath;
+  var index=Array.FindIndex(path,item=>string.Equals(item,node,StringComparison.OrdinalIgnoreCase));
+  if(index>=0&&index+1<path.Length)SetPathMenuToNode(path[index+1]);
+  else SetPathMenuToNode("BACK");
+ }
+
  void EnterScope()
  {
   var builderIndex=Array.IndexOf(BuilderSuiteNames,CurrentScope);
@@ -1171,6 +1286,8 @@
   _layer=0;
   _assetKind="IMAGE";
   _assetKindIndex=0;
+  _artMethodIndex=0;
+  _artPhaseIndex=0;
   _assetSourceIndex=0;
   _assetSource="GAME IMAGES";
   _selectedAssetKey="";
