@@ -27,6 +27,8 @@
   let cleanupRightSlider = null;
 
   const ANALOG_DEAD_ZONE = 0.34;
+  const ANALOG_SELECT_RADIUS = 0.46;
+  const ANALOG_SELECT_MOVE_PX = 10;
   const GAMEPAD_DEAD_ZONE = 0.55;
   const CURSOR_POINTER_DEAD_ZONE = 0.08;
   const CURSOR_GAMEPAD_DEAD_ZONE = 0.14;
@@ -225,9 +227,20 @@
       return;
     }
 
+    let pressStartX = 0;
+    let pressStartY = 0;
+    let selectCandidate = false;
+
+    const clearPressVisual = () => {
+      selectCandidate = false;
+      analog?.classList?.remove("is-select-press");
+    };
+
     const onPointerDown = event => {
       if (event.button !== undefined && event.button !== 0) return;
       pointerId = event.pointerId;
+      pressStartX = event.clientX;
+      pressStartY = event.clientY;
       pointerX = 0;
       pointerY = 0;
       pointerAnalogX = 0;
@@ -235,17 +248,28 @@
       resetAxisState();
       analog.setPointerCapture?.(pointerId);
       updateAnalogPointer(event);
+      selectCandidate =
+        Math.hypot(pointerAnalogX, pointerAnalogY) <= ANALOG_SELECT_RADIUS;
+      analog.classList.toggle("is-select-press", selectCandidate);
       event.preventDefault();
     };
 
     const onPointerMove = event => {
       if (pointerId !== event.pointerId) return;
+      if (Math.hypot(event.clientX - pressStartX, event.clientY - pressStartY) >= ANALOG_SELECT_MOVE_PX) {
+        clearPressVisual();
+      }
       updateAnalogPointer(event);
       event.preventDefault();
     };
 
-    const finishPointer = event => {
+    const releasePointer = (event, allowSelect) => {
       if (pointerId !== event.pointerId) return;
+      const shouldSelect =
+        allowSelect &&
+        selectCandidate &&
+        Math.hypot(event.clientX - pressStartX, event.clientY - pressStartY) < ANALOG_SELECT_MOVE_PX;
+
       pointerId = null;
       pointerX = 0;
       pointerY = 0;
@@ -254,28 +278,42 @@
       lastCursorFrame = 0;
       resetAxisState();
       setKnob(0, 0);
+      clearPressVisual();
       syncCursor(true);
+      if (shouldSelect) invoke("select");
       event.preventDefault();
+    };
+
+    const finishPointer = event => releasePointer(event, true);
+    const cancelPointer = event => releasePointer(event, false);
+    const onKeyDown = event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      invoke("select");
+      event.preventDefault();
+      event.stopPropagation();
     };
 
     analog.addEventListener("pointerdown", onPointerDown, { passive: false });
     analog.addEventListener("pointermove", onPointerMove, { passive: false });
     analog.addEventListener("pointerup", finishPointer, { passive: false });
-    analog.addEventListener("pointercancel", finishPointer, { passive: false });
-    analog.addEventListener("lostpointercapture", finishPointer, { passive: false });
+    analog.addEventListener("pointercancel", cancelPointer, { passive: false });
+    analog.addEventListener("lostpointercapture", cancelPointer, { passive: false });
+    analog.addEventListener("keydown", onKeyDown);
 
     cleanupAnalog = () => {
       analog?.removeEventListener("pointerdown", onPointerDown);
       analog?.removeEventListener("pointermove", onPointerMove);
       analog?.removeEventListener("pointerup", finishPointer);
-      analog?.removeEventListener("pointercancel", finishPointer);
-      analog?.removeEventListener("lostpointercapture", finishPointer);
+      analog?.removeEventListener("pointercancel", cancelPointer);
+      analog?.removeEventListener("lostpointercapture", cancelPointer);
+      analog?.removeEventListener("keydown", onKeyDown);
       pointerId = null;
       pointerX = 0;
       pointerY = 0;
       pointerAnalogX = 0;
       pointerAnalogY = 0;
       lastCursorFrame = 0;
+      clearPressVisual();
       setKnob(0, 0);
     };
 
@@ -401,6 +439,7 @@
     const gamepad = activeGamepad();
     edgeButton(gamepad, 0, "left");
     edgeButton(gamepad, 1, "right");
+    edgeButton(gamepad, 10, "select");
 
     if (isPagingMode()) {
       lastCursorFrame = 0;
