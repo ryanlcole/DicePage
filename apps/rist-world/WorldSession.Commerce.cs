@@ -12,6 +12,7 @@ public sealed partial class WorldSession
     private HashSet<string> _commerceEntitlements = new(StringComparer.OrdinalIgnoreCase);
 
     public bool CommerceProfileLoaded => _commerceProfileLoaded;
+    public bool IsServerVerifiedPlatformOwner => _commerceProfileLoaded && _commercePlatformOwner;
     public bool HasPlatformCommercialOverride => _commercePlatformOwner || auth.IsOwnerDiscordAccount;
     public int? OwnedWorldSlotLimit => HasPlatformCommercialOverride || HasCommerceEntitlement("worlds.unlimited")
         ? null
