@@ -2747,3 +2747,94 @@ body.rist-viewer-overlays-off .experiments-shell .viewer-readout{
 @media(prefers-reduced-motion:reduce){
  .environment-choice-button.environment-head-flash>.experiment-dragon-head{animation:none!important}
 }
+
+
+/* Viewer command menu authority — 2026-09-28.
+   Core navigation/edit commands stay directly reachable above the map on
+   phone, tablet, and desktop without consuming controller button space. */
+.viewer-menu-bar{
+ position:absolute!important;
+ z-index:18!important;
+ top:8px!important;
+ left:8px!important;
+ right:8px!important;
+ display:grid!important;
+ grid-template-columns:repeat(7,minmax(0,1fr))!important;
+ gap:3px!important;
+ box-sizing:border-box!important;
+ padding:3px!important;
+ border:1px solid rgba(213,173,79,.72)!important;
+ border-radius:12px!important;
+ background:rgba(3,10,15,.84)!important;
+ box-shadow:0 4px 18px #0008,inset 0 0 12px rgba(255,223,150,.035)!important;
+ backdrop-filter:blur(5px)!important;
+ pointer-events:auto!important;
+}
+.viewer-menu-bar button{
+ box-sizing:border-box!important;
+ min-width:0!important;
+ min-height:30px!important;
+ padding:4px 2px!important;
+ border:1px solid rgba(91,126,143,.72)!important;
+ border-radius:8px!important;
+ background:rgba(10,23,31,.92)!important;
+ color:#d9e8ed!important;
+ font:900 7px/1 system-ui,-apple-system,sans-serif!important;
+ letter-spacing:.07em!important;
+ white-space:nowrap!important;
+ text-align:center!important;
+ touch-action:manipulation!important;
+}
+.viewer-menu-bar button:active,
+.viewer-menu-bar button:focus-visible{
+ border-color:#e2bd67!important;
+ color:#f3dc9b!important;
+ background:rgba(31,38,31,.96)!important;
+ outline:none!important;
+}
+.experiments-worldbuilder-viewer .viewer-menu-bar{
+ z-index:18!important;
+}
+.experiments-worldbuilder-viewer .depth-pip,
+.experiments-worldbuilder-viewer .viewer-compass{
+ top:52px!important;
+}
+@media(max-width:700px) and (orientation:portrait){
+ .viewer-menu-bar{
+  top:5px!important;
+  left:5px!important;
+  right:5px!important;
+  gap:2px!important;
+  padding:2px!important;
+  border-radius:9px!important;
+ }
+ .viewer-menu-bar button{
+  min-height:28px!important;
+  padding:3px 1px!important;
+  border-radius:6px!important;
+  font-size:5.8px!important;
+  letter-spacing:.025em!important;
+ }
+ .experiments-worldbuilder-viewer .depth-pip,
+ .experiments-worldbuilder-viewer .viewer-compass{
+  top:46px!important;
+ }
+}
+@media(orientation:landscape) and (max-height:620px){
+ .viewer-menu-bar{
+  top:4px!important;
+  left:6px!important;
+  right:6px!important;
+  gap:2px!important;
+  padding:2px!important;
+ }
+ .viewer-menu-bar button{
+  min-height:24px!important;
+  padding:2px 1px!important;
+  font-size:5.6px!important;
+ }
+ .experiments-worldbuilder-viewer .depth-pip,
+ .experiments-worldbuilder-viewer .viewer-compass{
+  top:39px!important;
+ }
+}
