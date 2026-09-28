@@ -36,6 +36,17 @@ export async function placeAsset(frame,payload){
   return (await fn(payload||{}))!==false;
 }
 
+export async function editCommand(frame,command){
+  post(frame,{type:"bridge-ready"});
+  const api=await waitForPrototype(frame);
+  if(!api)return "Viewer editing tools are still loading.";
+  await new Promise(resolve=>setTimeout(resolve,50));
+  const fn=api.editCommand;
+  if(typeof fn!=="function")return "This viewer does not support editing commands yet.";
+  const result=await fn(String(command||"").toLowerCase());
+  return typeof result==="string"?result:"";
+}
+
 export function setDepth(frame,tier,layer,scope){
   const fn=frame?.contentWindow?.ShaelvienPrototype?.setExternalDepth;
   if(typeof fn!=="function")return false;
