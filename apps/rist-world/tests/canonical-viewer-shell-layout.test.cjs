@@ -275,6 +275,14 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
 });
 
 
+test('image tool is labeled IMAGES and exposes existing libraries plus upload',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  assert.match(razor,/ArtMethods=\["DRAW","CAD","IMAGES","SPRITE","AUDIO","VIDEO"\]/);
+  assert.match(razor,/case "IMAGES":[\s\S]{0,120}?PrepareAssetSource\("IMAGE"\)/);
+  assert.match(razor,/ImageSources=\["GAME IMAGES","MY IMAGES","UPLOAD"\]/);
+  assert.doesNotMatch(razor,/ArtMethods=\[[^\]]*"IMPORT IMAGE"/);
+});
+
 test('controller Save reacts immediately, commits canonical placement, and returns to tools menu',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
