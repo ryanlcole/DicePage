@@ -220,27 +220,15 @@ test('mobile expanded context is contained and avoids iOS form zoom',()=>{
 });
 
 
-test('Experiments start with dark and light dragons, then START replaces them with Shaelvien and RIST',()=>{
+test('Experiments open directly on Shaelvien Legacy and RIST choices',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
-  const css=read('wwwroot/css/experiments-universal-suite.css');
-  const index=read('wwwroot/index.html');
 
-  assert.match(razor,/@if\(_stage==Stage\.Environment\)[\s\S]{0,500}?experiment-start-screen/);
-  assert.match(razor,/shaelvien-dragon-creation-startup-screen\.png/);
-  assert.match(razor,/_experimentStartRevealed\?"CHOOSE ENVIRONMENT":"PRESS START"/);
-  assert.match(razor,/@if\(!_experimentStartRevealed\)[\s\S]{0,180}?experiment-dragon-head dark-dragon/);
-  assert.match(razor,/@if\(!_experimentStartRevealed\)[\s\S]{0,180}?experiment-dragon-head light-dragon/);
-  assert.match(razor,/else[\s\S]{0,180}?environment-choice-label">SHAELVIEN/);
-  assert.match(razor,/else[\s\S]{0,180}?environment-choice-label">RIST/);
-  assert.doesNotMatch(razor,/experiment-dragon-head shaelvien-head/);
-  assert.doesNotMatch(razor,/experiment-dragon-head rist-head/);
-  assert.match(razor,/aria-label="@\(_stage==Stage\.Environment&&!_experimentStartRevealed\?"Dark dragon"/);
-  assert.match(razor,/aria-label="@\(_stage==Stage\.Environment&&!_experimentStartRevealed\?"Light dragon"/);
-  assert.match(razor,/HandleStartButtonAsync\(\)[\s\S]{0,220}?_experimentStartFlashing=true;[\s\S]{0,160}?Task\.Delay\(260\)[\s\S]{0,220}?_experimentStartRevealed=true;/);
-  assert.match(css,/Dark \/ light dragon start-button authority/);
-  assert.match(css,/\.experiment-dragon-head\.dark-dragon/);
-  assert.match(css,/\.experiment-dragon-head\.light-dragon/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-dark-light-dragons-1/);
+  assert.match(razor,/bool _experimentStartRevealed=true;/);
+  assert.match(razor,/<strong>CHOOSE ENVIRONMENT<\/strong>/);
+  assert.match(razor,/environment-choice-label">SHAELVIEN/);
+  assert.match(razor,/environment-choice-label">RIST/);
+  assert.match(razor,/string AnalogModeLabel=>_stage==Stage\.Environment&&_experimentStartRevealed[\s\S]{0,120}?"LEGACY"/);
+  assert.match(razor,/class="analog-start-button"[\s\S]{0,220}?@onclick="HandleStartButtonAsync"/);
 });
 
 
