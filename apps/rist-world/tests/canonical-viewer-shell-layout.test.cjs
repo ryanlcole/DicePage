@@ -110,6 +110,14 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
 });
 
 
+test('LEGACY opens the GM archive importer and continues into RIST',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  assert.match(razor,/<LegacyWorldGate[\s\S]{0,260}?Open="@_legacyGateOpen"[\s\S]{0,260}?OnContinue="ContinueLegacyIntoRistAsync"/);
+  assert.match(razor,/Legacy: import or load a preserved GM archive\. Completing Legacy continues into RIST\./);
+  assert.match(razor,/ContinueLegacyIntoRistAsync\(\)[\s\S]{0,420}?_selectedEnvironment="RIST"[\s\S]{0,260}?_stage=Stage\.Role/);
+  assert.doesNotMatch(razor,/Opening Legacy interface…[\s\S]{0,180}?OnExit\.InvokeAsync/);
+});
+
 test('analog top button switches CURSOR and BUTTONS without changing START',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
   const input=read('wwwroot/experiments-universal-input.js');
