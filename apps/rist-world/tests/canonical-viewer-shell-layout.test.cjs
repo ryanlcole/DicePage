@@ -303,15 +303,33 @@ test('viewer top menu exposes back undo cut copy redo paste and forward',()=>{
   assert.match(css,/Viewer command menu authority/);
 });
 
-test('controller Save reacts immediately, commits canonical placement, and returns to tools menu',()=>{
+test('GameMaster path right display is Claim Deed or alphabetical world selector',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const land=read('WorldSession.MmoLand.cs');
+  const deed=read('Components/ShaelvienDeedGate.razor');
+
+  assert.match(razor,/PathWorldOptions[\s\S]{0,1600}?OrderBy\(option=>option\.Name,StringComparer\.OrdinalIgnoreCase\)/);
+  assert.match(razor,/PathWorldLabel=>CurrentPathWorld[\s\S]{0,100}?"CLAIM DEED"/);
+  assert.match(razor,/Stage\.PathSelect=>PathWorldLabel/);
+  assert.match(razor,/Stage\.PathSelect=>PathWorldPrompt/);
+  assert.match(razor,/YOU HAVE \{count\} TOKEN/);
+  assert.match(razor,/return "NO TOKEN REQUIRED"/);
+  assert.match(razor,/<ShaelvienDeedGate[\s\S]{0,220}?OnClaimed="CompleteShaelvienDeedAsync"/);
+  assert.match(razor,/<WorldGate[\s\S]{0,220}?OnContinue="CompleteRistDeedAsync"/);
+  assert.match(land,/UnspentMmoWorldTokenCount/);
+  assert.match(deed,/CLAIM DEED/);
+  assert.match(deed,/ClaimMmoParcelAsync/);
+});
+
+test('controller Save reacts immediately, commits canonical placement, and returns to GameMaster path menu',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
   const prototype=read('wwwroot/prototype/prototype.js');
 
   assert.match(razor,/Stage\.SaveCancel=>_assetSavePending\?"SAVING…":"SAVE"/);
   assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,600}?_assetSavePending=true;[\s\S]{0,220}?InvokeAsync\(StateHasChanged\)[\s\S]{0,260}?CommitCurrentAssetToCanonicalViewerAsync\(\)/);
-  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,1000}?_stage=Stage\.GameMasterScope/);
-  assert.match(razor,/Returned to the tools menu/);
+  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,1000}?_stage=Stage\.PathSelect/);
+  assert.match(razor,/Returned to the GameMaster path menu/);
   assert.doesNotMatch(razor,/case Stage\.SaveCancel:[\s\S]{0,180}?SaveCurrentAssetToViewer\(\)/);
   assert.match(razor,/InvokeAsync<bool>\([\s\S]{0,180}?"placeAsset"/);
   assert.match(host,/async function waitForPrototype\(frame,timeoutMs=3000\)/);
