@@ -72,7 +72,7 @@ test('portrait builder keeps source content in the vertical center and corner PI
     css,
     /@media\(max-width:430px\) and \(orientation:portrait\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/
   );
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-experiment-boot-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-interface-grids-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
 });
 
@@ -105,7 +105,7 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
   assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button,\.analog-mode-button"\)/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-experiment-boot-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-interface-grids-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
 });
 
@@ -116,7 +116,7 @@ test('analog top button switches CURSOR and BUTTONS without changing START',()=>
   const css=read('wwwroot/css/experiments-universal-suite.css');
 
   assert.match(razor,/class="analog-mode-button"[\s\S]{0,360}?@onclick="ToggleAnalogMode"[\s\S]{0,420}?@AnalogModeLabel<\/button>/);
-  assert.match(razor,/string AnalogModeLabel=>CursorMode\?"CURSOR":"BUTTONS"/);
+  assert.match(razor,/string AnalogModeLabel=>_stage==Stage\.Environment&&_experimentStartRevealed[\s\S]{0,260}?CursorMode\?"CURSOR":"BUTTONS"/);
   assert.match(razor,/void ToggleAnalogMode\(\)[\s\S]*?_analogButtonMode=true;[\s\S]*?_analogButtonMode=false;/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]*?_analogButtonMode=false;[\s\S]*?Cursor active/);
   assert.match(razor,/class="analog-start-button"[\s\S]*?@onclick="HandleStartButtonAsync"/);
@@ -144,7 +144,7 @@ test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer d
   assert.match(css,/--rist-cursor-image-selectAlt2/);
   assert.match(index,/cursors-haptics\.js\?v=20260928-visible-cursor-assets-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-experiment-boot-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-interface-grids-1/);
 });
 
 
@@ -195,7 +195,7 @@ test('Experiment Start menu keeps controller visible and reuses Save Load and ex
   assert.match(start,/Exit Experiment/);
   assert.match(start,/rist-start-experiment-controller/);
   assert.match(css,/bottom:var\(--rist-start-controller-reserve,220px\)!important/);
-  assert.match(index,/start-menu\.js\?v=20260928-experiment-save-load-1/);
+  assert.match(index,/start-menu\.js\?v=20260928-interface-grids-1/);
 });
 
 test('mobile expanded context is contained and avoids iOS form zoom',()=>{
@@ -220,4 +220,38 @@ test('Experiments open on the start artwork and START reveals environment choice
   assert.match(razor,/case Stage\.Environment:[\s\S]{0,260}?if\(!_experimentStartRevealed\)/);
   assert.match(css,/Experiment boot screen authority/);
   assert.match(css,/experiment-dragon-head/);
+});
+
+
+test('START Interface separates overlay viewer grid and asset grid',()=>{
+  const start=read('wwwroot/start-menu.js');
+  const sourceCss=read('css-source/start-menu.css');
+  const shellCss=read('wwwroot/css/experiments-universal-suite.css');
+  const prototype=read('wwwroot/prototype/prototype.js');
+  const prototypeCss=read('wwwroot/prototype/prototype.css');
+  const prototypeIndex=read('wwwroot/prototype/index.html');
+  const index=read('wwwroot/index.html');
+
+  assert.match(start,/Interface:null/);
+  assert.match(start,/data-interface-overlay="on"/);
+  assert.match(start,/data-interface-overlay="off"/);
+  assert.match(start,/data-interface-view-grid="square"/);
+  assert.match(start,/data-interface-view-grid="hex"/);
+  assert.match(start,/data-interface-asset-grid="square"/);
+  assert.match(start,/data-interface-asset-grid="hex"/);
+  assert.match(start,/rist\.viewer\.grid\.v1/);
+  assert.match(start,/rist\.asset\.grid\.v1/);
+  assert.match(sourceCss,/Interface segmented controls/);
+  assert.match(shellCss,/START Interface overlay authority/);
+  assert.match(shellCss,/rist-viewer-overlays-off/);
+  assert.match(prototype,/function applyViewerGridMode/);
+  assert.match(prototype,/function applyAssetGridMode/);
+  assert.match(prototype,/function snapAssetPoint/);
+  assert.match(prototype,/nearestAllowedRegionCell\(cell,regionActiveCellSet\(\),shape\)/);
+  assert.match(prototypeCss,/\.viewer-grid-overlay/);
+  assert.doesNotMatch(prototypeCss,/repeating-linear-gradient\(0deg,rgba\(178,221,236,\.045\)/);
+  assert.match(prototypeIndex,/prototype\.css\?v=20260928-interface-grids-1/);
+  assert.match(prototypeIndex,/prototype\.js\?v=20260928-interface-grids-1/);
+  assert.match(index,/start-menu\.js\?v=20260928-interface-grids-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-interface-grids-1/);
 });
