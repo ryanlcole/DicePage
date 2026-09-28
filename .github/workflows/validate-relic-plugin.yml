@@ -51,7 +51,7 @@ jobs:
           assert plugin.get('$schema') == 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json', plugin
           assert plugin.get('name') == 'relic', plugin
           interface=((plugin.get('extensions') or {}).get('com.openai') or {}).get('interface') or {}
-          assert interface.get('displayName') == 'ReLiC', interface
+          assert interface.get('displayName') == 'R.e.L.i.C.', interface
           assert interface.get('privacyPolicyURL') == 'https://relicgamemaster.com/Game/privacy.html', interface
           assert interface.get('termsOfServiceURL') == 'https://relicgamemaster.com/Game/terms.html', interface
 
@@ -70,7 +70,7 @@ jobs:
           assert any(c.get('shouldActivateSkill') is False for c in cases), cases
           ids=[c.get('id') for c in cases]
           assert len(ids) == len(set(ids)), ids
-          print('ReLiC portable plugin package verified:', len(cases), 'tool-selection cases')
+          print('R.e.L.i.C. portable plugin package verified:', len(cases), 'tool-selection cases')
           PY
 
       - name: Package portable ReLiC plugin
