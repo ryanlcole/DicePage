@@ -455,6 +455,7 @@
  bool _assetsLoading;
  string _assetLoadError="";
  string _selectedAssetKey="";
+ bool _assetSavePending;
  string _worldBuilderSelectionId="";
  string _worldBuilderSelectionName="";
  string _worldBuilderSelectionAssetId="";
@@ -733,7 +734,7 @@
   Stage.Scale=>"ENLARGE / REDUCE",
   Stage.Rotate=>"ROTATE",
   Stage.Move=>"MOVE",
-  Stage.SaveCancel=>"SAVE",
+  Stage.SaveCancel=>_assetSavePending?"SAVING…":"SAVE",
   Stage.FullMapReview=>"SUITE OPTIONS",
   _=>""
  };
@@ -875,6 +876,7 @@
   Stage.AssetKind=>"SLIDE ↑↓ · TOUCH SOURCE",
   Stage.BrowsePlace=>"TOUCH · CURSOR",
   Stage.Scale=>"SLIDE ↑↓ · TOUCH SET",
+  Stage.SaveCancel=>_assetSavePending?"SAVING · PLEASE WAIT":"TOUCH · SAVE",
   Stage.FullMapReview=>"TOUCH · SUITE OPTIONS",
   _=>"TOUCH · ACTIVATE"
  };
@@ -1213,15 +1215,29 @@
     break;
    case Stage.SaveCancel:
     {
+     if(_assetSavePending)break;
      var savedScope=CurrentBuilderScope;
      var savedTier=_tier;
      var savedLayer=_layer;
-     if(!await CommitCurrentAssetToCanonicalViewerAsync())break;
+
+     _assetSavePending=true;
+     _message=$"Saving {_assetKind.ToLowerInvariant()}…";
+     await InvokeAsync(StateHasChanged);
+
+     var committed=await CommitCurrentAssetToCanonicalViewerAsync();
+     _assetSavePending=false;
+     if(!committed)
+     {
+      await InvokeAsync(StateHasChanged);
+      break;
+     }
+
      ResetAssetTransform();
      SetPathMenuToNext(savedScope);
      _stage=Stage.GameMasterScope;
      _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
-     _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. Choose World Builder, Region Definer, Local, or Instance.";
+     _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. Returned to the tools menu.";
+     await InvokeAsync(StateHasChanged);
      break;
     }
    case Stage.FullMapReview:
