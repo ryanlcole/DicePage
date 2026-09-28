@@ -836,10 +836,14 @@
      :$"{_assetSource} {_assetKind.ToLowerInvariant()} selected. Use Y or slide the left display to set scale.";
     break;
    case Stage.SaveCancel:
-    _savedAsset=true;
+    SaveCurrentAssetToViewer();
     ResetAssetTransform();
-    _stage=Stage.WorldBuilderTier;
-    _message="Asset ironed into the experimental viewer. Returned to World Builder Tier.";
+    _stage=Stage.FullMapReview;
+    _message=$"Saved {_assetKind.ToLowerInvariant()} at {CurrentBuilderScope} Tier {_tier}, Layer {_layer}. Review the full recursive map, continue this scope, or advance the GameMaster chain.";
+    break;
+   case Stage.FullMapReview:
+    BeginBuilderScope(_builderChainIndex);
+    _message=$"Continuing {CurrentBuilderSuite}. The previous full-map viewer remains visible while you choose Tier and Layer.";
     break;
    case Stage.WorldBuilderTier:
     _stage=Stage.WorldBuilderLayer;
@@ -928,6 +932,11 @@
     _stage=Stage.Move;
     _message="Returned to placement.";
     break;
+   case Stage.FullMapReview:
+    _stage=Stage.GameMasterScope;
+    _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
+    _message="Returned to the GameMaster Suite. The recursive viewer remains intact.";
+    break;
   }
  }
 
@@ -1009,7 +1018,18 @@
    case Stage.SaveCancel:
     ResetAssetTransform();
     _stage=Stage.WorldBuilderTier;
-    _message="Preview cancelled. Returned to World Builder Tier.";
+    _message=$"Preview cancelled. Returned to {CurrentBuilderSuite} Tier.";
+    break;
+   case Stage.FullMapReview:
+    if(HasNextBuilderScope)
+    {
+     BeginBuilderScope(_builderChainIndex+1);
+     _message=$"{CurrentBuilderSuite} started. The prior {BuilderChain[_builderChainIndex-1]} viewer remains inside the viewer while Tier and Layer are selected.";
+    }
+    else
+    {
+     _message="Instance is the current end of the GameMaster chain. The complete recursive viewer remains open.";
+    }
     break;
   }
   return Task.CompletedTask;
@@ -1017,12 +1037,16 @@
 
  void EnterScope()
  {
+  var builderIndex=Array.IndexOf(BuilderSuiteNames,CurrentScope);
+  if(builderIndex>=0)
+  {
+   BeginBuilderScope(builderIndex);
+   _message=$"{CurrentBuilderSuite}. The controller guides Tier → Layer → Asset → Save, then returns to a full-map recursive review.";
+   return;
+  }
+
   switch(CurrentScope)
   {
-   case "WORLD BUILDER":
-    _stage=Stage.WorldBuilderTier;
-    _message="World Builder. Y or a vertical slide changes Tier. Touch the left display to select it; the right display is Back.";
-    break;
    case "SOFTWARE":
     _stage=Stage.SoftwareHub;
     _softwareIndex=0;
@@ -1032,6 +1056,23 @@
     _message=$"{CurrentScope} is registered in the GameMaster flowchart; its beginner Shaeps are not wired in this experiment yet.";
     break;
   }
+ }
+
+ void BeginBuilderScope(int index)
+ {
+  _builderChainIndex=Math.Clamp(index,0,BuilderChain.Length-1);
+  _assetScope=CurrentBuilderScope;
+  _tier=0;
+  _layer=0;
+  _assetKind="IMAGE";
+  _assetKindIndex=0;
+  _assetSourceIndex=0;
+  _assetSource="GAME IMAGES";
+  _selectedAssetKey="";
+  _assetLoadError="";
+  _gameAssets.Clear();
+  _myAssets.Clear();
+  _stage=Stage.WorldBuilderTier;
  }
 
  void LoadGameAssets()
@@ -1226,7 +1267,47 @@
   return name.Length<=28?name:name[..25]+"…";
  }
 
+ void SaveCurrentAssetToViewer()
+ {
+  var url=SelectedAssetUrl;
+  var name=SelectedAssetName;
+
+  _savedAssets.Add(new SavedViewerAsset(
+   _selectedAssetKey,
+   url,
+   name,
+   _assetKind,
+   _assetScope,
+   _tier,
+   _layer,
+   _assetScale,
+   _assetRotation,
+   _assetX,
+   _assetY,
+   DateTimeOffset.UtcNow));
+ }
+
+ string SavedViewerAssetClass(SavedViewerAsset asset)
+  =>$"scope-{asset.Scope.ToLowerInvariant()} {(asset.Kind=="SPRITE"?"sprite":"image")}";
+
+ string SavedViewerAssetStyle(SavedViewerAsset asset)
+  =>$"--saved-x:{asset.X}px;--saved-y:{asset.Y}px;--saved-scale:{asset.Scale:0.00};--saved-rotate:{asset.Rotation}deg;--saved-tier:{asset.Tier};--saved-layer:{asset.Layer};";
+
  sealed record UserAssetEntry(string Key,string Url,string Name,DateTimeOffset LastModified);
+
+ sealed record SavedViewerAsset(
+  string Key,
+  string Url,
+  string Name,
+  string Kind,
+  string Scope,
+  int Tier,
+  int Layer,
+  double Scale,
+  int Rotation,
+  int X,
+  int Y,
+  DateTimeOffset SavedAtUtc);
 
  async Task PersistAnalogPlacementAsync()
  {
