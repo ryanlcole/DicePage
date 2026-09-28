@@ -55,7 +55,8 @@ async function load(){
   setText('gameVisits',(g.visits??0).toLocaleString());setText('gameVisitors',(g.distinctVisitors??0).toLocaleString());setText('gameAccounts',(g.accounts??0).toLocaleString());
   setText('aiVisits',(a.visits??0).toLocaleString());setText('aiVisitors',(a.distinctVisitors??0).toLocaleString());setText('aiAccounts',(a.accounts??0).toLocaleString());
   const b=a.accountStatus||{};$('aiAccountBreakdown').textContent=Object.keys(b).length?Object.entries(b).map(([k,v])=>k+': '+v).join(' · '):'External AI registrations';
-  setText('canonVersion',d.relic?.canonVersion||'—');setText('ownerName',d.owner?.displayName||'Owner');
+  try{const canon=await fetch('/.well-known/relic-canon.json?ts='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null);setText('canonVersion',canon?.version||'—')}catch{setText('canonVersion','—')}
+  setText('ownerName',d.owner?.displayName||'Owner');
   setText('allVisits',((g.visits||0)+(a.visits||0)).toLocaleString());setText('allAccounts',((g.accounts||0)+(a.accounts||0)).toLocaleString());
   $('telemetrySince').textContent=d.telemetry?.startedAtUtc?'Telemetry active since '+d.telemetry.startedAtUtc:'Telemetry begins when this dashboard deployment goes live.';
   await loadLinks();
