@@ -246,12 +246,16 @@
  {
   Environment,
   Role,
+  PathSelect,
   GameMasterHub,
   GameMasterScope,
   SoftwareHub,
   ControlSettings,
   WorldBuilderTier,
   WorldBuilderLayer,
+  ArtMethod,
+  ArtPhase,
+  KnowledgeNode,
   AssetKind,
   AssetMode,
   BrowsePlace,
@@ -273,6 +277,10 @@
  int _settingIndex;
  int _scopeIndex;
  int _softwareIndex;
+ int _pathIndex;
+ int _pathMenuIndex;
+ int _artMethodIndex;
+ int _artPhaseIndex;
  int _assetKindIndex;
  int _assetSourceIndex;
  int _builderChainIndex;
@@ -292,6 +300,7 @@
  int _assetY;
  string _assetKind="IMAGE";
  string _assetScope="WORLD";
+ string _activeKnowledgeNode="";
  string _assetSource="GAME IMAGES";
  string _assetMode="ADD";
  bool _assetsLoading;
@@ -309,6 +318,15 @@
  static readonly string[] AssetKinds=["IMAGE","SPRITE"];
  static readonly string[] ImageSources=["GAME IMAGES","MY IMAGES","UPLOAD"];
  static readonly string[] SpriteSources=["GAME SPRITES","MY SPRITES","UPLOAD"];
+ static readonly string[] GameMasterPaths=["WORLD BUILDER","CAMPAIGN BUILDER","ADVANCED"];
+ static readonly string[] ArtMethods=["DRAW","CAD","IMPORT IMAGE","SPRITE","AUDIO","VIDEO"];
+ static readonly string[] DrawPhases=["PENCIL","COLOR","EFFECTS"];
+ static readonly string[] CadPhases=["SKETCH","GEOMETRY","MATERIAL","EFFECTS"];
+ static readonly string[] AudioPhases=["RECORD","EDIT","EFFECTS"];
+ static readonly string[] VideoPhases=["IMPORT","EDIT","EFFECTS"];
+ static readonly string[] WorldBuilderPath=["WORLD","REGION","LOCAL","INSTANCE","LORE","HISTORY","CULTURES","FACTIONS","NPCS","SECRETS","THREATS","ENCOUNTERS","QUESTS","CAMPAIGN","SESSION"];
+ static readonly string[] CampaignBuilderPath=["LOCAL","INSTANCE","HISTORY","NPCS","RELATIONSHIPS","SECRETS","ENCOUNTERS","QUESTS","REGION","FACTIONS","WORLD","LORE","CAMPAIGN","SESSION"];
+ static readonly string[] AdvancedPath=["WORLD","REGION","LOCAL","INSTANCE","LORE","HISTORY","CULTURES","FACTIONS","NPCS","RELATIONSHIPS","SECRETS","THREATS","ENCOUNTERS","QUESTS","CAMPAIGN","SESSION"];
  static readonly string[] BuilderChain=["WORLD","REGION","LOCAL","INSTANCE"];
  static readonly string[] BuilderSuiteNames=["WORLD BUILDER","REGION DEFINER","LOCAL","INSTANCE"];
 
