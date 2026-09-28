@@ -43,7 +43,10 @@ test('universal analog stick press acts as the primary Select control',()=>{
   const input=read('wwwroot/experiments-universal-input.js');
 
   assert.match(razor,/data-analog-select="true"/);
-  assert.match(razor,/case "select": await PressLeft\(\); break;/);
+  assert.match(
+    razor,
+    /case "select":[\s\S]{0,260}?if\(_stage==Stage\.BrowsePlace&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\);[\s\S]{0,120}?else await PressLeft\(\);/
+  );
   assert.match(input,/const ANALOG_SELECT_RADIUS = 0\.46;/);
   assert.match(input,/const ANALOG_SELECT_MOVE_PX = 10;/);
   assert.match(input,/if \(shouldSelect\) invoke\("select"\);/);
@@ -93,13 +96,16 @@ test('Browse SELECT arms cursor and analog press targets the thumbnail beneath t
 
   assert.match(razor,/bool _browseCursorActive;/);
   assert.match(razor,/_stage!=Stage\.BrowsePlace\|\|_browseCursorActive/);
-  assert.match(razor,/case Stage\.BrowsePlace:[\s\S]*?if\(!_browseCursorActive\)[\s\S]*?_browseCursorActive=true;/);
-  assert.match(razor,/if\(_stage==Stage\.BrowsePlace&&_browseCursorActive\)await ActivateBrowseCursorTargetAsync\(\)/);
+  assert.match(
+    razor,
+    /case Stage\.BrowsePlace:[\s\S]*?if\(!_browseCursorActive\|\|_analogButtonMode\)[\s\S]*?_browseCursorActive=true;[\s\S]*?_analogButtonMode=false;/
+  );
+  assert.match(razor,/if\(_stage==Stage\.BrowsePlace&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\)/);
   assert.match(input,/function activateCursorTarget\(\)/);
   assert.match(input,/document\.elementFromPoint/);
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
-  assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button"\)/);
+  assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button,\.analog-mode-button"\)/);
   assert.match(index,/experiments-universal-suite\.css\?v=20260928-cursor-assets-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
 });
@@ -140,4 +146,20 @@ test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer d
   assert.match(index,/cursors-haptics\.js\?v=20260928-visible-cursor-assets-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
   assert.match(index,/experiments-universal-suite\.css\?v=20260928-cursor-assets-1/);
+});
+
+
+test('analog center tap selects the asset currently under the cursor',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const input=read('wwwroot/experiments-universal-input.js');
+
+  assert.match(input,/const ANALOG_SELECT_RADIUS = 0\.46;/);
+  assert.match(input,/const ANALOG_SELECT_MOVE_PX = 10;/);
+  assert.match(input,/selectCandidate =[\s\S]{0,100}?Math\.hypot\(pointerAnalogX, pointerAnalogY\) <= ANALOG_SELECT_RADIUS/);
+  assert.match(input,/if \(shouldSelect\) invoke\("select"\)/);
+  assert.match(input,/function cursorTarget\(reticle = currentReticle\(\)\)/);
+  assert.match(input,/document\.elementFromPoint/);
+  assert.match(input,/\.asset-source-explorer \.linked-asset/);
+  assert.match(input,/target\.click\(\)/);
+  assert.match(razor,/case "select":[\s\S]{0,260}?Stage\.BrowsePlace&&CursorMode[\s\S]{0,120}?ActivateBrowseCursorTargetAsync/);
 });
