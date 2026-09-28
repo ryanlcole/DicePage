@@ -97,18 +97,32 @@
     return analog?.closest?.(".experiments-shell")?.querySelector?.(".viewer-reticle") || null;
   }
 
-  function activateCursorTarget() {
-    const reticle = currentReticle();
+  function cursorTarget(reticle = currentReticle()) {
     const rect = reticle?.getBoundingClientRect?.();
-    if (!rect || rect.width < 1 || rect.height < 1) return false;
+    if (!rect) return null;
 
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
+    // The visible cursor image is hotspot-aligned around this zero-size anchor.
+    const x = rect.left;
+    const y = rect.top;
     const hit = document.elementFromPoint?.(x, y);
-    const target = hit?.closest?.(".asset-source-explorer .linked-asset");
-    if (!target) return false;
+    return hit?.closest?.(".asset-source-explorer .linked-asset") || null;
+  }
 
+  function updateCursorRole(reticle = currentReticle()) {
+    if (!reticle) return;
+    const target = cursorTarget(reticle);
+    const pressed = analog?.classList?.contains("is-select-press");
+    const role = target
+      ? (target.classList.contains("selected") ? "selectAlt2" : (pressed ? "selectAlt" : "select"))
+      : "pointer";
+    reticle.dataset.cursorRole = role;
+  }
+
+  function activateCursorTarget() {
+    const target = cursorTarget();
+    if (!target) return false;
     target.click();
+    updateCursorRole();
     return true;
   }
 
@@ -121,6 +135,7 @@
     reticle.style.transition = "none";
     reticle.style.left = `${50 + cursorX * 0.45}%`;
     reticle.style.top = `${50 - cursorY * 0.45}%`;
+    updateCursorRole(reticle);
   }
 
   function syncCursor(force = false) {
@@ -267,6 +282,7 @@
       selectCandidate =
         Math.hypot(pointerAnalogX, pointerAnalogY) <= ANALOG_SELECT_RADIUS;
       analog.classList.toggle("is-select-press", selectCandidate);
+      updateCursorRole();
       event.preventDefault();
     };
 
@@ -295,6 +311,7 @@
       resetAxisState();
       setKnob(0, 0);
       clearPressVisual();
+      updateCursorRole();
       syncCursor(true);
       if (shouldSelect) invoke("select");
       event.preventDefault();

@@ -69,8 +69,8 @@ test('portrait builder keeps source content in the vertical center and corner PI
     css,
     /@media\(max-width:430px\) and \(orientation:portrait\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/
   );
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-analog-mode-start-1/);
-  assert.match(index,/experiments-universal-input\.js\?v=20260928-analog-mode-start-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-cursor-assets-1/);
+  assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
 });
 
 
@@ -100,8 +100,8 @@ test('Browse SELECT arms cursor and analog press targets the thumbnail beneath t
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
   assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button"\)/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-analog-mode-start-1/);
-  assert.match(index,/experiments-universal-input\.js\?v=20260928-analog-mode-start-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-cursor-assets-1/);
+  assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
 });
 
 
@@ -117,4 +117,27 @@ test('analog top button switches CURSOR and BUTTONS without changing START',()=>
   assert.match(razor,/class="analog-start-button"[\s\S]*?@onclick="OpenStartMenuAsync"/);
   assert.match(input,/\.analog-start-button,\.analog-mode-button/);
   assert.match(css,/Analog mode toggle authority/);
+});
+
+
+test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer devices',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const input=read('wwwroot/experiments-universal-input.js');
+  const cursors=read('wwwroot/cursors-haptics.js');
+  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const index=read('wwwroot/index.html');
+
+  assert.match(razor,/class="viewer-reticle" data-cursor-role="pointer"/);
+  assert.match(cursors,/--rist-cursor-image-\$\{name\}/);
+  assert.match(cursors,/shaelvien-cursor-assets-ready/);
+  assert.match(cursors,/if\(finePointer\)document\.documentElement\.classList\.add\('shaelvien-cursors-ready'\)/);
+  assert.match(input,/function cursorTarget\(reticle = currentReticle\(\)\)/);
+  assert.match(input,/target\.classList\.contains\("selected"\) \? "selectAlt2"/);
+  assert.match(input,/reticle\.dataset\.cursorRole = role/);
+  assert.match(css,/Shaelvien cursor asset authority/);
+  assert.match(css,/--rist-cursor-image-pointer/);
+  assert.match(css,/--rist-cursor-image-selectAlt2/);
+  assert.match(index,/cursors-haptics\.js\?v=20260928-visible-cursor-assets-1/);
+  assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-cursor-assets-1/);
 });

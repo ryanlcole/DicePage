@@ -41,16 +41,24 @@
   }
 
   function installCursors(){
-    if(matchMedia('(hover:none),(pointer:coarse)').matches) return;
+    const finePointer=!matchMedia('(hover:none),(pointer:coarse)').matches;
     const img=new Image();
     img.onload=()=>{
       const root=document.documentElement.style;
       Object.entries(CELLS).forEach(([name,[row,col]])=>{
+        const imageUrl=makeCursor(img,row,col);
         const [hx,hy]=HOT[name]||[31,31];
         const fallback=name==='text'?'text':(name.startsWith('resize')?'move':(name.includes('grab')?'grab':'pointer'));
-        root.setProperty(`--rist-cursor-${name}`,`url("${makeCursor(img,row,col)}") ${hx} ${hy}, ${fallback}`);
+
+        // Visible in-world cursors use these image-only variables on touch,
+        // pen, gamepad and mouse. Native OS cursor replacement stays desktop-only.
+        root.setProperty(`--rist-cursor-image-${name}`,`url("${imageUrl}")`);
+        if(finePointer){
+          root.setProperty(`--rist-cursor-${name}`,`url("${imageUrl}") ${hx} ${hy}, ${fallback}`);
+        }
       });
-      document.documentElement.classList.add('shaelvien-cursors-ready');
+      document.documentElement.classList.add('shaelvien-cursor-assets-ready');
+      if(finePointer)document.documentElement.classList.add('shaelvien-cursors-ready');
     };
     img.src=SOURCE;
   }

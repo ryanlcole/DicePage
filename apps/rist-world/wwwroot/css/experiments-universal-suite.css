@@ -2410,3 +2410,78 @@ body.rist-start-open .rist-start-overlay{
   font-size:6px!important;
  }
 }
+
+
+/* Shaelvien cursor asset authority — 2026-09-28.
+   The viewer cursor uses the existing 6x6 Shaelvien cursor sheet, sliced by
+   cursors-haptics.js. The anchor stays on the actual logical cursor point while
+   each image is offset by its authored hotspot. */
+.viewer-reticle{
+ --viewer-cursor-size:48px;
+ width:0!important;
+ height:0!important;
+ aspect-ratio:auto!important;
+ border:0!important;
+ border-radius:0!important;
+ background:none!important;
+ box-shadow:none!important;
+ transform:none!important;
+ overflow:visible!important;
+ pointer-events:none!important;
+}
+.viewer-reticle:before,
+.viewer-reticle:after{
+ content:none!important;
+ display:none!important;
+}
+.viewer-reticle>span{
+ position:absolute!important;
+ inset:auto!important;
+ left:0!important;
+ top:0!important;
+ width:var(--viewer-cursor-size)!important;
+ height:var(--viewer-cursor-size)!important;
+ border:0!important;
+ border-radius:0!important;
+ background-color:transparent!important;
+ background-image:var(--rist-cursor-image-pointer)!important;
+ background-repeat:no-repeat!important;
+ background-position:center!important;
+ background-size:contain!important;
+ box-shadow:none!important;
+ filter:drop-shadow(0 2px 3px #000c) drop-shadow(0 0 3px rgba(99,211,255,.28))!important;
+ transform:translate(-10.9375%,-7.8125%)!important;
+ transform-origin:0 0!important;
+}
+.viewer-reticle[data-cursor-role="select"]>span{
+ background-image:var(--rist-cursor-image-select,var(--rist-cursor-image-pointer))!important;
+ transform:translate(-48.4375%,-48.4375%)!important;
+ filter:drop-shadow(0 2px 3px #000c) drop-shadow(0 0 5px rgba(240,202,109,.42))!important;
+}
+.viewer-reticle[data-cursor-role="selectAlt"]>span{
+ background-image:var(--rist-cursor-image-selectAlt,var(--rist-cursor-image-select,var(--rist-cursor-image-pointer)))!important;
+ transform:translate(-48.4375%,-48.4375%)!important;
+ filter:drop-shadow(0 2px 3px #000c) drop-shadow(0 0 7px rgba(240,202,109,.55))!important;
+}
+.viewer-reticle[data-cursor-role="selectAlt2"]>span{
+ background-image:var(--rist-cursor-image-selectAlt2,var(--rist-cursor-image-select,var(--rist-cursor-image-pointer)))!important;
+ transform:translate(-48.4375%,-48.4375%)!important;
+ filter:drop-shadow(0 2px 3px #000c) drop-shadow(0 0 7px rgba(99,211,255,.55))!important;
+}
+/* Safe fallback only while the cursor sheet is still loading. */
+html:not(.shaelvien-cursor-assets-ready) .viewer-reticle>span{
+ width:18px!important;
+ height:18px!important;
+ border:1px solid rgba(112,211,255,.9)!important;
+ border-radius:50%!important;
+ background:#73dcff!important;
+ box-shadow:0 0 10px rgba(42,169,255,.7)!important;
+ filter:none!important;
+ transform:translate(-50%,-50%)!important;
+}
+@media(max-width:700px) and (orientation:portrait){
+ .viewer-reticle{--viewer-cursor-size:44px}
+}
+@media(orientation:landscape) and (max-height:620px){
+ .viewer-reticle{--viewer-cursor-size:36px}
+}
