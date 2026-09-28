@@ -10,6 +10,46 @@ namespace RistWorld;
 
 public sealed record LegacyArchiveInspection(int FileCount,long ExpandedBytes);
 
+public sealed record RunecoreCompatibility(
+    string State,
+    string Signature,
+    string FormatLabel,
+    string OriginApplication,
+    string OriginVendor,
+    string Platform,
+    string Architecture,
+    string Era,
+    string Confidence,
+    bool OriginSoftwareMayBeRequired,
+    string LicensePolicy,
+    string CapsuleProfile,
+    string Evidence,
+    string AuthorizedPurchaseUrl="");
+
+public sealed record RunecoreCapsuleRequest(
+    string Format,
+    int Version,
+    string WorldId,
+    string EntryId,
+    string EntryPath,
+    string EntrySha256,
+    string OriginalKey,
+    string OriginApplication,
+    string OriginVendor,
+    string Platform,
+    string Architecture,
+    string CapsuleProfile,
+    string LicensePolicy,
+    string OriginMediaKey,
+    bool NetworkEnabled,
+    bool HostCredentialAccess,
+    bool SourceReadOnly,
+    string WritableScratch,
+    int MaxCpuSeconds,
+    int MaxMemoryMb,
+    string CreatedAtUtc,
+    string Status);
+
 public sealed record LegacyArchiveEntry(
     string Id,
     string Path,
@@ -24,7 +64,8 @@ public sealed record LegacyArchiveEntry(
     string AssetKey,
     string ContentType,
     bool BrowserViewable,
-    string Analysis);
+    string Analysis,
+    RunecoreCompatibility? Runecore=null);
 
 public sealed record LegacyArchiveManifest(
     string Format,
@@ -64,10 +105,35 @@ public static class LegacyArchiveImport
         ".py",".pl",".rb",".js",".ts",".java",".cs",".vb",".vbs",".bat",".cmd",".ps1",".sh",".ksh",".awk",".lua",
         ".lisp",".scm",".clj",".pro",".sql",".php",".asp",".aspx",".exe",".com",".dll",".class",".jar"
     };
+    static readonly HashSet<string> NeverwinterExtensions=new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".mod",".hak",".erf",".nwm",".sav",".bif",".key",".tlk",".are",".git",".gic",".utc",".utp",".uti",".dlg",".2da",".ifo"
+    };
+
+    sealed record FileSignature(string Kind,string Label,string Mime,string Extension,string Evidence);
 
     static readonly JsonSerializerOptions JsonOptions=new(){WriteIndented=true};
 
     public static string ManifestKey(string worldId)=>$"worlds/{SafeSegment(worldId)}/legacy/manifest.json";
+    public static string CapsuleRequestKey(string worldId,string entryId)=>$"worlds/{SafeSegment(worldId)}/legacy/runecore/capsules/{SafeSegment(entryId)}.json";
+    public static string OriginMediaKey(string worldId,string entryId,string fileName)=>$"worlds/{SafeSegment(worldId)}/legacy/runecore/media/{SafeSegment(entryId)}/{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss}-{SafeSegment(Path.GetFileName(fileName))}";
+
+    public static RunecoreCapsuleRequest CreateCapsuleRequest(LegacyArchiveManifest manifest,LegacyArchiveEntry entry,string originMediaKey="")
+    {
+        var compatibility=entry.Runecore??new RunecoreCompatibility(
+            "origin-unresolved","unknown","Opaque file","Unknown","Unknown","Unknown","Unknown","Unknown","low",
+            false,"No origin software has been identified yet.","hold-for-origin-detection",
+            "The original bytes are preserved; Runecore has not identified an origin runtime.");
+
+        return new RunecoreCapsuleRequest(
+            "rist-runecore-capsule-request",1,manifest.WorldId,entry.Id,entry.Path,entry.Sha256,entry.OriginalKey,
+            compatibility.OriginApplication,compatibility.OriginVendor,compatibility.Platform,compatibility.Architecture,
+            compatibility.CapsuleProfile,compatibility.LicensePolicy,originMediaKey,
+            false,false,true,"ephemeral",120,512,DateTimeOffset.UtcNow.ToString("O"),
+            string.IsNullOrWhiteSpace(originMediaKey) && compatibility.OriginSoftwareMayBeRequired
+                ?"awaiting-user-license-or-media"
+                :"ready-for-isolated-executor");
+    }
 
     public static LegacyArchiveInspection Validate(byte[] zipBytes)
     {
@@ -104,6 +170,7 @@ public static class LegacyArchiveImport
         using var memory=new MemoryStream(zipBytes,false);
         using var archive=new ZipArchive(memory,ZipArchiveMode.Read,false);
         var files=archive.Entries.Where(e=>!IsDirectory(e)).ToList();
+        var archivePaths=files.Select(e=>NormalizePath(e.FullName)).ToArray();
         var result=new List<LegacyArchiveEntry>(files.Count);
 
         for(var i=0;i<files.Count;i++)
@@ -123,41 +190,46 @@ public static class LegacyArchiveImport
             var ext=Path.GetExtension(path).ToLowerInvariant();
             var id=IdFor(path);
             var sha=Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
-            var category=Category(ext);
+            var signature=DetectSignature(bytes,ext);
+            var category=Category(ext,signature);
             var suggested=SuggestedLocation(path,category);
-            var contentType=ContentType(ext);
+            var contentType=!string.IsNullOrWhiteSpace(signature.Mime)?signature.Mime:ContentType(ext);
+            var runecore=InspectRunecore(path,bytes,ext,signature,archivePaths);
             var originalKey=$"{root}/originals/{id}/{SafeStoragePath(path)}";
             await auth.UploadBytesAsync(originalKey,bytes,contentType);
 
             var assetKey="";
             var browserViewable=false;
-            if(ImageExtensions.Contains(ext))
+            if(category=="IMAGE")
             {
-                assetKey=$"assets/images/world/legacy/{SafeSegment(worldId)}/{id}{ext}";
+                var assetExtension=ImageExtensions.Contains(ext)?ext:signature.Extension;
+                if(string.IsNullOrWhiteSpace(assetExtension))assetExtension=".bin";
+                assetKey=$"assets/images/world/legacy/{SafeSegment(worldId)}/{id}{assetExtension}";
                 await auth.UploadBytesAsync(assetKey,bytes,contentType);
-                browserViewable=BrowserImageExtensions.Contains(ext);
+                browserViewable=BrowserImageExtensions.Contains(assetExtension);
             }
 
             var text=ExtractText(bytes,ext,out var extraction);
-            var analysis=ProgramExtensions.Contains(ext)?AnalyzeProgram(bytes,ext):extraction;
-            if(!string.IsNullOrWhiteSpace(extraction)&&ProgramExtensions.Contains(ext))analysis+=" "+extraction;
+            var analysis=ProgramExtensions.Contains(ext)||runecore.State=="capsule-candidate"?AnalyzeProgram(bytes,ext):extraction;
+            if(!string.IsNullOrWhiteSpace(extraction)&&(ProgramExtensions.Contains(ext)||runecore.State=="capsule-candidate"))analysis+=" "+extraction;
+            if(!string.IsNullOrWhiteSpace(runecore.Evidence))analysis=(analysis+" Runecore: "+runecore.Evidence).Trim();
 
             var htmlKey=$"{root}/html/{id}.html";
-            var html=RepresentationHtml(worldName,path,category,suggested,sha,entry.Length,text,analysis,assetKey);
+            var html=RepresentationHtml(worldName,path,category,suggested,sha,entry.Length,text,analysis,assetKey,runecore);
             await auth.UploadTextAsync(htmlKey,html,"text/html; charset=utf-8");
 
             result.Add(new LegacyArchiveEntry(
                 id,path,Parent(path),Path.GetFileName(path),category,suggested,entry.Length,sha,
-                originalKey,htmlKey,assetKey,contentType,browserViewable,analysis));
+                originalKey,htmlKey,assetKey,contentType,browserViewable,analysis,runecore));
         }
 
         result=result.OrderBy(x=>x.Path,StringComparer.OrdinalIgnoreCase).ToList();
         var binderKey=$"{root}/binder.pdf";
         var navigatorKey=$"{root}/index.html";
         var manifest=new LegacyArchiveManifest(
-            "rist-legacy-archive",1,worldId,worldName,sourceName,sourceKey,binderKey,navigatorKey,
+            "rist-legacy-archive",2,worldId,worldName,sourceName,sourceKey,binderKey,navigatorKey,
             DateTimeOffset.UtcNow.ToString("O"),
-            "quarantined-static-analysis-only; never execute imported programs in the browser",
+            "Runecore compatibility ladder: preserve first; direct-convert when safe; origin software only through a no-network, no-host-credential, read-only-source, disposable capsule. Never auto-execute imported code.",
             inspection.FileCount,
             result.Count(x=>x.Category=="IMAGE"),
             result.Count,
@@ -172,9 +244,9 @@ public static class LegacyArchiveImport
         return manifest;
     }
 
-    static string Category(string ext)
+    static string Category(string ext,FileSignature signature)
     {
-        if(ImageExtensions.Contains(ext))return "IMAGE";
+        if(ImageExtensions.Contains(ext)||signature.Kind=="IMAGE")return "IMAGE";
         if(ProgramExtensions.Contains(ext))return "PROGRAM";
         if(TextExtensions.Contains(ext)||PackageTextExtensions.Contains(ext)||LegacyTextExtensions.Contains(ext))return "DOCUMENT";
         if(ext==".pdf")return "PDF";
@@ -182,6 +254,113 @@ public static class LegacyArchiveImport
         if(ext is ".wav" or ".mp3" or ".ogg" or ".flac" or ".mid" or ".midi")return "AUDIO";
         if(ext is ".avi" or ".mp4" or ".mov" or ".mkv" or ".mpg" or ".mpeg")return "VIDEO";
         return "FILE";
+    }
+
+    static FileSignature DetectSignature(byte[] bytes,string ext)
+    {
+        bool Starts(params byte[] prefix)=>bytes.Length>=prefix.Length&&prefix.Select((value,index)=>bytes[index]==value).All(match=>match);
+        string Head(int count)
+        {
+            if(bytes.Length==0)return "";
+            var take=Math.Min(bytes.Length,count);
+            return Encoding.ASCII.GetString(bytes,0,take);
+        }
+
+        var head=Head(16);
+        if(Starts(0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a))return new("IMAGE","PNG","image/png",".png","PNG magic bytes");
+        if(Starts(0xff,0xd8,0xff))return new("IMAGE","JPEG","image/jpeg",".jpg","JPEG magic bytes");
+        if(head.StartsWith("GIF87a",StringComparison.Ordinal)||head.StartsWith("GIF89a",StringComparison.Ordinal))return new("IMAGE","GIF","image/gif",".gif","GIF header");
+        if(head.StartsWith("BM",StringComparison.Ordinal))return new("IMAGE","BMP","image/bmp",".bmp","BMP header");
+        if(Starts(0x49,0x49,0x2a,0x00)||Starts(0x4d,0x4d,0x00,0x2a))return new("IMAGE","TIFF","image/tiff",".tiff","TIFF header");
+        if(head.StartsWith("%PDF-",StringComparison.Ordinal))return new("PDF","PDF","application/pdf",".pdf","PDF header");
+        if(Starts(0x50,0x4b,0x03,0x04)||Starts(0x50,0x4b,0x05,0x06)||Starts(0x50,0x4b,0x07,0x08))return new("CONTAINER","ZIP container","application/zip",".zip","ZIP container header");
+        if(Starts(0xd0,0xcf,0x11,0xe0,0xa1,0xb1,0x1a,0xe1))return new("DOCUMENT","OLE Compound Document","application/x-ole-storage",ext,"OLE Compound File magic");
+        if(head.StartsWith("SQLite format 3",StringComparison.Ordinal))return new("DATA","SQLite database","application/vnd.sqlite3",".sqlite","SQLite header");
+        if(head.StartsWith("RIFF",StringComparison.Ordinal))return new("MEDIA","RIFF media container","application/octet-stream",ext,"RIFF header");
+        if(head.StartsWith("MThd",StringComparison.Ordinal))return new("AUDIO","MIDI","audio/midi",".mid","MIDI header");
+        if(Starts(0x7f,0x45,0x4c,0x46))return new("PROGRAM","ELF executable","application/x-elf",ext,"ELF header");
+        if(Starts(0x4d,0x5a))return new("PROGRAM","DOS/Windows executable","application/vnd.microsoft.portable-executable",ext,"MZ executable header");
+        if(Starts(0x1f,0x8b))return new("CONTAINER","GZip","application/gzip",".gz","GZip header");
+        if(Starts(0x37,0x7a,0xbc,0xaf,0x27,0x1c))return new("CONTAINER","7-Zip","application/x-7z-compressed",".7z","7-Zip header");
+        if(head.StartsWith("Rar!",StringComparison.Ordinal))return new("CONTAINER","RAR","application/vnd.rar",".rar","RAR header");
+        if(Regex.IsMatch(head,@"^(ERF |MOD |HAK |SAV |NWM )V1",RegexOptions.IgnoreCase))
+            return new("DATA","BioWare Aurora resource container","application/octet-stream",ext,"Aurora resource header");
+        if(head.StartsWith("TLK V3.",StringComparison.OrdinalIgnoreCase))return new("DATA","BioWare Talk Table","application/octet-stream",ext,"Aurora TLK header");
+        if(head.StartsWith("KEY V1",StringComparison.OrdinalIgnoreCase))return new("DATA","BioWare KEY index","application/octet-stream",ext,"BioWare KEY header");
+        if(!LooksBinary(bytes))return new("TEXT","Text","text/plain",ext,"Readable text");
+        return new("OPAQUE","Opaque binary","application/octet-stream",ext,"Unknown binary signature");
+    }
+
+    static RunecoreCompatibility InspectRunecore(string path,byte[] bytes,string ext,FileSignature signature,IReadOnlyCollection<string> archivePaths)
+    {
+        var lower=path.ToLowerInvariant();
+        var printable=Limit(PrintableStrings(bytes));
+        var siblingEvidence=archivePaths.Any(p=>NeverwinterExtensions.Contains(Path.GetExtension(p)));
+        var nwn=NeverwinterExtensions.Contains(ext)
+            || signature.Label.Contains("Aurora",StringComparison.OrdinalIgnoreCase)
+            || signature.Label.Contains("BioWare",StringComparison.OrdinalIgnoreCase)
+            || printable.Contains("Neverwinter Nights",StringComparison.OrdinalIgnoreCase)
+            || printable.Contains("BioWare",StringComparison.OrdinalIgnoreCase)
+            || (siblingEvidence&&(ext is ".ini" or ".cfg" or ".txt"));
+
+        if(nwn)
+            return new(
+                "capsule-candidate",signature.Evidence,"Neverwinter Nights / Aurora data",
+                "Neverwinter Nights / Aurora Toolset","BioWare","Windows","x86-compatible","2002-era","high",true,
+                "Use a legitimately acquired copy/license if origin-faithful execution is required. RIST does not provide, crack, bypass, or redistribute protected software.",
+                "win32-x86-no-network","Aurora/Neverwinter file signatures, extensions, or neighboring archive files were detected.");
+
+        if(signature.Label=="OLE Compound Document")
+        {
+            var app=ext switch
+            {
+                ".doc"=>"Microsoft Word-compatible origin",
+                ".xls"=>"Microsoft Excel-compatible origin",
+                ".ppt"=>"Microsoft PowerPoint-compatible origin",
+                ".mdb"=>"Microsoft Access-compatible origin",
+                _=>"OLE Compound Document application"
+            };
+            return new(
+                "capsule-candidate",signature.Evidence,signature.Label,app,"Unknown / Microsoft-compatible",
+                "Windows","x86-compatible","legacy Windows","medium",true,
+                "Use licensed origin software or a lawful compatible reader when an origin-faithful conversion is needed.",
+                "win32-x86-no-network","OLE compound storage detected; the exact creating application may require further origin identification.");
+        }
+
+        if(signature.Label=="DOS/Windows executable")
+            return new(
+                "capsule-candidate",signature.Evidence,signature.Label,"Unknown DOS/Windows application","Unknown",
+                "DOS / Windows","x86-compatible","legacy PC","medium",true,
+                "User-supplied licensed installation media is required before any origin runtime can be prepared.",
+                "dos-win32-x86-no-network","Executable header detected. It remains quarantined and is not run during import.");
+
+        if(signature.Label=="ELF executable")
+            return new(
+                "capsule-candidate",signature.Evidence,signature.Label,"Unknown Unix/Linux application","Unknown",
+                "Unix / Linux","unknown","unknown","medium",true,
+                "User-supplied licensed software/media is required when applicable.",
+                "linux-no-network","ELF executable detected. It remains quarantined and is not run during import.");
+
+        if(signature.Kind is "TEXT" or "IMAGE" or "PDF" || PackageTextExtensions.Contains(ext) || TextExtensions.Contains(ext))
+            return new(
+                "direct-representation",signature.Evidence,signature.Label,"Direct representation","N/A",
+                "RIST","native","current","high",false,
+                "No origin runtime is required for the preserved/direct representation.",
+                "none","Runecore can represent this file directly while preserving the original bytes.");
+
+        if(signature.Kind=="DATA")
+            return new(
+                "adapter-first",signature.Evidence,signature.Label,"Data format adapter","Unknown",
+                "Unknown","Unknown","Unknown","medium",false,
+                "No license is requested unless an origin application is later identified as necessary.",
+                "adapter-before-capsule","Runecore favors a format adapter before requesting origin software.");
+
+        return new(
+            "origin-unresolved",signature.Evidence,signature.Label,"Unknown","Unknown",
+            "Unknown","Unknown","Unknown","low",false,
+            "No license is requested until Runecore identifies an origin application that actually requires one.",
+            "hold-for-origin-detection",
+            $"Unrecognized file type ({(string.IsNullOrWhiteSpace(ext)?"no extension":ext)}). The file is preserved intact and remains eligible for a future adapter or capsule.");
     }
 
     static string SuggestedLocation(string path,string category)
@@ -282,7 +461,7 @@ public static class LegacyArchiveImport
         return summary;
     }
 
-    static string RepresentationHtml(string world,string path,string category,string suggested,string sha,long size,string text,string analysis,string assetKey)
+    static string RepresentationHtml(string world,string path,string category,string suggested,string sha,long size,string text,string analysis,string assetKey,RunecoreCompatibility runecore)
     {
         var body=string.IsNullOrWhiteSpace(text)
             ?"<p class=\"empty\">No readable text representation was extracted. The original file is still preserved.</p>"
@@ -297,7 +476,14 @@ public static class LegacyArchiveImport
             +"</dd><dt>Size</dt><dd>"+size.ToString("N0")
             +" bytes</dd><dt>SHA-256</dt><dd><code>"+sha
             +"</code></dd>"+(string.IsNullOrWhiteSpace(assetKey)?"":"<dt>My Assets</dt><dd><code>"+WebUtility.HtmlEncode(assetKey)+"</code></dd>")
-            +"</dl>"+(string.IsNullOrWhiteSpace(analysis)?"":"<p class=\"analysis\">"+WebUtility.HtmlEncode(analysis)+"</p>")+body+"</main></body></html>";
+            +"</dl><section class=\"analysis\"><strong>RUNECORE</strong><br>State: "+WebUtility.HtmlEncode(runecore.State)
+            +"<br>Format: "+WebUtility.HtmlEncode(runecore.FormatLabel)
+            +"<br>Origin: "+WebUtility.HtmlEncode(runecore.OriginApplication)
+            +"<br>Platform: "+WebUtility.HtmlEncode(runecore.Platform)+" · "+WebUtility.HtmlEncode(runecore.Architecture)
+            +"<br>Confidence: "+WebUtility.HtmlEncode(runecore.Confidence)
+            +"<br>Capsule: "+WebUtility.HtmlEncode(runecore.CapsuleProfile)
+            +"<br>License: "+WebUtility.HtmlEncode(runecore.LicensePolicy)
+            +"</section>"+(string.IsNullOrWhiteSpace(analysis)?"":"<p class=\"analysis\">"+WebUtility.HtmlEncode(analysis)+"</p>")+body+"</main></body></html>";
     }
 
     static string NavigatorHtml(LegacyArchiveManifest manifest,string baseUri)

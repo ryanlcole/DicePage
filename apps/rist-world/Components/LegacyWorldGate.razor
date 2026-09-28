@@ -14,8 +14,8 @@
 
    <section class="legacy-gate-intro">
     <strong>UPLOAD THE CAMPAIGN, NOT THE REBUILD.</strong>
-    <p>Put the old campaign folder into one ZIP. Legacy preserves the original structure and files, generates a linked PDF binder, makes safe HTML representations, and copies image assets into My Assets.</p>
-    <p>Old program files are quarantined and statically inspected for likely input/output. They are never executed in the browser.</p>
+    <p>Put the old campaign folder into one ZIP. Legacy accepts every file type, preserves the original structure and bytes, generates a linked PDF binder, makes safe HTML representations, and copies recognized images into My Assets.</p>
+    <p>Runecore identifies signatures and probable origin environments. Unknown and discontinued-software files stay preserved. Programs are quarantined: Legacy creates a tiny no-network capsule specification only after you choose to restore the origin; imported code is never executed in the browser.</p>
    </section>
 
    @if(_legacyWorlds.Count>0)
@@ -34,7 +34,7 @@
    <div class="legacy-gate-divider"><span>IMPORT LEGACY ZIP</span></div>
    <label class="legacy-import @((_busy||!CanCreateWorld)?"disabled":"")">
     <strong>@(_busy?"WORKING…":"IMPORT ZIP")</strong>
-    <small>@(CanCreateWorld?"ZIP up to 100 MB · original files remain preserved privately":"An additional sandbox world slot is required before importing another Legacy world.")</small>
+    <small>@(CanCreateWorld?"ZIP up to 100 MB · any file type inside it is preserved privately":"An additional sandbox world slot is required before importing another Legacy world.")</small>
     <InputFile OnChange="ImportLegacyAsync" accept=".zip,application/zip,application/x-zip-compressed" disabled="@(_busy||!CanCreateWorld)" />
    </label>
 

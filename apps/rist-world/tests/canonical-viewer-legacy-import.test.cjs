@@ -33,7 +33,7 @@ test('Legacy accepts a ZIP and preserves provenance with safety limits',()=>{
  assert.match(importer,/Archive contains an unsafe relative path/);
  assert.match(importer,/SHA256\.HashData/);
  assert.match(importer,/OriginalKey/);
- assert.match(importer,/quarantined-static-analysis-only/);
+ assert.match(importer,/Runecore compatibility ladder/);
 });
 
 test('Legacy converts every entry to HTML and images into My Assets storage',()=>{
@@ -66,4 +66,43 @@ test('Legacy program handling is quarantine-first and does not execute imported 
  assert.match(importer,/Quarantined binary\. Not executed/);
  assert.match(importer,/Quarantined source\. Not executed/);
  assert.doesNotMatch(importer,/Process\.Start|Assembly\.Load|eval\(|exec\(/);
+});
+
+
+test('Runecore accepts unknown file types without discarding them',()=>{
+ const gate=read('Components/LegacyWorldGate.razor');
+ const importer=read('LegacyArchiveImport.cs');
+ assert.match(gate,/any file type inside it is preserved privately/);
+ assert.match(importer,/return "FILE";/);
+ assert.match(importer,/origin-unresolved/);
+ assert.match(importer,/Opaque binary/);
+ assert.match(importer,/The file is preserved intact and remains eligible for a future adapter or capsule/);
+ assert.match(importer,/originalKey=\$"\{root\}\/originals/);
+ assert.match(importer,/htmlKey=\$"\{root\}\/html/);
+});
+
+test('Runecore identifies origin signatures including Neverwinter Nights Aurora data',()=>{
+ const importer=read('LegacyArchiveImport.cs');
+ assert.match(importer,/NeverwinterExtensions/);
+ assert.match(importer,/Neverwinter Nights \/ Aurora Toolset/);
+ assert.match(importer,/BioWare Aurora resource container/);
+ assert.match(importer,/win32-x86-no-network/);
+ assert.match(importer,/OLE Compound Document/);
+ assert.match(importer,/DOS\/Windows executable/);
+ assert.match(importer,/ELF executable/);
+});
+
+test('Runecore capsule requests enforce isolation boundaries and do not execute imports',()=>{
+ const importer=read('LegacyArchiveImport.cs');
+ const dock=read('Components/LegacyArchiveDock.razor');
+ assert.match(importer,/RunecoreCapsuleRequest/);
+ assert.match(importer,/false,false,true,"ephemeral",120,512/);
+ assert.match(importer,/awaiting-user-license-or-media/);
+ assert.match(importer,/ready-for-isolated-executor/);
+ assert.match(dock,/PREPARE ORIGIN CAPSULE/);
+ assert.match(dock,/NO NETWORK · NO HOST CREDENTIALS · READ-ONLY SOURCE · EPHEMERAL WRITABLE SCRATCH/);
+ assert.match(dock,/LICENSE \/ ORIGIN MEDIA/);
+ assert.match(dock,/will not be auto-executed/);
+ assert.doesNotMatch(importer,/Process\.Start|Assembly\.Load|VirtualBox|QEMU|eval\(|exec\(/);
+ assert.doesNotMatch(dock,/Process\.Start|Assembly\.Load|eval\(|exec\(/);
 });
