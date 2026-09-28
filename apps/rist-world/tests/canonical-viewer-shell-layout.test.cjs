@@ -36,3 +36,39 @@ test('landscape mode prioritizes viewer visibility with a compact control deck',
   assert.match(css,/\.single-analog-deck \.analog-pad\{[\s\S]*?width:min\(100%,76px\)!important/);
   assert.match(css,/\.single-analog-deck button\.control-display-button>span\{[\s\S]*?display:none!important/);
 });
+
+
+test('universal analog stick press acts as the primary Select control',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const input=read('wwwroot/experiments-universal-input.js');
+
+  assert.match(razor,/data-analog-select="true"/);
+  assert.match(razor,/case "select": await PressLeft\(\); break;/);
+  assert.match(input,/const ANALOG_SELECT_RADIUS = 0\.46;/);
+  assert.match(input,/const ANALOG_SELECT_MOVE_PX = 10;/);
+  assert.match(input,/if \(shouldSelect\) invoke\("select"\);/);
+  assert.match(input,/edgeButton\(gamepad, 10, "select"\);/);
+  assert.match(input,/event\.key !== "Enter" && event\.key !== " "/);
+});
+
+test('portrait builder keeps source content in the vertical center and corner PIPs translucent',()=>{
+  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const index=read('wwwroot/index.html');
+
+  assert.match(css,/Analog Select \+ four-corner pip safe-center authority/);
+  assert.match(
+    css,
+    /\.depth-pip,[\s\S]*?\.asset-context-pip\.minimized\{[\s\S]*?opacity:\.76!important;/
+  );
+  assert.match(
+    css,
+    /@media\(max-width:700px\) and \(orientation:portrait\)\{[\s\S]*?\.experiments-worldbuilder-viewer \.asset-source-explorer\{[\s\S]*?top:144px!important;[\s\S]*?bottom:82px!important;/
+  );
+  assert.match(css,/grid-template-columns:repeat\(auto-fit,minmax\(82px,1fr\)\)!important;/);
+  assert.match(
+    css,
+    /@media\(max-width:430px\) and \(orientation:portrait\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/
+  );
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-analog-select-pip-safe-1/);
+  assert.match(index,/experiments-universal-input\.js\?v=20260928-analog-select-1/);
+});
