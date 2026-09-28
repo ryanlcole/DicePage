@@ -851,8 +851,8 @@
     _message=$"A/V method: {CurrentArtMethod}.";
     break;
    case Stage.ArtPhase:
-    _artPhaseIndex=Wrap(_artPhaseIndex+direction,CurrentArtPhases.Length);
-    _message=$"{CurrentArtMethod}: {CurrentArtPhase}.";
+    _artToolIndex=Wrap(_artToolIndex+direction,CurrentArtTools.Length);
+    _message=$"{CurrentArtMethod} · {CurrentArtPhase}: {CurrentArtTool}.";
     break;
    case Stage.AssetKind:
     _assetSourceIndex=Wrap(_assetSourceIndex+direction,AssetSources.Length);
@@ -950,7 +950,11 @@
     SelectArtMethod();
     break;
    case Stage.ArtPhase:
-    _message=$"{CurrentArtMethod} · {CurrentArtPhase} selected. This is the next A/V tool adapter in the chain; the persistent viewer stays visible while its controls are added.";
+    _stage=Stage.ArtWork;
+    _message=$"{CurrentArtTool} opened for {CurrentArtMethod} · {CurrentArtPhase}. The viewer stays persistent; touch Save when this pass is complete.";
+    break;
+   case Stage.ArtWork:
+    SaveArtPass();
     break;
    case Stage.KnowledgeNode:
     _message=$"{_activeKnowledgeNode} is active in the journal/lore rail. Entry controls will be added here without leaving the persistent viewer.";
@@ -1056,6 +1060,10 @@
    case Stage.ArtPhase:
     _stage=Stage.ArtMethod;
     _message="Returned to art-method selection.";
+    break;
+   case Stage.ArtWork:
+    _stage=Stage.ArtPhase;
+    _message=$"Returned to {CurrentArtMethod} · {CurrentArtPhase} tool selection.";
     break;
    case Stage.KnowledgeNode:
     _stage=Stage.FullMapReview;
@@ -1201,6 +1209,7 @@
  void SelectArtMethod()
  {
   _artPhaseIndex=0;
+  _artToolIndex=0;
 
   switch(CurrentArtMethod)
   {
@@ -1220,6 +1229,25 @@
     _message=$"{CurrentArtMethod} begins with {CurrentArtPhase}. Save each pass before moving to the next phase; the tool-specific controls will be added here as each adapter is wired.";
     break;
   }
+ }
+
+ void SaveArtPass()
+ {
+  var savedPhase=CurrentArtPhase;
+  var savedTool=CurrentArtTool;
+
+  if(_artPhaseIndex+1<CurrentArtPhases.Length)
+  {
+   _artPhaseIndex++;
+   _artToolIndex=0;
+   _stage=Stage.ArtPhase;
+   _message=$"{savedPhase} saved with {savedTool}. Next: {CurrentArtPhase}. Choose the preferred tool on the left; the path/journal rail remains on the right.";
+   return;
+  }
+
+  SetPathMenuToNext(CurrentBuilderScope);
+  _stage=Stage.FullMapReview;
+  _message=$"{CurrentArtMethod} {savedPhase.ToLowerInvariant()} pass saved with {savedTool}. Full-map review is active; continue here or jump along the GameMaster path.";
  }
 
  void PrepareAssetSource(string kind)
@@ -1351,6 +1379,7 @@
   _assetKindIndex=0;
   _artMethodIndex=0;
   _artPhaseIndex=0;
+  _artToolIndex=0;
   _assetSourceIndex=0;
   _assetSource="GAME IMAGES";
   _selectedAssetKey="";
