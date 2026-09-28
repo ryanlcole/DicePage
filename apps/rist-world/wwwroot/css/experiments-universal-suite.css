@@ -22,6 +22,9 @@
  min-height:0;
  box-sizing:border-box;
 }
+.experiments-browser-back{
+ display:none!important;
+}
 .experiments-viewer{
  overflow:hidden;
  border:1px solid rgba(201,159,72,.82);
