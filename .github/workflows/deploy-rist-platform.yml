@@ -118,20 +118,42 @@ jobs:
           echo "OWNER_USER_ID=$OWNER_USER_ID" >> "$GITHUB_ENV"
           echo "Resolved authenticated platform-owner authority."
 
-      - name: Recover failed platform stack shell
+      - name: Recover or wait for platform stack
         shell: bash
         run: |
           set -euo pipefail
           if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
-            STACK_STATUS=$(aws cloudformation describe-stacks \
-              --stack-name "$STACK_NAME" \
-              --query 'Stacks[0].StackStatus' \
-              --output text)
+            for attempt in $(seq 1 90); do
+              STACK_STATUS=$(aws cloudformation describe-stacks \
+                --stack-name "$STACK_NAME" \
+                --query 'Stacks[0].StackStatus' \
+                --output text)
+              case "$STACK_STATUS" in
+                *_IN_PROGRESS)
+                  echo "$STACK_NAME is $STACK_STATUS; waiting for CloudFormation cleanup ($attempt/90)..."
+                  sleep 10
+                  ;;
+                *)
+                  break
+                  ;;
+              esac
+            done
+
+            if [[ "$STACK_STATUS" == *_IN_PROGRESS ]]; then
+              echo "$STACK_NAME did not reach a stable CloudFormation state in the recovery window."
+              exit 1
+            fi
+
             if [[ "$STACK_STATUS" == "ROLLBACK_COMPLETE" ]]; then
-              echo "$STACK_NAME is ROLLBACK_COMPLETE; deleting failed shell before clean redeploy..."
+              echo "$STACK_NAME is a failed create shell; deleting before clean redeploy..."
               aws cloudformation delete-stack --stack-name "$STACK_NAME"
               aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
               echo "Failed platform stack shell deleted successfully."
+            elif [[ "$STACK_STATUS" == "UPDATE_ROLLBACK_FAILED" || "$STACK_STATUS" == "ROLLBACK_FAILED" ]]; then
+              echo "$STACK_NAME requires explicit CloudFormation rollback recovery: $STACK_STATUS"
+              exit 1
+            else
+              echo "$STACK_NAME is stable at $STACK_STATUS; deployment may proceed."
             fi
           fi
 
