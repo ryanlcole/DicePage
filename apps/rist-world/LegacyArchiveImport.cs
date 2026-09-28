@@ -10,6 +10,19 @@ namespace RistWorld;
 
 public sealed record LegacyArchiveInspection(int FileCount,long ExpandedBytes);
 
+public sealed record LegacyUploadCandidate(
+    string Name,
+    DateTimeOffset LastModifiedUtc,
+    string ContentType,
+    byte[] Bytes);
+
+public sealed record LegacyUploadBundle(
+    byte[] ZipBytes,
+    int FileCount,
+    int IgnoredDuplicateCount,
+    int AutoDuplicatedCount,
+    long ExpandedBytes);
+
 public sealed record RunecoreCompatibility(
     string State,
     string Signature,
@@ -117,6 +130,66 @@ public static class LegacyArchiveImport
     public static string ManifestKey(string worldId)=>$"worlds/{SafeSegment(worldId)}/legacy/manifest.json";
     public static string CapsuleRequestKey(string worldId,string entryId)=>$"worlds/{SafeSegment(worldId)}/legacy/runecore/capsules/{SafeSegment(entryId)}.json";
     public static string OriginMediaKey(string worldId,string entryId,string fileName)=>$"worlds/{SafeSegment(worldId)}/legacy/runecore/media/{SafeSegment(entryId)}/{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss}-{SafeSegment(Path.GetFileName(fileName))}";
+
+    public static LegacyUploadBundle CreateUploadBundle(IReadOnlyList<LegacyUploadCandidate> files)
+    {
+        if(files is null||files.Count==0)throw new InvalidDataException("Choose at least one Legacy file.");
+        if(files.Count>MaxEntryCount)throw new InvalidDataException($"Legacy accepts up to {MaxEntryCount:N0} files per import.");
+
+        using var output=new MemoryStream();
+        var usedPaths=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var exactMetadata=new HashSet<string>(StringComparer.Ordinal);
+        var ignored=0;
+        var autoDuplicated=0;
+        var imported=0;
+        long expanded=0;
+
+        using(var archive=new ZipArchive(output,ZipArchiveMode.Create,true))
+        {
+            foreach(var file in files)
+            {
+                var bytes=file.Bytes??Array.Empty<byte>();
+                if(bytes.LongLength>MaxSingleEntryBytes)
+                    throw new InvalidDataException($"{file.Name} exceeds the {MaxSingleEntryBytes/1024/1024} MB per-file limit.");
+
+                expanded+=bytes.LongLength;
+                if(expanded>MaxExpandedBytes)
+                    throw new InvalidDataException($"Selected files exceed the {MaxExpandedBytes/1024/1024} MB Legacy import limit.");
+
+                var path=LooseUploadPath(file.Name);
+                var sha=Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+                var metadataKey=string.Join("|",
+                    path.ToLowerInvariant(),
+                    bytes.LongLength.ToString(),
+                    file.LastModifiedUtc.UtcDateTime.Ticks.ToString(),
+                    (file.ContentType??"").Trim().ToLowerInvariant(),
+                    sha);
+
+                if(!exactMetadata.Add(metadataKey))
+                {
+                    ignored++;
+                    continue;
+                }
+
+                var resolved=path;
+                if(usedPaths.Contains(resolved))
+                {
+                    resolved=DuplicatePath(path,usedPaths);
+                    autoDuplicated++;
+                }
+                usedPaths.Add(resolved);
+
+                var entry=archive.CreateEntry(resolved,CompressionLevel.Optimal);
+                entry.LastWriteTime=SafeZipTimestamp(file.LastModifiedUtc);
+                using var stream=entry.Open();
+                stream.Write(bytes,0,bytes.Length);
+                imported++;
+            }
+        }
+
+        if(imported==0)throw new InvalidDataException("All selected files were exact duplicates.");
+        return new LegacyUploadBundle(output.ToArray(),imported,ignored,autoDuplicated,expanded);
+    }
 
     public static RunecoreCapsuleRequest CreateCapsuleRequest(LegacyArchiveManifest manifest,LegacyArchiveEntry entry,string originMediaKey="")
     {
@@ -562,6 +635,35 @@ public static class LegacyArchiveImport
         var parts=raw.Split('/',StringSplitOptions.RemoveEmptyEntries);
         if(parts.Any(x=>x is "." or ".."))throw new InvalidDataException("Archive contains an unsafe relative path.");
         return string.Join('/',parts);
+    }
+
+    static string LooseUploadPath(string name)
+    {
+        var leaf=Path.GetFileName((name??"").Replace('\\','/'));
+        return SafeSegment(string.IsNullOrWhiteSpace(leaf)?"unnamed":leaf);
+    }
+
+    static string DuplicatePath(string path,HashSet<string> usedPaths)
+    {
+        var parent=Parent(path);
+        var fileName=Path.GetFileName(path);
+        var ext=Path.GetExtension(fileName);
+        var stem=string.IsNullOrEmpty(ext)?fileName:fileName[..^ext.Length];
+        for(var number=2;number<10000;number++)
+        {
+            var leaf=$"{stem} ({number}){ext}";
+            var candidate=string.IsNullOrWhiteSpace(parent)?leaf:$"{parent}/{leaf}";
+            if(!usedPaths.Contains(candidate))return candidate;
+        }
+        throw new InvalidDataException($"Too many files share the name {fileName}.");
+    }
+
+    static DateTimeOffset SafeZipTimestamp(DateTimeOffset value)
+    {
+        var utc=value.ToUniversalTime();
+        var min=new DateTimeOffset(1980,1,1,0,0,0,TimeSpan.Zero);
+        var max=new DateTimeOffset(2107,12,31,23,59,58,TimeSpan.Zero);
+        return utc<min?min:utc>max?max:utc;
     }
 
     static bool IsDirectory(ZipArchiveEntry e)=>e.FullName.EndsWith('/')||string.IsNullOrEmpty(e.Name);
