@@ -437,31 +437,39 @@
 
  string LeftAxisHint=>_stage switch
  {
+  Stage.PathSelect=>"Y · PATHS",
   Stage.GameMasterHub=>"Y · WORLDS",
   Stage.GameMasterScope=>"Y · SUITES",
   Stage.SoftwareHub=>"Y · CAPABILITIES",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"Y · DEPTH",
+  Stage.ArtMethod or Stage.ArtPhase or Stage.AssetKind=>"Y · A/V",
   Stage.Scale=>"Y · SCALE",
   Stage.Move=>"Y · MOVE",
   _=>"Y · NAVIGATE"
  };
 
- string RightAxisHint=>_stage switch
- {
-  Stage.GameMasterHub=>"X · OPTIONS",
-  Stage.Rotate=>"X · ROTATE",
-  Stage.Move=>"X · MOVE",
-  _=>"X · NAVIGATE"
- };
+ string RightAxisHint=>IsPathDrivenStage
+  ?"X · PATH / JOURNAL"
+  :_stage switch
+  {
+   Stage.GameMasterHub=>"X · OPTIONS",
+   Stage.Rotate=>"X · ROTATE",
+   Stage.Move=>"X · MOVE",
+   _=>"X · NAVIGATE"
+  };
 
  string LeftEyebrow=>_stage switch
  {
   Stage.Environment=>"ENVIRONMENT",
   Stage.Role=>"SHAELVIEN",
+  Stage.PathSelect=>"GAMEMASTER PATH",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
   Stage.ControlSettings=>"CONTROLS",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"DEPTH",
-  Stage.AssetKind=>"ASSET TYPE",
+  Stage.ArtMethod=>"A/V METHOD",
+  Stage.ArtPhase=>CurrentArtMethod,
+  Stage.KnowledgeNode=>"JOURNAL / LORE",
+  Stage.AssetKind=>"SOURCE",
   Stage.AssetMode=>"ASSET ACTION",
   Stage.BrowsePlace=>"SOURCE",
   Stage.Scale or Stage.Rotate or Stage.Move=>"TRANSFORM",
@@ -474,11 +482,15 @@
  {
   Stage.Environment=>"SHAELVIEN",
   Stage.Role=>"ROLEPLAYER",
+  Stage.PathSelect=>CurrentGameMasterPath,
   Stage.GameMasterScope=>CurrentScope,
   Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
   Stage.WorldBuilderTier=>$"TIER {_tier}",
   Stage.WorldBuilderLayer=>$"LAYER {_layer}",
-  Stage.AssetKind=>_assetKind,
+  Stage.ArtMethod=>CurrentArtMethod,
+  Stage.ArtPhase=>CurrentArtPhase,
+  Stage.KnowledgeNode=>"ADD ENTRY",
+  Stage.AssetKind=>CurrentAssetSource,
   Stage.AssetMode=>"EDIT",
   Stage.BrowsePlace=>"SELECT",
   Stage.Scale=>"ENLARGE / REDUCE",
@@ -493,10 +505,11 @@
  {
   Stage.Environment=>"ENVIRONMENT",
   Stage.Role=>"SHAELVIEN",
+  Stage.PathSelect=>"NAVIGATION",
   Stage.GameMasterScope=>"NAVIGATION",
   Stage.ControlSettings=>"SETTINGS",
-  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"NAVIGATION",
-  Stage.AssetKind=>"SOURCE",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"PATH / JOURNAL",
+  Stage.ArtMethod or Stage.ArtPhase or Stage.KnowledgeNode or Stage.AssetKind=>"PATH / JOURNAL",
   Stage.AssetMode=>"ASSET ACTION",
   Stage.BrowsePlace=>"NAVIGATION",
   Stage.Scale or Stage.Rotate or Stage.Move=>"CONFIRM",
@@ -509,15 +522,16 @@
  {
   Stage.Environment=>"RIST",
   Stage.Role=>"GAMEMASTER",
+  Stage.PathSelect=>"BACK",
   Stage.GameMasterScope=>"BACK",
   Stage.ControlSettings=>"BACK",
-  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"BACK",
-  Stage.AssetKind=>CurrentAssetSource,
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>CurrentPathTarget,
+  Stage.ArtMethod or Stage.ArtPhase or Stage.KnowledgeNode or Stage.AssetKind=>CurrentPathTarget,
   Stage.AssetMode=>"ADD",
   Stage.BrowsePlace=>"BACK",
   Stage.Scale or Stage.Rotate or Stage.Move=>"SET",
   Stage.SaveCancel=>"CANCEL",
-  Stage.FullMapReview=>HasNextBuilderScope?NextBuilderSuite:"REVIEW",
+  Stage.FullMapReview=>CurrentPathTarget,
   _=>""
  };
 
@@ -525,11 +539,15 @@
  {
   Stage.Environment=>"Shared Shaelvien MMO environment.",
   Stage.Role=>"Player-facing role.",
+  Stage.PathSelect=>"Choose World Builder, Campaign Builder, or Advanced. This selects the controller's guided route.",
   Stage.GameMasterScope=>"Y cycles GameMaster applications and capability groups.",
   Stage.ControlSettings=>"Move the analog left, center, or right of the two display buttons.",
   Stage.WorldBuilderTier=>"Y pages through tiers. Touch the left display to select the shown tier.",
-  Stage.WorldBuilderLayer=>"Y pages through layers. Touch the left display to select the shown layer.",
-  Stage.AssetKind=>"Y switches asset type. X switches the source shown on the right display.",
+  Stage.WorldBuilderLayer=>"Y pages through layers. Touch the left display to select the shown layer, then choose an art method.",
+  Stage.ArtMethod=>"Left is the A/V rail: Draw, CAD, Import Image, Sprite, Audio, or Video.",
+  Stage.ArtPhase=>"Work through the selected method in order. Draw begins with Pencil, then Color, then Effects.",
+  Stage.KnowledgeNode=>$"Create or inspect {_activeKnowledgeNode.ToLowerInvariant()} without leaving the persistent viewer.",
+  Stage.AssetKind=>"Y pages Game, My, and Upload sources. Touch the left display to open the shown source.",
   Stage.AssetMode=>"Choose an existing asset to transform.",
   Stage.BrowsePlace=>"Use the analog cursor or touch. The left display selects the current explorer item.",
   Stage.Scale=>"Y changes preview size without changing asset identity.",
@@ -543,21 +561,19 @@
  string RightDetail=>_stage switch
  {
   Stage.Environment=>"Private/universal RIST environment.",
-  Stage.Role=>"Enter the GameMaster Suite.",
+  Stage.Role=>"Enter the GameMaster path selector.",
+  Stage.PathSelect=>"Return to the Shaelvien role choice.",
   Stage.GameMasterScope=>"Return to world and settings selection.",
   Stage.ControlSettings=>"Cancel and return to GameMaster settings.",
-  Stage.WorldBuilderTier=>"Back to the GameMaster suite selector.",
-  Stage.WorldBuilderLayer=>"Back to Tier.",
-  Stage.AssetKind=>"Choose Game, My, or Upload source for the selected asset type.",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"The right rail jumps through Back, spatial scopes, journals, lore, NPCs, encounters, and the rest of the active path.",
+  Stage.ArtMethod or Stage.ArtPhase or Stage.KnowledgeNode or Stage.AssetKind=>"The right rail is always the path/journal rail. Advanced exposes the complete graph.",
   Stage.AssetMode=>"Add a new asset.",
   Stage.BrowsePlace=>"Back to Image/Sprite and source selection.",
   Stage.Scale=>"Back to the current source explorer.",
   Stage.Rotate=>"Accept current rotation.",
   Stage.Move=>"Accept current position.",
   Stage.SaveCancel=>"Discard preview and return to the current builder depth.",
-  Stage.FullMapReview=>HasNextBuilderScope
-   ?$"Advance directly to {NextBuilderSuite} without leaving the viewer."
-   :"Keep the completed recursive viewer open.",
+  Stage.FullMapReview=>"Slide left/right through the path rail, then touch the right display to jump without leaving the viewer.",
   _=>""
  };
 
@@ -577,10 +593,14 @@
 
  string LeftDisplayValue=>_stage switch
  {
+  Stage.PathSelect=>CurrentGameMasterPath,
   Stage.GameMasterHub=>CurrentWorld,
   Stage.SoftwareHub=>CurrentSoftware,
   Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
-  Stage.AssetKind=>_assetKind,
+  Stage.ArtMethod=>CurrentArtMethod,
+  Stage.ArtPhase=>CurrentArtPhase,
+  Stage.KnowledgeNode=>"ADD ENTRY",
+  Stage.AssetKind=>CurrentAssetSource,
   Stage.Scale=>$"{_assetScale:0.00}×",
   _=>LeftLabel
  };
@@ -589,21 +609,26 @@
 
  string RightDisplayValue=>RightActsAsBack
   ?"BACK"
-  :_stage switch
-  {
-   Stage.GameMasterHub=>CurrentSetting,
-   Stage.ControlSettings=>"BACK",
-   Stage.AssetKind=>CurrentAssetSource,
-   Stage.Rotate=>$"{_assetRotation}°",
-   _=>RightLabel
-  };
+  :IsPathDrivenStage
+   ?CurrentPathTarget
+   :_stage switch
+   {
+    Stage.GameMasterHub=>CurrentSetting,
+    Stage.ControlSettings=>"BACK",
+    Stage.Rotate=>$"{_assetRotation}°",
+    _=>RightLabel
+   };
 
  string LeftDisplayPrompt=>_stage switch
  {
+  Stage.PathSelect=>"SLIDE ↑↓ · TOUCH PATH",
   Stage.GameMasterHub=>"TOUCH · SELECT WORLD",
   Stage.SoftwareHub=>"TOUCH · SELECT TOOL",
   Stage.ControlSettings=>"TOUCH · SAVE",
-  Stage.AssetKind=>"SLIDE ↑↓ · TOUCH TYPE",
+  Stage.ArtMethod=>"SLIDE ↑↓ · TOUCH METHOD",
+  Stage.ArtPhase=>"SLIDE ↑↓ · TOUCH TOOL",
+  Stage.KnowledgeNode=>"TOUCH · ADD ENTRY",
+  Stage.AssetKind=>"SLIDE ↑↓ · TOUCH SOURCE",
   Stage.BrowsePlace=>"TOUCH · SELECT",
   Stage.Scale=>"SLIDE ↑↓ · TOUCH SET",
   Stage.FullMapReview=>"TOUCH · BUILD MORE",
@@ -612,17 +637,17 @@
 
  string RightDisplayPrompt=>RightActsAsBack
   ?"TOUCH · BACK"
-  :_stage switch
-  {
-   Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
-   Stage.SoftwareHub=>"TOUCH · BACK",
-   Stage.ControlSettings=>"TOUCH · CANCEL",
-   Stage.AssetKind=>"SLIDE ↔ · TOUCH OPEN",
-   Stage.BrowsePlace=>"TOUCH · BACK",
-   Stage.Rotate=>"SLIDE ↔ · TOUCH SET",
-   Stage.FullMapReview=>HasNextBuilderScope?"TOUCH · NEXT":"TOUCH · REVIEW",
-   _=>"TOUCH · ACTIVATE"
-  };
+  :IsPathDrivenStage
+   ?"SLIDE ↔ · TOUCH JUMP"
+   :_stage switch
+   {
+    Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
+    Stage.SoftwareHub=>"TOUCH · BACK",
+    Stage.ControlSettings=>"TOUCH · CANCEL",
+    Stage.BrowsePlace=>"TOUCH · BACK",
+    Stage.Rotate=>"SLIDE ↔ · TOUCH SET",
+    _=>"TOUCH · ACTIVATE"
+   };
 
  string ViewerTitle=>_stage switch
  {
