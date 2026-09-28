@@ -110,6 +110,12 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
 });
 
 
+test('authenticated launch enters the universal controller instead of the old environment cards',()=>{
+  const auth=read('Components/AuthenticatedWorld.razor');
+  assert.match(auth,/BeginAuthenticatedLaunchAsync\(\)[\s\S]{0,420}?_launchStarted=true;[\s\S]{0,140}?_experimentsOpen=true;[\s\S]{0,180}?LoadLaunchWorldsAsync\(\)/);
+  assert.match(auth,/else if\(_experimentsOpen\)[\s\S]{0,180}?<ExperimentsWorkspace/);
+});
+
 test('LEGACY opens the GM archive importer and continues into RIST',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
   assert.match(razor,/<LegacyWorldGate[\s\S]{0,260}?Open="@_legacyGateOpen"[\s\S]{0,260}?OnContinue="ContinueLegacyIntoRistAsync"/);
