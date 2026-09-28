@@ -20,7 +20,12 @@
 
  <main class="experiments-viewer experiments-worldbuilder-viewer" aria-label="Shaelvien World Builder viewer">
   <div class="experiments-worldbuilder-surface">
-   <WorldBuilderGeonaphHost EmbeddedRoleplay="true" ViewerOnly="true" />
+   <iframe @ref="_worldBuilderFrame"
+           class="experiments-worldbuilder-frame"
+           src="@WorldBuilderViewerSrc"
+           title="Shaelvien World Builder viewer"
+           loading="eager"
+           allow="fullscreen"></iframe>
   </div>
   @if(CursorMode)
   {
@@ -264,10 +269,13 @@
 
  const string AnalogPlacementStorageKey="rist.experiments.analogPlacement.v1";
  ElementReference _shell;
+ ElementReference _worldBuilderFrame;
  ElementReference _analog;
  ElementReference _leftSlider;
  ElementReference _rightSlider;
  DotNetObjectReference<ExperimentsWorkspace>? _selfRef;
+ IJSObjectReference? _worldBuilderSourceModule;
+ bool _worldBuilderSourceAttached;
  Stage _stage=Stage.Environment;
  int _worldIndex;
  int _settingIndex;
@@ -414,6 +422,19 @@
  string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
  string CurrentBuilderScope=>BuilderChain[Math.Clamp(_builderChainIndex,0,BuilderChain.Length-1)];
  string CurrentBuilderSuite=>BuilderSuiteNames[Math.Clamp(_builderChainIndex,0,BuilderSuiteNames.Length-1)];
+ string WorldBuilderViewerSrc
+ {
+  get
+  {
+   var worldId=Uri.EscapeDataString(Session.WorldId??"");
+   var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
+   var seed=Session.IsGeonaphWorld?"geonaph":"empty";
+   var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
+   var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
+   var access=Session.HasWorldBuilderEditAuthority?"edit":"view";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&embedded-controller=1&renderer=20260928-universal-viewer-1";
+  }
+ }
  bool IsPathDrivenStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
  bool IsMyAssetSource=>_assetSource is "MY IMAGES" or "MY SPRITES";
  bool IsGameAssetSource=>_assetSource is "GAME IMAGES" or "GAME SPRITES";
@@ -762,6 +783,16 @@
   try
   {
    await JS.InvokeVoidAsync("ristExperimentsUniversalInput.start",_selfRef,_analog,_leftSlider,_rightSlider);
+   if(!_worldBuilderSourceAttached)
+   {
+    try
+    {
+     _worldBuilderSourceModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-source-host.js?v=20260928-universal-viewer-1");
+     await _worldBuilderSourceModule.InvokeVoidAsync("attach",_worldBuilderFrame,_selfRef);
+     _worldBuilderSourceAttached=true;
+    }
+    catch(JSException){}
+   }
    try
    {
     var stored=await JS.InvokeAsync<string?>("localStorage.getItem",AnalogPlacementStorageKey);
@@ -1729,6 +1760,38 @@
  }
 
  [JSInvokable]
+ public async Task RequestHomeFromPrototypeAsync()
+ {
+  if(OnExit.HasDelegate)await OnExit.InvokeAsync();
+ }
+
+ [JSInvokable]
+ public async Task<object?> GetWorldBuilderSourceForPrototypeAsync()
+ {
+  var source=await Session.LoadWorldBuilderSourceAsync();
+  if(source is null||source.State is null)return null;
+  return new
+  {
+   worldId=source.WorldId,
+   state=source.State,
+   updatedAtUtc=source.UpdatedAtUtc,
+   source="database"
+  };
+ }
+
+ [JSInvokable]
+ public async Task<object> SaveWorldBuilderSourceFromPrototypeAsync(System.Text.Json.JsonElement state)
+ {
+  var source=await Session.SaveWorldBuilderSourceAsync(state);
+  return new
+  {
+   success=source is not null,
+   worldId=source?.WorldId??Session.WorldId,
+   updatedAtUtc=source?.UpdatedAtUtc??""
+  };
+ }
+
+ [JSInvokable]
  public Task ReceiveUniversalInput(string control,int direction)
  {
   return InvokeAsync(async () =>
@@ -1755,6 +1818,11 @@
  public async ValueTask DisposeAsync()
  {
   try{await JS.InvokeVoidAsync("ristExperimentsUniversalInput.stop");}catch(JSException){}
+  if(_worldBuilderSourceModule is not null)
+  {
+   try{await _worldBuilderSourceModule.InvokeVoidAsync("detach",_worldBuilderFrame);}catch{}
+   try{await _worldBuilderSourceModule.DisposeAsync();}catch{}
+  }
   _selfRef?.Dispose();
  }
 }
