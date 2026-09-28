@@ -506,7 +506,10 @@ async function restoreEditableLayerSnapshot(snapshot){
 }
 async function saveEditedSnapshotOrRollback(before){
   const saved=await saveWorldBuilder();
-  if(saved)return true;
+  if(saved){
+    rememberUndoSnapshot(before);
+    return true;
+  }
   await restoreEditableLayerSnapshot(before);
   return false;
 }
@@ -3478,6 +3481,7 @@ async function placeExternalAsset(raw={}){
   if(READ_ONLY)return false;
   const src=String(raw.url||'').trim();
   if(!src)return false;
+  const before=editableLayerSnapshot();
   const scope=normalizeSpatialScope(raw.scope||externalSpatialScope);
   externalSpatialScope=scope;
   const center=viewerCenterPosition(),px=Number(raw.offsetX)||0,py=Number(raw.offsetY)||0;
