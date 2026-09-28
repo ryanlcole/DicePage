@@ -275,6 +275,7 @@ else
   if(_termsRequired||string.IsNullOrWhiteSpace(_privacyChoice))return;
   try{await JS.InvokeAsync<bool[]>("ristLaunch.pressStart",string.Equals(_privacyChoice,"optional",StringComparison.Ordinal));}catch{}
   _launchStarted=true;
+  _experimentsOpen=true;
   await InvokeAsync(StateHasChanged);
   await LoadLaunchWorldsAsync();
  }
