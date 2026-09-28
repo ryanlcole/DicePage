@@ -1761,3 +1761,117 @@
  .saved-viewer-asset.scope-local{inset:10%!important}
  .saved-viewer-asset.scope-instance{inset:15%!important}
 }
+
+/* Canonical Shaelvien World Builder is the GameMaster viewer.
+   The universal controller remains below it; tier/layer depth is portrayed
+   as a compact picture-in-picture rather than replacing the map. */
+.experiments-worldbuilder-viewer{
+ isolation:isolate!important;
+ background:#02070b!important;
+}
+.experiments-worldbuilder-surface{
+ position:absolute!important;
+ inset:0!important;
+ z-index:1!important;
+ overflow:hidden!important;
+ isolation:isolate!important;
+ background:#02070b!important;
+}
+.experiments-worldbuilder-surface>.geonaph-worldbuilder-host{
+ position:absolute!important;
+ inset:0!important;
+ width:100%!important;
+ height:100%!important;
+}
+.experiments-worldbuilder-viewer .viewer-title,
+.experiments-worldbuilder-viewer .viewer-readout{
+ z-index:12!important;
+ pointer-events:none!important;
+}
+.experiments-worldbuilder-viewer .asset-preview{
+ z-index:9!important;
+ pointer-events:none!important;
+}
+.experiments-worldbuilder-viewer .asset-source-explorer{
+ z-index:11!important;
+}
+.experiments-worldbuilder-viewer .viewer-reticle{
+ z-index:13!important;
+}
+.depth-pip{
+ position:absolute;
+ z-index:14;
+ top:48px;
+ right:12px;
+ box-sizing:border-box;
+ width:clamp(112px,18vw,168px);
+ min-height:108px;
+ display:grid;
+ grid-template-rows:auto minmax(58px,1fr) auto;
+ gap:5px;
+ padding:8px;
+ border:1px solid rgba(218,177,82,.78);
+ border-radius:11px;
+ background:rgba(3,10,15,.82);
+ box-shadow:0 10px 30px #000a,inset 0 0 0 1px rgba(115,215,255,.08);
+ backdrop-filter:blur(5px);
+ pointer-events:none;
+}
+.depth-pip header{
+ display:grid;
+ gap:2px;
+ min-width:0;
+}
+.depth-pip header strong{
+ color:#f0d58c;
+ font:900 7px/1 system-ui,-apple-system,sans-serif;
+ letter-spacing:.12em;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ white-space:nowrap;
+}
+.depth-pip header span{
+ color:#83d9ff;
+ font:800 7px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+ letter-spacing:.06em;
+}
+.depth-pip-stage{
+ position:relative;
+ min-height:58px;
+ perspective:280px;
+ transform-style:preserve-3d;
+ overflow:hidden;
+}
+.depth-pip-sheet{
+ position:absolute;
+ left:15%;
+ right:15%;
+ top:31%;
+ height:42%;
+ border:1px solid rgba(132,222,255,.68);
+ border-radius:4px;
+ background:
+  linear-gradient(135deg,rgba(112,207,244,.18),rgba(255,255,255,.025));
+ box-shadow:inset 0 0 10px rgba(115,215,255,.08),0 4px 10px #0007;
+ transform-origin:center;
+}
+.depth-pip footer{
+ display:flex;
+ justify-content:space-between;
+ gap:8px;
+ color:#c8d6da;
+ font:900 7px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+ letter-spacing:.08em;
+}
+@media(max-width:620px){
+ .depth-pip{
+  top:46px;
+  right:8px;
+  width:112px;
+  min-height:92px;
+  grid-template-rows:auto minmax(46px,1fr) auto;
+  padding:6px;
+ }
+ .depth-pip-stage{min-height:46px}
+ .depth-pip header strong,.depth-pip header span,.depth-pip footer{font-size:6px}
+}
