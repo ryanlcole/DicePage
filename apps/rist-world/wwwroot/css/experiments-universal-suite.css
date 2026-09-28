@@ -1653,3 +1653,49 @@
   min-height:54px!important;
  }
 }
+
+
+.experiments-owner-links{
+ position:absolute;
+ z-index:12;
+ top:46px;
+ right:10px;
+ width:min(300px,42vw);
+ display:grid;
+ gap:7px;
+}
+.experiments-owner-links a{
+ display:grid;
+ gap:4px;
+ padding:9px 11px;
+ border:1px solid rgba(229,199,124,.58);
+ border-radius:9px;
+ background:rgba(3,12,18,.88);
+ color:#f0d995;
+ text-decoration:none;
+ box-shadow:0 8px 24px #0008;
+ backdrop-filter:blur(5px);
+}
+.experiments-owner-links a:focus-visible{
+ outline:2px solid #8ed7ef;
+ outline-offset:2px;
+}
+.experiments-owner-links strong{
+ font:900 9px/1.15 system-ui,-apple-system,sans-serif;
+ letter-spacing:.08em;
+}
+.experiments-owner-links span{
+ color:#9ec1cc;
+ font:700 7px/1.35 system-ui,-apple-system,sans-serif;
+}
+@media(max-width:620px){
+ .experiments-owner-links{
+  top:42px;
+  left:10px;
+  right:10px;
+  width:auto;
+  grid-template-columns:1fr 1fr;
+ }
+ .experiments-owner-links a{padding:8px}
+ .experiments-owner-links span{font-size:6px}
+}
