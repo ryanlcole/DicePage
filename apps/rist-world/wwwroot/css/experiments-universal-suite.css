@@ -2356,3 +2356,57 @@ body.rist-start-open .rist-start-overlay{
   bottom:0!important;
  }
 }
+
+
+/* Analog mode toggle authority — 2026-09-28.
+   The small top control switches the stick between CURSOR and BUTTONS.
+   START below the stick remains the existing Start/settings menu. */
+.single-analog-deck .analog-control-xy{
+ padding-top:30px!important;
+}
+.single-analog-deck .analog-mode-button{
+ position:absolute!important;
+ z-index:9!important;
+ left:50%!important;
+ top:11px!important;
+ width:auto!important;
+ min-width:60px!important;
+ min-height:22px!important;
+ margin:0!important;
+ padding:3px 10px!important;
+ border:1px solid rgba(99,211,255,.78)!important;
+ border-radius:999px!important;
+ transform:translateX(-50%)!important;
+ background:rgba(7,21,31,.96)!important;
+ color:#92e2ff!important;
+ box-shadow:inset 0 0 0 1px rgba(216,181,94,.07),0 2px 8px #0009!important;
+ font:900 7px/1 system-ui,-apple-system,sans-serif!important;
+ letter-spacing:.12em!important;
+ text-align:center!important;
+ touch-action:manipulation!important;
+}
+.single-analog-deck .analog-mode-button[aria-pressed="false"]{
+ border-color:rgba(220,185,96,.78)!important;
+ color:#efd58c!important;
+ background:rgba(24,18,8,.96)!important;
+}
+.single-analog-deck .analog-mode-button:active{
+ filter:brightness(1.18)!important;
+}
+.single-analog-deck .analog-mode-button:focus-visible{
+ outline:2px solid #fff0b7!important;
+ outline-offset:2px!important;
+}
+@media(orientation:landscape) and (max-height:620px){
+ .single-analog-deck .analog-control-xy{
+  padding-top:24px!important;
+  padding-bottom:24px!important;
+ }
+ .single-analog-deck .analog-mode-button{
+  top:8px!important;
+  min-width:50px!important;
+  min-height:18px!important;
+  padding:2px 7px!important;
+  font-size:6px!important;
+ }
+}

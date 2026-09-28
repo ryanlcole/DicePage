@@ -251,7 +251,12 @@
        role="button"
        tabindex="0"
        data-analog-select="true"
-       aria-label="Universal analog control. Move the stick to navigate or move the viewer cursor. Press the centered stick to select the current primary action.">
+       aria-label="Universal analog control. Move the stick to navigate button choices or the viewer cursor. Press the centered stick to select the current primary action.">
+   <button type="button"
+           class="analog-mode-button"
+           aria-pressed="@CursorMode"
+           @onclick="ToggleAnalogMode"
+           aria-label="Switch analog between cursor and button controls">@AnalogModeLabel</button>
    <span class="analog-direction analog-up" aria-hidden="true">UP</span>
    <span class="analog-direction analog-down" aria-hidden="true">DOWN</span>
    <span class="analog-direction analog-left" aria-hidden="true">LEFT</span>
@@ -373,6 +378,7 @@
  string _activeKnowledgeNode="";
  bool _assetContextExpanded;
  bool _browseCursorActive;
+ bool _analogButtonMode;
  string _contextLoadedIdentity="";
  string _contextName="";
  string _contextLore="";
@@ -584,10 +590,11 @@
    };
 
  bool RightActsAsBack=>!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1;
- bool CursorMode=>!IsPathDrivenStage
-  &&LeftDisplayOptionCount<=1
-  &&RightDisplayOptionCount<=1
+ bool CursorAvailable=>!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
+ bool CursorMode=>CursorAvailable
+  &&!_analogButtonMode
   &&(_stage!=Stage.BrowsePlace||_browseCursorActive);
+ string AnalogModeLabel=>CursorMode?"CURSOR":"BUTTONS";
 
  bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
  bool IsAssetTransformStage=>_stage is Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
@@ -1124,9 +1131,10 @@
     _message="Edit selected. Browse requests a source through the future image-tool adapter.";
     break;
    case Stage.BrowsePlace:
-    if(!_browseCursorActive)
+    if(!_browseCursorActive||_analogButtonMode)
     {
      _browseCursorActive=true;
+     _analogButtonMode=false;
      _message="Cursor active. Move the analog over an asset and press the analog stick to highlight it; touch SELECT again to use the highlighted asset.";
      break;
     }
@@ -2209,6 +2217,27 @@
   }
  }
 
+ void ToggleAnalogMode()
+ {
+  if(CursorMode)
+  {
+   _analogButtonMode=true;
+   if(_stage==Stage.BrowsePlace)_browseCursorActive=false;
+   _message="Analog set to BUTTONS. Move the stick to page the active left/right display controls.";
+   return;
+  }
+
+  if(!CursorAvailable)
+  {
+   _message="Analog remains on BUTTONS while the current displays have multiple choices.";
+   return;
+  }
+
+  _analogButtonMode=false;
+  if(_stage==Stage.BrowsePlace)_browseCursorActive=true;
+  _message="Analog set to CURSOR. Move the stick freely in the viewer.";
+ }
+
  async Task ActivateBrowseCursorTargetAsync()
  {
   try
@@ -2235,7 +2264,7 @@
     case "x": StepX(direction); break;
     case "y": StepY(direction); break;
     case "select":
-     if(_stage==Stage.BrowsePlace&&_browseCursorActive)await ActivateBrowseCursorTargetAsync();
+     if(_stage==Stage.BrowsePlace&&CursorMode)await ActivateBrowseCursorTargetAsync();
      else await PressLeft();
      break;
     case "left": await PressLeft(); break;

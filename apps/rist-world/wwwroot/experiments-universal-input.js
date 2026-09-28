@@ -252,7 +252,7 @@
     };
 
     const onPointerDown = event => {
-      if (event.target instanceof Element && event.target.closest(".analog-start-button")) return;
+      if (event.target instanceof Element && event.target.closest(".analog-start-button,.analog-mode-button")) return;
       if (event.button !== undefined && event.button !== 0) return;
       pointerId = event.pointerId;
       pressStartX = event.clientX;
@@ -303,7 +303,7 @@
     const finishPointer = event => releasePointer(event, true);
     const cancelPointer = event => releasePointer(event, false);
     const onKeyDown = event => {
-      if (event.target instanceof Element && event.target.closest(".analog-start-button")) return;
+      if (event.target instanceof Element && event.target.closest(".analog-start-button,.analog-mode-button")) return;
       if (event.key !== "Enter" && event.key !== " ") return;
       invoke("select");
       event.preventDefault();
