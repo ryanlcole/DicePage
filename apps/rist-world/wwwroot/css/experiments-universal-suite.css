@@ -2632,3 +2632,64 @@ body.rist-start-open.rist-start-experiment-controller .experiments-controller{
  }
  .environment-choice-button>strong{font-size:12px!important}
 }
+
+
+/* Landscape side-button authority — 2026-09-28.
+   Keep portrait unchanged. In landscape the CURSOR mode toggle and START
+   become vertical side controls flanking the centered analog stick. */
+@media (orientation:landscape) and (max-height:620px){
+ .single-analog-deck .analog-control-xy{
+  padding:0 27px!important;
+  place-items:center!important;
+  overflow:visible!important;
+ }
+ .single-analog-deck .analog-pad{
+  width:min(100%,72px)!important;
+  max-width:72px!important;
+ }
+
+ .single-analog-deck .analog-mode-button,
+ .single-analog-deck .analog-start-button{
+  top:50%!important;
+  bottom:auto!important;
+  box-sizing:border-box!important;
+  width:22px!important;
+  min-width:22px!important;
+  max-width:22px!important;
+  height:64px!important;
+  min-height:64px!important;
+  margin:0!important;
+  padding:4px 2px!important;
+  border-radius:999px!important;
+  transform:translateY(-50%)!important;
+  writing-mode:vertical-rl!important;
+  text-orientation:upright!important;
+  line-height:1!important;
+  letter-spacing:.05em!important;
+  font-size:6px!important;
+  white-space:nowrap!important;
+ }
+ .single-analog-deck .analog-mode-button{
+  left:2px!important;
+  right:auto!important;
+ }
+ .single-analog-deck .analog-start-button{
+  left:auto!important;
+  right:2px!important;
+ }
+
+ /* Keep the four direction labels attached to the analog ring rather than
+    beneath the new side buttons. */
+ .single-analog-deck .analog-up{
+  top:0!important;
+ }
+ .single-analog-deck .analog-down{
+  bottom:0!important;
+ }
+ .single-analog-deck .analog-left{
+  left:25px!important;
+ }
+ .single-analog-deck .analog-right{
+  right:25px!important;
+ }
+}
