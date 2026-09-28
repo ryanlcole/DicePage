@@ -78,10 +78,9 @@
     .stage.keyboard-open .persistent-save{bottom:calc(min(36vh,290px) + 60px + env(safe-area-inset-bottom))}
     .region-enhance-canvas{position:absolute;z-index:9;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .12s linear;will-change:opacity}
     .region-enhance-canvas.active{opacity:1}
-    .world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none;background:
-      radial-gradient(circle at 50% 42%,rgba(27,101,131,.72),rgba(2,24,37,.98) 72%),
-      repeating-linear-gradient(0deg,rgba(178,221,236,.045) 0 1px,transparent 1px calc(100% / 30)),
-      repeating-linear-gradient(90deg,rgba(178,221,236,.045) 0 1px,transparent 1px calc(100% / 30))}
+    .world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none;background:radial-gradient(circle at 50% 42%,rgba(27,101,131,.72),rgba(2,24,37,.98) 72%)}
+    .viewer-grid-overlay{position:absolute;z-index:96;inset:0;pointer-events:none;overflow:hidden}
+    .viewer-grid-overlay svg{display:block;width:100%;height:100%;overflow:visible;pointer-events:none}
     .region-world-source-ocean{position:absolute;inset:0;z-index:90;pointer-events:none;background:
       radial-gradient(circle at 50% 42%,rgba(24,89,114,.48),rgba(3,25,38,.94) 72%),
       repeating-linear-gradient(0deg,rgba(176,218,232,.055) 0 1px,transparent 1px calc(100% / 30)),
