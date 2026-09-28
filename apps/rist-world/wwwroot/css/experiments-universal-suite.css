@@ -2223,3 +2223,76 @@
   transform-origin:bottom left!important;
  }
 }
+
+
+/* Analog Select + four-corner pip safe-center authority — 2026-09-28.
+   The stick remains directional while a centered tap/press is a primary Select.
+   Builder content uses the unobscured vertical middle on phones, while corner
+   PIPs stay readable without becoming opaque masks over the map. */
+.single-analog-deck .analog-control-xy[data-analog-select="true"]{
+ cursor:pointer!important;
+}
+.single-analog-deck .analog-control-xy.is-select-press .analog-knob{
+ filter:brightness(1.22)!important;
+ box-shadow:
+  0 4px 10px #000b,
+  0 0 0 3px rgba(239,211,148,.22),
+  0 0 18px rgba(99,211,255,.42),
+  inset 0 0 0 2px rgba(255,255,255,.10)!important;
+}
+.depth-pip,
+.viewer-compass,
+.viewer-legend,
+.asset-context-pip.minimized{
+ opacity:.76!important;
+ backdrop-filter:blur(2px)!important;
+}
+.asset-context-pip.expanded{
+ opacity:.98!important;
+ backdrop-filter:blur(6px)!important;
+}
+
+@media(max-width:700px) and (orientation:portrait){
+ .experiments-worldbuilder-viewer .asset-source-explorer{
+  top:144px!important;
+  bottom:82px!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  width:min(92%,560px)!important;
+  transform:translateX(-50%)!important;
+ }
+ .experiments-worldbuilder-viewer .asset-source-explorer-grid{
+  min-height:0!important;
+  overflow:auto!important;
+  align-content:center!important;
+  grid-template-columns:repeat(auto-fit,minmax(82px,1fr))!important;
+  grid-template-rows:none!important;
+  grid-auto-rows:minmax(58px,1fr)!important;
+ }
+ .experiments-worldbuilder-viewer .asset-source-explorer .linked-asset{
+  min-height:58px!important;
+ }
+ .experiments-worldbuilder-viewer .asset-source-explorer .linked-asset img{
+  min-height:52px!important;
+ }
+ .experiments-worldbuilder-viewer .glass-stage{
+  top:calc(50% + 28px)!important;
+  height:min(calc(100% - 232px),430px)!important;
+ }
+ .experiments-worldbuilder-viewer .asset-preview{
+  top:calc(50% + 28px)!important;
+ }
+}
+
+@media(max-width:430px) and (orientation:portrait){
+ .experiments-worldbuilder-viewer .asset-source-explorer{
+  top:140px!important;
+  bottom:78px!important;
+  width:calc(100% - 18px)!important;
+ }
+ .experiments-worldbuilder-viewer .asset-source-explorer-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-auto-rows:minmax(54px,1fr)!important;
+ }
+}
