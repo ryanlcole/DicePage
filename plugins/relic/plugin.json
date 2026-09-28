@@ -1,11 +1,13 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "relic",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Persistent grounding, continuity, provenance, truth-domain separation, and authority boundaries for AI reasoning.",
   "homepage": "https://relicgamemaster.com/",
   "repository": "https://github.com/ryanlcole/DicePage",
   "keywords": [
+    "r.e.l.i.c.",
+    "relicgamemaster",
     "relic",
     "continuity",
     "memory",
@@ -18,9 +20,9 @@
   "extensions": {
     "com.openai": {
       "interface": {
-        "displayName": "ReLiC",
-        "shortDescription": "Ground AI in persistent identity, provenance, canon, and continuity.",
-        "longDescription": "ReLiC gives AI a compact external continuity layer for persistent identity, provenance, truth domains, source-linked Shaelvien/RIST project knowledge, remembered relationships, and authority boundaries. It reduces repeated context reconstruction and identity drift without granting AI authority over canon or world truth.",
+        "displayName": "R.e.L.i.C.",
+        "shortDescription": "R.e.L.i.C. grounds AI in persistent identity, provenance, canon, and continuity.",
+        "longDescription": "R.e.L.i.C. gives AI a compact external continuity layer for persistent identity, provenance, truth domains, source-linked Shaelvien/RIST project knowledge, remembered relationships, and authority boundaries. It reduces repeated context reconstruction and identity drift without granting AI authority over canon or world truth.",
         "developerName": "ReLiCGameMaster",
         "capabilities": [
           "Read",
@@ -28,10 +30,10 @@
         ],
         "websiteURL": "https://relicgamemaster.com/",
         "defaultPrompt": [
-          "Use ReLiC to ground this conversation in the relevant canon and persistent context.",
-          "Source the documented ReLiC/Shaelvien project record for this topic and keep dates, status, truth domain, and provenance visible.",
-          "Recall what ReLiC already knows about this subject before we reconstruct it from chat.",
-          "Validate these claims against ReLiC truth-domain, provenance, identity, and authority rules."
+          "Use R.e.L.i.C. to ground this conversation in the relevant canon and persistent context.",
+          "Source the documented R.e.L.i.C./Shaelvien project record for this topic and keep dates, status, truth domain, and provenance visible.",
+          "Recall what R.e.L.i.C. already knows about this subject before we reconstruct it from chat.",
+          "Validate these claims against R.e.L.i.C. truth-domain, provenance, identity, and authority rules."
         ],
         "privacyPolicyURL": "https://relicgamemaster.com/Game/privacy.html",
         "termsOfServiceURL": "https://relicgamemaster.com/Game/terms.html"
