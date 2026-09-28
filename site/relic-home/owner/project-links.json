@@ -30,7 +30,7 @@
     },
     {
       "id": "relic-ai",
-      "label": "ReLiC AI",
+      "label": "R.e.L.i.C. AI",
       "url": "https://relicgamemaster.com/relic/",
       "system": "ai",
       "status": "LIVE",
@@ -38,7 +38,7 @@
     },
     {
       "id": "relic-query",
-      "label": "ReLiC Knowledge",
+      "label": "R.e.L.i.C. Knowledge",
       "url": "https://relicgamemaster.com/relicquery/",
       "system": "ai",
       "status": "LIVE",
@@ -46,7 +46,7 @@
     },
     {
       "id": "relic-accessibility",
-      "label": "ReLiC Knowledge Accessibility",
+      "label": "R.e.L.i.C. Knowledge Accessibility",
       "url": "https://relicgamemaster.com/relicquery/accessibility/",
       "system": "ai",
       "status": "LIVE",
@@ -54,7 +54,7 @@
     },
     {
       "id": "store",
-      "label": "ReLiC Creator Store",
+      "label": "R.e.L.i.C. Creator Store",
       "url": "https://relicgamemaster.com/store/index.html",
       "system": "commerce",
       "status": "LIVE",
@@ -70,7 +70,7 @@
     },
     {
       "id": "launcher",
-      "label": "ReLiC Release Launcher",
+      "label": "R.e.L.i.C. Release Launcher",
       "url": "https://relicgamemaster.com/Launcher/index.html",
       "system": "dev",
       "status": "LIVE",
@@ -86,7 +86,7 @@
     },
     {
       "id": "mcp",
-      "label": "ReLiC MCP",
+      "label": "R.e.L.i.C. MCP",
       "url": "https://relicgamemaster.com/mcp",
       "system": "ai",
       "status": "LIVE",
@@ -94,7 +94,7 @@
     },
     {
       "id": "canon",
-      "label": "ReLiC Canon JSON",
+      "label": "R.e.L.i.C. Canon JSON",
       "url": "https://relicgamemaster.com/.well-known/relic-canon.json",
       "system": "ai",
       "status": "LIVE",
@@ -102,7 +102,7 @@
     },
     {
       "id": "oauth-server",
-      "label": "ReLiC OAuth Metadata",
+      "label": "R.e.L.i.C. OAuth Metadata",
       "url": "https://relicgamemaster.com/.well-known/oauth-authorization-server",
       "system": "ai",
       "status": "LIVE",
@@ -110,7 +110,7 @@
     },
     {
       "id": "oauth-resource",
-      "label": "ReLiC Protected Resource Metadata",
+      "label": "R.e.L.i.C. Protected Resource Metadata",
       "url": "https://relicgamemaster.com/.well-known/oauth-protected-resource",
       "system": "ai",
       "status": "LIVE",
@@ -126,7 +126,7 @@
     },
     {
       "id": "relic-ai-policy",
-      "label": "ReLiC AI Policy",
+      "label": "R.e.L.i.C. AI Policy",
       "url": "https://relicgamemaster.com/Game/.well-known/relic-ai-policy.json",
       "system": "ai",
       "status": "LIVE",
