@@ -29,6 +29,21 @@ export function attach(frame,dotnet){
           :{type:"world-source-missing"});
         return;
       }
+      if(data.type==="selection-context"){
+        const selection=data.selection&&typeof data.selection==="object"?data.selection:{};
+        await dotnet.invokeMethodAsync(
+          "ReceiveWorldBuilderSelectionContextAsync",
+          String(selection.placementId||""),
+          String(selection.name||""),
+          String(selection.assetId||""),
+          String(selection.kind||""),
+          Number.isFinite(Number(selection.tier))?Math.trunc(Number(selection.tier)):0,
+          Number.isFinite(Number(selection.layer))?Math.trunc(Number(selection.layer)):0,
+          Number.isFinite(Number(selection.x))?Number(selection.x):0,
+          Number.isFinite(Number(selection.y))?Number(selection.y):0
+        );
+        return;
+      }
       if(data.type==="save-source"){
         const requestId=String(data.requestId||"");
         const result=await dotnet.invokeMethodAsync("SaveWorldBuilderSourceFromPrototypeAsync",data.state||{});

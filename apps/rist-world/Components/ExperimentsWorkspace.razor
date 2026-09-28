@@ -65,7 +65,7 @@
     <header>LEGEND</header>
     <span><i class="legend-swatch terrain"></i>TERRAIN</span>
     <span><i class="legend-swatch scope"></i>@CurrentBuilderScope</span>
-    @if(!string.IsNullOrWhiteSpace(_selectedAssetKey))
+    @if(HasIndividualAssetContext)
     {
      <span><i class="legend-swatch selected"></i>SELECTED ASSET</span>
     }
@@ -378,6 +378,14 @@
  bool _assetsLoading;
  string _assetLoadError="";
  string _selectedAssetKey="";
+ string _worldBuilderSelectionId="";
+ string _worldBuilderSelectionName="";
+ string _worldBuilderSelectionAssetId="";
+ string _worldBuilderSelectionKind="";
+ int _worldBuilderSelectionTier;
+ int _worldBuilderSelectionLayer;
+ double _worldBuilderSelectionX;
+ double _worldBuilderSelectionY;
  List<UserAssetEntry> _myAssets=[];
  List<UserAssetEntry> _gameAssets=[];
  List<SavedViewerAsset> _savedAssets=[];
@@ -489,12 +497,21 @@
  string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
  string CurrentBuilderScope=>BuilderChain[Math.Clamp(_builderChainIndex,0,BuilderChain.Length-1)];
  string CurrentBuilderSuite=>BuilderSuiteNames[Math.Clamp(_builderChainIndex,0,BuilderSuiteNames.Length-1)];
- string AssetContextIdentity=>!string.IsNullOrWhiteSpace(_selectedAssetKey)
-  ?_selectedAssetKey
-  :$"scope:{CurrentBuilderScope.ToLowerInvariant()}:tier:{_tier}:layer:{_layer}";
- string AssetContextTitle=>!string.IsNullOrWhiteSpace(_selectedAssetKey)
-  ?SelectedAssetName
-  :$"{CurrentBuilderScope} · T{_tier} L{_layer}";
+ bool HasWorldBuilderSelection=>!string.IsNullOrWhiteSpace(_worldBuilderSelectionId);
+ bool HasIndividualAssetContext=>HasWorldBuilderSelection||!string.IsNullOrWhiteSpace(_selectedAssetKey);
+ string ActiveContextAssetKey=>HasWorldBuilderSelection?_worldBuilderSelectionAssetId:_selectedAssetKey;
+ int AssetContextTier=>HasWorldBuilderSelection?_worldBuilderSelectionTier:_tier;
+ int AssetContextLayer=>HasWorldBuilderSelection?_worldBuilderSelectionLayer:_layer;
+ string AssetContextIdentity=>HasWorldBuilderSelection
+  ?$"placement:{_worldBuilderSelectionId}"
+  :!string.IsNullOrWhiteSpace(_selectedAssetKey)
+   ?_selectedAssetKey
+   :$"scope:{CurrentBuilderScope.ToLowerInvariant()}:tier:{_tier}:layer:{_layer}";
+ string AssetContextTitle=>HasWorldBuilderSelection
+  ?FirstNonEmpty(_worldBuilderSelectionName,_worldBuilderSelectionAssetId,"PLACED ASSET")
+  :!string.IsNullOrWhiteSpace(_selectedAssetKey)
+   ?SelectedAssetName
+   :$"{CurrentBuilderScope} · T{_tier} L{_layer}";
  string AssetContextButtonLabel=>_assetContextExpanded?"MINIMIZE":"CONTEXT";
  string AssetContextSummary
  {
@@ -1821,6 +1838,7 @@
  async Task LoadAssetContextAsync()
  {
   var identity=AssetContextIdentity;
+  var title=AssetContextTitle;
   if(_contextLoadedIdentity==identity)
   {
    _contextStatus="Context ready.";
@@ -1831,6 +1849,8 @@
   try
   {
    var source=await Session.LoadWorldBuilderSourceAsync();
+   if(identity!=AssetContextIdentity)return;
+
    JsonObject? root=null;
    if(source is not null)
    {
@@ -1841,7 +1861,7 @@
    var context=contexts?[identity] as JsonObject;
    if(context is null)
    {
-    _contextName=AssetContextTitle;
+    _contextName=title;
     _contextLore="";
     _contextHistory="";
     _contextNpcs="";
@@ -1851,7 +1871,7 @@
    }
    else
    {
-    _contextName=NodeText(context,"name",AssetContextTitle);
+    _contextName=NodeText(context,"name",title);
     _contextLore=NodeText(context,"lore");
     _contextHistory=NodeText(context,"history");
     _contextNpcs=NodeText(context,"npcs");
@@ -1865,7 +1885,7 @@
   catch(Exception ex)
   {
    Console.Error.WriteLine($"Asset context load failed: {ex}");
-   _contextStatus="Context could not be loaded.";
+   if(identity==AssetContextIdentity)_contextStatus="Context could not be loaded.";
   }
 
   await InvokeAsync(StateHasChanged);
@@ -1878,6 +1898,24 @@
    _contextStatus="Choose a world before saving context.";
    return;
   }
+
+  var identity=AssetContextIdentity;
+  var title=AssetContextTitle;
+  var scope=CurrentBuilderScope;
+  var tier=AssetContextTier;
+  var layer=AssetContextLayer;
+  var hasPlacement=HasWorldBuilderSelection;
+  var placementId=hasPlacement?_worldBuilderSelectionId:"";
+  var assetKey=ActiveContextAssetKey;
+  var assetKind=hasPlacement?_worldBuilderSelectionKind:_assetKind;
+  var positionX=_worldBuilderSelectionX;
+  var positionY=_worldBuilderSelectionY;
+  var name=string.IsNullOrWhiteSpace(_contextName)?title:_contextName.Trim();
+  var lore=_contextLore.Trim();
+  var history=_contextHistory.Trim();
+  var npcs=_contextNpcs.Trim();
+  var encounters=_contextEncounters.Trim();
+  var notes=_contextNotes.Trim();
 
   _contextStatus="Saving…";
   await InvokeAsync(StateHasChanged);
@@ -1906,32 +1944,43 @@
     root["assetContexts"]=contexts;
    }
 
-   contexts[AssetContextIdentity]=new JsonObject
+   var entry=new JsonObject
    {
-    ["name"]=string.IsNullOrWhiteSpace(_contextName)?AssetContextTitle:_contextName.Trim(),
-    ["lore"]=_contextLore.Trim(),
-    ["history"]=_contextHistory.Trim(),
-    ["npcs"]=_contextNpcs.Trim(),
-    ["encounters"]=_contextEncounters.Trim(),
-    ["notes"]=_contextNotes.Trim(),
-    ["assetKey"]=_selectedAssetKey,
-    ["scope"]=CurrentBuilderScope,
-    ["tier"]=_tier,
-    ["layer"]=_layer,
+    ["name"]=name,
+    ["lore"]=lore,
+    ["history"]=history,
+    ["npcs"]=npcs,
+    ["encounters"]=encounters,
+    ["notes"]=notes,
+    ["assetKey"]=assetKey,
+    ["scope"]=scope,
+    ["tier"]=tier,
+    ["layer"]=layer,
     ["updatedAtUtc"]=DateTimeOffset.UtcNow.ToString("O")
    };
+   if(hasPlacement)
+   {
+    entry["placementId"]=placementId;
+    entry["assetKind"]=assetKind;
+    entry["x"]=positionX;
+    entry["y"]=positionY;
+   }
+   contexts[identity]=entry;
 
    using var document=JsonDocument.Parse(root.ToJsonString());
    await Session.SaveWorldBuilderSourceAsync(document.RootElement.Clone());
 
-   _contextLoadedIdentity=AssetContextIdentity;
-   _contextStatus="Context saved.";
-   _message=$"{AssetContextTitle} context saved to the world source.";
+   if(identity==AssetContextIdentity)
+   {
+    _contextLoadedIdentity=identity;
+    _contextStatus="Context saved.";
+   }
+   _message=$"{title} context saved to the world source.";
   }
   catch(Exception ex)
   {
    Console.Error.WriteLine($"Asset context save failed: {ex}");
-   _contextStatus="Context save failed.";
+   if(identity==AssetContextIdentity)_contextStatus="Context save failed.";
   }
 
   await InvokeAsync(StateHasChanged);
@@ -2054,6 +2103,51 @@
    worldId=source?.WorldId??Session.WorldId,
    updatedAtUtc=source?.UpdatedAtUtc??""
   };
+ }
+
+ [JSInvokable]
+ public async Task ReceiveWorldBuilderSelectionContextAsync(
+  string placementId,
+  string name,
+  string assetId,
+  string kind,
+  int tier,
+  int layer,
+  double x,
+  double y)
+ {
+  var shouldLoad=false;
+  await InvokeAsync(() =>
+  {
+   var nextId=(placementId??"").Trim();
+   var identityChanged=!string.Equals(_worldBuilderSelectionId,nextId,StringComparison.Ordinal);
+
+   _worldBuilderSelectionId=nextId;
+   _worldBuilderSelectionName=(name??"").Trim();
+   _worldBuilderSelectionAssetId=(assetId??"").Trim();
+   _worldBuilderSelectionKind=(kind??"").Trim();
+   _worldBuilderSelectionTier=Math.Max(0,tier);
+   _worldBuilderSelectionLayer=Math.Max(0,layer);
+   _worldBuilderSelectionX=Math.Clamp(x,0,1);
+   _worldBuilderSelectionY=Math.Clamp(y,0,1);
+
+   if(identityChanged)
+   {
+    _contextLoadedIdentity="";
+    _contextName="";
+    _contextLore="";
+    _contextHistory="";
+    _contextNpcs="";
+    _contextEncounters="";
+    _contextNotes="";
+    _contextStatus=_assetContextExpanded?"Loading context…":"";
+    shouldLoad=_assetContextExpanded;
+   }
+
+   StateHasChanged();
+  });
+
+  if(shouldLoad)await LoadAssetContextAsync();
  }
 
  [JSInvokable]
