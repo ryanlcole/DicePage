@@ -1834,7 +1834,7 @@
    JsonObject? root=null;
    if(source is not null)
    {
-    try{root=JsonNode.Parse(source.State.GetRawText()) as JsonObject;}catch{}
+    try{if(source.State is JsonElement state)root=JsonNode.Parse(state.GetRawText()) as JsonObject;}catch{}
    }
 
    var contexts=root?["assetContexts"] as JsonObject;
@@ -1890,7 +1890,7 @@
    {
     root=source is null
      ?new JsonObject()
-     :(JsonNode.Parse(source.State.GetRawText()) as JsonObject??new JsonObject());
+     :(source.State is JsonElement state?JsonNode.Parse(state.GetRawText()) as JsonObject??new JsonObject():new JsonObject());
    }
    catch
    {
