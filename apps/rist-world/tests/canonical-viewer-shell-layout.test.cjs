@@ -115,7 +115,7 @@ test('analog top button switches CURSOR and BUTTONS without changing START',()=>
   const input=read('wwwroot/experiments-universal-input.js');
   const css=read('wwwroot/css/experiments-universal-suite.css');
 
-  assert.match(razor,/class="analog-mode-button"[\s\S]{0,180}?@onclick="ToggleAnalogMode"[\s\S]{0,180}?@AnalogModeLabel<\/button>/);
+  assert.match(razor,/class="analog-mode-button"[\s\S]{0,360}?@onclick="ToggleAnalogMode"[\s\S]{0,420}?@AnalogModeLabel<\/button>/);
   assert.match(razor,/string AnalogModeLabel=>CursorMode\?"CURSOR":"BUTTONS"/);
   assert.match(razor,/void ToggleAnalogMode\(\)[\s\S]*?_analogButtonMode=true;[\s\S]*?_analogButtonMode=false;/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]*?_analogButtonMode=false;[\s\S]*?Cursor active/);
@@ -206,18 +206,18 @@ test('mobile expanded context is contained and avoids iOS form zoom',()=>{
 });
 
 
-test('Experiments open on the start artwork and START reveals Shaelvien and RIST',()=>{
+test('Experiments open on the start artwork and START reveals environment choices',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
   const css=read('wwwroot/css/experiments-universal-suite.css');
 
   assert.match(razor,/@if\(_stage==Stage\.Environment\)[\s\S]{0,500}?experiment-start-screen/);
   assert.match(razor,/shaelvien-dragon-creation-startup-screen\.png/);
   assert.match(razor,/_experimentStartRevealed\?"CHOOSE ENVIRONMENT":"PRESS START"/);
-  assert.match(razor,/class="experiment-dragon-head shaelvien-head"/);
-  assert.match(razor,/class="experiment-dragon-head rist-head"/);
+  assert.match(razor,/experiment-dragon-head shaelvien-head[\s\S]{0,120}?is-faded/);
+  assert.match(razor,/experiment-dragon-head rist-head[\s\S]{0,120}?is-faded/);
   assert.match(razor,/@onclick="HandleStartButtonAsync"/);
-  assert.match(razor,/HandleStartButtonAsync\(\)[\s\S]*?_experimentStartFlashing=true;[\s\S]*?Task\.Delay\(420\)[\s\S]*?_experimentStartRevealed=true;/);
+  assert.match(razor,/HandleStartButtonAsync\(\)[\s\S]{0,360}?_experimentStartRevealed=true;[\s\S]{0,240}?Choose Shaelvien, RIST, or Legacy/);
   assert.match(razor,/case Stage\.Environment:[\s\S]{0,260}?if\(!_experimentStartRevealed\)/);
   assert.match(css,/Experiment boot screen authority/);
-  assert.match(css,/@keyframes experimentDragonHeadFlash/);
+  assert.match(css,/experiment-dragon-head/);
 });
