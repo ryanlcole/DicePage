@@ -5,6 +5,9 @@
 
  const visible=el=>!!el&&el.getClientRects().length>0;
  const activeBackTarget=()=>{
+  const experimentsBack=document.querySelector('.experiments-shell [data-browser-back="experiments"]');
+  if(experimentsBack)return experimentsBack;
+
   const libraryBack=document.querySelector('.world-asset-rail .rail-back');
   if(visible(libraryBack))return libraryBack;
 
