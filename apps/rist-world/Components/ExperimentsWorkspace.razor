@@ -484,6 +484,7 @@
  double _worldBuilderSelectionY;
  List<UserAssetEntry> _myAssets=[];
  List<UserAssetEntry> _gameAssets=[];
+ List<AccountWorldReference> _controllerDirectoryWorlds=[];
  List<SavedViewerAsset> _savedAssets=[];
  Stack<string> _pathHistory=new();
  Stack<ViewerNavState> _viewerForwardHistory=new();
@@ -539,6 +540,9 @@
    }
 
    var options=Worlds
+    .Concat(_controllerDirectoryWorlds)
+    .GroupBy(world=>world.WorldId,StringComparer.Ordinal)
+    .Select(group=>group.First())
     .Where(WorldSession.IsSandboxWorldReference)
     .Where(world=>!string.IsNullOrWhiteSpace(world.DisplayName))
     .Select(world=>new ControllerWorldOption(
@@ -1514,6 +1518,7 @@
      _message="RIST selected. Choose Roleplayer or GameMaster.";
      break;
    case Stage.Role:
+    await RefreshControllerWorldDirectoryAsync();
     if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
      await EnsureShaelvienEnvironmentAsync();
     _stage=Stage.PathSelect;
@@ -2671,11 +2676,34 @@
    _message="Start menu is temporarily unavailable.";
   }
  }
+ async Task RefreshControllerWorldDirectoryAsync()
+ {
+  try
+  {
+   var directory=await Session.LoadWorldDirectoryAsync();
+   _controllerDirectoryWorlds.Clear();
+   _controllerDirectoryWorlds.AddRange(directory.Worlds);
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Controller world directory refresh failed: {ex}");
+  }
+ }
+
  async Task EnsureShaelvienEnvironmentAsync()
  {
   try
   {
-   var mmo=Worlds.FirstOrDefault(WorldSession.IsMmoWorldReference);
+   var mmo=Worlds
+    .Concat(_controllerDirectoryWorlds)
+    .FirstOrDefault(WorldSession.IsMmoWorldReference);
+   if(mmo is null&&!Session.IsGeonaphWorld)
+   {
+    await RefreshControllerWorldDirectoryAsync();
+    mmo=Worlds
+     .Concat(_controllerDirectoryWorlds)
+     .FirstOrDefault(WorldSession.IsMmoWorldReference);
+   }
    if(mmo is not null
       &&(!Session.HasActiveWorld||!string.Equals(Session.WorldId,mmo.WorldId,StringComparison.Ordinal)))
     await Session.LoadWorldAsync(mmo);
@@ -2778,6 +2806,7 @@
  async Task CompleteRistDeedAsync()
  {
   _ristDeedGateOpen=false;
+  await RefreshControllerWorldDirectoryAsync();
   var index=PathWorldOptions.ToList().FindIndex(option=>string.Equals(option.Id,Session.WorldId,StringComparison.Ordinal));
   _worldIndex=index>=0?index:0;
   _message=$"{Session.WorldDisplayName} deed ready. RIST did not spend a Shaelvien Token.";
