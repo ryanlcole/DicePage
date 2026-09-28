@@ -196,3 +196,9 @@
 .stage.embedded-controller{
  padding-bottom:0!important;
 }
+
+.stage.embedded-controller .read-only-reference,
+.stage.embedded-controller .claim-request-reference,
+.stage.embedded-controller .region-mode-reference{
+ display:none!important;
+}
