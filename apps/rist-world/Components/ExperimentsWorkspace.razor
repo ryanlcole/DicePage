@@ -2096,7 +2096,30 @@
  [JSInvokable]
  public async Task<object> SaveWorldBuilderSourceFromPrototypeAsync(System.Text.Json.JsonElement state)
  {
-  var source=await Session.SaveWorldBuilderSourceAsync(state);
+  // The embedded map editor owns map representation fields, not Asset Context.
+  // Preserve the latest canonical contexts so a later map save cannot erase them.
+  var mergedState=state.Clone();
+  var current=await Session.LoadWorldBuilderSourceAsync();
+  if(state.ValueKind==JsonValueKind.Object
+     &&current?.State is JsonElement currentState
+     &&currentState.ValueKind==JsonValueKind.Object
+     &&currentState.TryGetProperty("assetContexts",out var currentContexts))
+  {
+   try
+   {
+    var root=JsonNode.Parse(state.GetRawText()) as JsonObject??new JsonObject();
+    root["assetContexts"]=JsonNode.Parse(currentContexts.GetRawText());
+    using var mergedDocument=JsonDocument.Parse(root.ToJsonString());
+    mergedState=mergedDocument.RootElement.Clone();
+   }
+   catch(Exception ex)
+   {
+    Console.Error.WriteLine($"World source context preservation failed: {ex}");
+    throw;
+   }
+  }
+
+  var source=await Session.SaveWorldBuilderSourceAsync(mergedState);
   return new
   {
    success=source is not null,
