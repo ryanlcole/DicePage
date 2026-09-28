@@ -137,6 +137,20 @@
    <span>VIEWER</span>
   </header>
 
+  @if(Session.IsServerVerifiedPlatformOwner)
+  {
+   <nav class="experiments-owner-links" aria-label="Owner-only experiment links">
+    <a href="/relic/#capabilities" target="_blank" rel="noopener noreferrer">
+     <strong>R.e.L.i.C. CAPABILITIES</strong>
+     <span>Public AI surface and tested capability map</span>
+    </a>
+    <a href="/owner/" target="_blank" rel="noopener noreferrer">
+     <strong>OWNER DASHBOARD</strong>
+     <span>Private whole-project operations view</span>
+    </a>
+   </nav>
+  }
+
   <div class="viewer-status" role="status" aria-live="polite">
    <strong>@ViewerTitle</strong>
    <span>@_message</span>
