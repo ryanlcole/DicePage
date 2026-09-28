@@ -195,7 +195,7 @@ test('Experiment Start menu keeps controller visible and reuses Save Load and ex
   assert.match(start,/Exit Experiment/);
   assert.match(start,/rist-start-experiment-controller/);
   assert.match(css,/bottom:var\(--rist-start-controller-reserve,220px\)!important/);
-  assert.match(index,/start-menu\.js\?v=20260928-interface-grids-1/);
+  assert.match(index,/start-menu\.js\?v=20260928-grid-density-1/);
 });
 
 test('mobile expanded context is contained and avoids iOS form zoom',()=>{
@@ -239,6 +239,11 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
   assert.match(start,/data-interface-view-grid="hex"/);
   assert.match(start,/data-interface-asset-grid="square"/);
   assert.match(start,/data-interface-asset-grid="hex"/);
+  assert.match(start,/data-interface-grid-count="viewer-columns"/);
+  assert.match(start,/data-interface-grid-count="viewer-rows"/);
+  assert.match(start,/data-interface-grid-count="asset-columns"/);
+  assert.match(start,/data-interface-grid-count="asset-rows"/);
+  assert.match(start,/min="1" max="64"/);
   assert.match(start,/rist\.viewer\.grid\.v1/);
   assert.match(start,/rist\.asset\.grid\.v1/);
   assert.match(sourceCss,/Interface segmented controls/);
@@ -247,11 +252,15 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
   assert.match(prototype,/function applyViewerGridMode/);
   assert.match(prototype,/function applyAssetGridMode/);
   assert.match(prototype,/function snapAssetPoint/);
+  assert.match(prototype,/viewerGridColumns=30,viewerGridRows=30,assetGridColumns=30,assetGridRows=30/);
+  assert.match(prototype,/function configuredGridCellCenter/);
+  assert.match(prototype,/stage\.dataset\.viewerGridColumns/);
+  assert.match(prototype,/stage\.dataset\.assetGridColumns/);
   assert.match(prototype,/nearestAllowedRegionCell\(cell,regionActiveCellSet\(\),shape\)/);
   assert.match(prototypeCss,/\.viewer-grid-overlay/);
   assert.doesNotMatch(prototypeCss,/repeating-linear-gradient\(0deg,rgba\(178,221,236,\.045\)/);
-  assert.match(prototypeIndex,/prototype\.css\?v=20260928-interface-grids-1/);
-  assert.match(prototypeIndex,/prototype\.js\?v=20260928-interface-grids-1/);
-  assert.match(index,/start-menu\.js\?v=20260928-interface-grids-1/);
+  assert.match(prototypeIndex,/prototype\.css\?v=20260928-grid-density-1/);
+  assert.match(prototypeIndex,/prototype\.js\?v=20260928-grid-density-1/);
+  assert.match(index,/start-menu\.js\?v=20260928-grid-density-1/);
   assert.match(index,/experiments-universal-suite\.css\?v=20260928-interface-grids-1/);
 });

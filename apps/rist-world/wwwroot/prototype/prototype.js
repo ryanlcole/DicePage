@@ -95,7 +95,7 @@ const REGION_GRID_ROWS=30;
 const VIEWER_GRID_PREF='rist.viewer.grid.v1';
 const ASSET_GRID_PREF='rist.asset.grid.v1';
 const storedGridMode=key=>{try{return String(localStorage.getItem(key)||'square').toLowerCase()==='hex'?'hex':'square'}catch{return'square'}};
-let viewerGridMode=storedGridMode(VIEWER_GRID_PREF),assetGridMode=storedGridMode(ASSET_GRID_PREF),viewerGridOverlay=null;
+let viewerGridMode=storedGridMode(VIEWER_GRID_PREF),assetGridMode=storedGridMode(ASSET_GRID_PREF),viewerGridColumns=30,viewerGridRows=30,assetGridColumns=30,assetGridRows=30,viewerGridOverlay=null;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
 let regionGridShape='square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
@@ -361,13 +361,13 @@ async function handleWorldBuilderHostMessage(event){
     return;
   }
   if(data.type==='viewer-grid'){
-    applyViewerGridMode(data.grid,true);
-    announce(`${viewerGridMode==='hex'?'Hex':'Square'} viewer grid.`);
+    applyViewerGridMode(data.grid,true,data.columns,data.rows);
+    announce(`${viewerGridMode==='hex'?'Hex':'Square'} viewer grid: ${viewerGridColumns} across by ${viewerGridRows} down.`);
     return;
   }
   if(data.type==='asset-grid'){
-    applyAssetGridMode(data.grid,true);
-    announce(`${assetGridMode==='hex'?'Hex':'Square'} asset grid.`);
+    applyAssetGridMode(data.grid,true,data.columns,data.rows);
+    announce(`${assetGridMode==='hex'?'Hex':'Square'} asset grid: ${assetGridColumns} across by ${assetGridRows} down.`);
     return;
   }
   if(data.type==='world-source'){
@@ -1420,22 +1420,23 @@ function regionCellFromPoint(x,y,shape=regionGridShape){
   const column=clamp(Math.floor((clamp(x,0,.999999)*REGION_GRID_COLUMNS)-offset),0,REGION_GRID_COLUMNS-1);
   return row*REGION_GRID_COLUMNS+column;
 }
-function viewerGridSvg(shape){
+function viewerGridSvg(shape,columns=viewerGridColumns,rows=viewerGridRows){
   const stroke='rgba(199,229,239,.24)';
+  columns=clamp(Math.trunc(Number(columns)||30),1,64);rows=clamp(Math.trunc(Number(rows)||30),1,64);
   if(shape==='hex'){
-    const polygons=[];
-    for(let row=0;row<REGION_GRID_ROWS;row++){
-      for(let column=0;column<REGION_GRID_COLUMNS;column++){
+    const polygons=[],w=1,h=1;
+    for(let row=0;row<rows;row++){
+      for(let column=0;column<columns;column++){
         const x=column+(row%2?0.5:0),y=row;
-        polygons.push(`<polygon points="${x+0.25},${y} ${x+0.75},${y} ${x+1},${y+0.5} ${x+0.75},${y+1} ${x+0.25},${y+1} ${x},${y+0.5}"/>`);
+        polygons.push(`<polygon points="${x+w*.25},${y} ${x+w*.75},${y} ${x+w},${y+h*.5} ${x+w*.75},${y+h} ${x+w*.25},${y+h} ${x},${y+h*.5}"/>`);
       }
     }
-    return `<svg viewBox="0 0 ${REGION_GRID_COLUMNS+0.5} ${REGION_GRID_ROWS}" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="${stroke}" stroke-width=".035" vector-effect="non-scaling-stroke">${polygons.join('')}</g></svg>`;
+    return `<svg viewBox="0 0 ${columns+0.5} ${rows}" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="${stroke}" stroke-width=".035" vector-effect="non-scaling-stroke">${polygons.join('')}</g></svg>`;
   }
   const lines=[];
-  for(let i=0;i<=REGION_GRID_COLUMNS;i++)lines.push(`<line x1="${i}" y1="0" x2="${i}" y2="${REGION_GRID_ROWS}"/>`);
-  for(let i=0;i<=REGION_GRID_ROWS;i++)lines.push(`<line x1="0" y1="${i}" x2="${REGION_GRID_COLUMNS}" y2="${i}"/>`);
-  return `<svg viewBox="0 0 ${REGION_GRID_COLUMNS} ${REGION_GRID_ROWS}" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="${stroke}" stroke-width=".035" vector-effect="non-scaling-stroke">${lines.join('')}</g></svg>`;
+  for(let i=0;i<=columns;i++)lines.push(`<line x1="${i}" y1="0" x2="${i}" y2="${rows}"/>`);
+  for(let i=0;i<=rows;i++)lines.push(`<line x1="0" y1="${i}" x2="${columns}" y2="${i}"/>`);
+  return `<svg viewBox="0 0 ${columns} ${rows}" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="${stroke}" stroke-width=".035" vector-effect="non-scaling-stroke">${lines.join('')}</g></svg>`;
 }
 function ensureViewerGridOverlay(){
   if(viewerGridOverlay?.isConnected)return viewerGridOverlay;
@@ -1446,41 +1447,51 @@ function ensureViewerGridOverlay(){
   viewerGridOverlay=overlay;
   return overlay;
 }
-function applyViewerGridMode(value,persist=false){
+function applyViewerGridMode(value,persist=false,columns=viewerGridColumns,rows=viewerGridRows){
   viewerGridMode=String(value||'').toLowerCase()==='hex'?'hex':'square';
+  viewerGridColumns=clamp(Math.trunc(Number(columns)||30),1,64);viewerGridRows=clamp(Math.trunc(Number(rows)||30),1,64);
   if(persist){try{localStorage.setItem(VIEWER_GRID_PREF,viewerGridMode)}catch{}}
   const overlay=ensureViewerGridOverlay();
-  overlay.dataset.shape=viewerGridMode;
-  overlay.innerHTML=viewerGridSvg(viewerGridMode);
-  stage.dataset.viewerGrid=viewerGridMode;
+  overlay.dataset.shape=viewerGridMode;overlay.dataset.columns=String(viewerGridColumns);overlay.dataset.rows=String(viewerGridRows);
+  overlay.innerHTML=viewerGridSvg(viewerGridMode,viewerGridColumns,viewerGridRows);
+  stage.dataset.viewerGrid=viewerGridMode;stage.dataset.viewerGridColumns=String(viewerGridColumns);stage.dataset.viewerGridRows=String(viewerGridRows);
 }
-function applyAssetGridMode(value,persist=false){
+function applyAssetGridMode(value,persist=false,columns=assetGridColumns,rows=assetGridRows){
   assetGridMode=String(value||'').toLowerCase()==='hex'?'hex':'square';
+  assetGridColumns=clamp(Math.trunc(Number(columns)||30),1,64);assetGridRows=clamp(Math.trunc(Number(rows)||30),1,64);
   if(persist){try{localStorage.setItem(ASSET_GRID_PREF,assetGridMode)}catch{}}
-  stage.dataset.assetGrid=assetGridMode;
+  stage.dataset.assetGrid=assetGridMode;stage.dataset.assetGridColumns=String(assetGridColumns);stage.dataset.assetGridRows=String(assetGridRows);
   if(selectedImage&&!isWorldMapItem(selectedImage)){
     const point=snapAssetPoint(selectedImage.x,selectedImage.y);
     selectedImage.x=point.x;selectedImage.y=point.y;refreshUserImage(selectedImage);publishWorldBuilderSelectionContext(selectedImage);
   }
 }
-function nearestGridCellForPoint(x,y,shape){
-  const row=clamp(Math.floor(clamp(y,0,.999999)*REGION_GRID_ROWS),0,REGION_GRID_ROWS-1);
-  let best=0,bestDistance=Infinity;
-  for(let rr=Math.max(0,row-1);rr<=Math.min(REGION_GRID_ROWS-1,row+1);rr++){
+function configuredGridCellCenter(row,column,shape,columns,rows){
+  const offset=shape==='hex'&&(row%2)?0.5:0;
+  return{x:clamp((column+0.5+offset)/columns,0,1),y:clamp((row+0.5)/rows,0,1)};
+}
+function nearestGridCellForPoint(x,y,shape,columns=assetGridColumns,rows=assetGridRows){
+  columns=clamp(Math.trunc(Number(columns)||30),1,64);rows=clamp(Math.trunc(Number(rows)||30),1,64);
+  const row=clamp(Math.floor(clamp(y,0,.999999)*rows),0,rows-1);
+  let best={row:0,column:0},bestDistance=Infinity;
+  for(let rr=Math.max(0,row-1);rr<=Math.min(rows-1,row+1);rr++){
     const offset=shape==='hex'&&(rr%2)?0.5:0;
-    const guess=Math.floor((clamp(x,0,.999999)*REGION_GRID_COLUMNS)-offset);
-    for(let cc=Math.max(0,guess-1);cc<=Math.min(REGION_GRID_COLUMNS-1,guess+1);cc++){
-      const cell=rr*REGION_GRID_COLUMNS+cc,center=regionCellCenter(cell,shape),dx=center.x-x,dy=center.y-y,d=(dx*dx)+(dy*dy);
-      if(d<bestDistance){best=cell;bestDistance=d}
+    const guess=Math.floor((clamp(x,0,.999999)*columns)-offset);
+    for(let cc=Math.max(0,guess-1);cc<=Math.min(columns-1,guess+1);cc++){
+      const center=configuredGridCellCenter(rr,cc,shape,columns,rows),dx=center.x-x,dy=center.y-y,d=(dx*dx)+(dy*dy);
+      if(d<bestDistance){best={row:rr,column:cc};bestDistance=d}
     }
   }
   return best;
 }
 function snapAssetPoint(x,y){
-  const shape=assetGridMode;
-  let cell=nearestGridCellForPoint(clamp(x,0,1),clamp(y,0,1),shape);
-  if(REGION_DEFINER)cell=nearestAllowedRegionCell(cell,regionActiveCellSet(),shape);
-  return regionCellCenter(cell,shape);
+  const shape=assetGridMode,cell=nearestGridCellForPoint(clamp(x,0,1),clamp(y,0,1),shape,assetGridColumns,assetGridRows);
+  const point=configuredGridCellCenter(cell.row,cell.column,shape,assetGridColumns,assetGridRows);
+  if(REGION_DEFINER){
+    const regionCell=regionCellFromPoint(point.x,point.y,regionGridShape),allowed=regionActiveCellSet();
+    if(allowed&&!allowed.has(regionCell))return regionCellCenter(nearestAllowedRegionCell(regionCell,allowed,regionGridShape),regionGridShape);
+  }
+  return point;
 }
 function regionActiveCellSet(){
   const cells=regionClaimedRegion?.selectedCells;
