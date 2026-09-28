@@ -1699,3 +1699,66 @@
  .experiments-owner-links a{padding:8px}
  .experiments-owner-links span{font-size:6px}
 }
+
+/* Recursive GameMaster viewer — saved representations remain in the viewer
+   while the controller advances WORLD → REGION → LOCAL → INSTANCE. */
+.viewer-world.recursive{
+ background:
+  radial-gradient(circle at 50% 38%,rgba(72,128,151,.10),transparent 42%),
+  linear-gradient(180deg,#07131a,#02070b 72%,#11130f)!important;
+}
+.saved-viewer-stack{
+ position:absolute!important;
+ z-index:2!important;
+ inset:0!important;
+ overflow:hidden!important;
+ pointer-events:none!important;
+}
+.saved-viewer-asset{
+ position:absolute!important;
+ display:grid!important;
+ place-items:center!important;
+ overflow:hidden!important;
+ transform:
+  translate(var(--saved-x),var(--saved-y))
+  scale(var(--saved-scale))
+  rotate(var(--saved-rotate))!important;
+ transform-origin:center!important;
+ border-radius:10px!important;
+ box-shadow:0 10px 34px rgba(0,0,0,.25)!important;
+}
+.saved-viewer-asset.scope-world{inset:0!important;border-radius:0!important}
+.saved-viewer-asset.scope-region{inset:6%!important}
+.saved-viewer-asset.scope-local{inset:12%!important}
+.saved-viewer-asset.scope-instance{inset:18%!important}
+.saved-viewer-asset img{
+ width:100%!important;
+ height:100%!important;
+ display:block!important;
+ object-fit:contain!important;
+ user-select:none!important;
+ pointer-events:none!important;
+}
+.saved-viewer-asset.sprite img{object-fit:contain!important}
+.saved-viewer-asset>span{
+ color:#f6e1a8!important;
+ font:900 10px/1 system-ui,-apple-system,sans-serif!important;
+ letter-spacing:.18em!important;
+}
+.saved-viewer-asset.scope-region,
+.saved-viewer-asset.scope-local,
+.saved-viewer-asset.scope-instance{
+ outline:1px solid rgba(108,203,241,.30)!important;
+ background:rgba(3,10,15,.18)!important;
+}
+.experiments-viewer:has(.saved-viewer-stack) .glass-stage{
+ z-index:4!important;
+}
+.experiments-viewer:has(.saved-viewer-stack) .asset-preview{
+ z-index:5!important;
+}
+@media(max-width:700px) and (orientation:portrait){
+ .saved-viewer-asset.scope-region{inset:5%!important}
+ .saved-viewer-asset.scope-local{inset:10%!important}
+ .saved-viewer-asset.scope-instance{inset:15%!important}
+}
