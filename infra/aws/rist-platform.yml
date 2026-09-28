@@ -13,6 +13,9 @@ Parameters:
     Type: String
     Default: ''
     Description: Optional RIST internal user UUID with platform-owner authority
+  ExternalAiStateTableName:
+    Type: String
+    Description: Existing external-AI state table used for owner dashboard account totals
 
 Globals:
   Function:
@@ -70,6 +73,28 @@ Resources:
           - Id: AbortIncompleteUploads
             Status: Enabled
             AbortIncompleteMultipartUpload: { DaysAfterInitiation: 1 }
+
+  ProjectTelemetrySalt:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Server-only HMAC salt for privacy-preserving project visitor identities
+      GenerateSecretString:
+        PasswordLength: 64
+        ExcludePunctuation: true
+
+  ProjectTelemetryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification: { PointInTimeRecoveryEnabled: true }
 
   UsersTable:
     Type: AWS::DynamoDB::Table
@@ -176,6 +201,9 @@ Resources:
           MEMBERSHIPS_TABLE: !Ref MembershipsTable
           AUDIT_TABLE: !Ref AuditTable
           REALTIME_TABLE: !Ref RealtimeTable
+          AI_STATE_TABLE: !Ref ExternalAiStateTableName
+          TELEMETRY_TABLE: !Ref ProjectTelemetryTable
+          TELEMETRY_SALT_SECRET_ARN: !Ref ProjectTelemetrySalt
           USER_DATA_BUCKET: !Ref UserDataBucket
           USER_DATA_KEY_ARN: !GetAtt UserDataKey.Arn
           OWNER_USER_ID: !Ref OwnerUserId
@@ -187,6 +215,8 @@ Resources:
         - DynamoDBCrudPolicy: { TableName: !Ref MembershipsTable }
         - DynamoDBCrudPolicy: { TableName: !Ref AuditTable }
         - DynamoDBCrudPolicy: { TableName: !Ref RealtimeTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref ProjectTelemetryTable }
+        - DynamoDBReadPolicy: { TableName: !Ref ExternalAiStateTableName }
         - S3CrudPolicy: { BucketName: !Ref UserDataBucket }
         - Statement:
             - Effect: Allow
@@ -197,7 +227,16 @@ Resources:
             - Effect: Allow
               Action: [kms:Encrypt, kms:Decrypt, kms:GenerateDataKey]
               Resource: !GetAtt UserDataKey.Arn
+            - Effect: Allow
+              Action: [secretsmanager:GetSecretValue]
+              Resource: !Ref ProjectTelemetrySalt
       Events:
+        TelemetryVisit:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /telemetry/visit, Method: POST }
+        OwnerDashboard:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /authority/owner/dashboard, Method: GET }
         Me:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /authority/me, Method: GET }
@@ -423,3 +462,4 @@ Outputs:
   WorldStateTableName: { Value: !Ref WorldStateTable }
   MembershipsTableName: { Value: !Ref MembershipsTable }
   AuditTableName: { Value: !Ref AuditTable }
+  ProjectTelemetryTableName: { Value: !Ref ProjectTelemetryTable }
