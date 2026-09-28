@@ -30,6 +30,9 @@ public sealed partial class WorldSession
 
     public bool HasUnspentMmoWorldToken => UnspentMmoWorldToken is not null;
 
+    public int UnspentMmoWorldTokenCount =>
+        _mmoWorldTokens.Count(token => string.Equals(token.Status, "unspent", StringComparison.OrdinalIgnoreCase));
+
     public string MmoWorldTokenLabel => HasUnspentMmoWorldToken
         ? "1 SHAELVIEN TOKEN · READY"
         : _mmoWorldTokens.Count == 0
