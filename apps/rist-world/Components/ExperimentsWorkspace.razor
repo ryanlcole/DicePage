@@ -361,15 +361,33 @@
  string PreviousSoftware=>SoftwareCapabilities[(_softwareIndex-1+SoftwareCapabilities.Length)%SoftwareCapabilities.Length];
  string NextSoftware=>SoftwareCapabilities[(_softwareIndex+1)%SoftwareCapabilities.Length];
 
+ string CurrentGameMasterPath=>GameMasterPaths[Math.Clamp(_pathIndex,0,GameMasterPaths.Length-1)];
+ string[] CurrentGuidedPath=>CurrentGameMasterPath switch
+ {
+  "CAMPAIGN BUILDER"=>CampaignBuilderPath,
+  "ADVANCED"=>AdvancedPath,
+  _=>WorldBuilderPath
+ };
+ string[] CurrentPathMenu=>["BACK",..CurrentGuidedPath.Distinct(StringComparer.OrdinalIgnoreCase)];
+ string CurrentPathTarget=>CurrentPathMenu[Math.Clamp(_pathMenuIndex,0,CurrentPathMenu.Length-1)];
+ string CurrentArtMethod=>ArtMethods[Math.Clamp(_artMethodIndex,0,ArtMethods.Length-1)];
+ string[] CurrentArtPhases=>CurrentArtMethod switch
+ {
+  "DRAW"=>DrawPhases,
+  "CAD"=>CadPhases,
+  "AUDIO"=>AudioPhases,
+  "VIDEO"=>VideoPhases,
+  _=>["SOURCE"]
+ };
+ string CurrentArtPhase=>CurrentArtPhases[Math.Clamp(_artPhaseIndex,0,CurrentArtPhases.Length-1)];
+
  string CurrentAnalogPlacementDraft=>AnalogPlacements[Math.Clamp(_analogPlacementDraft,0,AnalogPlacements.Length-1)];
  string AnalogPlacementClass=>$"analog-{_analogPlacement}";
  string[] AssetSources=>_assetKind=="SPRITE"?SpriteSources:ImageSources;
  string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
  string CurrentBuilderScope=>BuilderChain[Math.Clamp(_builderChainIndex,0,BuilderChain.Length-1)];
  string CurrentBuilderSuite=>BuilderSuiteNames[Math.Clamp(_builderChainIndex,0,BuilderSuiteNames.Length-1)];
- bool HasNextBuilderScope=>_builderChainIndex<BuilderChain.Length-1;
- string NextBuilderScope=>HasNextBuilderScope?BuilderChain[_builderChainIndex+1]:"";
- string NextBuilderSuite=>HasNextBuilderScope?BuilderSuiteNames[_builderChainIndex+1]:"REVIEW";
+ bool IsPathDrivenStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
  bool IsMyAssetSource=>_assetSource is "MY IMAGES" or "MY SPRITES";
  bool IsGameAssetSource=>_assetSource is "GAME IMAGES" or "GAME SPRITES";
  const string EndemarCanonicalAssetRoot="https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/";
@@ -384,31 +402,35 @@
 
  int LeftDisplayOptionCount=>_stage switch
  {
+  Stage.PathSelect=>GameMasterPaths.Length,
   Stage.GameMasterHub=>WorldChoices.Length,
   Stage.GameMasterScope=>Scopes.Length,
   Stage.SoftwareHub=>SoftwareCapabilities.Length,
   Stage.ControlSettings=>AnalogPlacements.Length,
   Stage.WorldBuilderTier=>10,
   Stage.WorldBuilderLayer=>100,
-  Stage.AssetKind=>AssetKinds.Length,
+  Stage.ArtMethod=>ArtMethods.Length,
+  Stage.ArtPhase=>CurrentArtPhases.Length,
+  Stage.AssetKind=>AssetSources.Length,
   Stage.Scale=>38,
   _=>1
  };
 
- int RightDisplayOptionCount=>_stage switch
- {
-  Stage.GameMasterHub=>Settings.Length,
-  Stage.AssetKind=>AssetSources.Length,
-  Stage.Rotate=>72,
-  _=>1
- };
+ int RightDisplayOptionCount=>IsPathDrivenStage
+  ?CurrentPathMenu.Length
+  :_stage switch
+  {
+   Stage.GameMasterHub=>Settings.Length,
+   Stage.Rotate=>72,
+   _=>1
+  };
 
- bool RightActsAsBack=>_stage!=Stage.FullMapReview&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1;
- bool CursorMode=>_stage!=Stage.FullMapReview&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
+ bool RightActsAsBack=>!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1;
+ bool CursorMode=>!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
 
  bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
  bool IsAssetTransformStage=>_stage is Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
- bool IsBuilderStage=>IsDepthStage||_stage is Stage.AssetKind or Stage.AssetMode or Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel or Stage.FullMapReview;
+ bool IsBuilderStage=>IsDepthStage||_stage is Stage.ArtMethod or Stage.ArtPhase or Stage.KnowledgeNode or Stage.AssetKind or Stage.AssetMode or Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel or Stage.FullMapReview;
  bool HasSavedViewer=>_savedAssets.Count>0;
  int VisibleGlassSheets=>Math.Clamp(_layer+1,1,8);
  string ViewerClass=>IsBuilderStage&&!HasSavedViewer?"builder":HasSavedViewer?"recursive":"";
