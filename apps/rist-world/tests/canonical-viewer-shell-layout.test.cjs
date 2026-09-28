@@ -283,6 +283,26 @@ test('image tool is labeled IMAGES and exposes existing libraries plus upload',(
   assert.doesNotMatch(razor,/ArtMethods=\[[^\]]*"IMPORT IMAGE"/);
 });
 
+test('viewer top menu exposes back undo cut copy redo paste and forward',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const host=read('wwwroot/worldbuilder-source-host.js');
+  const prototype=read('wwwroot/prototype/prototype.js');
+  const css=read('wwwroot/css/experiments-universal-suite.css');
+
+  assert.match(razor,/class="viewer-menu-bar"[\s\S]{0,900}?BACK[\s\S]{0,200}?UNDO[\s\S]{0,200}?CUT[\s\S]{0,200}?COPY[\s\S]{0,200}?REDO[\s\S]{0,200}?PASTE[\s\S]{0,200}?FORWARD/);
+  assert.match(razor,/HandleViewerMenuCommandAsync\("back"\)/);
+  assert.match(razor,/HandleViewerMenuCommandAsync\("forward"\)/);
+  assert.match(host,/export async function editCommand\(frame,command\)/);
+  assert.match(prototype,/async function runViewerEditCommand\(command\)/);
+  assert.match(prototype,/command==='copy'/);
+  assert.match(prototype,/command==='cut'/);
+  assert.match(prototype,/command==='paste'/);
+  assert.match(prototype,/command==='undo'/);
+  assert.match(prototype,/command==='redo'/);
+  assert.match(prototype,/editCommand:runViewerEditCommand/);
+  assert.match(css,/Viewer command menu authority/);
+});
+
 test('controller Save reacts immediately, commits canonical placement, and returns to tools menu',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
