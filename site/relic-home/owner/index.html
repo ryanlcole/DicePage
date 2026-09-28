@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#071117">
+<title>ReLiC Owner Project Dashboard</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#e8eeee;background:#071117;--panel:#0d1b22;--panel2:#102630;--line:#29404a;--gold:#e3c98e;--cyan:#8ec9d8;--muted:#91a5aa;--good:#9cddb1;--warn:#f2ce88}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 15% 0,#102a35 0,transparent 33%),#071117;color:#e8eeee}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 22px;border-bottom:1px solid var(--line);background:rgba(7,17,23,.94);backdrop-filter:blur(12px)}
+header strong{font-family:Georgia,serif;color:var(--gold);font-size:1.15rem}header a{color:#bedee6;text-decoration:none}
+main{max-width:1440px;margin:auto;padding:22px}.hero{display:flex;align-items:end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:18px}.hero h1{margin:0;font:700 clamp(2rem,5vw,4rem)/.95 Georgia,serif;color:#f0dfbb}.hero p{max-width:760px;color:#aab9bc}
+.status{padding:7px 11px;border:1px solid var(--line);border-radius:999px;font-size:.8rem;color:var(--muted)}.status.good{color:var(--good)}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}.card{grid-column:span 3;border:1px solid var(--line);border-radius:15px;background:linear-gradient(180deg,rgba(16,38,48,.88),rgba(8,20,26,.94));padding:18px;min-width:0}.card.wide{grid-column:span 6}.card.full{grid-column:1/-1}.card h2{margin:0 0 12px;font:700 1.15rem Georgia,serif;color:var(--gold)}.metric{font-size:clamp(1.8rem,4vw,3.1rem);font-weight:850;letter-spacing:-.04em}.sub{color:var(--muted);font-size:.8rem}.metric-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.metric-box{padding:12px;border:1px solid #223943;border-radius:11px;background:#08161c}
+table{width:100%;border-collapse:collapse;font-size:.88rem}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid #1f353e;vertical-align:top}th{color:#a9c2c8;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}.badge{display:inline-block;padding:4px 7px;border:1px solid #35505a;border-radius:999px;color:#bcd5da;font-size:.68rem;font-weight:800}
+.links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.link{display:block;padding:12px;border:1px solid #263d47;border-radius:10px;background:#08171d;color:#d4e8ec;text-decoration:none}.link small{display:block;margin-top:5px;color:#81969b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.link:hover,.link:focus-visible{border-color:#79aeb9;outline:none}
+.error{border-color:#78434a;color:#ffd1d7}.hidden{display:none!important}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar button{min-height:40px;border:1px solid #4a6670;border-radius:9px;background:#102630;color:#e7f0f2;padding:8px 12px;font-weight:800;cursor:pointer}
+@media(max-width:1000px){.card{grid-column:span 6}.card.wide{grid-column:1/-1}.links{grid-template-columns:1fr 1fr}}@media(max-width:620px){main{padding:14px}.card,.card.wide{grid-column:1/-1}.links{grid-template-columns:1fr}.metric-row{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><strong>ReLiC · Owner Project Dashboard</strong><nav><a href="/">Home</a> · <a href="/Game/index.html">Game</a> · <a href="/relic/">AI</a></nav></header>
+<main>
+<section class="hero"><div><h1>Whole project.<br>One view.</h1><p>Owner-only operational view for ReLiC AI, Shaelvien/RIST, usage, accounts, tests, telemetry, and project links. Raw IP addresses and private question text are not displayed or stored here.</p></div><div class="toolbar"><span id="authStatus" class="status">Checking Discord session…</span><button id="refresh" type="button">Refresh</button></div></section>
+<section id="denied" class="card full error hidden"><h2>Owner access required</h2><p id="deniedMessage">Sign in through the normal Shaelvien Discord flow, then return to this page.</p><p><a href="/Play/index.html" style="color:#bde4ee">Open Discord sign-in</a></p></section>
+<section id="dashboard" class="grid hidden">
+ <article class="card"><h2>Game visits</h2><div class="metric" id="gameVisits">—</div><div class="sub">Recorded since dashboard telemetry activation</div></article>
+ <article class="card"><h2>Game distinct IPs</h2><div class="metric" id="gameVisitors">—</div><div class="sub">Keyed hashes only; raw addresses are not retained</div></article>
+ <article class="card"><h2>Game accounts</h2><div class="metric" id="gameAccounts">—</div><div class="sub">Server-side completed platform profiles</div></article>
+ <article class="card"><h2>AI accounts</h2><div class="metric" id="aiAccounts">—</div><div class="sub" id="aiAccountBreakdown">External AI registrations</div></article>
+ <article class="card"><h2>AI visits</h2><div class="metric" id="aiVisits">—</div><div class="sub">ReLiC AI page visits</div></article>
+ <article class="card"><h2>AI distinct IPs</h2><div class="metric" id="aiVisitors">—</div><div class="sub">Keyed hashes only; raw addresses are not retained</div></article>
+ <article class="card wide"><h2>ReLiC state</h2><div class="metric-row"><div class="metric-box"><div class="sub">Canon</div><strong id="canonVersion">—</strong></div><div class="metric-box"><div class="sub">Owner identity</div><strong id="ownerName">Verified by server</strong></div></div><p class="sub" id="telemetrySince"></p></article>
+ <article class="card wide"><h2>Project totals</h2><div class="metric-row"><div class="metric-box"><div class="sub">Visits</div><strong id="allVisits">—</strong></div><div class="metric-box"><div class="sub">Registered accounts</div><strong id="allAccounts">—</strong></div></div></article>
+ <article class="card full"><h2>Online links</h2><div id="links" class="links"></div></article>
+</section>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const cookieToken=()=>{const item=document.cookie.split(';').map(x=>x.trim()).find(x=>x.startsWith('rist_session='));return item?decodeURIComponent(item.slice('rist_session='.length)):''};
+const token=()=>sessionStorage.getItem('rist.session')||cookieToken();
+const setText=(id,value)=>{$(id).textContent=value??'—'};
+async function config(){const r=await fetch('/Game/authority-config.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('Authority configuration unavailable');return r.json()}
+async function loadLinks(){try{const r=await fetch('/owner/project-links.json?ts='+Date.now(),{cache:'no-store'});const data=await r.json();$('links').innerHTML='';for(const item of data.links||[]){const a=document.createElement('a');a.className='link';a.href=item.url;a.target='_blank';a.rel='noopener noreferrer';a.innerHTML='<strong></strong><span class="badge"></span><small></small>';a.querySelector('strong').textContent=item.label;a.querySelector('.badge').textContent=item.status;a.querySelector('small').textContent=item.url;$('links').appendChild(a)}}catch{}}
+async function load(){
+ $('denied').classList.add('hidden');$('dashboard').classList.add('hidden');$('authStatus').className='status';$('authStatus').textContent='Checking Discord session…';
+ const t=token();if(!t){$('denied').classList.remove('hidden');$('authStatus').textContent='Not signed in';return}
+ try{
+  const c=await config(),api=String(c.apiBaseUrl||'').replace(/\/$/,'');if(!api)throw new Error('Authority API unavailable');
+  const r=await fetch(api+'/authority/owner/dashboard',{headers:{Authorization:'Bearer '+t},cache:'no-store'});
+  if(r.status===401||r.status===403){$('denied').classList.remove('hidden');$('authStatus').textContent=r.status===403?'Signed in · not owner':'Session expired';return}
+  if(!r.ok)throw new Error('Dashboard API returned '+r.status);
+  const d=await r.json(),g=d.systems?.game||{},a=d.systems?.ai||{};
+  $('dashboard').classList.remove('hidden');$('authStatus').className='status good';$('authStatus').textContent='Discord owner verified';
+  setText('gameVisits',(g.visits??0).toLocaleString());setText('gameVisitors',(g.distinctVisitors??0).toLocaleString());setText('gameAccounts',(g.accounts??0).toLocaleString());
+  setText('aiVisits',(a.visits??0).toLocaleString());setText('aiVisitors',(a.distinctVisitors??0).toLocaleString());setText('aiAccounts',(a.accounts??0).toLocaleString());
+  const b=a.accountStatus||{};$('aiAccountBreakdown').textContent=Object.keys(b).length?Object.entries(b).map(([k,v])=>k+': '+v).join(' · '):'External AI registrations';
+  setText('canonVersion',d.relic?.canonVersion||'—');setText('ownerName',d.owner?.displayName||'Owner');
+  setText('allVisits',((g.visits||0)+(a.visits||0)).toLocaleString());setText('allAccounts',((g.accounts||0)+(a.accounts||0)).toLocaleString());
+  $('telemetrySince').textContent=d.telemetry?.startedAtUtc?'Telemetry active since '+d.telemetry.startedAtUtc:'Telemetry begins when this dashboard deployment goes live.';
+  await loadLinks();
+ }catch(err){$('denied').classList.remove('hidden');$('deniedMessage').textContent=String(err?.message||err);$('authStatus').textContent='Dashboard unavailable'}
+}
+$('refresh').addEventListener('click',load);load();
+})();
+</script>
+</body></html>
