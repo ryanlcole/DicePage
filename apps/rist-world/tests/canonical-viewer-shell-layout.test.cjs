@@ -315,7 +315,7 @@ test('GameMaster path right display is Claim Deed or alphabetical world selector
   assert.match(razor,/YOU HAVE \{count\} TOKEN/);
   assert.match(razor,/return "NO TOKEN REQUIRED"/);
   assert.match(razor,/<ShaelvienDeedGate[\s\S]{0,220}?OnClaimed="CompleteShaelvienDeedAsync"/);
-  assert.match(razor,/<WorldGate[\s\S]{0,220}?OnContinue="CompleteRistDeedAsync"/);
+  assert.match(razor,/<WorldGate[\s\S]{0,260}?OnContinue="CompleteRistDeedAsync"[\s\S]{0,160}?DeedMode="true"/);
   assert.match(land,/UnspentMmoWorldTokenCount/);
   assert.match(deed,/CLAIM DEED/);
   assert.match(deed,/ClaimMmoParcelAsync/);
