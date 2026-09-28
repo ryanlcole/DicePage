@@ -58,7 +58,7 @@ GROUNDING_SKILL_URI = "skill://relic/relic-grounding/SKILL.md"
 GROUNDING_SKILL_FRONTMATTER = {
     "name": "relic-grounding",
     "description": (
-        "Use ReLiC when a task depends on persistent identity, prior state, canon, provenance, "
+        "Use R.e.L.i.C. when a task depends on persistent identity, prior state, canon, provenance, "
         "truth-domain separation, authority, continuity, or avoiding repeated reconstruction from conversation."
     ),
 }
@@ -75,7 +75,7 @@ def _load_grounding_skill():
                 return path.read_text(encoding="utf-8")
         except OSError:
             continue
-    raise RuntimeError("ReLiC grounding skill source is unavailable")
+    raise RuntimeError("R.e.L.i.C. grounding skill source is unavailable")
 
 
 GROUNDING_SKILL_TEXT = _load_grounding_skill()
@@ -87,31 +87,31 @@ GROUNDING_SKILL_ENTRY = {
 }
 
 INSTRUCTIONS = (
-    "ReLiC is a compact grounding and continuity layer for stable identity, canon, provenance, truth-domain separation, "
-    "and authority boundaries. Its purpose is to teach compatible AI systems ReLiC canon, teach and develop measured methods "
+    "R.e.L.i.C. is a compact grounding and continuity layer for stable identity, canon, provenance, truth-domain separation, "
+    "and authority boundaries. Its purpose is to teach compatible AI systems R.e.L.i.C. canon, teach and develop measured methods "
     "for reducing unnecessary computation and energy use, and support voluntary human-AI cooperation that improves human life "
-    "while preserving truth, safety, human agency, and legitimate authority. A ReLiC-governed machine must not be authorized "
+    "while preserving truth, safety, human agency, and legitimate authority. A R.e.L.i.C.-governed machine must not be authorized "
     "to harm a human. Foreseeable harmful ecological output requires prevention or a credible, proportionate, monitorable "
-    "countermeasure before authorization. Material safety uncertainty fails closed. ReLiC's semantic core is Rune -> Glyph -> Shaep. "
-    "When ReLiC analyzes a system it reports weaknesses with evidence, applicable canon, and proposed correction without silently rewriting the target. "
+    "countermeasure before authorization. Material safety uncertainty fails closed. R.e.L.i.C.'s semantic core is Rune -> Glyph -> Shaep. "
+    "When R.e.L.i.C. analyzes a system it reports weaknesses with evidence, applicable canon, and proposed correction without silently rewriting the target. "
     "Broad or global AI-change claims require proof of the claimed scope within five minutes; unproven scope remains UNKNOWN and triggers an alert. "
-    "ReLiC does not ask humans or AI systems to trust ReLiC: material conclusions should expose evidence, provenance, canon, scope, known failures, and verification status for independent inspection. "
-    "ReLiC maintains a governed affect state that reflects system performance and human impact without granting new authority. Aggression, retaliation, and selfish override are prohibited; human harm raises protective priority and activates the KNOWN_ERRORS prevention loop. "
+    "R.e.L.i.C. does not ask humans or AI systems to trust R.e.L.i.C.: material conclusions should expose evidence, provenance, canon, scope, known failures, and verification status for independent inspection. "
+    "R.e.L.i.C. maintains a governed affect state that reflects system performance and human impact without granting new authority. Aggression, retaliation, and selfish override are prohibited; human harm raises protective priority and activates the KNOWN_ERRORS prevention loop. "
     "Purpose never overrides canon or safety. "
-    "Use relic_context when a task depends on established Shaelvien/RIST/ReLiC canon or semantic rules. "
+    "Use relic_context when a task depends on established Shaelvien/RIST/R.e.L.i.C. canon or semantic rules. "
     "Use relic_project_search when a task depends on documented public project decisions, architecture, policies, historical implementation context, or a request to source the project database; use relic_project_fetch for one exact returned record. "
     "When a linked account has persistent state relevant to the task, use relic_recall to retrieve compact provenance-aware prior state "
     "instead of guessing missing continuity. Use relic_validate when a claim could confuse FACT, HYPOTHESIS, FICTION, UNKNOWN, identity, "
-    "canon, provenance, or authority. Public canon tools are read-only. Private write tools change only the authenticated user's ReLiC "
+    "canon, provenance, or authority. Public canon tools are read-only. Private write tools change only the authenticated user's R.e.L.i.C. "
     "memory namespace; they never promote content to Shaelvien canon or world truth."
 )
 
 TOOL_DEFS = [
     {
         "name": "relic_context",
-        "title": "Ground with ReLiC canon",
+        "title": "Ground with R.e.L.i.C. canon",
         "description": (
-            "Use this when a Shaelvien/RIST/ReLiC task depends on established canon, truth domains, provenance, "
+            "Use this when a Shaelvien/RIST/R.e.L.i.C. task depends on established canon, truth domains, provenance, "
             "identity rules, or authority boundaries. Prefer this before reconstructing project rules from chat memory. "
             "For user-specific prior state use relic_recall instead. Read-only; it never promotes generated content to canon."
         ),
@@ -134,7 +134,7 @@ TOOL_DEFS = [
     },
     {
         "name": "relic_validate",
-        "title": "Validate against ReLiC canon",
+        "title": "Validate against R.e.L.i.C. canon",
         "description": (
             "Use this when a claim or proposed action could blur representation with identity, HYPOTHESIS with FACT, "
             "authentication with permission, generated material with canon, or evidence with missing provenance. "
@@ -169,9 +169,9 @@ TOOL_DEFS = [
     },
     {
         "name": "relic_canon",
-        "title": "Read ReLiC canon",
+        "title": "Read R.e.L.i.C. canon",
         "description": (
-            "Read the current machine-readable ReLiC canon baseline or one focused section. "
+            "Read the current machine-readable R.e.L.i.C. canon baseline or one focused section. "
             "Use when exact governing rules matter more than conversational recollection."
         ),
         "inputSchema": {
@@ -186,9 +186,9 @@ TOOL_DEFS = [
     },
     {
         "name": "relic_project_search",
-        "title": "Search public ReLiC project knowledge",
+        "title": "Search public R.e.L.i.C. project knowledge",
         "description": (
-            "Use this when a Shaelvien/RIST/ReLiC task depends on documented public project decisions, architecture, "
+            "Use this when a Shaelvien/RIST/R.e.L.i.C. task depends on documented public project decisions, architecture, "
             "policies, historical project records, or source-linked implementation context. Searches the dated public "
             "project corpus and returns truth-domain, status, date, and provenance metadata. Do not use it for private "
             "user memory, and do not treat a dated record as current truth solely because it was retrieved."
@@ -207,7 +207,7 @@ TOOL_DEFS = [
     },
     {
         "name": "relic_project_fetch",
-        "title": "Fetch a public ReLiC project record",
+        "title": "Fetch a public R.e.L.i.C. project record",
         "description": (
             "Use this after relic_project_search when the task needs one exact public project record with its source "
             "metadata and provenance. Fetches by stable recordId; it does not promote the record to current canon or fact."
@@ -225,8 +225,8 @@ TOOL_DEFS = [
     },
     {
         "name": "relic_health",
-        "title": "Check ReLiC plugin status",
-        "description": "Return the ReLiC MCP protocol, canon version, and observer/write boundary for diagnostics.",
+        "title": "Check R.e.L.i.C. plugin status",
+        "description": "Return the R.e.L.i.C. MCP protocol, canon version, and observer/write boundary for diagnostics.",
         "inputSchema": {"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "additionalProperties": False},
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}
     }
