@@ -6,14 +6,19 @@ const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const read=relative=>fs.readFileSync(path.join(root,relative),'utf8');
 
-test('environment offers Shaelvien RIST and Legacy as distinct user-facing paths',()=>{
+test('environment offers Shaelvien RIST and Legacy as the three user-facing paths',()=>{
  const auth=read('Components/AuthenticatedWorld.razor');
- assert.match(auth,/Choose Shaelvien, RIST, Legacy, or Experiments/);
+ const gate=read('Components/LegacyWorldGate.razor');
+ assert.match(auth,/Choose Shaelvien, RIST, or Legacy/);
  assert.match(auth,/<strong>SHAELVIEN<\/strong>/);
  assert.match(auth,/<strong>RIST<\/strong>/);
  assert.match(auth,/<strong>LEGACY<\/strong>/);
  assert.match(auth,/<LegacyWorldGate/);
+ assert.match(auth,/@if\(Auth\.IsOwnerDiscordAccount\)[\s\S]*?class="rist-environment-dev"[\s\S]*?EXPERIMENTS/);
+ assert.doesNotMatch(auth,/class="rist-environment-option experiments"/);
  assert.doesNotMatch(auth,/>MERGED</);
+ assert.doesNotMatch(gate,/RIST LEGACY/);
+ assert.match(gate,/<small>LEGACY<\/small>/);
 });
 
 test('Legacy accepts a ZIP and preserves provenance with safety limits',()=>{
