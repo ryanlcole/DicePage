@@ -187,3 +187,12 @@
   .image-dropzone{min-height:132px;padding:12px}
   .sprite-upload-note{font-size:10px;line-height:1.35}
 }
+
+/* Embedded GameMaster controller mode: the Shaelvien World Builder remains the
+   interactive viewer while the outer universal controller owns navigation. */
+.stage.embedded-controller [data-ui]{
+ display:none!important;
+}
+.stage.embedded-controller{
+ padding-bottom:0!important;
+}
