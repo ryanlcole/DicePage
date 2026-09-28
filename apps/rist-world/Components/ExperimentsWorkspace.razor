@@ -309,6 +309,7 @@
  List<UserAssetEntry> _myAssets=[];
  List<UserAssetEntry> _gameAssets=[];
  List<SavedViewerAsset> _savedAssets=[];
+ Stack<string> _pathHistory=new();
  string _message="Slide the left display vertically and the right display horizontally. The analog snaps those displays one page at a time; when neither display has multiple choices it becomes the viewer cursor.";
 
  static readonly string[] Settings=["GRAPHICS","LANGUAGE","ACCESSIBILITY","CONTROLS","AUDIO","DISPLAY","NETWORK","ACCOUNT","HELP"];
@@ -1143,6 +1144,7 @@
 
  void BeginGameMasterPath()
  {
+  _pathHistory.Clear();
   var startNode=CurrentGameMasterPath=="CAMPAIGN BUILDER"?"LOCAL":"WORLD";
   var builderIndex=BuilderIndexForNode(startNode);
   if(builderIndex<0)builderIndex=0;
@@ -1217,14 +1219,36 @@
   _=>-1
  };
 
+ string CurrentPathNode=>_stage==Stage.KnowledgeNode&&!string.IsNullOrWhiteSpace(_activeKnowledgeNode)
+  ?_activeKnowledgeNode
+  :CurrentBuilderScope;
+
  void OpenPathTarget(string target)
  {
   if(string.Equals(target,"BACK",StringComparison.OrdinalIgnoreCase))
   {
-   GoBack();
+   if(_pathHistory.Count>0)
+   {
+    var previous=_pathHistory.Pop();
+    OpenPathNode(previous);
+   }
+   else
+   {
+    _stage=Stage.PathSelect;
+    _message="Returned to GameMaster path selection.";
+   }
    return;
   }
 
+  var current=CurrentPathNode;
+  if(!string.IsNullOrWhiteSpace(current)&&!string.Equals(current,target,StringComparison.OrdinalIgnoreCase))
+   _pathHistory.Push(current);
+
+  OpenPathNode(target);
+ }
+
+ void OpenPathNode(string target)
+ {
   var builderIndex=BuilderIndexForNode(target);
   if(builderIndex>=0)
   {
