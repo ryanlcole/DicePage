@@ -82,7 +82,8 @@ test('START opens the existing settings menu without duplicating settings',()=>{
   const css=read('wwwroot/css/experiments-universal-suite.css');
   const index=read('wwwroot/index.html');
 
-  assert.match(razor,/class="analog-start-button"[\s\S]{0,180}?@onclick="OpenStartMenuAsync"[\s\S]{0,180}?>START<\/button>/);
+  assert.match(razor,/class="analog-start-button"[\s\S]{0,220}?@onclick="HandleStartButtonAsync"[\s\S]{0,220}?>START<\/button>/);
+  assert.match(razor,/HandleStartButtonAsync\(\)[\s\S]*?await OpenStartMenuAsync\(\)/);
   assert.match(razor,/await JS\.InvokeVoidAsync\("RistStartMenu\.open","experiment"\)/);
   assert.doesNotMatch(razor,/<h2>Video<\/h2>|<h2>Picture<\/h2>|<h2>Sound<\/h2>|<h2>Effects<\/h2>/);
   assert.match(css,/body\.rist-start-open \.rist-start-overlay\{[\s\S]*?z-index:2147483600!important/);
@@ -118,7 +119,7 @@ test('analog top button switches CURSOR and BUTTONS without changing START',()=>
   assert.match(razor,/string AnalogModeLabel=>CursorMode\?"CURSOR":"BUTTONS"/);
   assert.match(razor,/void ToggleAnalogMode\(\)[\s\S]*?_analogButtonMode=true;[\s\S]*?_analogButtonMode=false;/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]*?_analogButtonMode=false;[\s\S]*?Cursor active/);
-  assert.match(razor,/class="analog-start-button"[\s\S]*?@onclick="OpenStartMenuAsync"/);
+  assert.match(razor,/class="analog-start-button"[\s\S]*?@onclick="HandleStartButtonAsync"/);
   assert.match(input,/\.analog-start-button,\.analog-mode-button/);
   assert.match(css,/Analog mode toggle authority/);
 });
