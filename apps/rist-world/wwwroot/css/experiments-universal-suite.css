@@ -2708,3 +2708,16 @@ body.rist-start-open.rist-start-experiment-controller .experiments-controller{
   right:25px!important;
  }
 }
+
+
+/* START Interface overlay authority — 2026-09-28.
+   Overlay OFF hides optional viewer chrome/PiPs; the map iframe and controller remain active. */
+body.rist-viewer-overlays-off .experiments-shell .depth-pip,
+body.rist-viewer-overlays-off .experiments-shell .viewer-compass,
+body.rist-viewer-overlays-off .experiments-shell .viewer-legend,
+body.rist-viewer-overlays-off .experiments-shell .asset-context-pip,
+body.rist-viewer-overlays-off .experiments-shell .viewer-title,
+body.rist-viewer-overlays-off .experiments-shell .viewer-status,
+body.rist-viewer-overlays-off .experiments-shell .viewer-readout{
+ display:none!important;
+}
