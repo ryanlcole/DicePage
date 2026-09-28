@@ -252,15 +252,17 @@
     <span class="display-slider-cue cue-up" aria-hidden="true"></span>
    }
    <button type="button"
-           class="control-display-button control-display-left @(_stage==Stage.Environment?"environment-choice-button":"") @(_experimentStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
+           class="control-display-button control-display-left @(_stage==Stage.Environment?"environment-choice-button":"")"
            @onclick="PressLeft"
+           disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
+           aria-disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
            aria-label="Left display button: @LeftDisplayValue">
     @if(_stage==Stage.Environment)
     {
-     <span class="experiment-dragon-head shaelvien-head" aria-hidden="true"></span>
+     <span class="experiment-dragon-head shaelvien-head @(_experimentStartRevealed?"is-faded":"")" aria-hidden="true"></span>
      @if(_experimentStartRevealed)
      {
-      <strong class="@LeftDisplayTextClass">SHAELVIEN</strong>
+      <strong class="@LeftDisplayTextClass environment-choice-label">SHAELVIEN</strong>
      }
     }
     else
@@ -286,7 +288,9 @@
            class="analog-mode-button"
            aria-pressed="@CursorMode"
            @onclick="ToggleAnalogMode"
-           aria-label="Switch analog between cursor and button controls">@AnalogModeLabel</button>
+           disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
+           aria-disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
+           aria-label="@(_stage==Stage.Environment&&_experimentStartRevealed?"Open legacy interface":"Switch analog between cursor and button controls")">@AnalogModeLabel</button>
    <span class="analog-direction analog-up" aria-hidden="true">UP</span>
    <span class="analog-direction analog-down" aria-hidden="true">DOWN</span>
    <span class="analog-direction analog-left" aria-hidden="true">LEFT</span>
@@ -310,15 +314,17 @@
     <span class="display-slider-cue cue-left" aria-hidden="true"></span>
    }
    <button type="button"
-           class="control-display-button control-display-right @(_stage==Stage.Environment?"environment-choice-button":"") @(_experimentStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
+           class="control-display-button control-display-right @(_stage==Stage.Environment?"environment-choice-button":"")"
            @onclick="PressRight"
+           disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
+           aria-disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
            aria-label="Right display button: @RightDisplayValue">
     @if(_stage==Stage.Environment)
     {
-     <span class="experiment-dragon-head rist-head" aria-hidden="true"></span>
+     <span class="experiment-dragon-head rist-head @(_experimentStartRevealed?"is-faded":"")" aria-hidden="true"></span>
      @if(_experimentStartRevealed)
      {
-      <strong class="@RightDisplayTextClass">RIST</strong>
+      <strong class="@RightDisplayTextClass environment-choice-label">RIST</strong>
      }
     }
     else
@@ -422,6 +428,7 @@
  bool _analogButtonMode;
  bool _experimentStartRevealed;
  bool _experimentStartFlashing;
+ string _selectedEnvironment="SHAELVIEN";
  string _contextLoadedIdentity="";
  string _contextName="";
  string _contextLore="";
@@ -637,7 +644,9 @@
  bool CursorMode=>CursorAvailable
   &&!_analogButtonMode
   &&(_stage!=Stage.BrowsePlace||_browseCursorActive);
- string AnalogModeLabel=>CursorMode?"CURSOR":"BUTTONS";
+ string AnalogModeLabel=>_stage==Stage.Environment&&_experimentStartRevealed
+  ?"LEGACY"
+  :CursorMode?"CURSOR":"BUTTONS";
 
  bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
  bool IsAssetTransformStage=>_stage is Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
@@ -674,7 +683,7 @@
  string LeftEyebrow=>_stage switch
  {
   Stage.Environment=>"ENVIRONMENT",
-  Stage.Role=>"SHAELVIEN",
+  Stage.Role=>_selectedEnvironment,
   Stage.PathSelect=>"GAMEMASTER PATH",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
   Stage.ControlSettings=>"CONTROLS",
@@ -719,7 +728,7 @@
  string RightEyebrow=>_stage switch
  {
   Stage.Environment=>"ENVIRONMENT",
-  Stage.Role=>"SHAELVIEN",
+  Stage.Role=>_selectedEnvironment,
   Stage.PathSelect=>"NAVIGATION",
   Stage.GameMasterScope=>"NAVIGATION",
   Stage.ControlSettings=>"SETTINGS",
@@ -876,7 +885,7 @@
  string ViewerTitle=>_stage switch
  {
   Stage.Environment=>"RIST UNIVERSAL VIEWER",
-  Stage.Role=>"SHAELVIEN",
+  Stage.Role=>_selectedEnvironment,
   Stage.PathSelect=>"GAMEMASTER · CHOOSE PATH",
   Stage.GameMasterHub=>"GAMEMASTER · WORLD SELECTOR",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
@@ -902,7 +911,7 @@
  string StagePath=>_stage switch
  {
   Stage.Environment=>"START",
-  Stage.Role=>"SHAELVIEN → ROLE",
+  Stage.Role=>$"{_selectedEnvironment} → ROLE",
   Stage.PathSelect=>"GAMEMASTER → PATH",
   Stage.GameMasterHub=>"SHAELVIEN → GAMEMASTER",
   Stage.GameMasterScope=>"GAMEMASTER → SUITE",
@@ -1123,14 +1132,16 @@
   switch(_stage)
   {
    case Stage.Environment:
-    if(!_experimentStartRevealed)
-    {
-     _message="Press START first.";
+     if(!_experimentStartRevealed)
+     {
+      _message="Press START first.";
+      break;
+     }
+     _selectedEnvironment="SHAELVIEN";
+     _analogButtonMode=false;
+     _stage=Stage.Role;
+     _message="Shaelvien selected. Choose Roleplayer or GameMaster.";
      break;
-    }
-    _stage=Stage.Role;
-    _message="Shaelvien selected. Choose Roleplayer or GameMaster.";
-    break;
    case Stage.Role:
     _message="Roleplayer is reserved for the player-facing branch of this experiment.";
     break;
@@ -1340,13 +1351,16 @@
   switch(_stage)
   {
    case Stage.Environment:
-    if(!_experimentStartRevealed)
-    {
-     _message="Press START first.";
+     if(!_experimentStartRevealed)
+     {
+      _message="Press START first.";
+      break;
+     }
+     _selectedEnvironment="RIST";
+     _analogButtonMode=false;
+     _stage=Stage.Role;
+     _message="RIST selected. Choose Roleplayer or GameMaster.";
      break;
-    }
-    _message="RIST selected. The universal/private environment branch is reserved for the next experiment.";
-    break;
    case Stage.Role:
     _stage=Stage.PathSelect;
     _pathIndex=0;
@@ -2307,13 +2321,10 @@
  {
   if(_stage==Stage.Environment&&!_experimentStartRevealed)
   {
-   _experimentStartFlashing=true;
-   _message="Starting…";
-   await InvokeAsync(StateHasChanged);
-   await Task.Delay(420);
    _experimentStartFlashing=false;
    _experimentStartRevealed=true;
-   _message="Choose Shaelvien or RIST.";
+   _analogButtonMode=false;
+   _message="Choose Shaelvien, RIST, or Legacy.";
    await InvokeAsync(StateHasChanged);
    return;
   }
@@ -2334,8 +2345,16 @@
   }
  }
 
- void ToggleAnalogMode()
+ async Task ToggleAnalogMode()
  {
+  if(_stage==Stage.Environment&&_experimentStartRevealed)
+  {
+   _message="Opening Legacy interface…";
+   await InvokeAsync(StateHasChanged);
+   if(OnExit.HasDelegate)await OnExit.InvokeAsync();
+   return;
+  }
+
   if(CursorMode)
   {
    _analogButtonMode=true;
