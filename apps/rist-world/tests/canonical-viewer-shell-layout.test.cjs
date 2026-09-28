@@ -117,7 +117,7 @@ test('analog top button switches CURSOR and BUTTONS without changing START',()=>
 
   assert.match(razor,/class="analog-mode-button"[\s\S]{0,360}?@onclick="ToggleAnalogMode"[\s\S]{0,420}?@AnalogModeLabel<\/button>/);
   assert.match(razor,/string AnalogModeLabel=>_stage==Stage\.Environment&&_experimentStartRevealed[\s\S]{0,260}?CursorMode\?"CURSOR":"BUTTONS"/);
-  assert.match(razor,/void ToggleAnalogMode\(\)[\s\S]*?_analogButtonMode=true;[\s\S]*?_analogButtonMode=false;/);
+  assert.match(razor,/async Task ToggleAnalogMode\(\)[\s\S]*?_analogButtonMode=true;[\s\S]*?_analogButtonMode=false;/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]*?_analogButtonMode=false;[\s\S]*?Cursor active/);
   assert.match(razor,/class="analog-start-button"[\s\S]*?@onclick="HandleStartButtonAsync"/);
   assert.match(input,/\.analog-start-button,\.analog-mode-button/);
@@ -256,11 +256,67 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
   assert.match(prototype,/function configuredGridCellCenter/);
   assert.match(prototype,/stage\.dataset\.viewerGridColumns/);
   assert.match(prototype,/stage\.dataset\.assetGridColumns/);
-  assert.match(prototype,/nearestAllowedRegionCell\(cell,regionActiveCellSet\(\),shape\)/);
+  assert.match(prototype,/nearestAllowedRegionCell\(regionCell,allowed,regionGridShape\)/);
   assert.match(prototypeCss,/\.viewer-grid-overlay/);
   assert.doesNotMatch(prototypeCss,/repeating-linear-gradient\(0deg,rgba\(178,221,236,\.045\)/);
-  assert.match(prototypeIndex,/prototype\.css\?v=20260928-grid-density-1/);
-  assert.match(prototypeIndex,/prototype\.js\?v=20260928-grid-density-1/);
+  assert.match(prototypeIndex,/prototype\.css\?v=20260928-canonical-spatial-1/);
+  assert.match(prototypeIndex,/prototype\.js\?v=20260928-canonical-spatial-1/);
   assert.match(index,/start-menu\.js\?v=20260928-grid-density-1/);
   assert.match(index,/experiments-universal-suite\.css\?v=20260928-interface-grids-1/);
+});
+
+
+test('controller Save commits to canonical userLayers and returns to suite selection',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const host=read('wwwroot/worldbuilder-source-host.js');
+  const prototype=read('wwwroot/prototype/prototype.js');
+
+  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,520}?await CommitCurrentAssetToCanonicalViewerAsync\(\)/);
+  assert.doesNotMatch(razor,/case Stage\.SaveCancel:[\s\S]{0,180}?SaveCurrentAssetToViewer\(\)/);
+  assert.match(razor,/InvokeAsync<bool>\([\s\S]{0,180}?"placeAsset"/);
+  assert.match(razor,/_stage=Stage\.GameMasterScope/);
+  assert.match(razor,/Choose World Builder, Region Definer, Local, or Instance/);
+  assert.match(host,/export async function placeAsset\(frame,payload\)/);
+  assert.match(prototype,/async function placeExternalAsset\(raw=\{\}\)/);
+  assert.match(prototype,/userLayers\.push\(item\)/);
+  assert.match(prototype,/const saved=await saveWorldBuilder\(\)/);
+  assert.match(razor,/Stage\.FullMapReview=>"SUITE OPTIONS"/);
+});
+
+test('outer depth drives embedded canonical tier and layer',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const host=read('wwwroot/worldbuilder-source-host.js');
+  const prototype=read('wwwroot/prototype/prototype.js');
+
+  assert.match(razor,/case Stage\.WorldBuilderTier:[\s\S]{0,220}?SyncWorldBuilderDepthAsync/);
+  assert.match(razor,/case Stage\.WorldBuilderLayer:[\s\S]{0,220}?SyncWorldBuilderDepthAsync/);
+  assert.match(razor,/InvokeVoidAsync\("setDepth",_worldBuilderFrame,_tier,_layer,CurrentBuilderScope\)/);
+  assert.match(host,/export function setDepth\(frame,tier,layer,scope\)/);
+  assert.match(prototype,/function setExternalDepth\(raw=\{\}\)/);
+});
+
+test('zoom hands representation from World to Region Local and Instance',()=>{
+  const prototype=read('wwwroot/prototype/prototype.js');
+
+  assert.match(prototype,/SPATIAL_SCOPE_THRESHOLDS=Object\.freeze/);
+  assert.match(prototype,/REGION:REGION_ENHANCE_ENTER/);
+  assert.match(prototype,/LOCAL:REGION_ENHANCE_ENTER\*4/);
+  assert.match(prototype,/INSTANCE:REGION_ENHANCE_ENTER\*16/);
+  assert.match(prototype,/function currentSpatialScope\(\)/);
+  assert.match(prototype,/if\(ratio>=SPATIAL_SCOPE_THRESHOLDS\.INSTANCE\)return'INSTANCE'/);
+  assert.match(prototype,/if\(ratio>=SPATIAL_SCOPE_THRESHOLDS\.LOCAL\)return'LOCAL'/);
+  assert.match(prototype,/if\(ratio>=SPATIAL_SCOPE_THRESHOLDS\.REGION\)return'REGION'/);
+  assert.match(prototype,/worldVisible=spatialScope==='WORLD'\|\|\(spatialScope==='REGION'&&!regionEnhanceActive\)/);
+  assert.match(prototype,/const itemScope=normalizeSpatialScope/);
+  assert.match(prototype,/itemScope===spatialScope/);
+  assert.match(prototype,/spatialScope!=='WORLD'[\s\S]{0,180}?rotateX\(15deg\)/);
+});
+
+test('canonical placements retain their World Region Local or Instance scope',()=>{
+  const prototype=read('wwwroot/prototype/prototype.js');
+
+  assert.match(prototype,/scope:normalizeSpatialScope\(item\.scope\|\|'WORLD'\)/);
+  assert.match(prototype,/scope:normalizeSpatialScope\(raw\.scope\|\|'WORLD'\)/);
+  assert.match(prototype,/externalSpatialScope='WORLD'/);
+  assert.match(prototype,/const scope=normalizeSpatialScope\(raw\.scope\|\|externalSpatialScope\)/);
 });
