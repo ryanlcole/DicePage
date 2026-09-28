@@ -1,0 +1,192 @@
+{
+  "format": "ReLiC-Project-Link-Registry",
+  "version": 1,
+  "updatedAt": "2026-09-27",
+  "note": "Owner dashboard registry of project-owned or project-operational online surfaces. Status describes intended project role, not a fresh uptime guarantee.",
+  "links": [
+    {
+      "id": "home",
+      "label": "ReLiCGameMaster Home",
+      "url": "https://relicgamemaster.com/",
+      "system": "project",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "play",
+      "label": "Shaelvien Account Entry",
+      "url": "https://relicgamemaster.com/Play/index.html",
+      "system": "game",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "game",
+      "label": "Shaelvien / RIST Game",
+      "url": "https://relicgamemaster.com/Game/index.html",
+      "system": "game",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "relic-ai",
+      "label": "ReLiC AI",
+      "url": "https://relicgamemaster.com/relic/",
+      "system": "ai",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "relic-query",
+      "label": "ReLiC Knowledge",
+      "url": "https://relicgamemaster.com/relicquery/",
+      "system": "ai",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "relic-accessibility",
+      "label": "ReLiC Knowledge Accessibility",
+      "url": "https://relicgamemaster.com/relicquery/accessibility/",
+      "system": "ai",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "store",
+      "label": "ReLiC Creator Store",
+      "url": "https://relicgamemaster.com/store/index.html",
+      "system": "commerce",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "membership",
+      "label": "Membership",
+      "url": "https://relicgamemaster.com/store/membership.html",
+      "system": "commerce",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "launcher",
+      "label": "ReLiC Release Launcher",
+      "url": "https://relicgamemaster.com/Launcher/index.html",
+      "system": "dev",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "owner-dashboard",
+      "label": "Owner Project Dashboard",
+      "url": "https://relicgamemaster.com/owner/",
+      "system": "project",
+      "status": "OWNER_ONLY",
+      "visibility": "PRIVATE"
+    },
+    {
+      "id": "mcp",
+      "label": "ReLiC MCP",
+      "url": "https://relicgamemaster.com/mcp",
+      "system": "ai",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "canon",
+      "label": "ReLiC Canon JSON",
+      "url": "https://relicgamemaster.com/.well-known/relic-canon.json",
+      "system": "ai",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "oauth-server",
+      "label": "ReLiC OAuth Metadata",
+      "url": "https://relicgamemaster.com/.well-known/oauth-authorization-server",
+      "system": "ai",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "oauth-resource",
+      "label": "ReLiC Protected Resource Metadata",
+      "url": "https://relicgamemaster.com/.well-known/oauth-protected-resource",
+      "system": "ai",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "ai-policy",
+      "label": "RIST AI Policy",
+      "url": "https://relicgamemaster.com/Game/.well-known/ai-policy.json",
+      "system": "game",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "relic-ai-policy",
+      "label": "ReLiC AI Policy",
+      "url": "https://relicgamemaster.com/Game/.well-known/relic-ai-policy.json",
+      "system": "ai",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "semantic-language",
+      "label": "Shaelvien Semantic Language",
+      "url": "https://relicgamemaster.com/Game/.well-known/shaelvien-language.json",
+      "system": "project",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "legacy-pages",
+      "label": "Legacy DicePage",
+      "url": "https://ryanlcole.github.io/DicePage/app/",
+      "system": "legacy",
+      "status": "LEGACY",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "github",
+      "label": "GitHub Repository",
+      "url": "https://github.com/ryanlcole/DicePage",
+      "system": "dev",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "asset-cdn",
+      "label": "RIST Asset CDN",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/",
+      "system": "assets",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    },
+    {
+      "id": "shaelvien-drive",
+      "label": "Shaelvien Google Drive",
+      "url": "https://drive.google.com/drive/folders/137kbTGLvKiAOK62DlB4O_DSZc3kt5wtH",
+      "system": "knowledge",
+      "status": "ACTIVE",
+      "visibility": "PRIVATE"
+    },
+    {
+      "id": "neuron-drive",
+      "label": "Neuron Log Google Drive",
+      "url": "https://drive.google.com/drive/folders/1TDb1bEkgKRmW1-HiXs0XqV-BPsIZCfQA",
+      "system": "knowledge",
+      "status": "ACTIVE",
+      "visibility": "PRIVATE"
+    },
+    {
+      "id": "donate",
+      "label": "PayPal Donation",
+      "url": "https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9",
+      "system": "commerce",
+      "status": "LIVE",
+      "visibility": "PUBLIC"
+    }
+  ]
+}
