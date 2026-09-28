@@ -359,6 +359,15 @@
                  OnClose="CloseLegacyGate"
                  OnContinue="ContinueLegacyIntoRistAsync" />
 
+<ShaelvienDeedGate Open="@_shaelvienDeedGateOpen"
+                   OnClose="CloseShaelvienDeedGate"
+                   OnClaimed="CompleteShaelvienDeedAsync" />
+
+<WorldGate Open="@_ristDeedGateOpen"
+           OnClose="CloseRistDeedGate"
+           OnContinue="CompleteRistDeedAsync"
+           RequireSelection="false" />
+
 @if(Session.IsServerVerifiedPlatformOwner&&_stage==Stage.Environment)
 {
  <nav class="experiments-owner-links experiments-owner-first-screen" aria-label="Owner-only experiment links">
@@ -447,6 +456,8 @@
  bool _experimentStartRevealed=true;
  bool _experimentStartFlashing;
  bool _legacyGateOpen;
+ bool _shaelvienDeedGateOpen;
+ bool _ristDeedGateOpen;
  string _selectedEnvironment="SHAELVIEN";
  string _contextLoadedIdentity="";
  string _contextName="";
@@ -507,13 +518,83 @@
  static readonly string[] BuilderChain=["WORLD","REGION","LOCAL","INSTANCE"];
  static readonly string[] BuilderSuiteNames=["WORLD BUILDER","REGION DEFINER","LOCAL","INSTANCE"];
 
+ IReadOnlyList<ControllerWorldOption> PathWorldOptions
+ {
+  get
+  {
+   if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+   {
+    return Session.MmoParcels
+     .Where(Session.CanAccessMmoParcel)
+     .Select(parcel=>new ControllerWorldOption(
+      parcel.ParcelId,
+      parcel.DisplayName,
+      "SHAELVIEN",
+      null,
+      parcel))
+     .OrderBy(option=>option.Name,StringComparer.OrdinalIgnoreCase)
+     .ThenBy(option=>option.Id,StringComparer.Ordinal)
+     .ToList();
+   }
+
+   var options=Worlds
+    .Where(WorldSession.IsSandboxWorldReference)
+    .Where(world=>!string.IsNullOrWhiteSpace(world.DisplayName))
+    .Select(world=>new ControllerWorldOption(
+     world.WorldId,
+     world.DisplayName.Trim(),
+     "RIST",
+     world,
+     null))
+    .ToList();
+
+   if(Session.HasActiveWorld&&!Session.IsGeonaphWorld
+      &&!options.Any(option=>string.Equals(option.Id,Session.WorldId,StringComparison.Ordinal)))
+   {
+    options.Add(new ControllerWorldOption(
+     Session.WorldId,
+     Session.WorldDisplayName,
+     "RIST",
+     null,
+     null));
+   }
+
+   return options
+    .OrderBy(option=>option.Name,StringComparer.OrdinalIgnoreCase)
+    .ThenBy(option=>option.Id,StringComparer.Ordinal)
+    .ToList();
+  }
+ }
+
+ int PathWorldCount=>PathWorldOptions.Count;
+ bool HasPathWorlds=>PathWorldCount>0;
+ int PathWorldIndex=>PathWorldCount==0?0:Math.Clamp(_worldIndex,0,PathWorldCount-1);
+ ControllerWorldOption? CurrentPathWorld=>PathWorldCount==0?null:PathWorldOptions[PathWorldIndex];
+ string PathWorldLabel=>CurrentPathWorld?.Name?.Trim().ToUpperInvariant()??"CLAIM DEED";
+ string PathWorldEyebrow=>HasPathWorlds
+  ?(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)?"SHAELVIEN WORLDS":"RIST WORLDS")
+  :"PROPERTY";
+ string PathWorldPrompt
+ {
+  get
+  {
+   if(HasPathWorlds)return PathWorldCount>1?"SLIDE ↔ · TOUCH WORLD":"TOUCH · OPEN WORLD";
+   if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+   {
+    var count=Session.UnspentMmoWorldTokenCount;
+    return $"YOU HAVE {count} TOKEN{(count==1?"":"S")} REMAINING";
+   }
+   return "NO TOKEN REQUIRED";
+  }
+ }
+
  string[] WorldChoices
  {
   get
   {
    var names=Worlds
     .Where(world=>!string.IsNullOrWhiteSpace(world.DisplayName))
-    .OrderByDescending(world=>world.UpdatedAtUtc)
+    .OrderBy(world=>world.DisplayName,StringComparer.OrdinalIgnoreCase)
     .Select(world=>world.DisplayName.Trim().ToUpperInvariant())
     .Distinct(StringComparer.OrdinalIgnoreCase)
     .ToList();
@@ -655,12 +736,13 @@
    ?CurrentPathMenu.Length
    :_stage switch
    {
+    Stage.PathSelect=>Math.Max(1,PathWorldCount),
     Stage.GameMasterHub=>Settings.Length,
     Stage.Rotate=>72,
     _=>1
    };
 
- bool RightActsAsBack=>!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1;
+ bool RightActsAsBack=>_stage!=Stage.PathSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1;
  bool CursorAvailable=>!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
  bool CursorMode=>CursorAvailable
   &&!_analogButtonMode
@@ -750,7 +832,7 @@
  {
   Stage.Environment=>"ENVIRONMENT",
   Stage.Role=>_selectedEnvironment,
-  Stage.PathSelect=>"NAVIGATION",
+  Stage.PathSelect=>PathWorldEyebrow,
   Stage.GameMasterScope=>"NAVIGATION",
   Stage.ControlSettings=>"SETTINGS",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"PATH / JOURNAL",
@@ -767,7 +849,7 @@
  {
   Stage.Environment=>"RIST",
   Stage.Role=>"GAMEMASTER",
-  Stage.PathSelect=>"BACK",
+  Stage.PathSelect=>PathWorldLabel,
   Stage.GameMasterScope=>"BACK",
   Stage.ControlSettings=>"BACK",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>CurrentPathTarget,
@@ -789,7 +871,7 @@
   Stage.ControlSettings=>"Move the analog left, center, or right of the two display buttons.",
   Stage.WorldBuilderTier=>"Y pages through tiers. Touch the left display to select the shown tier.",
   Stage.WorldBuilderLayer=>"Y pages through layers. Touch the left display to select the shown layer, then choose an art method.",
-  Stage.ArtMethod=>"Left is the A/V rail: Draw, CAD, Import Image, Sprite, Audio, or Video.",
+  Stage.ArtMethod=>"Left is the A/V rail: Draw, CAD, Images, Sprite, Audio, or Video.",
   Stage.ArtPhase=>"Open the current workbench pass. Draw runs Pencil → Color → Effects; CAD, audio, and video use their own ordered passes.",
   Stage.ArtWork=>$"{CurrentArtPhase} workbench is active in the Viewer. Editor-specific tools live inside the workbench; Save advances to the next pass.",
   Stage.KnowledgeNode=>$"Create or inspect {_activeKnowledgeNode.ToLowerInvariant()} without leaving the persistent viewer.",
@@ -808,7 +890,11 @@
  {
   Stage.Environment=>"Private/universal RIST environment.",
   Stage.Role=>"Enter the GameMaster path selector.",
-  Stage.PathSelect=>"Return to the Shaelvien role choice.",
+  Stage.PathSelect=>HasPathWorlds
+   ?"Choose a world alphabetically. Touch the right display to open the shown world."
+   :string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
+    ?"Claim a Shaelvien deed with one available Shaelvien Token."
+    :"Claim a private RIST deed without spending a Shaelvien Token.",
   Stage.GameMasterScope=>"Return to world and settings selection.",
   Stage.ControlSettings=>"Cancel and return to GameMaster settings.",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"The right rail jumps through spatial scopes, journals, lore, NPCs, encounters, and the rest of the active path. Browser Back moves backward.",
@@ -864,6 +950,7 @@
     ?CurrentPathTarget
     :_stage switch
    {
+    Stage.PathSelect=>PathWorldLabel,
     Stage.GameMasterHub=>CurrentSetting,
     Stage.ControlSettings=>"BACK",
     Stage.Rotate=>$"{_assetRotation}°",
@@ -896,6 +983,7 @@
     ?"SLIDE ↔ · TOUCH JUMP"
     :_stage switch
    {
+    Stage.PathSelect=>PathWorldPrompt,
     Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
     Stage.SoftwareHub=>"TOUCH · BACK",
     Stage.ControlSettings=>"TOUCH · CANCEL",
@@ -1133,6 +1221,14 @@
 
   switch(_stage)
   {
+   case Stage.PathSelect:
+    if(PathWorldCount>1)
+    {
+     _worldIndex=Wrap(_worldIndex+direction,PathWorldCount);
+     _message=$"World: {PathWorldLabel}.";
+    }
+    else _message=HasPathWorlds?$"World: {PathWorldLabel}.":"Claim a deed to create your first world.";
+    break;
    case Stage.GameMasterHub:
     _settingIndex=Wrap(_settingIndex+direction,Settings.Length);
     _message=$"Option: {CurrentSetting}.";
@@ -1155,6 +1251,10 @@
  {
   switch(_stage)
   {
+   case Stage.PathSelect:
+    if(HasPathWorlds)await ActivateCurrentPathWorldAsync();
+    else await OpenControllerDeedAsync();
+    break;
    case Stage.Environment:
      if(!_experimentStartRevealed)
      {
@@ -1170,7 +1270,12 @@
     _message="Roleplayer is reserved for the player-facing branch of this experiment.";
     break;
    case Stage.PathSelect:
-    BeginGameMasterPath();
+    if(!HasPathWorlds)
+    {
+     _message="Claim a deed before opening GameMaster tools.";
+     break;
+    }
+    if(await ActivateCurrentPathWorldAsync())BeginGameMasterPath();
     break;
    case Stage.GameMasterHub:
     _stage=Stage.GameMasterScope;
@@ -1241,9 +1346,9 @@
 
      ResetAssetTransform();
      SetPathMenuToNext(savedScope);
-     _stage=Stage.GameMasterScope;
-     _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
-     _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. Returned to the tools menu.";
+     _stage=Stage.PathSelect;
+     _worldIndex=0;
+     _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. Returned to the GameMaster path menu.";
      await InvokeAsync(StateHasChanged);
      break;
     }
@@ -1408,9 +1513,12 @@
      _message="RIST selected. Choose Roleplayer or GameMaster.";
      break;
    case Stage.Role:
+    if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+     await EnsureShaelvienEnvironmentAsync();
     _stage=Stage.PathSelect;
     _pathIndex=0;
-    _message="GameMaster selected. Choose World Builder, Campaign Builder, or Advanced.";
+    _worldIndex=0;
+    _message="GameMaster selected. Choose a path on the left and a world or Claim Deed on the right.";
     break;
    case Stage.GameMasterHub:
     if(CurrentSetting=="CONTROLS")
@@ -1971,6 +2079,13 @@
 
  string SavedViewerAssetStyle(SavedViewerAsset asset)
   =>$"--saved-x:{asset.X}px;--saved-y:{asset.Y}px;--saved-scale:{asset.Scale:0.00};--saved-rotate:{asset.Rotation}deg;--saved-tier:{asset.Tier};--saved-layer:{asset.Layer};";
+
+ sealed record ControllerWorldOption(
+  string Id,
+  string Name,
+  string Environment,
+  AccountWorldReference? WorldReference,
+  AwsAuthorityClient.MmoParcel? Parcel);
 
  sealed record ViewerNavState(
   Stage Stage,
@@ -2555,6 +2670,119 @@
    _message="Start menu is temporarily unavailable.";
   }
  }
+ async Task EnsureShaelvienEnvironmentAsync()
+ {
+  try
+  {
+   var mmo=Worlds.FirstOrDefault(WorldSession.IsMmoWorldReference);
+   if(mmo is not null
+      &&(!Session.HasActiveWorld||!string.Equals(Session.WorldId,mmo.WorldId,StringComparison.Ordinal)))
+    await Session.LoadWorldAsync(mmo);
+
+   await Session.RefreshMmoLandAsync();
+   await Session.LoadRegionsAsync();
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Shaelvien environment refresh failed: {ex}");
+   _message="Shaelvien property authority could not be refreshed.";
+  }
+ }
+
+ async Task<bool> ActivateCurrentPathWorldAsync()
+ {
+  var option=CurrentPathWorld;
+  if(option is null)return false;
+
+  try
+  {
+   if(string.Equals(option.Environment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+   {
+    await EnsureShaelvienEnvironmentAsync();
+    var parcel=Session.MmoParcels.FirstOrDefault(item=>string.Equals(item.ParcelId,option.Id,StringComparison.Ordinal));
+    if(parcel is null||!Session.CanAccessMmoParcel(parcel))
+    {
+     _message="That Shaelvien world is no longer available to this account.";
+     return false;
+    }
+    await Session.LoadRegionsAsync();
+    Session.SetActiveRegion(parcel.RegionId);
+    _message=$"{parcel.DisplayName} selected.";
+    return true;
+   }
+
+   var world=option.WorldReference;
+   if(world is not null
+      &&(!Session.HasActiveWorld||!string.Equals(Session.WorldId,world.WorldId,StringComparison.Ordinal)))
+    await Session.LoadWorldAsync(world);
+
+   if(!Session.HasActiveWorld||Session.IsGeonaphWorld)
+   {
+    _message="That RIST world could not be activated.";
+    return false;
+   }
+
+   await Session.RefreshTrustedWorldAuthorityAsync();
+   _message=$"{Session.WorldDisplayName} selected.";
+   return true;
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Controller world selection failed: {ex}");
+   _message="That world could not be opened.";
+   return false;
+  }
+ }
+
+ async Task OpenControllerDeedAsync()
+ {
+  if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+  {
+   await EnsureShaelvienEnvironmentAsync();
+   _shaelvienDeedGateOpen=true;
+   _message=$"Claim Deed · {Session.UnspentMmoWorldTokenCount} Shaelvien token{(Session.UnspentMmoWorldTokenCount==1?"":"s")} remaining.";
+  }
+  else
+  {
+   _ristDeedGateOpen=true;
+   _message="Claim Deed · RIST private worlds do not spend Shaelvien Tokens.";
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ void CloseShaelvienDeedGate()
+ {
+  _shaelvienDeedGateOpen=false;
+  _message="Claim Deed closed.";
+ }
+
+ async Task CompleteShaelvienDeedAsync(AwsAuthorityClient.MmoParcel parcel)
+ {
+  _shaelvienDeedGateOpen=false;
+  await Session.RefreshMmoLandAsync();
+  await Session.LoadRegionsAsync();
+  if(!string.IsNullOrWhiteSpace(parcel.RegionId))Session.SetActiveRegion(parcel.RegionId);
+  var index=PathWorldOptions.ToList().FindIndex(option=>string.Equals(option.Id,parcel.ParcelId,StringComparison.Ordinal));
+  _worldIndex=index>=0?index:0;
+  _message=$"{parcel.DisplayName} deed claimed and selected.";
+  await InvokeAsync(StateHasChanged);
+ }
+
+ void CloseRistDeedGate()
+ {
+  _ristDeedGateOpen=false;
+  _message="Claim Deed closed.";
+ }
+
+ async Task CompleteRistDeedAsync()
+ {
+  _ristDeedGateOpen=false;
+  var index=PathWorldOptions.ToList().FindIndex(option=>string.Equals(option.Id,Session.WorldId,StringComparison.Ordinal));
+  _worldIndex=index>=0?index:0;
+  _message=$"{Session.WorldDisplayName} deed ready. RIST did not spend a Shaelvien Token.";
+  await InvokeAsync(StateHasChanged);
+ }
+
  void CloseLegacyGate()
  {
   _legacyGateOpen=false;
