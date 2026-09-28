@@ -144,14 +144,22 @@ jobs:
               exit 1
             fi
 
-            if [[ "$STACK_STATUS" == "ROLLBACK_COMPLETE" ]]; then
+            if [[ "$STACK_STATUS" == "UPDATE_ROLLBACK_FAILED" ]]; then
+              echo "$STACK_NAME is UPDATE_ROLLBACK_FAILED; continuing rollback before deployment..."
+              aws cloudformation continue-update-rollback --stack-name "$STACK_NAME"
+              aws cloudformation wait stack-update-rollback-complete --stack-name "$STACK_NAME"
+              STACK_STATUS=$(aws cloudformation describe-stacks                 --stack-name "$STACK_NAME"                 --query 'Stacks[0].StackStatus'                 --output text)
+              echo "$STACK_NAME recovered to $STACK_STATUS."
+            elif [[ "$STACK_STATUS" == "ROLLBACK_FAILED" ]]; then
+              echo "$STACK_NAME is ROLLBACK_FAILED; deleting failed stack before clean redeploy..."
+              aws cloudformation delete-stack --stack-name "$STACK_NAME"
+              aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
+              echo "Failed platform stack deleted successfully."
+            elif [[ "$STACK_STATUS" == "ROLLBACK_COMPLETE" ]]; then
               echo "$STACK_NAME is a failed create shell; deleting before clean redeploy..."
               aws cloudformation delete-stack --stack-name "$STACK_NAME"
               aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
               echo "Failed platform stack shell deleted successfully."
-            elif [[ "$STACK_STATUS" == "UPDATE_ROLLBACK_FAILED" || "$STACK_STATUS" == "ROLLBACK_FAILED" ]]; then
-              echo "$STACK_NAME requires explicit CloudFormation rollback recovery: $STACK_STATUS"
-              exit 1
             else
               echo "$STACK_NAME is stable at $STACK_STATUS; deployment may proceed."
             fi
