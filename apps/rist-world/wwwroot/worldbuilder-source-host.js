@@ -10,8 +10,28 @@ export async function save(frame){
   return (await fn())!==false;
 }
 
+async function waitForPrototype(frame,timeoutMs=3000){
+  const started=Date.now();
+  while(Date.now()-started<timeoutMs){
+    const api=frame?.contentWindow?.ShaelvienPrototype;
+    if(api)return api;
+    await new Promise(resolve=>setTimeout(resolve,50));
+  }
+  return null;
+}
+
 export async function placeAsset(frame,payload){
-  const fn=frame?.contentWindow?.ShaelvienPrototype?.placeExternalAsset;
+  // Re-announce the host before every canonical commit. If attach() happened
+  // before the iframe finished booting, its first bridge-ready message could
+  // have been missed and saves would otherwise appear to do nothing.
+  post(frame,{type:"bridge-ready"});
+  const api=await waitForPrototype(frame);
+  if(!api)return false;
+
+  // Give the child one event turn to accept bridge-ready before its save path
+  // checks worldSourceHostReady.
+  await new Promise(resolve=>setTimeout(resolve,50));
+  const fn=api.placeExternalAsset;
   if(typeof fn!=="function")return false;
   return (await fn(payload||{}))!==false;
 }
@@ -85,4 +105,7 @@ export function attach(frame,dotnet){
   bridges.set(frame,handler);
   window.addEventListener("message",handler);
   post(frame,{type:"bridge-ready"});
+  try{
+    frame?.addEventListener?.("load",()=>post(frame,{type:"bridge-ready"}),{once:true});
+  }catch{}
 }
