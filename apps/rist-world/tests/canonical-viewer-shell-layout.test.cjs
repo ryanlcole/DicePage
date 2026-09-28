@@ -72,7 +72,7 @@ test('portrait builder keeps source content in the vertical center and corner PI
     css,
     /@media\(max-width:430px\) and \(orientation:portrait\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/
   );
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-context-start-save-load-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-experiment-boot-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
 });
 
@@ -89,24 +89,22 @@ test('START opens the existing settings menu without duplicating settings',()=>{
   assert.match(index,/start-menu\.js/);
 });
 
-test('Browse SELECT arms cursor and analog press targets the thumbnail beneath the reticle',()=>{
+test('Browse cursor and analog press target the thumbnail beneath the reticle',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
   const input=read('wwwroot/experiments-universal-input.js');
   const index=read('wwwroot/index.html');
 
   assert.match(razor,/bool _browseCursorActive;/);
-  assert.match(razor,/_stage!=Stage\.BrowsePlace\|\|_browseCursorActive/);
-  assert.match(
-    razor,
-    /case Stage\.BrowsePlace:[\s\S]*?if\(!_browseCursorActive\|\|_analogButtonMode\)[\s\S]*?_browseCursorActive=true;[\s\S]*?_analogButtonMode=false;/
-  );
+  assert.match(razor,/bool CursorAvailable=>!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;/);
+  assert.match(razor,/bool CursorMode=>CursorAvailable[\s\S]{0,120}?!_analogButtonMode/);
+  assert.match(razor,/case Stage\.BrowsePlace:[\s\S]{0,360}?_browseCursorActive=true;[\s\S]{0,120}?_analogButtonMode=false;/);
   assert.match(razor,/if\(_stage==Stage\.BrowsePlace&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\)/);
   assert.match(input,/function activateCursorTarget\(\)/);
   assert.match(input,/document\.elementFromPoint/);
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
   assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button,\.analog-mode-button"\)/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-context-start-save-load-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-experiment-boot-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
 });
 
@@ -145,7 +143,7 @@ test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer d
   assert.match(css,/--rist-cursor-image-selectAlt2/);
   assert.match(index,/cursors-haptics\.js\?v=20260928-visible-cursor-assets-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-context-start-save-load-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-experiment-boot-1/);
 });
 
 
@@ -204,4 +202,21 @@ test('mobile expanded context is contained and avoids iOS form zoom',()=>{
   assert.match(css,/\.asset-context-pip\.expanded\{[\s\S]*?left:8px!important;[\s\S]*?right:8px!important;[\s\S]*?width:auto!important/);
   assert.match(css,/\.asset-context-fields input,[\s\S]*?\.asset-context-fields textarea\{[\s\S]*?font-size:16px!important/);
   assert.match(css,/resize:none!important/);
+});
+
+
+test('Experiments open on the start artwork and START reveals Shaelvien and RIST',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const css=read('wwwroot/css/experiments-universal-suite.css');
+
+  assert.match(razor,/@if\(_stage==Stage\.Environment\)[\s\S]{0,500}?experiment-start-screen/);
+  assert.match(razor,/shaelvien-dragon-creation-startup-screen\.png/);
+  assert.match(razor,/_experimentStartRevealed\?"CHOOSE ENVIRONMENT":"PRESS START"/);
+  assert.match(razor,/class="experiment-dragon-head shaelvien-head"/);
+  assert.match(razor,/class="experiment-dragon-head rist-head"/);
+  assert.match(razor,/@onclick="HandleStartButtonAsync"/);
+  assert.match(razor,/HandleStartButtonAsync\(\)[\s\S]*?_experimentStartFlashing=true;[\s\S]*?Task\.Delay\(420\)[\s\S]*?_experimentStartRevealed=true;/);
+  assert.match(razor,/case Stage\.Environment:[\s\S]{0,260}?if\(!_experimentStartRevealed\)/);
+  assert.match(css,/Experiment boot screen authority/);
+  assert.match(css,/@keyframes experimentDragonHeadFlash/);
 });

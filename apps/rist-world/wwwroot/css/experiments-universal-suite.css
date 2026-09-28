@@ -2524,3 +2524,80 @@ body.rist-start-open.rist-start-experiment-controller .experiments-controller{
  color:#f2b8b8!important;
  border-color:#8d4949!important;
 }
+
+
+/* Experiment boot screen authority — 2026-09-28.
+   Experiments always enter through the Shaelvien start artwork with the
+   controller already visible. START reveals the two environment choices. */
+.experiment-start-screen{
+ position:absolute;
+ inset:0;
+ z-index:12;
+ overflow:hidden;
+ display:grid;
+ place-items:end center;
+ background:#02050a;
+ pointer-events:none;
+}
+.experiment-start-screen>img{
+ position:absolute;
+ inset:0;
+ width:100%;
+ height:100%;
+ object-fit:cover;
+ object-position:center;
+}
+.experiment-start-shade{
+ position:absolute;
+ inset:0;
+ background:
+  linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.08) 60%,rgba(0,0,0,.54)),
+  radial-gradient(circle at center,transparent 44%,rgba(0,0,0,.24));
+}
+.experiment-start-screen>strong{
+ position:relative;
+ z-index:2;
+ margin:0 0 clamp(22px,5dvh,48px);
+ color:#eadba6;
+ font:900 clamp(15px,3vw,28px)/1 system-ui,-apple-system,sans-serif;
+ letter-spacing:.18em;
+ text-shadow:0 2px 8px #000,0 0 16px #000;
+}
+.environment-choice-button{
+ overflow:hidden!important;
+ gap:5px!important;
+}
+.experiment-dragon-head{
+ display:block;
+ width:clamp(66px,14vw,126px);
+ max-width:72%;
+ aspect-ratio:1;
+ flex:0 0 auto;
+ border-radius:50%;
+ background-image:url('../assets/branding/shaelvien-dragon-creation-startup-screen.png');
+ background-repeat:no-repeat;
+ background-size:300% auto;
+ box-shadow:0 0 0 1px rgba(230,193,103,.48),0 6px 20px #0008;
+}
+.experiment-dragon-head.shaelvien-head{background-position:5% 10%}
+.experiment-dragon-head.rist-head{background-position:95% 10%}
+.environment-choice-button>strong{
+ font-size:clamp(15px,3vw,27px)!important;
+}
+.environment-head-flash .experiment-dragon-head{
+ animation:experimentDragonHeadFlash .21s ease-in-out 2;
+}
+@keyframes experimentDragonHeadFlash{
+ 0%,100%{filter:brightness(1);transform:scale(1)}
+ 50%{filter:brightness(1.85) drop-shadow(0 0 12px rgba(255,225,145,.92));transform:scale(1.06)}
+}
+@media(max-width:700px) and (orientation:portrait){
+ .experiment-start-screen>strong{margin-bottom:24px;font-size:17px}
+ .experiment-dragon-head{width:72px;max-width:64%}
+ .environment-choice-button>strong{font-size:18px!important}
+}
+@media(orientation:landscape) and (max-height:620px){
+ .experiment-start-screen>strong{margin-bottom:12px;font-size:12px}
+ .experiment-dragon-head{width:48px;max-width:50%}
+ .environment-choice-button>strong{font-size:12px!important}
+}

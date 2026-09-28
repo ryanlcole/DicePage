@@ -34,6 +34,15 @@
            loading="eager"
            allow="fullscreen"></iframe>
   </div>
+
+  @if(_stage==Stage.Environment)
+  {
+   <section class="experiment-start-screen" aria-label="Experiment start screen">
+    <img src="assets/branding/shaelvien-dragon-creation-startup-screen.png" alt="" aria-hidden="true" />
+    <div class="experiment-start-shade" aria-hidden="true"></div>
+    <strong>@(_experimentStartRevealed?"CHOOSE ENVIRONMENT":"PRESS START")</strong>
+   </section>
+  }
   @if(CursorMode)
   {
    <div class="viewer-reticle" data-cursor-role="pointer" style="@ReticleStyle" aria-hidden="true"><span></span></div>
@@ -210,20 +219,26 @@
    </section>
   }
 
-  <header class="viewer-title">
-   <span>VIEWER</span>
-  </header>
+  @if(_stage!=Stage.Environment)
+  {
+   <header class="viewer-title">
+    <span>VIEWER</span>
+   </header>
+  }
 
   <div class="viewer-status" role="status" aria-live="polite">
    <strong>@ViewerTitle</strong>
    <span>@_message</span>
   </div>
 
-  <footer class="viewer-readout">
-   <span>X @_xPulse</span>
-   <span>Y @_yPulse</span>
-   <span>@StagePath</span>
-  </footer>
+  @if(_stage!=Stage.Environment)
+  {
+   <footer class="viewer-readout">
+    <span>X @_xPulse</span>
+    <span>Y @_yPulse</span>
+    <span>@StagePath</span>
+   </footer>
+  }
  </main>
 
  <section class="experiments-controller single-analog-deck @AnalogPlacementClass"
@@ -237,12 +252,23 @@
     <span class="display-slider-cue cue-up" aria-hidden="true"></span>
    }
    <button type="button"
-           class="control-display-button control-display-left"
+           class="control-display-button control-display-left @(_stage==Stage.Environment?"environment-choice-button":"") @(_experimentStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
            @onclick="PressLeft"
            aria-label="Left display button: @LeftDisplayValue">
-    <small>@LeftEyebrow</small>
-    <strong class="@LeftDisplayTextClass">@LeftDisplayValue</strong>
-    <span>@LeftDisplayPrompt</span>
+    @if(_stage==Stage.Environment)
+    {
+     <span class="experiment-dragon-head shaelvien-head" aria-hidden="true"></span>
+     @if(_experimentStartRevealed)
+     {
+      <strong class="@LeftDisplayTextClass">SHAELVIEN</strong>
+     }
+    }
+    else
+    {
+     <small>@LeftEyebrow</small>
+     <strong class="@LeftDisplayTextClass">@LeftDisplayValue</strong>
+     <span>@LeftDisplayPrompt</span>
+    }
    </button>
    @if(LeftDisplayOptionCount>1)
    {
@@ -271,8 +297,8 @@
    </div>
    <button type="button"
            class="analog-start-button"
-           @onclick="OpenStartMenuAsync"
-           aria-label="Open Start menu">START</button>
+           @onclick="HandleStartButtonAsync"
+           aria-label="@(_stage==Stage.Environment&&!_experimentStartRevealed?"Reveal environments":"Open Start menu")">START</button>
   </div>
 
   <div class="@RightSliderClass"
@@ -284,12 +310,23 @@
     <span class="display-slider-cue cue-left" aria-hidden="true"></span>
    }
    <button type="button"
-           class="control-display-button control-display-right"
+           class="control-display-button control-display-right @(_stage==Stage.Environment?"environment-choice-button":"") @(_experimentStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
            @onclick="PressRight"
            aria-label="Right display button: @RightDisplayValue">
-    <small>@RightDisplayEyebrow</small>
-    <strong class="@RightDisplayTextClass">@RightDisplayValue</strong>
-    <span>@RightDisplayPrompt</span>
+    @if(_stage==Stage.Environment)
+    {
+     <span class="experiment-dragon-head rist-head" aria-hidden="true"></span>
+     @if(_experimentStartRevealed)
+     {
+      <strong class="@RightDisplayTextClass">RIST</strong>
+     }
+    }
+    else
+    {
+     <small>@RightDisplayEyebrow</small>
+     <strong class="@RightDisplayTextClass">@RightDisplayValue</strong>
+     <span>@RightDisplayPrompt</span>
+    }
    </button>
    @if(RightDisplayOptionCount>1)
    {
@@ -383,6 +420,8 @@
  bool _assetContextExpanded;
  bool _browseCursorActive;
  bool _analogButtonMode;
+ bool _experimentStartRevealed;
+ bool _experimentStartFlashing;
  string _contextLoadedIdentity="";
  string _contextName="";
  string _contextLore="";
@@ -1084,6 +1123,11 @@
   switch(_stage)
   {
    case Stage.Environment:
+    if(!_experimentStartRevealed)
+    {
+     _message="Press START first.";
+     break;
+    }
     _stage=Stage.Role;
     _message="Shaelvien selected. Choose Roleplayer or GameMaster.";
     break;
@@ -1296,6 +1340,11 @@
   switch(_stage)
   {
    case Stage.Environment:
+    if(!_experimentStartRevealed)
+    {
+     _message="Press START first.";
+     break;
+    }
     _message="RIST selected. The universal/private environment branch is reserved for the next experiment.";
     break;
    case Stage.Role:
@@ -2251,6 +2300,24 @@
  {
   try{await JS.InvokeVoidAsync("RistStartMenu.close");}catch(JSException){}
   if(OnExit.HasDelegate)await OnExit.InvokeAsync();
+ }
+
+ async Task HandleStartButtonAsync()
+ {
+  if(_stage==Stage.Environment&&!_experimentStartRevealed)
+  {
+   _experimentStartFlashing=true;
+   _message="Starting…";
+   await InvokeAsync(StateHasChanged);
+   await Task.Delay(420);
+   _experimentStartFlashing=false;
+   _experimentStartRevealed=true;
+   _message="Choose Shaelvien or RIST.";
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+
+  await OpenStartMenuAsync();
  }
 
  async Task OpenStartMenuAsync()
