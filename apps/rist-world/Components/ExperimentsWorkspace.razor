@@ -260,6 +260,10 @@
     <span class="analog-crosshair"></span>
     <span class="analog-knob"></span>
    </div>
+   <button type="button"
+           class="analog-start-button"
+           @onclick="OpenStartMenuAsync"
+           aria-label="Open Start menu">START</button>
   </div>
 
   <div class="@RightSliderClass"
@@ -368,6 +372,7 @@
  string _assetScope="WORLD";
  string _activeKnowledgeNode="";
  bool _assetContextExpanded;
+ bool _browseCursorActive;
  string _contextLoadedIdentity="";
  string _contextName="";
  string _contextLore="";
@@ -579,7 +584,10 @@
    };
 
  bool RightActsAsBack=>!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1;
- bool CursorMode=>!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
+ bool CursorMode=>!IsPathDrivenStage
+  &&LeftDisplayOptionCount<=1
+  &&RightDisplayOptionCount<=1
+  &&(_stage!=Stage.BrowsePlace||_browseCursorActive);
 
  bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
  bool IsAssetTransformStage=>_stage is Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
@@ -1111,15 +1119,23 @@
     break;
    case Stage.AssetMode:
     _assetMode="EDIT";
+    _browseCursorActive=false;
     _stage=Stage.BrowsePlace;
     _message="Edit selected. Browse requests a source through the future image-tool adapter.";
     break;
    case Stage.BrowsePlace:
-    if((IsMyAssetSource||IsGameAssetSource)&&string.IsNullOrWhiteSpace(_selectedAssetKey))
+    if(!_browseCursorActive)
     {
-     _message=$"Choose a {_assetKind.ToLowerInvariant()} first, then touch the left display to select it.";
+     _browseCursorActive=true;
+     _message="Cursor active. Move the analog over an asset and press the analog stick to highlight it; touch SELECT again to use the highlighted asset.";
      break;
     }
+    if((IsMyAssetSource||IsGameAssetSource)&&string.IsNullOrWhiteSpace(_selectedAssetKey))
+    {
+     _message=$"Move the cursor over a {_assetKind.ToLowerInvariant()} and press the analog stick, or touch a thumbnail.";
+     break;
+    }
+    _browseCursorActive=false;
     _stage=Stage.Scale;
     _message=(IsMyAssetSource||IsGameAssetSource)
      ?$"{SelectedAssetName} selected from {_assetSource}. Use Y or slide the left display to set scale."
@@ -1228,12 +1244,14 @@
     _message="Returned to asset type and source.";
     break;
    case Stage.BrowsePlace:
+    _browseCursorActive=false;
     _stage=Stage.AssetKind;
     _message=$"Returned from {_assetSource} to {_assetKind} source selection.";
     break;
    case Stage.Scale:
+    _browseCursorActive=true;
     _stage=Stage.BrowsePlace;
-    _message=$"Returned to {_assetSource} explorer.";
+    _message=$"Returned to {_assetSource} explorer. Cursor restored.";
     break;
    case Stage.Rotate:
     _stage=Stage.Scale;
@@ -1407,6 +1425,7 @@
 
  void PrepareAssetSource(string kind)
  {
+  _browseCursorActive=false;
   _assetKind=kind;
   _assetKindIndex=Array.IndexOf(AssetKinds,kind);
   if(_assetKindIndex<0)_assetKindIndex=0;
@@ -1419,6 +1438,7 @@
 
  void OpenSelectedAssetSource()
  {
+  _browseCursorActive=false;
   _assetSource=CurrentAssetSource;
   _selectedAssetKey="";
   _assetLoadError="";
@@ -2176,6 +2196,35 @@
   if(shouldLoad)await LoadAssetContextAsync();
  }
 
+ async Task OpenStartMenuAsync()
+ {
+  try
+  {
+   await JS.InvokeVoidAsync("RistStartMenu.open");
+  }
+  catch(JSException ex)
+  {
+   Console.Error.WriteLine($"Start menu open failed: {ex}");
+   _message="Start menu is temporarily unavailable.";
+  }
+ }
+
+ async Task ActivateBrowseCursorTargetAsync()
+ {
+  try
+  {
+   var activated=await JS.InvokeAsync<bool>("ristExperimentsUniversalInput.activateCursorTarget");
+   _message=activated
+    ?"Asset highlighted. Touch SELECT to use it, or keep moving the cursor."
+    :"Move the cursor over an asset thumbnail, then press the analog stick.";
+  }
+  catch(JSException ex)
+  {
+   Console.Error.WriteLine($"Cursor target activation failed: {ex}");
+   _message="Cursor selection is temporarily unavailable; touch a thumbnail instead.";
+  }
+ }
+
  [JSInvokable]
  public Task ReceiveUniversalInput(string control,int direction)
  {
@@ -2185,7 +2234,10 @@
    {
     case "x": StepX(direction); break;
     case "y": StepY(direction); break;
-    case "select": await PressLeft(); break;
+    case "select":
+     if(_stage==Stage.BrowsePlace&&_browseCursorActive)await ActivateBrowseCursorTargetAsync();
+     else await PressLeft();
+     break;
     case "left": await PressLeft(); break;
     case "right": await PressRight(); break;
    }

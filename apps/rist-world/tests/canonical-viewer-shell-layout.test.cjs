@@ -69,6 +69,37 @@ test('portrait builder keeps source content in the vertical center and corner PI
     css,
     /@media\(max-width:430px\) and \(orientation:portrait\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/
   );
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-analog-select-pip-safe-1/);
-  assert.match(index,/experiments-universal-input\.js\?v=20260928-analog-select-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-browse-cursor-start-1/);
+  assert.match(index,/experiments-universal-input\.js\?v=20260928-browse-cursor-start-1/);
+});
+
+
+test('START opens the existing settings menu without duplicating settings',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const index=read('wwwroot/index.html');
+
+  assert.match(razor,/class="analog-start-button"[\s\S]{0,180}?@onclick="OpenStartMenuAsync"[\s\S]{0,180}?>START<\/button>/);
+  assert.match(razor,/await JS\.InvokeVoidAsync\("RistStartMenu\.open"\)/);
+  assert.doesNotMatch(razor,/<h2>Video<\/h2>|<h2>Picture<\/h2>|<h2>Sound<\/h2>|<h2>Effects<\/h2>/);
+  assert.match(css,/body\.rist-start-open \.rist-start-overlay\{[\s\S]*?z-index:2147483600!important/);
+  assert.match(index,/start-menu\.js/);
+});
+
+test('Browse SELECT arms cursor and analog press targets the thumbnail beneath the reticle',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const input=read('wwwroot/experiments-universal-input.js');
+  const index=read('wwwroot/index.html');
+
+  assert.match(razor,/bool _browseCursorActive;/);
+  assert.match(razor,/_stage!=Stage\.BrowsePlace\|\|_browseCursorActive/);
+  assert.match(razor,/case Stage\.BrowsePlace:[\s\S]*?if\(!_browseCursorActive\)[\s\S]*?_browseCursorActive=true;/);
+  assert.match(razor,/if\(_stage==Stage\.BrowsePlace&&_browseCursorActive\)await ActivateBrowseCursorTargetAsync\(\)/);
+  assert.match(input,/function activateCursorTarget\(\)/);
+  assert.match(input,/document\.elementFromPoint/);
+  assert.match(input,/\.asset-source-explorer \.linked-asset/);
+  assert.match(input,/target\.click\(\)/);
+  assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button"\)/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-browse-cursor-start-1/);
+  assert.match(index,/experiments-universal-input\.js\?v=20260928-browse-cursor-start-1/);
 });

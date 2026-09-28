@@ -97,6 +97,21 @@
     return analog?.closest?.(".experiments-shell")?.querySelector?.(".viewer-reticle") || null;
   }
 
+  function activateCursorTarget() {
+    const reticle = currentReticle();
+    const rect = reticle?.getBoundingClientRect?.();
+    if (!rect || rect.width < 1 || rect.height < 1) return false;
+
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    const hit = document.elementFromPoint?.(x, y);
+    const target = hit?.closest?.(".asset-source-explorer .linked-asset");
+    if (!target) return false;
+
+    target.click();
+    return true;
+  }
+
   function renderCursor() {
     const reticle = currentReticle();
     if (!reticle) return;
@@ -237,6 +252,7 @@
     };
 
     const onPointerDown = event => {
+      if (event.target instanceof Element && event.target.closest(".analog-start-button")) return;
       if (event.button !== undefined && event.button !== 0) return;
       pointerId = event.pointerId;
       pressStartX = event.clientX;
@@ -287,6 +303,7 @@
     const finishPointer = event => releasePointer(event, true);
     const cancelPointer = event => releasePointer(event, false);
     const onKeyDown = event => {
+      if (event.target instanceof Element && event.target.closest(".analog-start-button")) return;
       if (event.key !== "Enter" && event.key !== " ") return;
       invoke("select");
       event.preventDefault();
@@ -463,6 +480,7 @@
   }
 
   window.ristExperimentsUniversalInput = Object.freeze({
+    activateCursorTarget,
     start(dotnetReference, analogElement, leftSliderElement, rightSliderElement) {
       dotnet = dotnetReference;
       previousButtons = [];
