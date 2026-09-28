@@ -42,7 +42,7 @@
    <section class="experiment-start-screen" aria-label="Experiment start screen">
     <img src="assets/branding/shaelvien-dragon-creation-startup-screen.png" alt="" aria-hidden="true" />
     <div class="experiment-start-shade" aria-hidden="true"></div>
-    <strong>@(_experimentStartRevealed?"CHOOSE ENVIRONMENT":"PRESS START")</strong>
+    <strong>CHOOSE ENVIRONMENT</strong>
    </section>
   }
   @if(CursorMode)
@@ -438,7 +438,7 @@
  bool _assetContextExpanded;
  bool _browseCursorActive;
  bool _analogButtonMode;
- bool _experimentStartRevealed;
+ bool _experimentStartRevealed=true;
  bool _experimentStartFlashing;
  bool _legacyGateOpen;
  string _selectedEnvironment="SHAELVIEN";
