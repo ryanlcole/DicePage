@@ -295,7 +295,7 @@
            @onclick="ToggleAnalogMode"
            disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
            aria-disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
-           aria-label="@(_stage==Stage.Environment&&_experimentStartRevealed?"Open legacy interface":"Switch analog between cursor and button controls")">@AnalogModeLabel</button>
+           aria-label="@(_stage==Stage.Environment&&_experimentStartRevealed?"Open Legacy GM archive import":"Switch analog between cursor and button controls")">@AnalogModeLabel</button>
    <span class="analog-direction analog-up" aria-hidden="true">UP</span>
    <span class="analog-direction analog-down" aria-hidden="true">DOWN</span>
    <span class="analog-direction analog-left" aria-hidden="true">LEFT</span>
@@ -348,6 +348,10 @@
    }
   </div>
  </section></section>
+
+<LegacyWorldGate Open="@_legacyGateOpen"
+                 OnClose="CloseLegacyGate"
+                 OnContinue="ContinueLegacyIntoRistAsync" />
 
 @if(Session.IsServerVerifiedPlatformOwner&&_stage==Stage.Environment)
 {
@@ -436,6 +440,7 @@
  bool _analogButtonMode;
  bool _experimentStartRevealed;
  bool _experimentStartFlashing;
+ bool _legacyGateOpen;
  string _selectedEnvironment="SHAELVIEN";
  string _contextLoadedIdentity="";
  string _contextName="";
@@ -2406,14 +2411,30 @@
    _message="Start menu is temporarily unavailable.";
   }
  }
+ void CloseLegacyGate()
+ {
+  _legacyGateOpen=false;
+  _message="Choose Shaelvien, RIST, or Legacy.";
+ }
+
+ async Task ContinueLegacyIntoRistAsync()
+ {
+  _legacyGateOpen=false;
+  _selectedEnvironment="RIST";
+  _analogButtonMode=false;
+  _browseCursorActive=false;
+  _stage=Stage.Role;
+  _message="Legacy archive loaded into RIST. Choose Roleplayer or GameMaster.";
+  await InvokeAsync(StateHasChanged);
+ }
 
  async Task ToggleAnalogMode()
  {
   if(_stage==Stage.Environment&&_experimentStartRevealed)
   {
-   _message="Opening Legacy interface…";
+   _legacyGateOpen=true;
+   _message="Legacy: import or load a preserved GM archive. Completing Legacy continues into RIST.";
    await InvokeAsync(StateHasChanged);
-   if(OnExit.HasDelegate)await OnExit.InvokeAsync();
    return;
   }
 
