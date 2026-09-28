@@ -312,6 +312,8 @@ test('GameMaster path right display is Claim Deed or alphabetical world selector
   assert.match(razor,/PathWorldLabel=>CurrentPathWorld[\s\S]{0,100}?"CLAIM DEED"/);
   assert.match(razor,/Stage\.PathSelect=>PathWorldLabel/);
   assert.match(razor,/Stage\.PathSelect=>PathWorldPrompt/);
+  assert.match(razor,/async Task PressRight\(\)[\s\S]{0,900}?case Stage\.PathSelect:[\s\S]{0,260}?ActivateCurrentPathWorldAsync\(\)[\s\S]{0,260}?OpenControllerDeedAsync\(\)/);
+  assert.match(razor,/async Task PressLeft\(\)[\s\S]{0,900}?case Stage\.PathSelect:[\s\S]{0,260}?Use the right display to Claim Deed[\s\S]{0,260}?BeginGameMasterPath\(\)/);
   assert.match(razor,/YOU HAVE \{count\} TOKEN/);
   assert.match(razor,/return "NO TOKEN REQUIRED"/);
   assert.match(razor,/<ShaelvienDeedGate[\s\S]{0,220}?OnClaimed="CompleteShaelvienDeedAsync"/);
@@ -328,7 +330,8 @@ test('controller Save reacts immediately, commits canonical placement, and retur
 
   assert.match(razor,/Stage\.SaveCancel=>_assetSavePending\?"SAVING…":"SAVE"/);
   assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,600}?_assetSavePending=true;[\s\S]{0,220}?InvokeAsync\(StateHasChanged\)[\s\S]{0,260}?CommitCurrentAssetToCanonicalViewerAsync\(\)/);
-  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,1000}?_stage=Stage\.PathSelect/);
+  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,1200}?_stage=Stage\.PathSelect/);
+  assert.match(razor,/savedWorldId[\s\S]{0,420}?PathWorldOptions[\s\S]{0,260}?_worldIndex=savedWorldIndex>=0\?savedWorldIndex:0/);
   assert.match(razor,/Returned to the GameMaster path menu/);
   assert.doesNotMatch(razor,/case Stage\.SaveCancel:[\s\S]{0,180}?SaveCurrentAssetToViewer\(\)/);
   assert.match(razor,/InvokeAsync<bool>\([\s\S]{0,180}?"placeAsset"/);
