@@ -1,6 +1,8 @@
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
+@using System.Text.Json
+@using System.Text.Json.Nodes
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 @inject WorldSession Session
@@ -46,6 +48,62 @@
      }
     </div>
     <footer><span>T@_tier</span><span>L@_layer</span></footer>
+   </aside>
+  }
+
+  @if(IsBuilderStage)
+  {
+   <aside class="viewer-compass" aria-label="Map compass">
+    <span class="compass-n">N</span>
+    <span class="compass-e">E</span>
+    <span class="compass-s">S</span>
+    <span class="compass-w">W</span>
+    <i class="compass-needle" aria-hidden="true"></i>
+   </aside>
+
+   <aside class="viewer-legend" aria-label="Map legend">
+    <header>LEGEND</header>
+    <span><i class="legend-swatch terrain"></i>TERRAIN</span>
+    <span><i class="legend-swatch scope"></i>@CurrentBuilderScope</span>
+    @if(!string.IsNullOrWhiteSpace(_selectedAssetKey))
+    {
+     <span><i class="legend-swatch selected"></i>SELECTED ASSET</span>
+    }
+    <span><i class="legend-swatch context"></i>CONTEXT</span>
+   </aside>
+
+   <aside class="asset-context-pip @(_assetContextExpanded?"expanded":"minimized")"
+          aria-label="@AssetContextTitle context">
+    <header>
+     <div>
+      <small>ASSET CONTEXT</small>
+      <strong>@AssetContextTitle</strong>
+     </div>
+     @if(_assetContextExpanded)
+     {
+      <button type="button" @onclick="MinimizeAssetContext" aria-label="Minimize asset context">—</button>
+     }
+    </header>
+
+    @if(_assetContextExpanded)
+    {
+     <div class="asset-context-fields">
+      <label>NAME<input @bind="_contextName" /></label>
+      <label>LORE<textarea @bind="_contextLore"></textarea></label>
+      <label>HISTORY<textarea @bind="_contextHistory"></textarea></label>
+      <label>NPCS<textarea @bind="_contextNpcs"></textarea></label>
+      <label>ENCOUNTERS<textarea @bind="_contextEncounters"></textarea></label>
+      <label>NOTES<textarea @bind="_contextNotes"></textarea></label>
+     </div>
+     <footer>
+      <span role="status">@_contextStatus</span>
+      <button type="button" @onclick="SaveAssetContextAsync">SAVE CONTEXT</button>
+     </footer>
+    }
+    else
+    {
+     <p>@AssetContextSummary</p>
+    }
    </aside>
   }
 
@@ -306,6 +364,15 @@
  string _assetKind="IMAGE";
  string _assetScope="WORLD";
  string _activeKnowledgeNode="";
+ bool _assetContextExpanded;
+ string _contextLoadedIdentity="";
+ string _contextName="";
+ string _contextLore="";
+ string _contextHistory="";
+ string _contextNpcs="";
+ string _contextEncounters="";
+ string _contextNotes="";
+ string _contextStatus="";
  string _assetSource="GAME IMAGES";
  string _assetMode="ADD";
  bool _assetsLoading;
@@ -422,6 +489,21 @@
  string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
  string CurrentBuilderScope=>BuilderChain[Math.Clamp(_builderChainIndex,0,BuilderChain.Length-1)];
  string CurrentBuilderSuite=>BuilderSuiteNames[Math.Clamp(_builderChainIndex,0,BuilderSuiteNames.Length-1)];
+ string AssetContextIdentity=>!string.IsNullOrWhiteSpace(_selectedAssetKey)
+  ?_selectedAssetKey
+  :$"scope:{CurrentBuilderScope.ToLowerInvariant()}:tier:{_tier}:layer:{_layer}";
+ string AssetContextTitle=>!string.IsNullOrWhiteSpace(_selectedAssetKey)
+  ?SelectedAssetName
+  :$"{CurrentBuilderScope} · T{_tier} L{_layer}";
+ string AssetContextButtonLabel=>_assetContextExpanded?"MINIMIZE":"CONTEXT";
+ string AssetContextSummary
+ {
+  get
+  {
+   var text=FirstNonEmpty(_contextLore,_contextHistory,_contextNotes,_contextNpcs,_contextEncounters);
+   return string.IsNullOrWhiteSpace(text)?"NO CONTEXT SAVED":Shorten(text,92);
+  }
+ }
  string WorldBuilderViewerSrc
  {
   get
@@ -465,14 +547,16 @@
   _=>1
  };
 
- int RightDisplayOptionCount=>IsPathDrivenStage
-  ?CurrentPathMenu.Length
-  :_stage switch
-  {
-   Stage.GameMasterHub=>Settings.Length,
-   Stage.Rotate=>72,
-   _=>1
-  };
+ int RightDisplayOptionCount=>IsBuilderStage
+  ?1
+  :IsPathDrivenStage
+   ?CurrentPathMenu.Length
+   :_stage switch
+   {
+    Stage.GameMasterHub=>Settings.Length,
+    Stage.Rotate=>72,
+    _=>1
+   };
 
  bool RightActsAsBack=>!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1;
  bool CursorMode=>!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
@@ -497,9 +581,11 @@
   _=>"Y · NAVIGATE"
  };
 
- string RightAxisHint=>IsPathDrivenStage
-  ?"X · PATH / JOURNAL"
-  :_stage switch
+ string RightAxisHint=>IsBuilderStage
+  ?"X · VIEWER"
+  :IsPathDrivenStage
+   ?"X · PATH / JOURNAL"
+   :_stage switch
   {
    Stage.GameMasterHub=>"X · OPTIONS",
    Stage.Rotate=>"X · ROTATE",
@@ -658,13 +744,17 @@
   _=>LeftLabel
  };
 
- string RightDisplayEyebrow=>RightActsAsBack?"NAVIGATION":RightEyebrow;
+ string RightDisplayEyebrow=>IsBuilderStage
+  ?"ASSET CONTEXT"
+  :RightActsAsBack?"NAVIGATION":RightEyebrow;
 
- string RightDisplayValue=>RightActsAsBack
-  ?"BACK"
-  :IsPathDrivenStage
-   ?CurrentPathTarget
-   :_stage switch
+ string RightDisplayValue=>IsBuilderStage
+  ?AssetContextButtonLabel
+  :RightActsAsBack
+   ?"BACK"
+   :IsPathDrivenStage
+    ?CurrentPathTarget
+    :_stage switch
    {
     Stage.GameMasterHub=>CurrentSetting,
     Stage.ControlSettings=>"BACK",
@@ -689,11 +779,13 @@
   _=>"TOUCH · ACTIVATE"
  };
 
- string RightDisplayPrompt=>RightActsAsBack
-  ?"TOUCH · BACK"
-  :IsPathDrivenStage
-   ?"SLIDE ↔ · TOUCH JUMP"
-   :_stage switch
+ string RightDisplayPrompt=>IsBuilderStage
+  ?(_assetContextExpanded?"TOUCH · MINIMIZE":"TOUCH · OPEN")
+  :RightActsAsBack
+   ?"TOUCH · BACK"
+   :IsPathDrivenStage
+    ?"SLIDE ↔ · TOUCH JUMP"
+    :_stage switch
    {
     Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
     Stage.SoftwareHub=>"TOUCH · BACK",
@@ -921,7 +1013,7 @@
   if(direction==0)return;
   _xPulse=Math.Clamp(_xPulse+direction,-99,99);
 
-  if(IsPathDrivenStage)
+  if(IsPathDrivenStage&&!IsBuilderStage)
   {
    _pathMenuIndex=Wrap(_pathMenuIndex+direction,CurrentPathMenu.Length);
    _message=$"Path / journal: {CurrentPathTarget}.";
@@ -1038,13 +1130,15 @@
     break;
    case Stage.Scale:
     _stage=Stage.Rotate;
-    _message=$"Scale {_assetScale:0.00}× selected. Use X or slide the right display to rotate.";
+    _message=$"Scale {_assetScale:0.00}× selected. Use X to rotate; touch the left display to continue.";
     break;
    case Stage.Rotate:
-    _message="X rotates; Right/Set confirms.";
+    _stage=Stage.Move;
+    _message=$"Rotation {_assetRotation}° set. Use X/Y to move; touch the left display to continue.";
     break;
    case Stage.Move:
-    _message="X/Y move; Right/Set confirms.";
+    _stage=Stage.SaveCancel;
+    _message="Position set. Touch the left display to save; Browser Back cancels.";
     break;
   }
   return Task.CompletedTask;
@@ -1143,6 +1237,12 @@
 
  Task PressRight()
  {
+  if(IsBuilderStage)
+  {
+   ToggleAssetContext();
+   return Task.CompletedTask;
+  }
+
   if(IsPathDrivenStage)
   {
    OpenPathTarget(CurrentPathTarget);
@@ -1488,7 +1588,8 @@
  void SelectGameAsset(string key)
  {
   _selectedAssetKey=key;
-  _message=$"{SelectedAssetName} selected. Touch the left display to use it.";
+  ResetAssetContextForSelection();
+  _message=$"{SelectedAssetName} selected. Touch the left display to use it; the right display opens its context.";
  }
 
  async Task LoadMyAssetsAsync()
@@ -1565,7 +1666,8 @@
  void SelectMyAsset(string key)
  {
   _selectedAssetKey=key;
-  _message=$"{SelectedAssetName} selected. Touch the left display to use it.";
+  ResetAssetContextForSelection();
+  _message=$"{SelectedAssetName} selected. Touch the left display to use it; the right display opens its context.";
  }
 
  async Task HandleAssetUpload(InputFileChangeEventArgs e)
@@ -1684,7 +1786,170 @@
   int Y,
   DateTimeOffset SavedAtUtc);
 
- async Task PersistAnalogPlacementAsync()
+ void ToggleAssetContext()
+ {
+  if(_assetContextExpanded)
+  {
+   MinimizeAssetContext();
+   return;
+  }
+
+  _assetContextExpanded=true;
+  _contextStatus="Loading context…";
+  _=LoadAssetContextAsync();
+ }
+
+ void MinimizeAssetContext()
+ {
+  _assetContextExpanded=false;
+  _message=$"{AssetContextTitle} context minimized.";
+ }
+
+ void ResetAssetContextForSelection()
+ {
+  _assetContextExpanded=false;
+  _contextLoadedIdentity="";
+  _contextName="";
+  _contextLore="";
+  _contextHistory="";
+  _contextNpcs="";
+  _contextEncounters="";
+  _contextNotes="";
+  _contextStatus="";
+ }
+
+ async Task LoadAssetContextAsync()
+ {
+  var identity=AssetContextIdentity;
+  if(_contextLoadedIdentity==identity)
+  {
+   _contextStatus="Context ready.";
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+
+  try
+  {
+   var source=await Session.LoadWorldBuilderSourceAsync();
+   JsonObject? root=null;
+   if(source is not null)
+   {
+    try{root=JsonNode.Parse(source.State.GetRawText()) as JsonObject;}catch{}
+   }
+
+   var contexts=root?["assetContexts"] as JsonObject;
+   var context=contexts?[identity] as JsonObject;
+   if(context is null)
+   {
+    _contextName=AssetContextTitle;
+    _contextLore="";
+    _contextHistory="";
+    _contextNpcs="";
+    _contextEncounters="";
+    _contextNotes="";
+    _contextStatus="New context.";
+   }
+   else
+   {
+    _contextName=NodeText(context,"name",AssetContextTitle);
+    _contextLore=NodeText(context,"lore");
+    _contextHistory=NodeText(context,"history");
+    _contextNpcs=NodeText(context,"npcs");
+    _contextEncounters=NodeText(context,"encounters");
+    _contextNotes=NodeText(context,"notes");
+    _contextStatus="Context loaded.";
+   }
+
+   _contextLoadedIdentity=identity;
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Asset context load failed: {ex}");
+   _contextStatus="Context could not be loaded.";
+  }
+
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task SaveAssetContextAsync()
+ {
+  if(!Session.HasActiveWorld)
+  {
+   _contextStatus="Choose a world before saving context.";
+   return;
+  }
+
+  _contextStatus="Saving…";
+  await InvokeAsync(StateHasChanged);
+
+  try
+  {
+   var source=await Session.LoadWorldBuilderSourceAsync();
+   JsonObject root;
+   try
+   {
+    root=source is null
+     ?new JsonObject()
+     :(JsonNode.Parse(source.State.GetRawText()) as JsonObject??new JsonObject());
+   }
+   catch
+   {
+    root=new JsonObject();
+   }
+
+   if(root["worldId"] is null)root["worldId"]=Session.WorldId;
+
+   var contexts=root["assetContexts"] as JsonObject;
+   if(contexts is null)
+   {
+    contexts=new JsonObject();
+    root["assetContexts"]=contexts;
+   }
+
+   contexts[AssetContextIdentity]=new JsonObject
+   {
+    ["name"]=string.IsNullOrWhiteSpace(_contextName)?AssetContextTitle:_contextName.Trim(),
+    ["lore"]=_contextLore.Trim(),
+    ["history"]=_contextHistory.Trim(),
+    ["npcs"]=_contextNpcs.Trim(),
+    ["encounters"]=_contextEncounters.Trim(),
+    ["notes"]=_contextNotes.Trim(),
+    ["assetKey"]=_selectedAssetKey,
+    ["scope"]=CurrentBuilderScope,
+    ["tier"]=_tier,
+    ["layer"]=_layer,
+    ["updatedAtUtc"]=DateTimeOffset.UtcNow.ToString("O")
+   };
+
+   using var document=JsonDocument.Parse(root.ToJsonString());
+   await Session.SaveWorldBuilderSourceAsync(document.RootElement.Clone());
+
+   _contextLoadedIdentity=AssetContextIdentity;
+   _contextStatus="Context saved.";
+   _message=$"{AssetContextTitle} context saved to the world source.";
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Asset context save failed: {ex}");
+   _contextStatus="Context save failed.";
+  }
+
+  await InvokeAsync(StateHasChanged);
+ }
+
+ static string NodeText(JsonObject node,string key,string fallback="")
+  =>node[key]?.ToString()??fallback;
+
+ static string FirstNonEmpty(params string[] values)
+  =>values.FirstOrDefault(value=>!string.IsNullOrWhiteSpace(value))??"";
+
+ static string Shorten(string value,int max)
+ {
+  var clean=value.Trim().Replace("\r"," ").Replace("\n"," ");
+  return clean.Length<=max?clean:clean[..Math.Max(1,max-1)]+"…";
+ }
+
+  async Task PersistAnalogPlacementAsync()
  {
   try{await JS.InvokeVoidAsync("localStorage.setItem",AnalogPlacementStorageKey,_analogPlacement);}catch{}
  }
