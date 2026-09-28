@@ -223,9 +223,15 @@
 
   @if(_stage!=Stage.Environment)
   {
-   <header class="viewer-title">
-    <span>VIEWER</span>
-   </header>
+   <nav class="viewer-menu-bar" role="toolbar" aria-label="Viewer editing and navigation">
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("back")' aria-label="Back">BACK</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("undo")' aria-label="Undo">UNDO</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("cut")' aria-label="Cut selected item">CUT</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("copy")' aria-label="Copy selected item">COPY</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("redo")' aria-label="Redo">REDO</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("paste")' aria-label="Paste copied item">PASTE</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("forward")' aria-label="Forward">FORWARD</button>
+   </nav>
   }
 
   <div class="viewer-status" role="status" aria-live="polite">
@@ -468,6 +474,7 @@
  List<UserAssetEntry> _gameAssets=[];
  List<SavedViewerAsset> _savedAssets=[];
  Stack<string> _pathHistory=new();
+ Stack<ViewerNavState> _viewerForwardHistory=new();
  string _message="Slide the left display vertically and the right display horizontally. The analog snaps those displays one page at a time; when neither display has multiple choices it becomes the viewer cursor.";
 
  static readonly string[] Settings=["GRAPHICS","LANGUAGE","ACCESSIBILITY","CONTROLS","AUDIO","DISPLAY","NETWORK","ACCOUNT","HELP"];
@@ -1965,6 +1972,35 @@
  string SavedViewerAssetStyle(SavedViewerAsset asset)
   =>$"--saved-x:{asset.X}px;--saved-y:{asset.Y}px;--saved-scale:{asset.Scale:0.00};--saved-rotate:{asset.Rotation}deg;--saved-tier:{asset.Tier};--saved-layer:{asset.Layer};";
 
+ sealed record ViewerNavState(
+  Stage Stage,
+  int WorldIndex,
+  int SettingIndex,
+  int ScopeIndex,
+  int SoftwareIndex,
+  int PathIndex,
+  int PathMenuIndex,
+  int ArtMethodIndex,
+  int ArtPhaseIndex,
+  int ArtToolIndex,
+  int AssetKindIndex,
+  int AssetSourceIndex,
+  int BuilderChainIndex,
+  int Tier,
+  int Layer,
+  double AssetScale,
+  int AssetRotation,
+  int AssetX,
+  int AssetY,
+  string AssetKind,
+  string AssetScope,
+  string ActiveKnowledgeNode,
+  bool BrowseCursorActive,
+  bool AnalogButtonMode,
+  string AssetSource,
+  string AssetMode,
+  string SelectedAssetKey);
+
  sealed record UserAssetEntry(string Key,string Url,string Name,DateTimeOffset LastModified);
 
  sealed record SavedViewerAsset(
@@ -2211,6 +2247,98 @@
   return result<0?result+360:result;
  }
 
+ ViewerNavState CaptureViewerNavState()=>new(
+  _stage,_worldIndex,_settingIndex,_scopeIndex,_softwareIndex,_pathIndex,_pathMenuIndex,
+  _artMethodIndex,_artPhaseIndex,_artToolIndex,_assetKindIndex,_assetSourceIndex,_builderChainIndex,
+  _tier,_layer,_assetScale,_assetRotation,_assetX,_assetY,_assetKind,_assetScope,_activeKnowledgeNode,
+  _browseCursorActive,_analogButtonMode,_assetSource,_assetMode,_selectedAssetKey);
+
+ async Task RestoreViewerNavStateAsync(ViewerNavState state)
+ {
+  _stage=state.Stage;
+  _worldIndex=state.WorldIndex;
+  _settingIndex=state.SettingIndex;
+  _scopeIndex=state.ScopeIndex;
+  _softwareIndex=state.SoftwareIndex;
+  _pathIndex=state.PathIndex;
+  _pathMenuIndex=state.PathMenuIndex;
+  _artMethodIndex=state.ArtMethodIndex;
+  _artPhaseIndex=state.ArtPhaseIndex;
+  _artToolIndex=state.ArtToolIndex;
+  _assetKindIndex=state.AssetKindIndex;
+  _assetSourceIndex=state.AssetSourceIndex;
+  _builderChainIndex=state.BuilderChainIndex;
+  _tier=state.Tier;
+  _layer=state.Layer;
+  _assetScale=state.AssetScale;
+  _assetRotation=state.AssetRotation;
+  _assetX=state.AssetX;
+  _assetY=state.AssetY;
+  _assetKind=state.AssetKind;
+  _assetScope=state.AssetScope;
+  _activeKnowledgeNode=state.ActiveKnowledgeNode;
+  _browseCursorActive=state.BrowseCursorActive;
+  _analogButtonMode=state.AnalogButtonMode;
+  _assetSource=state.AssetSource;
+  _assetMode=state.AssetMode;
+  _selectedAssetKey=state.SelectedAssetKey;
+
+  if(_stage==Stage.BrowsePlace)
+  {
+   if(IsMyAssetSource)await LoadMyAssetsAsync();
+   else if(IsGameAssetSource)LoadGameAssets();
+  }
+  await SyncWorldBuilderDepthAsync();
+ }
+
+ async Task NavigateViewerBackAsync()
+ {
+  _viewerForwardHistory.Push(CaptureViewerNavState());
+  GoBack();
+  _message="Back.";
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task NavigateViewerForwardAsync()
+ {
+  if(_viewerForwardHistory.Count==0)
+  {
+   _message="Nothing to move forward to.";
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+
+  await RestoreViewerNavStateAsync(_viewerForwardHistory.Pop());
+  _message="Forward.";
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task HandleViewerMenuCommandAsync(string command)
+ {
+  command=(command??"").Trim().ToLowerInvariant();
+  if(command=="back"){await NavigateViewerBackAsync();return;}
+  if(command=="forward"){await NavigateViewerForwardAsync();return;}
+
+  if(_worldBuilderSourceModule is null)
+  {
+   _message="Viewer editing tools are still loading.";
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+
+  try
+  {
+   var result=await _worldBuilderSourceModule.InvokeAsync<string>("editCommand",_worldBuilderFrame,command);
+   _message=string.IsNullOrWhiteSpace(result)?$"{command.ToUpperInvariant()} completed.":result;
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Viewer menu command {command} failed: {ex}");
+   _message=$"{command.ToUpperInvariant()} could not be completed.";
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
  async Task HandleBrowserBack()
  {
   if(_stage==Stage.Environment)
@@ -2219,7 +2347,7 @@
    return;
   }
 
-  GoBack();
+  await NavigateViewerBackAsync();
  }
 
  async Task HandleKeyDown(KeyboardEventArgs e)
