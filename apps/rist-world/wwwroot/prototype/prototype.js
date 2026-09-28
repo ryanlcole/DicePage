@@ -92,6 +92,10 @@ const WORLDBUILDER_SAVE_KEY=REGION_DEFINER?REGION_OVERLAY_SAVE_KEY:WORLD_SOURCE_
 let restoreSaveStarted=false;
 const REGION_GRID_COLUMNS=30;
 const REGION_GRID_ROWS=30;
+const VIEWER_GRID_PREF='rist.viewer.grid.v1';
+const ASSET_GRID_PREF='rist.asset.grid.v1';
+const storedGridMode=key=>{try{return String(localStorage.getItem(key)||'square').toLowerCase()==='hex'?'hex':'square'}catch{return'square'}};
+let viewerGridMode=storedGridMode(VIEWER_GRID_PREF),assetGridMode=storedGridMode(ASSET_GRID_PREF),viewerGridOverlay=null;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
 let regionGridShape='square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
@@ -354,6 +358,16 @@ async function handleWorldBuilderHostMessage(event){
     worldSourceHostReady=true;
     publishWorldBuilderSelectionContext();
     postWorldBuilderHostMessage('ready');
+    return;
+  }
+  if(data.type==='viewer-grid'){
+    applyViewerGridMode(data.grid,true);
+    announce(`${viewerGridMode==='hex'?'Hex':'Square'} viewer grid.`);
+    return;
+  }
+  if(data.type==='asset-grid'){
+    applyAssetGridMode(data.grid,true);
+    announce(`${assetGridMode==='hex'?'Hex':'Square'} asset grid.`);
     return;
   }
   if(data.type==='world-source'){
@@ -899,7 +913,7 @@ function viewerCenterPosition(){
   const wx=((r.width/2)-x)/Math.max(scale,.00001);
   const wy=((r.height/2)-y)/Math.max(scale,.00001);
   const point={x:clamp(wx/Math.max(naturalWidth,1),0,1),y:clamp(wy/Math.max(naturalHeight,1),0,1)};
-  return REGION_DEFINER?snapRegionPoint(point.x,point.y):point;
+  return point;
 }
 function openImageUpload(){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
@@ -1061,7 +1075,7 @@ function labelSelection(){
 function placeLabel(text){
   if(READ_ONLY){announce('World reference mode is view only.');return null}
   text=String(text||'').trim().slice(0,120);if(!text){announce('Type label text first.');return null}
-  const point=viewerCenterPosition(),address=placementAddress(currentTierIndex(),1);
+  const rawPoint=viewerCenterPosition(),point=snapAssetPoint(rawPoint.x,rawPoint.y),address=placementAddress(currentTierIndex(),1);
   const item={
     id:`label:${crypto.randomUUID?.()||Date.now()}`,kind:'label',name:text,text,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     x:point.x,y:point.y,tier:address.tier,layer:address.layer,rotation:0,opacity:1,committed:false,renderOpacity:1,
@@ -1207,7 +1221,7 @@ function moveImageDrag(event){
   if(!imageDrag||imageDrag.id!==event.pointerId)return;event.preventDefault();event.stopPropagation();
   const rawX=clamp(imageDrag.x+(event.clientX-imageDrag.startX)/(Math.max(scale,.00001)*Math.max(naturalWidth,1)),0,1);
   const rawY=clamp(imageDrag.y+(event.clientY-imageDrag.startY)/(Math.max(scale,.00001)*Math.max(naturalHeight,1)),0,1);
-  const snapped=REGION_DEFINER?snapRegionPoint(rawX,rawY):{x:rawX,y:rawY};
+  const snapped=snapAssetPoint(rawX,rawY);
   imageDrag.item.x=snapped.x;imageDrag.item.y=snapped.y;
   refreshUserImage(imageDrag.item);
   if((keyboardMode==='Image'||keyboardMode==='Labels')&&selectedImage===imageDrag.item)renderKeyboardKeys();
@@ -1228,7 +1242,7 @@ async function placeUploadedImage(file){
   const tier=placementRole==='world-map'?0:(REGION_DEFINER?currentRegionTierIndex():clamp(Math.trunc(Number(imageTier.value)||address.tier),0,TIERS.length-1));
   const layer=placementRole==='world-map'?0:clamp(Math.trunc(Number(imageLayer.value)||address.layer),0,9);
   const requestedPoint={x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1)};
-  const placementPoint=placementRole==='world-map'?{x:.5,y:.5}:(REGION_DEFINER?snapRegionPoint(requestedPoint.x,requestedPoint.y):requestedPoint);
+  const placementPoint=placementRole==='world-map'?{x:.5,y:.5}:snapAssetPoint(requestedPoint.x,requestedPoint.y);
   const item={
     id:crypto.randomUUID?.()||String(Date.now()),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     placementRole,fullWorld:placementRole==='world-map',
@@ -1406,16 +1420,78 @@ function regionCellFromPoint(x,y,shape=regionGridShape){
   const column=clamp(Math.floor((clamp(x,0,.999999)*REGION_GRID_COLUMNS)-offset),0,REGION_GRID_COLUMNS-1);
   return row*REGION_GRID_COLUMNS+column;
 }
+function viewerGridSvg(shape){
+  const stroke='rgba(199,229,239,.24)';
+  if(shape==='hex'){
+    const polygons=[];
+    for(let row=0;row<REGION_GRID_ROWS;row++){
+      for(let column=0;column<REGION_GRID_COLUMNS;column++){
+        const x=column+(row%2?0.5:0),y=row;
+        polygons.push(`<polygon points="${x+0.25},${y} ${x+0.75},${y} ${x+1},${y+0.5} ${x+0.75},${y+1} ${x+0.25},${y+1} ${x},${y+0.5}"/>`);
+      }
+    }
+    return `<svg viewBox="0 0 ${REGION_GRID_COLUMNS+0.5} ${REGION_GRID_ROWS}" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="${stroke}" stroke-width=".035" vector-effect="non-scaling-stroke">${polygons.join('')}</g></svg>`;
+  }
+  const lines=[];
+  for(let i=0;i<=REGION_GRID_COLUMNS;i++)lines.push(`<line x1="${i}" y1="0" x2="${i}" y2="${REGION_GRID_ROWS}"/>`);
+  for(let i=0;i<=REGION_GRID_ROWS;i++)lines.push(`<line x1="0" y1="${i}" x2="${REGION_GRID_COLUMNS}" y2="${i}"/>`);
+  return `<svg viewBox="0 0 ${REGION_GRID_COLUMNS} ${REGION_GRID_ROWS}" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="${stroke}" stroke-width=".035" vector-effect="non-scaling-stroke">${lines.join('')}</g></svg>`;
+}
+function ensureViewerGridOverlay(){
+  if(viewerGridOverlay?.isConnected)return viewerGridOverlay;
+  const overlay=document.createElement('div');
+  overlay.className='viewer-grid-overlay';
+  overlay.setAttribute('aria-hidden','true');
+  world.appendChild(overlay);
+  viewerGridOverlay=overlay;
+  return overlay;
+}
+function applyViewerGridMode(value,persist=false){
+  viewerGridMode=String(value||'').toLowerCase()==='hex'?'hex':'square';
+  if(persist){try{localStorage.setItem(VIEWER_GRID_PREF,viewerGridMode)}catch{}}
+  const overlay=ensureViewerGridOverlay();
+  overlay.dataset.shape=viewerGridMode;
+  overlay.innerHTML=viewerGridSvg(viewerGridMode);
+  stage.dataset.viewerGrid=viewerGridMode;
+}
+function applyAssetGridMode(value,persist=false){
+  assetGridMode=String(value||'').toLowerCase()==='hex'?'hex':'square';
+  if(persist){try{localStorage.setItem(ASSET_GRID_PREF,assetGridMode)}catch{}}
+  stage.dataset.assetGrid=assetGridMode;
+  if(selectedImage&&!isWorldMapItem(selectedImage)){
+    const point=snapAssetPoint(selectedImage.x,selectedImage.y);
+    selectedImage.x=point.x;selectedImage.y=point.y;refreshUserImage(selectedImage);publishWorldBuilderSelectionContext(selectedImage);
+  }
+}
+function nearestGridCellForPoint(x,y,shape){
+  const row=clamp(Math.floor(clamp(y,0,.999999)*REGION_GRID_ROWS),0,REGION_GRID_ROWS-1);
+  let best=0,bestDistance=Infinity;
+  for(let rr=Math.max(0,row-1);rr<=Math.min(REGION_GRID_ROWS-1,row+1);rr++){
+    const offset=shape==='hex'&&(rr%2)?0.5:0;
+    const guess=Math.floor((clamp(x,0,.999999)*REGION_GRID_COLUMNS)-offset);
+    for(let cc=Math.max(0,guess-1);cc<=Math.min(REGION_GRID_COLUMNS-1,guess+1);cc++){
+      const cell=rr*REGION_GRID_COLUMNS+cc,center=regionCellCenter(cell,shape),dx=center.x-x,dy=center.y-y,d=(dx*dx)+(dy*dy);
+      if(d<bestDistance){best=cell;bestDistance=d}
+    }
+  }
+  return best;
+}
+function snapAssetPoint(x,y){
+  const shape=assetGridMode;
+  let cell=nearestGridCellForPoint(clamp(x,0,1),clamp(y,0,1),shape);
+  if(REGION_DEFINER)cell=nearestAllowedRegionCell(cell,regionActiveCellSet(),shape);
+  return regionCellCenter(cell,shape);
+}
 function regionActiveCellSet(){
   const cells=regionClaimedRegion?.selectedCells;
   return Array.isArray(cells)&&cells.length?new Set(cells.map(Number).filter(Number.isInteger)):null;
 }
-function nearestAllowedRegionCell(cell,allowed){
+function nearestAllowedRegionCell(cell,allowed,shape=regionGridShape){
   if(!allowed||allowed.has(cell))return cell;
-  const target=regionCellCenter(cell),cells=[...allowed];
+  const target=regionCellCenter(cell,shape),cells=[...allowed];
   let best=cell,bestDistance=Infinity;
   for(const candidate of cells){
-    const center=regionCellCenter(candidate),dx=center.x-target.x,dy=center.y-target.y,d=(dx*dx)+(dy*dy);
+    const center=regionCellCenter(candidate,shape),dx=center.x-target.x,dy=center.y-target.y,d=(dx*dx)+(dy*dy);
     if(d<bestDistance){bestDistance=d;best=candidate}
   }
   return best;
@@ -2336,6 +2412,9 @@ async function handleRegionHostMessage(event){
   }
   if(data.type==='error'){regionCreatePending=false;renderKeyboardKeys();announce(String(data.message||'Region operation failed.'))}
 }
+applyViewerGridMode(viewerGridMode,false);
+applyAssetGridMode(assetGridMode,false);
+
 if(REGION_DEFINER){
   window.addEventListener('message',handleRegionHostMessage);
   // Build the tier chooser immediately from the canonical/base tier sources. The
@@ -2546,7 +2625,7 @@ function personalPageAssets(type){
 function placePersonalImage(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.url)return;
-  const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=REGION_DEFINER?snapRegionPoint(rawPoint.x,rawPoint.y):rawPoint,address=placementAddress(currentTierIndex(),1);
+  const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=snapAssetPoint(rawPoint.x,rawPoint.y),address=placementAddress(currentTierIndex(),1);
   const item={
     id:`private-image:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,personalAssetKey:asset.key,name:asset.name,kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     placementRole,fullWorld:placementRole==='world-map',
@@ -2655,7 +2734,7 @@ function snapWorldCell(value){return(clamp(Math.floor(clamp(value,0,.999999)*30)
 function placeLibraryTile(asset){
   if(READ_ONLY){announce('World reference mode is view only.');return;}
   if(!asset?.image)return;
-  const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=REGION_DEFINER?snapRegionPoint(rawPoint.x,rawPoint.y):rawPoint,address=placementAddress(currentTierIndex(),1),item={
+  const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=snapAssetPoint(rawPoint.x,rawPoint.y),address=placementAddress(currentTierIndex(),1),item={
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
     assetId:asset.id,name:asset.name,libraryTile:true,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
     placementRole,fullWorld:placementRole==='world-map',
