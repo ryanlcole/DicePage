@@ -595,7 +595,7 @@
   Stage.WorldBuilderTier=>$"{CurrentBuilderSuite} · TIER",
   Stage.WorldBuilderLayer=>$"{CurrentBuilderSuite} · LAYER",
   Stage.AssetKind=>$"{CurrentBuilderSuite} · ASSET SOURCE",
-  Stage.AssetMode=>$"WORLD BUILDER · {_assetKind}",
+  Stage.AssetMode=>$"{CurrentBuilderSuite} · {_assetKind}",
   Stage.BrowsePlace=>$"{_assetSource} · {_assetKind}",
   Stage.Scale=>$"{_assetKind} · SCALE {_assetScale:0.00}×",
   Stage.Rotate=>$"{_assetKind} · ROTATE {_assetRotation}°",
@@ -616,7 +616,7 @@
   Stage.WorldBuilderTier=>$"{CurrentBuilderScope} → TIER",
   Stage.WorldBuilderLayer=>$"{CurrentBuilderScope} → LAYER",
   Stage.AssetKind=>$"{CurrentBuilderScope} → ASSET",
-  Stage.AssetMode=>$"WORLD BUILDER → {_assetKind}",
+  Stage.AssetMode=>$"{CurrentBuilderScope} → {_assetKind}",
   Stage.BrowsePlace=>$"{_assetKind} → {_assetSource}",
   Stage.Scale=>$"{_assetKind} → SCALE",
   Stage.Rotate=>$"{_assetKind} → ROTATE",
@@ -1088,7 +1088,7 @@
     new UserAssetEntry("game:endemar:highlands",EndemarCanonicalAssetRoot+"geonaph_full_static_highlands_rivers_v001.png","Endemar · Highlands + Rivers",DateTimeOffset.MinValue),
     new UserAssetEntry("game:endemar:mountains",EndemarCanonicalAssetRoot+"geonaph_full_static_mountain_volcanic_archipelago_v001.png","Endemar · Mountains + Volcanic",DateTimeOffset.MinValue)
    ];
-   _message="Loaded the same canonical Endemar world images used by World Builder.";
+   _message="Loaded the same canonical Endemar world images used by the GameMaster chain.";
   }
  }
 
