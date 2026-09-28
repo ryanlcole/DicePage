@@ -248,8 +248,10 @@
 
   <div class="analog-control analog-control-xy @(CursorMode?"cursor-mode":"paging-mode")"
        @ref="_analog"
-       role="group"
-       aria-label="Universal analog paging control. Up and down snap the left display. Left and right snap the right display. When neither display has multiple selections it becomes the viewer cursor.">
+       role="button"
+       tabindex="0"
+       data-analog-select="true"
+       aria-label="Universal analog control. Move the stick to navigate or move the viewer cursor. Press the centered stick to select the current primary action.">
    <span class="analog-direction analog-up" aria-hidden="true">UP</span>
    <span class="analog-direction analog-down" aria-hidden="true">DOWN</span>
    <span class="analog-direction analog-left" aria-hidden="true">LEFT</span>
@@ -2183,6 +2185,7 @@
    {
     case "x": StepX(direction); break;
     case "y": StepY(direction); break;
+    case "select": await PressLeft(); break;
     case "left": await PressLeft(); break;
     case "right": await PressRight(); break;
    }
