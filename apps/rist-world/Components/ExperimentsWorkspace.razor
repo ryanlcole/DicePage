@@ -884,6 +884,9 @@
    case Stage.Role:
     _message="Roleplayer is reserved for the player-facing branch of this experiment.";
     break;
+   case Stage.PathSelect:
+    BeginGameMasterPath();
+    break;
    case Stage.GameMasterHub:
     _stage=Stage.GameMasterScope;
     _scopeIndex=0;
@@ -903,8 +906,17 @@
     _stage=Stage.GameMasterHub;
     _message=$"Analog placement saved: {CurrentAnalogPlacementDraft}.";
     break;
+   case Stage.ArtMethod:
+    SelectArtMethod();
+    break;
+   case Stage.ArtPhase:
+    _message=$"{CurrentArtMethod} · {CurrentArtPhase} selected. This is the next A/V tool adapter in the chain; the persistent viewer stays visible while its controls are added.";
+    break;
+   case Stage.KnowledgeNode:
+    _message=$"{_activeKnowledgeNode} is active in the journal/lore rail. Entry controls will be added here without leaving the persistent viewer.";
+    break;
    case Stage.AssetKind:
-    _message=$"{_assetKind} selected. Slide the right display left or right for {CurrentAssetSource}, then touch the right display to open it.";
+    OpenSelectedAssetSource();
     break;
    case Stage.AssetMode:
     _assetMode="EDIT";
@@ -925,8 +937,9 @@
    case Stage.SaveCancel:
     SaveCurrentAssetToViewer();
     ResetAssetTransform();
+    SetPathMenuToNext(CurrentBuilderScope);
     _stage=Stage.FullMapReview;
-    _message=$"Saved {_assetKind.ToLowerInvariant()} at {CurrentBuilderScope} Tier {_tier}, Layer {_layer}. Review the full recursive map, continue this scope, or advance the GameMaster chain.";
+    _message=$"Saved {_assetKind.ToLowerInvariant()} at {CurrentBuilderScope} Tier {_tier}, Layer {_layer}. Full-map review is active. Left continues here; right jumps along the {CurrentGameMasterPath} path.";
     break;
    case Stage.FullMapReview:
     BeginBuilderScope(_builderChainIndex);
@@ -937,11 +950,11 @@
     _message=$"Tier {_tier} selected. Choose Layer.";
     break;
    case Stage.WorldBuilderLayer:
-    _stage=Stage.AssetKind;
-    _assetKindIndex=Array.IndexOf(AssetKinds,_assetKind);
-    if(_assetKindIndex<0)_assetKindIndex=0;
-    _assetSourceIndex=0;
-    _message=$"Tier {_tier}, Layer {_layer}. Slide the left display for Image or Sprite; slide the right display for its source.";
+    _stage=Stage.ArtMethod;
+    _artMethodIndex=0;
+    _artPhaseIndex=0;
+    SetPathMenuToNext(CurrentBuilderScope);
+    _message=$"Tier {_tier}, Layer {_layer}. Select an art method on the left. The right rail can jump to history, lore, regions, NPCs, encounters, or another path node.";
     break;
    case Stage.Scale:
     _stage=Stage.Rotate;
@@ -964,6 +977,10 @@
    case Stage.Role:
     _stage=Stage.Environment;
     _message="Returned to environment selection.";
+    break;
+   case Stage.PathSelect:
+    _stage=Stage.Role;
+    _message="Returned to Shaelvien role selection.";
     break;
    case Stage.GameMasterHub:
     _stage=Stage.Role;
@@ -991,9 +1008,22 @@
     _stage=Stage.WorldBuilderTier;
     _message=$"Returned to Tier {_tier}.";
     break;
-   case Stage.AssetKind:
+   case Stage.ArtMethod:
     _stage=Stage.WorldBuilderLayer;
-    _message=$"Returned to Layer {_layer}.";
+    _message=$"Returned to {CurrentBuilderScope} Layer {_layer}.";
+    break;
+   case Stage.ArtPhase:
+    _stage=Stage.ArtMethod;
+    _message="Returned to art-method selection.";
+    break;
+   case Stage.KnowledgeNode:
+    _stage=Stage.FullMapReview;
+    SetPathMenuToNode(_activeKnowledgeNode);
+    _message=$"Returned to the recursive viewer from {_activeKnowledgeNode}.";
+    break;
+   case Stage.AssetKind:
+    _stage=Stage.ArtMethod;
+    _message="Returned to art-method selection.";
     break;
    case Stage.AssetMode:
     _stage=Stage.AssetKind;
@@ -1029,6 +1059,12 @@
 
  Task PressRight()
  {
+  if(IsPathDrivenStage)
+  {
+   OpenPathTarget(CurrentPathTarget);
+   return Task.CompletedTask;
+  }
+
   if(RightActsAsBack)
   {
    GoBack();
@@ -1041,8 +1077,9 @@
     _message="RIST selected. The universal/private environment branch is reserved for the next experiment.";
     break;
    case Stage.Role:
-    _stage=Stage.GameMasterHub;
-    _message="GameMaster selected. Y cycles worlds; X cycles options.";
+    _stage=Stage.PathSelect;
+    _pathIndex=0;
+    _message="GameMaster selected. Choose World Builder, Campaign Builder, or Advanced.";
     break;
    case Stage.GameMasterHub:
     if(CurrentSetting=="CONTROLS")
@@ -1072,17 +1109,6 @@
    case Stage.WorldBuilderLayer:
     GoBack();
     break;
-   case Stage.AssetKind:
-    _assetSource=CurrentAssetSource;
-    _selectedAssetKey="";
-    _assetLoadError="";
-    _stage=Stage.BrowsePlace;
-    if(IsMyAssetSource)_=LoadMyAssetsAsync();
-    else if(IsGameAssetSource)LoadGameAssets();
-    _message=_assetSource=="UPLOAD"
-     ?$"Upload explorer opened for {_assetKind.ToLowerInvariant()} assets. Choose from this device; uploads are added to My {_assetKind.ToLowerInvariant()}s."
-     :$"{_assetSource} explorer opened. Use the cursor or touch; left display selects and right display returns.";
-    break;
    case Stage.AssetMode:
     _assetMode="ADD";
     _stage=Stage.BrowsePlace;
@@ -1108,15 +1134,7 @@
     _message=$"Preview cancelled. Returned to {CurrentBuilderSuite} Tier.";
     break;
    case Stage.FullMapReview:
-    if(HasNextBuilderScope)
-    {
-     BeginBuilderScope(_builderChainIndex+1);
-     _message=$"{CurrentBuilderSuite} started. The prior {BuilderChain[_builderChainIndex-1]} viewer remains inside the viewer while Tier and Layer are selected.";
-    }
-    else
-    {
-     _message="Instance is the current end of the GameMaster chain. The complete recursive viewer remains open.";
-    }
+    OpenPathTarget(CurrentPathTarget);
     break;
   }
   return Task.CompletedTask;
