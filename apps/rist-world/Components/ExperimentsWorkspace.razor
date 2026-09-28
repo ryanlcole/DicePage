@@ -148,7 +148,7 @@
       <strong>ADD @_assetScope TO MY @(_assetKind=="SPRITE"?"SPRITES":"IMAGES")</strong>
       <span>Choose an image from this device. It is stored in your private RIST library under @_assetScope and becomes available under My @(_assetKind=="SPRITE"?"Sprites":"Images").</span>
       <InputFile OnChange="HandleAssetUpload"
-                 accept="image/png,image/jpeg,image/webp,image/gif"
+                 accept="image/png,image/jpeg,image/webp,image/gif,image/bmp"
                  aria-label="Choose an image to add to your private library" />
       @if(!string.IsNullOrWhiteSpace(_assetLoadError))
       {
@@ -1783,6 +1783,7 @@
    "image/jpeg"=>".jpg",
    "image/webp"=>".webp",
    "image/gif"=>".gif",
+   "image/bmp"=>".bmp",
    _=>""
   };
 
@@ -1836,7 +1837,7 @@
  {
   var lower=key.ToLowerInvariant();
   return lower.EndsWith(".png")||lower.EndsWith(".jpg")||lower.EndsWith(".jpeg")||
-         lower.EndsWith(".webp")||lower.EndsWith(".gif");
+         lower.EndsWith(".webp")||lower.EndsWith(".gif")||lower.EndsWith(".bmp");
  }
 
  static string FileLabel(string key)

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>Opening Legacy file…</title>
+ <style>html,body{height:100%;margin:0}body{display:grid;place-items:center;background:#071017;color:#efd58d;font:700 14px/1.4 system-ui;text-align:center;padding:20px;box-sizing:border-box}</style>
+</head>
+<body><p>Opening this Legacy file in RIST…</p>
+<script>
+(()=>{
+ const q=new URLSearchParams(location.search);
+ const worldId=q.get('world')||'';
+ const entryId=q.get('entry')||'';
+ if(window.parent!==window&&worldId&&entryId){
+   window.parent.postMessage({source:'rist-legacy-binder',type:'open-entry',worldId,entryId},location.origin);
+ }else{
+   document.body.innerHTML='<p>Open this binder from inside RIST Legacy so its private archive can be resolved safely.</p>';
+ }
+})();
+</script>
+</body>
+</html>

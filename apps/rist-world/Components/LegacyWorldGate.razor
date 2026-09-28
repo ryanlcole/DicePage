@@ -1,0 +1,182 @@
+@using Microsoft.AspNetCore.Components.Forms
+@inject WorldSession Session
+@inject DiscordAuthClient Auth
+@inject NavigationManager Navigation
+
+@if(Open)
+{
+ <section class="legacy-gate-backdrop" role="presentation" @onclick="CloseAsync">
+  <div class="legacy-gate" role="dialog" aria-modal="true" aria-label="Legacy campaign archive" @onclick:stopPropagation="true">
+   <header>
+    <span><small>RIST LEGACY</small><strong>BRING YOUR WORLD FORWARD</strong></span>
+    <button type="button" @onclick="CloseAsync" aria-label="Close Legacy">×</button>
+   </header>
+
+   <section class="legacy-gate-intro">
+    <strong>UPLOAD THE CAMPAIGN, NOT THE REBUILD.</strong>
+    <p>Put the old campaign folder into one ZIP. Legacy preserves the original structure and files, generates a linked PDF binder, makes safe HTML representations, and copies image assets into My Assets.</p>
+    <p>Old program files are quarantined and statically inspected for likely input/output. They are never executed in the browser.</p>
+   </section>
+
+   @if(_legacyWorlds.Count>0)
+   {
+    <div class="legacy-gate-divider"><span>YOUR LEGACY WORLDS</span></div>
+    <section class="legacy-gate-worlds">
+     @foreach(var world in _legacyWorlds)
+     {
+      <button type="button" disabled="@_busy" @onclick="()=>LoadAsync(world)">
+       <span><strong>@world.DisplayName</strong><small>@world.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</small></span><b>LOAD</b>
+      </button>
+     }
+    </section>
+   }
+
+   <div class="legacy-gate-divider"><span>IMPORT LEGACY ZIP</span></div>
+   <label class="legacy-import @((_busy||!CanCreateWorld)?"disabled":"")">
+    <strong>@(_busy?"WORKING…":"IMPORT ZIP")</strong>
+    <small>@(CanCreateWorld?"ZIP up to 100 MB · original files remain preserved privately":"An additional sandbox world slot is required before importing another Legacy world.")</small>
+    <InputFile OnChange="ImportLegacyAsync" accept=".zip,application/zip,application/x-zip-compressed" disabled="@(_busy||!CanCreateWorld)" />
+   </label>
+
+   @if(!string.IsNullOrWhiteSpace(_status))
+   {
+    <p class="legacy-gate-status" role="status">@_status</p>
+   }
+  </div>
+ </section>
+}
+
+<style>
+ .legacy-gate-backdrop{position:fixed;inset:0;z-index:2147482580;display:grid;place-items:center;padding:12px;background:#020609e5;backdrop-filter:blur(6px)}
+ .legacy-gate{box-sizing:border-box;width:min(94vw,680px);max-height:92dvh;display:flex;flex-direction:column;overflow:auto;border:1px solid #94743a;border-radius:14px;background:#071017;color:#e9dfc7;box-shadow:0 24px 80px #000e;font-family:system-ui,-apple-system,sans-serif}
+ .legacy-gate>header{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:13px 15px;border-bottom:1px solid #4e452e;background:#09141bf5}.legacy-gate>header span{display:grid;gap:3px}.legacy-gate>header small{color:#78c7ed;font:900 8px/1 system-ui;letter-spacing:.13em}.legacy-gate>header strong{color:#efd58d;font:900 15px/1.1 system-ui;letter-spacing:.07em}.legacy-gate>header button{width:40px;height:40px;border:1px solid #53656e;border-radius:8px;background:#101a20;color:#efd58d;font-size:24px}
+ .legacy-gate-intro{display:grid;gap:8px;margin:14px 15px 4px;padding:14px;border:1px solid #354750;border-radius:10px;background:linear-gradient(135deg,#10180f,#0a151b)}.legacy-gate-intro strong{color:#f1d991;font-size:12px;letter-spacing:.07em}.legacy-gate-intro p{margin:0;color:#adbdc3;font-size:10px;line-height:1.55}
+ .legacy-gate-divider{display:flex;align-items:center;gap:9px;padding:12px 15px 4px;color:#8ea7b2;font:900 8px/1 system-ui;letter-spacing:.11em}.legacy-gate-divider:before,.legacy-gate-divider:after{content:"";height:1px;flex:1;background:#3a4644}
+ .legacy-gate-worlds{display:grid;gap:7px;padding:7px 15px}.legacy-gate-worlds button{min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 11px;border:1px solid #4c606a;border-radius:9px;background:#0d171e;color:#e8dec5;text-align:left}.legacy-gate-worlds button span{display:grid;gap:3px}.legacy-gate-worlds strong{color:#f0ddb0;font-size:12px}.legacy-gate-worlds small{color:#8399a4;font-size:8px}.legacy-gate-worlds b{color:#75bde9;font-size:9px;letter-spacing:.08em}
+ .legacy-import{position:relative;display:grid;gap:6px;margin:8px 15px 15px;padding:18px;border:1px dashed #9b7a34;border-radius:10px;background:#0c171d;color:#efd58d;text-align:center;overflow:hidden}.legacy-import strong{font-size:16px;letter-spacing:.08em}.legacy-import small{color:#9eb0b7;font-size:9px;line-height:1.45}.legacy-import input{position:absolute;inset:0;width:100%;height:100%;opacity:0}.legacy-import.disabled{opacity:.42}
+ .legacy-gate-status{margin:0;padding:0 15px 16px;color:#edc47b;font-size:10px;line-height:1.45}
+ @media(max-width:560px){.legacy-gate-backdrop{padding:7px}.legacy-gate{width:100%;max-height:95dvh}.legacy-gate-intro{margin:11px 12px 3px}.legacy-gate-worlds{padding:7px 12px}.legacy-import{margin:7px 12px 13px}}
+</style>
+
+@code {
+ const long MaxLegacyZipBytes=100L*1024*1024;
+ [Parameter] public bool Open{get;set;}
+ [Parameter] public EventCallback OnClose{get;set;}
+ [Parameter] public EventCallback OnContinue{get;set;}
+
+ readonly List<AccountWorldReference> _sandboxWorlds=[];
+ readonly List<AccountWorldReference> _legacyWorlds=[];
+ bool _wasOpen;
+ bool _loadPending;
+ bool _busy;
+ string _status="";
+
+ bool CanCreateWorld=>Session.CanCreateAdditionalOwnedWorld(_sandboxWorlds);
+
+ protected override void OnParametersSet()
+ {
+  if(Open&&!_wasOpen)
+  {
+   _status="";
+   _loadPending=true;
+  }
+  _wasOpen=Open;
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!_loadPending)return;
+  _loadPending=false;
+  await RefreshAsync();
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task RefreshAsync()
+ {
+  _sandboxWorlds.Clear();
+  _legacyWorlds.Clear();
+  try
+  {
+   var directory=await Session.LoadWorldDirectoryAsync();
+   _sandboxWorlds.AddRange(directory.Worlds.Where(WorldSession.IsSandboxWorldReference));
+   foreach(var world in _sandboxWorlds.OrderByDescending(x=>x.UpdatedAtUtc).Take(24))
+   {
+    try
+    {
+     var manifest=await Auth.DownloadJsonAsync<LegacyArchiveManifest>(LegacyArchiveImport.ManifestKey(world.WorldId));
+     if(manifest is not null)_legacyWorlds.Add(world);
+    }
+    catch{}
+   }
+  }
+  catch(Exception ex){_status="Legacy world list could not be loaded: "+ex.Message;}
+ }
+
+ async Task LoadAsync(AccountWorldReference world)
+ {
+  if(_busy)return;
+  _busy=true;_status=$"Loading {world.DisplayName}…";
+  try
+  {
+   await Session.LoadWorldAsync(world);
+   await CompleteAsync();
+  }
+  catch(Exception ex){_status="Legacy world load failed: "+ex.Message;}
+  finally{_busy=false;}
+ }
+
+ async Task ImportLegacyAsync(InputFileChangeEventArgs e)
+ {
+  if(_busy)return;
+  if(!CanCreateWorld){_status="An additional sandbox world slot is required before importing another Legacy world.";return;}
+
+  var file=e.File;
+  if(!file.Name.EndsWith(".zip",StringComparison.OrdinalIgnoreCase)){_status="Legacy expects a ZIP archive.";return;}
+  if(file.Size>MaxLegacyZipBytes){_status="Legacy ZIP import is currently limited to 100 MB.";return;}
+
+  _busy=true;
+  _status=$"Reading {file.Name}…";
+  await InvokeAsync(StateHasChanged);
+
+  try
+  {
+   await using var stream=file.OpenReadStream(MaxLegacyZipBytes);
+   using var buffer=new MemoryStream();
+   await stream.CopyToAsync(buffer);
+   var bytes=buffer.ToArray();
+
+   var inspection=LegacyArchiveImport.Validate(bytes);
+   _status=$"Verified {inspection.FileCount:N0} files ({inspection.ExpandedBytes/1024d/1024d:0.0} MB expanded). Creating Legacy world…";
+   await InvokeAsync(StateHasChanged);
+
+   var preferred=Path.GetFileNameWithoutExtension(file.Name);
+   await Session.CreateWorldAsync(string.IsNullOrWhiteSpace(preferred)?"Legacy World":preferred);
+
+   var progress=new Progress<string>(message =>
+   {
+    _status=message;
+    _=InvokeAsync(StateHasChanged);
+   });
+
+   var manifest=await LegacyArchiveImport.ImportAsync(
+    bytes,file.Name,Session.WorldId,Session.WorldDisplayName,Navigation.BaseUri,Auth,progress);
+
+   _status=$"{manifest.WorldName} is ready: {manifest.FileCount:N0} files, {manifest.ImageCount:N0} image assets, {manifest.HtmlCount:N0} HTML representations.";
+   await CompleteAsync();
+  }
+  catch(Exception ex){_status="Legacy import failed: "+ex.Message;}
+  finally
+  {
+   _busy=false;
+   await InvokeAsync(StateHasChanged);
+  }
+ }
+
+ async Task CompleteAsync()
+ {
+  if(OnContinue.HasDelegate)await OnContinue.InvokeAsync();
+  else await OnClose.InvokeAsync();
+ }
+
+ async Task CloseAsync(){if(_busy)return;await OnClose.InvokeAsync();}
+}
