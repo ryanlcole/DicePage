@@ -366,7 +366,8 @@
 <WorldGate Open="@_ristDeedGateOpen"
            OnClose="CloseRistDeedGate"
            OnContinue="CompleteRistDeedAsync"
-           RequireSelection="false" />
+           RequireSelection="false"
+           DeedMode="true" />
 
 @if(Session.IsServerVerifiedPlatformOwner&&_stage==Stage.Environment)
 {
