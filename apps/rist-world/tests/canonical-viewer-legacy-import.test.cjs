@@ -69,6 +69,22 @@ test('Legacy program handling is quarantine-first and does not execute imported 
 });
 
 
+test('Legacy accepts several loose files and deduplicates by metadata plus SHA-256',()=>{
+  const gate=read('Components/LegacyWorldGate.razor');
+  const importer=read('LegacyArchiveImport.cs');
+
+  assert.match(gate,/InputFile OnChange="ImportLegacyFilesAsync" multiple/);
+  assert.match(gate,/GetMultipleFiles\(LegacyArchiveImport\.MaxEntryCount\)/);
+  assert.match(gate,/metadata \+ SHA-256 identify exact duplicates/);
+  assert.match(importer,/LegacyUploadCandidate/);
+  assert.match(importer,/CreateUploadBundle\(IReadOnlyList<LegacyUploadCandidate> files\)/);
+  assert.match(importer,/file\.LastModifiedUtc\.UtcDateTime\.Ticks/);
+  assert.match(importer,/SHA256\.HashData\(bytes\)/);
+  assert.match(importer,/if\(!exactMetadata\.Add\(metadataKey\)\)[\s\S]{0,120}?ignored\+\+/);
+  assert.match(importer,/resolved=DuplicatePath\(path,usedPaths\);[\s\S]{0,100}?autoDuplicated\+\+/);
+  assert.match(importer,/entry\.LastWriteTime=SafeZipTimestamp\(file\.LastModifiedUtc\)/);
+});
+
 test('Runecore accepts unknown file types without discarding them',()=>{
  const gate=read('Components/LegacyWorldGate.razor');
  const importer=read('LegacyArchiveImport.cs');
