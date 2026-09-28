@@ -6,16 +6,16 @@
  <section class="world-gate-backdrop" role="presentation" @onclick="CloseAsync">
   <div class="world-gate" role="dialog" aria-modal="true" aria-label="Choose a world" @onclick:stopPropagation="true">
    <header>
-    <span><small>RIST SANDBOX</small><strong>CHOOSE A SANDBOX WORLD</strong></span>
+    <span><small>RIST SANDBOX</small><strong>@(DeedMode?"CLAIM DEED":"CHOOSE A SANDBOX WORLD")</strong></span>
     @if(!RequireSelection){<button type="button" @onclick="CloseAsync" aria-label="Close sandbox world chooser">×</button>}
    </header>
 
    <section class="world-gate-create">
-    <small class="world-gate-create-kind">PRIVATE / SANDBOX WORLD</small>
+    <small class="world-gate-create-kind">@(DeedMode?"PRIVATE RIST DEED":"PRIVATE / SANDBOX WORLD")</small>
     <label for="world-name">WORLD NAME</label>
     <input id="world-name" maxlength="80" placeholder="Enter a World Name" @bind="_worldName" @bind:event="oninput" autocomplete="off" />
-    <small class="world-gate-commerce">@Session.WorldSlotCommercialLabel · @WorldSession.IncludedSurfaceWorldPixels×@WorldSession.IncludedSurfaceWorldPixels px surface starts included. Larger surfaces and additional worlds use account entitlements.</small>
-    <button type="button" class="world-gate-primary" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName)||!CanCreateWorld)" @onclick="CreateAsync">@(CanCreateWorld?"CREATE NEW WORLD":"ADDITIONAL WORLD SLOT REQUIRED")</button>
+    <small class="world-gate-commerce">@(DeedMode?"NO SHAELVIEN TOKEN REQUIRED · ":"")@Session.WorldSlotCommercialLabel · @WorldSession.IncludedSurfaceWorldPixels×@WorldSession.IncludedSurfaceWorldPixels px surface starts included. Larger surfaces and additional worlds use account entitlements.</small>
+    <button type="button" class="world-gate-primary" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName)||!CanCreateWorld)" @onclick="CreateAsync">@(CanCreateWorld?(DeedMode?"CLAIM DEED · NO TOKEN":"CREATE NEW WORLD"):"ADDITIONAL WORLD SLOT REQUIRED")</button>
    </section>
 
    <div class="world-gate-divider"><span>SANDBOX WORLDS</span></div>
@@ -116,6 +116,7 @@
  [Parameter] public EventCallback OnClose{get;set;}
  [Parameter] public EventCallback OnContinue{get;set;}
  [Parameter] public bool RequireSelection{get;set;}
+ [Parameter] public bool DeedMode{get;set;}
  readonly List<AccountWorldReference> _worlds=[];
  AccountWorldReference? _deleteWorld;
  bool _wasOpen;
