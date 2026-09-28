@@ -7,7 +7,19 @@ function post(frame,message){
 export async function save(frame){
   const fn=frame?.contentWindow?.ShaelvienPrototype?.save;
   if(typeof fn!=="function")return false;
-  await fn();
+  return (await fn())!==false;
+}
+
+export async function placeAsset(frame,payload){
+  const fn=frame?.contentWindow?.ShaelvienPrototype?.placeExternalAsset;
+  if(typeof fn!=="function")return false;
+  return (await fn(payload||{}))!==false;
+}
+
+export function setDepth(frame,tier,layer,scope){
+  const fn=frame?.contentWindow?.ShaelvienPrototype?.setExternalDepth;
+  if(typeof fn!=="function")return false;
+  fn({tier,layer,scope});
   return true;
 }
 
