@@ -1348,6 +1348,7 @@
      ResetAssetTransform();
      SetPathMenuToNext(savedScope);
      _stage=Stage.PathSelect;
+     _pathIndex=0;
      var savedWorldId=string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
       ?Session.OwnedMmoParcel?.ParcelId
       :Session.WorldId;
