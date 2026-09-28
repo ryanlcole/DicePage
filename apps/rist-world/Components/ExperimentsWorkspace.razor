@@ -1256,10 +1256,6 @@
  {
   switch(_stage)
   {
-   case Stage.PathSelect:
-    if(HasPathWorlds)await ActivateCurrentPathWorldAsync();
-    else await OpenControllerDeedAsync();
-    break;
    case Stage.Environment:
      if(!_experimentStartRevealed)
      {
@@ -1277,7 +1273,7 @@
    case Stage.PathSelect:
     if(!HasPathWorlds)
     {
-     _message="Claim a deed before opening GameMaster tools.";
+     _message="Use the right display to Claim Deed before opening GameMaster tools.";
      break;
     }
     if(await ActivateCurrentPathWorldAsync())BeginGameMasterPath();
@@ -1352,7 +1348,13 @@
      ResetAssetTransform();
      SetPathMenuToNext(savedScope);
      _stage=Stage.PathSelect;
-     _worldIndex=0;
+     var savedWorldId=string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
+      ?Session.OwnedMmoParcel?.ParcelId
+      :Session.WorldId;
+     var savedWorldIndex=string.IsNullOrWhiteSpace(savedWorldId)
+      ?-1
+      :PathWorldOptions.ToList().FindIndex(option=>string.Equals(option.Id,savedWorldId,StringComparison.Ordinal));
+     _worldIndex=savedWorldIndex>=0?savedWorldIndex:0;
      _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. Returned to the GameMaster path menu.";
      await InvokeAsync(StateHasChanged);
      break;
@@ -1484,28 +1486,36 @@
   }
  }
 
- Task PressRight()
+ async Task PressRight()
  {
   if(IsBuilderStage)
   {
    ToggleAssetContext();
-   return Task.CompletedTask;
+   return;
   }
 
   if(IsPathDrivenStage)
   {
    OpenPathTarget(CurrentPathTarget);
-   return Task.CompletedTask;
+   return;
   }
 
   if(RightActsAsBack)
   {
    GoBack();
-   return Task.CompletedTask;
+   return;
   }
 
   switch(_stage)
   {
+   case Stage.PathSelect:
+    if(HasPathWorlds)
+    {
+     if(await ActivateCurrentPathWorldAsync())
+      _message=$"{PathWorldLabel} selected. Touch the left display to open {CurrentGameMasterPath}.";
+    }
+    else await OpenControllerDeedAsync();
+    break;
    case Stage.Environment:
      if(!_experimentStartRevealed)
      {
@@ -1582,7 +1592,7 @@
     OpenPathTarget(CurrentPathTarget);
     break;
   }
-  return Task.CompletedTask;
+  return;
  }
 
  void BeginGameMasterPath()
