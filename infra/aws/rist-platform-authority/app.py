@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 import json
 import os
 import secrets
@@ -9,7 +10,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 import boto3
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 from botocore.exceptions import ClientError
 
 from mutation_policy import canonical_piece_state, dynamo_safe, protects_piece
@@ -22,11 +23,16 @@ world = ddb.Table(os.environ["WORLD_TABLE"])
 memberships = ddb.Table(os.environ["MEMBERSHIPS_TABLE"])
 audit = ddb.Table(os.environ["AUDIT_TABLE"])
 realtime = ddb.Table(os.environ["REALTIME_TABLE"])
+external_ai = ddb.Table(os.environ["AI_STATE_TABLE"])
+telemetry = ddb.Table(os.environ["TELEMETRY_TABLE"])
 s3 = boto3.client("s3")
+sm = boto3.client("secretsmanager")
 bucket = os.environ["USER_DATA_BUCKET"]
 kms_key = os.environ["USER_DATA_KEY_ARN"]
 owner_user_id = os.environ.get("OWNER_USER_ID", "").strip()
 origin = os.environ["FRONTEND_ORIGIN"].rstrip("/")
+telemetry_salt_secret_arn = os.environ["TELEMETRY_SALT_SECRET_ARN"]
+_telemetry_salt = None
 GEONAPH_WORLD_ID = "shaelvien-geonaph-alpha-001"
 DEFAULT_WORLD_SLOTS = 1
 DEFAULT_SURFACE_WORLD_PIXELS = 2048
@@ -116,6 +122,206 @@ def response(status, body=None):
         },
         "body": "" if body is None else json.dumps(body, separators=(",", ":"), default=_json_default),
     }
+
+
+def _telemetry_secret():
+    global _telemetry_salt
+    if _telemetry_salt is not None:
+        return _telemetry_salt
+    result = sm.get_secret_value(SecretId=telemetry_salt_secret_arn)
+    raw = result.get("SecretString")
+    if not raw and result.get("SecretBinary"):
+        import base64
+        raw = base64.b64decode(result["SecretBinary"]).decode("utf-8")
+    if not raw:
+        raise RuntimeError("Telemetry HMAC secret is unavailable")
+    _telemetry_salt = str(raw).encode("utf-8")
+    return _telemetry_salt
+
+
+def _source_ip(event):
+    return str(((event.get("requestContext") or {}).get("http") or {}).get("sourceIp") or "").strip()
+
+
+def _visitor_hash(source_ip):
+    if not source_ip:
+        return ""
+    return hmac.new(_telemetry_secret(), source_ip.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def record_visit(event):
+    req = body(event)
+    system = str(req.get("system") or "").strip().lower()
+    if system not in {"ai", "game"}:
+        return response(400, {"error": "system must be ai or game"})
+    page = str(req.get("page") or "")[:240]
+    stamp = utc_stamp()
+    now = int(time.time())
+    metric_key = {"pk": "SYSTEM#" + system, "sk": "TOTAL"}
+    telemetry.update_item(
+        Key=metric_key,
+        UpdateExpression=(
+            "ADD visits :one SET updatedAtUtc = :stamp, "
+            "startedAtUtc = if_not_exists(startedAtUtc, :stamp)"
+        ),
+        ExpressionAttributeValues={":one": 1, ":stamp": stamp},
+    )
+
+    distinct_added = False
+    source_ip = _source_ip(event)
+    visitor = _visitor_hash(source_ip)
+    if visitor:
+        try:
+            telemetry.put_item(
+                Item={
+                    "pk": "VISITOR#" + system,
+                    "sk": visitor,
+                    "firstSeenAtUtc": stamp,
+                    "lastPage": page,
+                },
+                ConditionExpression="attribute_not_exists(pk) AND attribute_not_exists(sk)",
+            )
+            distinct_added = True
+        except ClientError as exc:
+            if (exc.response.get("Error") or {}).get("Code") != "ConditionalCheckFailedException":
+                raise
+        if distinct_added:
+            telemetry.update_item(
+                Key=metric_key,
+                UpdateExpression="ADD distinctVisitors :one",
+                ExpressionAttributeValues={":one": 1},
+            )
+
+    day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    day_key = {"pk": "SYSTEM#" + system, "sk": "DAY#" + day}
+    telemetry.update_item(
+        Key=day_key,
+        UpdateExpression=(
+            "ADD visits :one SET updatedAtUtc = :stamp, "
+            "startedAtUtc = if_not_exists(startedAtUtc, :stamp)"
+        ),
+        ExpressionAttributeValues={":one": 1, ":stamp": stamp},
+    )
+    if visitor:
+        daily_visitor = hmac.new(
+            _telemetry_secret(),
+            (day + "|" + source_ip).encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        try:
+            telemetry.put_item(
+                Item={
+                    "pk": "VISITOR#" + system + "#DAY#" + day,
+                    "sk": daily_visitor,
+                    "firstSeenAtUtc": stamp,
+                },
+                ConditionExpression="attribute_not_exists(pk) AND attribute_not_exists(sk)",
+            )
+            telemetry.update_item(
+                Key=day_key,
+                UpdateExpression="ADD distinctVisitors :one",
+                ExpressionAttributeValues={":one": 1},
+            )
+        except ClientError as exc:
+            if (exc.response.get("Error") or {}).get("Code") != "ConditionalCheckFailedException":
+                raise
+
+    return response(204)
+
+
+def _scan_count(table, filter_expression):
+    total = 0
+    start = None
+    while True:
+        args = {"Select": "COUNT", "FilterExpression": filter_expression}
+        if start:
+            args["ExclusiveStartKey"] = start
+        result = table.scan(**args)
+        total += int(result.get("Count", 0))
+        start = result.get("LastEvaluatedKey")
+        if not start:
+            return total
+
+
+def _ai_account_summary():
+    statuses = {}
+    count = 0
+    start = None
+    filt = Attr("pk").begins_with("AI-REGISTRATION#") & Attr("sk").eq("PROFILE")
+    while True:
+        args = {
+            "FilterExpression": filt,
+            "ProjectionExpression": "#pk,#sk,#status",
+            "ExpressionAttributeNames": {
+                "#pk": "pk",
+                "#sk": "sk",
+                "#status": "status",
+            },
+        }
+        if start:
+            args["ExclusiveStartKey"] = start
+        result = external_ai.scan(**args)
+        for item in result.get("Items", []):
+            count += 1
+            status = str(item.get("status") or "Unknown")
+            statuses[status] = statuses.get(status, 0) + 1
+        start = result.get("LastEvaluatedKey")
+        if not start:
+            return count, statuses
+
+
+def _telemetry_metric(system):
+    item = telemetry.get_item(
+        Key={"pk": "SYSTEM#" + system, "sk": "TOTAL"},
+        ConsistentRead=True,
+    ).get("Item") or {}
+    return {
+        "visits": int(item.get("visits") or 0),
+        "distinctVisitors": int(item.get("distinctVisitors") or 0),
+        "startedAtUtc": str(item.get("startedAtUtc") or ""),
+        "updatedAtUtc": str(item.get("updatedAtUtc") or ""),
+    }
+
+
+def owner_dashboard(session):
+    user_id = session["userId"]
+    if not (owner_user_id and user_id == owner_user_id):
+        return response(403, {"error": "Platform owner authority required"})
+
+    game_accounts = _scan_count(users, Attr("sk").eq("PROFILE"))
+    ai_accounts, ai_status = _ai_account_summary()
+    game_metric = _telemetry_metric("game")
+    ai_metric = _telemetry_metric("ai")
+    started = sorted(
+        x for x in (game_metric["startedAtUtc"], ai_metric["startedAtUtc"]) if x
+    )
+
+    return response(200, {
+        "owner": {
+            "verified": True,
+            "displayName": session.get("displayName", "Owner"),
+        },
+        "systems": {
+            "game": {
+                **game_metric,
+                "accounts": game_accounts,
+            },
+            "ai": {
+                **ai_metric,
+                "accounts": ai_accounts,
+                "accountStatus": ai_status,
+            },
+        },
+        "telemetry": {
+            "rawIpStored": False,
+            "visitorIdentity": "server-keyed-hmac",
+            "startedAtUtc": started[0] if started else "",
+        },
+        "privacy": {
+            "rawQuestionStored": False,
+            "rawIpStored": False,
+        },
+    })
 
 
 def auth(event):
@@ -1019,12 +1225,21 @@ def handler(event, context):
     if method == "OPTIONS":
         return response(204)
 
+    if method == "POST" and path == "/telemetry/visit":
+        try:
+            return record_visit(event)
+        except (ValueError, json.JSONDecodeError) as exc:
+            return response(400, {"error": str(exc)})
+
     session = auth(event)
     if not session:
         return response(401, {"error": "Authentication required"})
     user_id = session["userId"]
     q = event.get("queryStringParameters") or {}
     now = int(time.time())
+
+    if method == "GET" and path == "/authority/owner/dashboard":
+        return owner_dashboard(session)
 
     if method == "POST" and path == "/authority/profile-complete":
         req = body(event)
