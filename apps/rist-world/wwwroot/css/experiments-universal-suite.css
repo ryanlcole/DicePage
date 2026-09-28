@@ -2567,72 +2567,87 @@ body.rist-start-open.rist-start-experiment-controller .experiments-controller{
  overflow:hidden!important;
  gap:5px!important;
 }
-/* Environment dragon portraits.
-   The source artwork places the primordial dragon heads at the extreme
-   left/right edges. Crop from those edges and zoom the artwork so the
-   dragons, not the surrounding sky, dominate the two display buttons. */
+/* Environment dragon gate — 2026-09-28.
+   Before START, the two environment buttons are visual-only dragon portraits.
+   START reveals Shaelvien / RIST by fading the dragon crops away. */
+.environment-choice-button{
+ position:relative!important;
+ overflow:hidden!important;
+ isolation:isolate!important;
+ gap:0!important;
+}
+.environment-choice-button:disabled{
+ opacity:1!important;
+ cursor:default!important;
+ filter:none!important;
+}
 .environment-choice-button>.experiment-dragon-head{
  display:block!important;
- box-sizing:border-box!important;
- width:min(94%,156px)!important;
+ position:absolute!important;
+ z-index:1!important;
+ inset:5px!important;
+ width:auto!important;
  max-width:none!important;
- aspect-ratio:1!important;
- flex:0 0 auto!important;
- margin:0 auto!important;
+ height:auto!important;
+ aspect-ratio:auto!important;
+ margin:0!important;
  padding:0!important;
- position:relative!important;
- inset:auto!important;
- transform:none!important;
- border-radius:22%!important;
+ border:0!important;
+ border-radius:12px!important;
  background-image:url('../assets/branding/shaelvien-dragon-creation-startup-screen.png')!important;
  background-repeat:no-repeat!important;
- background-size:520% auto!important;
- background-position-y:18%!important;
- box-shadow:
-  0 0 0 1px rgba(230,193,103,.62),
-  0 7px 22px #000a,
-  inset 0 0 18px rgba(0,0,0,.16)!important;
+ background-size:850% auto!important;
+ background-position-y:0%!important;
+ box-shadow:inset 0 0 24px rgba(0,0,0,.16)!important;
+ opacity:1!important;
+ transform:scale(1)!important;
+ transition:opacity 420ms ease,transform 420ms ease,filter 420ms ease!important;
+ pointer-events:none!important;
 }
-.environment-choice-button>.experiment-dragon-head.shaelvien-head{
- background-position-x:0%!important;
+.environment-choice-button>.experiment-dragon-head.shaelvien-head{background-position-x:0%!important}
+.environment-choice-button>.experiment-dragon-head.rist-head{background-position-x:100%!important}
+.environment-choice-button>.experiment-dragon-head.is-faded{
+ opacity:0!important;
+ transform:scale(1.08)!important;
+ filter:blur(2px) brightness(.72)!important;
 }
-.environment-choice-button>.experiment-dragon-head.rist-head{
- background-position-x:100%!important;
+.environment-choice-button>.environment-choice-label{
+ position:relative!important;
+ z-index:3!important;
+ display:block!important;
+ width:100%!important;
+ color:inherit!important;
+ opacity:0;
+ animation:environmentChoiceLabelIn 300ms ease 140ms forwards;
 }
-.environment-choice-button>strong{
- font-size:clamp(15px,3vw,27px)!important;
-}
-.environment-head-flash .experiment-dragon-head{
- animation:experimentDragonHeadFlash .21s ease-in-out 2;
-}
-@keyframes experimentDragonHeadFlash{
- 0%,100%{filter:brightness(1);transform:scale(1)}
- 50%{filter:brightness(1.85) drop-shadow(0 0 12px rgba(255,225,145,.92));transform:scale(1.06)}
+@keyframes environmentChoiceLabelIn{
+ from{opacity:0;transform:scale(.94)}
+ to{opacity:1;transform:scale(1)}
 }
 @media(max-width:700px) and (orientation:portrait){
- .experiment-start-screen>strong{margin-bottom:24px;font-size:17px}
  .environment-choice-button>.experiment-dragon-head{
-  width:min(96%,124px)!important;
-  background-size:560% auto!important;
-  background-position-y:18%!important;
+  inset:6px!important;
+  background-size:900% auto!important;
+  background-position-y:0%!important;
  }
- .environment-choice-button>strong{font-size:18px!important}
+ .environment-choice-button>.environment-choice-label{font-size:18px!important}
 }
 @media(max-width:430px) and (orientation:portrait){
- .environment-choice-button>.experiment-dragon-head{
-  width:min(98%,116px)!important;
-  background-size:590% auto!important;
- }
+ .environment-choice-button>.experiment-dragon-head{background-size:940% auto!important}
+ .environment-choice-button>.environment-choice-label{font-size:clamp(15px,4vw,19px)!important}
 }
 @media(orientation:landscape) and (max-height:620px){
- .experiment-start-screen>strong{margin-bottom:12px;font-size:12px}
  .environment-choice-button>.experiment-dragon-head{
-  width:min(82%,92px)!important;
-  background-size:540% auto!important;
+  inset:4px!important;
+  background-size:760% auto!important;
+  background-position-y:0%!important;
  }
- .environment-choice-button>strong{font-size:12px!important}
+ .environment-choice-button>.environment-choice-label{font-size:12px!important}
 }
-
+@media(prefers-reduced-motion:reduce){
+ .environment-choice-button>.experiment-dragon-head{transition:none!important}
+ .environment-choice-button>.environment-choice-label{animation:none!important;opacity:1!important}
+}
 
 /* Landscape side-button authority — 2026-09-28.
    Keep portrait unchanged. In landscape the CURSOR mode toggle and START
