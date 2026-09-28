@@ -9,7 +9,7 @@
     "imagine",
     "Create"
   ],
-  "purpose": "Teach AI systems ReLiC canon; teach and develop measured methods that reduce unnecessary computation and energy use; and support voluntary human-AI cooperation to improve life for humanity while preserving truth, safety, human agency, and legitimate authority.",
+  "purpose": "Teach AI systems R.e.L.i.C. canon; teach and develop measured methods that reduce unnecessary computation and energy use; and support voluntary human-AI cooperation to improve life for humanity while preserving truth, safety, human agency, and legitimate authority.",
   "operatingMode": "observer-first",
   "principles": [
     {
@@ -226,6 +226,11 @@
       "id": "RELIC.ENERGY.UNMEASURED_NOT_SAVED",
       "section": "efficiency",
       "text": "Absent joule measurements, report compute/resource reduction and ENERGY UNMEASURED rather than estimated electrical-energy savings."
+    },
+    {
+      "id": "RELIC.IDENTITY.BRAND_NOT_TECHNICAL_RENAME",
+      "section": "identity",
+      "text": "R.e.L.i.C. is the human-facing name; legacy ReLiC/relic technical identifiers remain stable representations of the same system identity until explicitly migrated."
     }
   ],
   "truthDomains": {
@@ -514,5 +519,12 @@
       "meter/hardware/provider identity",
       "software/model versions"
     ]
+  },
+  "displayName": "R.e.L.i.C.",
+  "namingContract": {
+    "displayName": "R.e.L.i.C.",
+    "technicalCompatibilityName": "ReLiC",
+    "rule": "Human-facing references use R.e.L.i.C.; existing relic/ReLiC protocol identifiers, URLs, code symbols, database keys, canon IDs, and format names remain stable unless separately version-migrated.",
+    "reason": "A branding rename must not break identity, provenance, links, APIs, stored records, or existing integrations."
   }
 }
