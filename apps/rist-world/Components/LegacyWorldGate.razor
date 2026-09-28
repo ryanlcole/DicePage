@@ -14,7 +14,7 @@
 
    <section class="legacy-gate-intro">
     <strong>UPLOAD THE CAMPAIGN, NOT THE REBUILD.</strong>
-    <p>Put the old campaign folder into one ZIP. Legacy accepts every file type, preserves the original structure and bytes, generates a linked PDF binder, makes safe HTML representations, and copies recognized images into My Assets.</p>
+    <p>Upload one campaign ZIP or select several loose files at once. Legacy accepts every file type, preserves the original bytes, generates a linked PDF binder, makes safe HTML representations, and copies recognized images into My Assets.</p>
     <p>Runecore identifies signatures and probable origin environments. Unknown and discontinued-software files stay preserved. Programs are quarantined: Legacy creates a tiny no-network capsule specification only after you choose to restore the origin; imported code is never executed in the browser.</p>
    </section>
 
@@ -36,6 +36,13 @@
     <strong>@(_busy?"WORKING…":"IMPORT ZIP")</strong>
     <small>@(CanCreateWorld?"ZIP up to 100 MB · any file type inside it is preserved privately":"An additional sandbox world slot is required before importing another Legacy world.")</small>
     <InputFile OnChange="ImportLegacyAsync" accept=".zip,application/zip,application/x-zip-compressed" disabled="@(_busy||!CanCreateWorld)" />
+   </label>
+
+   <div class="legacy-gate-divider"><span>OR SELECT SEVERAL FILES</span></div>
+   <label class="legacy-import legacy-import-files @((_busy||!CanCreateWorld)?"disabled":"")">
+    <strong>@(_busy?"WORKING…":"IMPORT FILES")</strong>
+    <small>@(CanCreateWorld?"Select several loose files at once · metadata + SHA-256 identify exact duplicates · differing same-name files are preserved automatically as numbered copies":"An additional sandbox world slot is required before importing another Legacy world.")</small>
+    <InputFile OnChange="ImportLegacyFilesAsync" multiple disabled="@(_busy||!CanCreateWorld)" />
    </label>
 
    @if(!string.IsNullOrWhiteSpace(_status))
@@ -131,7 +138,7 @@
   if(!CanCreateWorld){_status="An additional sandbox world slot is required before importing another Legacy world.";return;}
 
   var file=e.File;
-  if(!file.Name.EndsWith(".zip",StringComparison.OrdinalIgnoreCase)){_status="Legacy expects a ZIP archive.";return;}
+  if(!file.Name.EndsWith(".zip",StringComparison.OrdinalIgnoreCase)){_status="Legacy expects a ZIP archive here. Use IMPORT FILES for loose files.";return;}
   if(file.Size>MaxLegacyZipBytes){_status="Legacy ZIP import is currently limited to 100 MB.";return;}
 
   _busy=true;
@@ -144,25 +151,7 @@
    using var buffer=new MemoryStream();
    await stream.CopyToAsync(buffer);
    var bytes=buffer.ToArray();
-
-   var inspection=LegacyArchiveImport.Validate(bytes);
-   _status=$"Verified {inspection.FileCount:N0} files ({inspection.ExpandedBytes/1024d/1024d:0.0} MB expanded). Creating Legacy world…";
-   await InvokeAsync(StateHasChanged);
-
-   var preferred=Path.GetFileNameWithoutExtension(file.Name);
-   await Session.CreateWorldAsync(string.IsNullOrWhiteSpace(preferred)?"Legacy World":preferred);
-
-   var progress=new Progress<string>(message =>
-   {
-    _status=message;
-    _=InvokeAsync(StateHasChanged);
-   });
-
-   var manifest=await LegacyArchiveImport.ImportAsync(
-    bytes,file.Name,Session.WorldId,Session.WorldDisplayName,Navigation.BaseUri,Auth,progress);
-
-   _status=$"{manifest.WorldName} is ready: {manifest.FileCount:N0} files, {manifest.ImageCount:N0} image assets, {manifest.HtmlCount:N0} HTML representations.";
-   await CompleteAsync();
+   await ImportBundleAsync(bytes,file.Name,Path.GetFileNameWithoutExtension(file.Name),"");
   }
   catch(Exception ex){_status="Legacy import failed: "+ex.Message;}
   finally
@@ -170,6 +159,76 @@
    _busy=false;
    await InvokeAsync(StateHasChanged);
   }
+ }
+
+ async Task ImportLegacyFilesAsync(InputFileChangeEventArgs e)
+ {
+  if(_busy)return;
+  if(!CanCreateWorld){_status="An additional sandbox world slot is required before importing another Legacy world.";return;}
+
+  _busy=true;
+  await InvokeAsync(StateHasChanged);
+
+  try
+  {
+   var files=e.GetMultipleFiles(LegacyArchiveImport.MaxEntryCount);
+   var candidates=new List<LegacyUploadCandidate>(files.Count);
+   long selectedBytes=0;
+
+   for(var i=0;i<files.Count;i++)
+   {
+    var file=files[i];
+    if(file.Size>LegacyArchiveImport.MaxSingleEntryBytes)
+     throw new InvalidDataException($"{file.Name} exceeds the {LegacyArchiveImport.MaxSingleEntryBytes/1024/1024} MB per-file limit.");
+
+    selectedBytes+=file.Size;
+    if(selectedBytes>LegacyArchiveImport.MaxExpandedBytes)
+     throw new InvalidDataException($"Selected files exceed the {LegacyArchiveImport.MaxExpandedBytes/1024/1024} MB Legacy import limit.");
+
+    _status=$"Reading {i+1:N0}/{files.Count:N0} · {file.Name}";
+    await InvokeAsync(StateHasChanged);
+
+    await using var stream=file.OpenReadStream(LegacyArchiveImport.MaxSingleEntryBytes);
+    using var buffer=new MemoryStream();
+    await stream.CopyToAsync(buffer);
+    candidates.Add(new LegacyUploadCandidate(file.Name,file.LastModified,file.ContentType,buffer.ToArray()));
+   }
+
+   var bundle=LegacyArchiveImport.CreateUploadBundle(candidates);
+   var duplicateSummary=$"{bundle.IgnoredDuplicateCount:N0} exact duplicate(s) ignored · {bundle.AutoDuplicatedCount:N0} differing same-name file(s) preserved as copies";
+   var sourceName=$"legacy-files-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss}.zip";
+   var preferred=files.Count==1?Path.GetFileNameWithoutExtension(files[0].Name):"Legacy Import";
+   await ImportBundleAsync(bundle.ZipBytes,sourceName,preferred,duplicateSummary);
+  }
+  catch(Exception ex){_status="Legacy multi-file import failed: "+ex.Message;}
+  finally
+  {
+   _busy=false;
+   await InvokeAsync(StateHasChanged);
+  }
+ }
+
+ async Task ImportBundleAsync(byte[] bytes,string sourceName,string preferredWorldName,string duplicateSummary)
+ {
+  var inspection=LegacyArchiveImport.Validate(bytes);
+  _status=$"Verified {inspection.FileCount:N0} files ({inspection.ExpandedBytes/1024d/1024d:0.0} MB expanded)."
+    +(string.IsNullOrWhiteSpace(duplicateSummary)?"":$" {duplicateSummary}.")
+    +" Creating Legacy world…";
+  await InvokeAsync(StateHasChanged);
+
+  await Session.CreateWorldAsync(string.IsNullOrWhiteSpace(preferredWorldName)?"Legacy World":preferredWorldName);
+
+  var progress=new Progress<string>(message =>
+  {
+   _status=message;
+   _=InvokeAsync(StateHasChanged);
+  });
+
+  var manifest=await LegacyArchiveImport.ImportAsync(
+   bytes,sourceName,Session.WorldId,Session.WorldDisplayName,Navigation.BaseUri,Auth,progress);
+
+  _status=$"{manifest.WorldName} is ready: {manifest.FileCount:N0} files, {manifest.ImageCount:N0} image assets, {manifest.HtmlCount:N0} HTML representations.";
+  await CompleteAsync();
  }
 
  async Task CompleteAsync()
