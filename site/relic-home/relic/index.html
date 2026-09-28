@@ -39,7 +39,7 @@ main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
 .node.core{grid-column:2/4;text-align:center;border-color:rgba(224,197,141,.55);background:radial-gradient(circle at 50% 20%,rgba(224,197,141,.13),rgba(7,17,22,.9) 66%)}
 .node.core strong{font:700 1.35rem Georgia,"Times New Roman",serif;color:#f0dfbb}
 .node.dim{opacity:.46}
-.live-result{margin-top:18px;padding:16px;border:1px solid rgba(136,186,201,.23);border-radius:12px;background:#061015;min-height:76px}
+.live-result{margin-top:14px;padding:18px;border:1px solid rgba(136,186,201,.42);border-radius:12px;background:#061015;min-height:92px;scroll-margin-top:84px}
 .live-result strong{color:#dceef2}.live-result p{margin:.45em 0;color:#aebfc2;line-height:1.52}
 .live-result ul{margin:10px 0 0;padding-left:20px;color:#aebfc2}.live-result li{margin:6px 0}
 .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.badge{padding:5px 8px;border-radius:999px;border:1px solid rgba(136,186,201,.3);color:#bcd7dd;font:800 .7rem/1 system-ui;letter-spacing:.05em}
@@ -103,6 +103,11 @@ main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
     <button class="query-button" type="submit">Shape mind</button>
   </form>
 
+  <div class="live-result" id="mind-result" role="status" aria-live="polite">
+    <strong>OUTPUT · Ready.</strong>
+    <p>Your ReLiC result will appear here immediately after you press <strong>Shape mind</strong>. The semantic graph below is supporting evidence, not the answer panel.</p>
+  </div>
+
   <div class="mind-map" id="mind-map" aria-label="Active ReLiC knowledge structure">
     <article class="node" data-node="sources"><strong>Sources</strong><span>Web AI · MCP AI · project evidence · private continuity</span></article>
     <article class="node" data-node="provenance"><strong>Provenance</strong><span>Where each observation came from and how it changed.</span></article>
@@ -115,11 +120,6 @@ main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
     <article class="node" data-node="canon"><strong>Canon</strong><span>Remember → exist → Live → imagine → Create</span></article>
     <article class="node" data-node="errors"><strong>Error Memory</strong><span>Known failures remain constraints instead of being relearned.</span></article>
     <article class="node" data-node="time"><strong>Time / State</strong><span>Observe legitimate transitions without replacing identity.</span></article>
-  </div>
-
-  <div class="live-result" id="mind-result" role="status" aria-live="polite">
-    <strong>Ready.</strong>
-    <p>This page uses the public read-only ReLiC MCP. It does not expose private memory or promote anything to canon.</p>
   </div>
 </section>
 
@@ -246,7 +246,7 @@ main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
   function renderGrounding(query,context,search,shapeKeys){
     var canon=(context&&context.canonVersion)||'current';
     var found=(search&&Array.isArray(search.results))?search.results:[];
-    var html='<strong>Active shape grounded.</strong>';
+    var html='<strong>OUTPUT · Active shape grounded.</strong>';
     html+='<div class="badges"><span class="badge">CANON '+escapeHtml(canon)+'</span><span class="badge">'+shapeKeys.length+' ACTIVE FACETS</span><span class="badge">'+found.length+' PROJECT MATCHES</span></div>';
     if(context&&context.identityInstruction) html+='<p>'+escapeHtml(context.identityInstruction)+'</p>';
     if(found.length){
@@ -272,7 +272,8 @@ main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
       return;
     }
     var shapeKeys=shape(query);
-    result.innerHTML='<strong>Grounding…</strong><p>Reusing canonical identity and retrieving only relevant public evidence.</p>';
+    result.innerHTML='<strong>OUTPUT · Grounding…</strong><p>Reusing canonical identity and retrieving only relevant public evidence.</p>';
+    result.scrollIntoView({behavior:'smooth',block:'nearest'});
     try{
       var responses=await Promise.all([
         callTool('relic_context',{subject:query,intent:'Build a compact canon-governed active context for this query.',truthDomain:'UNKNOWN'},'context-'+Date.now()),
