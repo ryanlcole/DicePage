@@ -1777,11 +1777,19 @@
  isolation:isolate!important;
  background:#02070b!important;
 }
-.experiments-worldbuilder-surface>.geonaph-worldbuilder-host{
+.experiments-worldbuilder-frame{
  position:absolute!important;
  inset:0!important;
+ display:block!important;
  width:100%!important;
  height:100%!important;
+ min-width:0!important;
+ min-height:0!important;
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ border-radius:inherit!important;
+ background:#05090c!important;
 }
 .experiments-worldbuilder-viewer .viewer-title,
 .experiments-worldbuilder-viewer .viewer-readout{
