@@ -478,7 +478,7 @@
  static readonly string[] ImageSources=["GAME IMAGES","MY IMAGES","UPLOAD"];
  static readonly string[] SpriteSources=["GAME SPRITES","MY SPRITES","UPLOAD"];
  static readonly string[] GameMasterPaths=["WORLD BUILDER","CAMPAIGN BUILDER","ADVANCED"];
- static readonly string[] ArtMethods=["DRAW","CAD","IMPORT IMAGE","SPRITE","AUDIO","VIDEO"];
+ static readonly string[] ArtMethods=["DRAW","CAD","IMAGES","SPRITE","AUDIO","VIDEO"];
  static readonly string[] DrawPhases=["PENCIL","COLOR","EFFECTS"];
  static readonly string[] CadPhases=["SKETCH","GEOMETRY","MATERIAL","EFFECTS"];
  static readonly string[] AudioPhases=["RECORD","EDIT","EFFECTS"];
@@ -1488,9 +1488,9 @@
 
   switch(CurrentArtMethod)
   {
-   case "IMPORT IMAGE":
+   case "IMAGES":
     PrepareAssetSource("IMAGE");
-    _message=$"{CurrentBuilderScope} import image. Slide the left display through Game Images, My Images, or Upload; the right rail still jumps through the GameMaster path.";
+    _message=$"{CurrentBuilderScope} images. Choose from Game Images, My Images, or Upload; existing images and new uploads use the same image path.";
     break;
    case "SPRITE":
     PrepareAssetSource("SPRITE");
