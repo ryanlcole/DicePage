@@ -723,7 +723,7 @@
   Stage.Rotate=>"ROTATE",
   Stage.Move=>"MOVE",
   Stage.SaveCancel=>"SAVE",
-  Stage.FullMapReview=>$"CONTINUE {CurrentBuilderScope}",
+  Stage.FullMapReview=>"SUITE OPTIONS",
   _=>""
  };
 
@@ -781,7 +781,7 @@
   Stage.Rotate=>"X changes preview rotation.",
   Stage.Move=>"X/Y move the preview representation.",
   Stage.SaveCancel=>"Save commits the representation and opens the full-map recursive review.",
-  Stage.FullMapReview=>$"Inspect the complete {CurrentBuilderScope.ToLowerInvariant()} view or continue building this scope.",
+  Stage.FullMapReview=>$"Inspect the complete {CurrentBuilderScope.ToLowerInvariant()} view, then return to World Builder, Region Definer, Local, or Instance.",
   _=>""
  };
 
@@ -864,7 +864,7 @@
   Stage.AssetKind=>"SLIDE ↑↓ · TOUCH SOURCE",
   Stage.BrowsePlace=>"TOUCH · CURSOR",
   Stage.Scale=>"SLIDE ↑↓ · TOUCH SET",
-  Stage.FullMapReview=>"TOUCH · BUILD MORE",
+  Stage.FullMapReview=>"TOUCH · SUITE OPTIONS",
   _=>"TOUCH · ACTIVATE"
  };
 
@@ -968,7 +968,7 @@
    {
     try
     {
-     _worldBuilderSourceModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-source-host.js?v=20260928-universal-viewer-1");
+     _worldBuilderSourceModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-source-host.js?v=20260928-canonical-spatial-1");
      await _worldBuilderSourceModule.InvokeVoidAsync("attach",_worldBuilderFrame,_selfRef);
      _worldBuilderSourceAttached=true;
     }
@@ -1076,11 +1076,13 @@
     break;
    case Stage.WorldBuilderTier:
     _tier=Math.Clamp(_tier+direction,0,9);
-    _message=$"Tier {_tier}. The glass stack is separated by a tier gap.";
+    _=SyncWorldBuilderDepthAsync();
+    _message=$"Tier {_tier}. The embedded canonical viewer is following this tier.";
     break;
    case Stage.WorldBuilderLayer:
     _layer=Math.Clamp(_layer+direction,0,99);
-    _message=$"Layer {_layer}. Nearby layers stack as glass sheets.";
+    _=SyncWorldBuilderDepthAsync();
+    _message=$"Layer {_layer}. The embedded canonical viewer is following this layer.";
     break;
    case Stage.Scale:
     _assetScale=Math.Clamp(_assetScale+(direction*.1),.25,4);
@@ -1129,7 +1131,7 @@
   }
  }
 
- Task PressLeft()
+ async Task PressLeft()
  {
   switch(_stage)
   {
@@ -1199,19 +1201,26 @@
      :$"{SelectedAssetName} is selected. Tap or press that asset again to place it.";
     break;
    case Stage.SaveCancel:
-    SaveCurrentAssetToViewer();
-    ResetAssetTransform();
-    SetPathMenuToNext(CurrentBuilderScope);
-    _stage=Stage.FullMapReview;
-    _message=$"Saved {_assetKind.ToLowerInvariant()} at {CurrentBuilderScope} Tier {_tier}, Layer {_layer}. Full-map review is active. Left continues here; right jumps along the {CurrentGameMasterPath} path.";
-    break;
+    {
+     var savedScope=CurrentBuilderScope;
+     var savedTier=_tier;
+     var savedLayer=_layer;
+     if(!await CommitCurrentAssetToCanonicalViewerAsync())break;
+     ResetAssetTransform();
+     SetPathMenuToNext(savedScope);
+     _stage=Stage.GameMasterScope;
+     _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
+     _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. Choose World Builder, Region Definer, Local, or Instance.";
+     break;
+    }
    case Stage.FullMapReview:
-    _stage=Stage.WorldBuilderTier;
-    SetPathMenuToNext(CurrentBuilderScope);
-    _message=$"Continuing {CurrentBuilderSuite}. The saved full-map viewer remains visible while you choose the next Tier and Layer.";
+    _stage=Stage.GameMasterScope;
+    _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
+    _message="Returned to the GameMaster Suite. Choose World Builder, Region Definer, Local, or Instance.";
     break;
    case Stage.WorldBuilderTier:
     _stage=Stage.WorldBuilderLayer;
+    await SyncWorldBuilderDepthAsync();
     _message=$"Tier {_tier} selected. Choose Layer.";
     break;
    case Stage.WorldBuilderLayer:
@@ -1219,6 +1228,7 @@
     _artMethodIndex=0;
     _artPhaseIndex=0;
     SetPathMenuToNext(CurrentBuilderScope);
+    await SyncWorldBuilderDepthAsync();
     _message=$"Tier {_tier}, Layer {_layer}. Select an art method on the left. The right rail can jump to history, lore, regions, NPCs, encounters, or another path node.";
     break;
    case Stage.Scale:
@@ -1234,7 +1244,7 @@
     _message="Position set. Touch the left display to save; Browser Back cancels.";
     break;
   }
-  return Task.CompletedTask;
+  return;
  }
 
  void GoBack()
@@ -1618,7 +1628,7 @@
   if(builderIndex>=0)
   {
    BeginBuilderScope(builderIndex);
-   _message=$"{CurrentBuilderSuite}. The controller guides Tier → Layer → Asset → Save, then returns to a full-map recursive review.";
+   _message=$"{CurrentBuilderSuite}. The controller guides Tier → Layer → Asset → Save, then returns to the GameMaster Suite choices.";
    return;
   }
 
@@ -1863,24 +1873,63 @@
   return name.Length<=28?name:name[..25]+"…";
  }
 
- void SaveCurrentAssetToViewer()
+ async Task<bool> CommitCurrentAssetToCanonicalViewerAsync()
  {
   var url=SelectedAssetUrl;
-  var name=SelectedAssetName;
+  if(string.IsNullOrWhiteSpace(url))
+  {
+   _message="The selected asset has no usable source URL.";
+   return false;
+  }
+  if(_worldBuilderSourceModule is null)
+  {
+   _message="The canonical World Builder bridge is not ready yet.";
+   return false;
+  }
 
-  _savedAssets.Add(new SavedViewerAsset(
-   _selectedAssetKey,
-   url,
-   name,
-   _assetKind,
-   _assetScope,
-   _tier,
-   _layer,
-   _assetScale,
-   _assetRotation,
-   _assetX,
-   _assetY,
-   DateTimeOffset.UtcNow));
+  try
+  {
+   var committed=await _worldBuilderSourceModule.InvokeAsync<bool>(
+    "placeAsset",
+    _worldBuilderFrame,
+    new
+    {
+     key=_selectedAssetKey,
+     assetId=_selectedAssetKey,
+     url,
+     name=SelectedAssetName,
+     kind=_assetKind,
+     scope=CurrentBuilderScope,
+     tier=_tier,
+     layer=_layer,
+     scale=_assetScale,
+     rotation=_assetRotation,
+     offsetX=_assetX,
+     offsetY=_assetY
+    });
+   if(!committed)
+   {
+    _message="The canonical World Builder did not commit the placement.";
+    return false;
+   }
+   return true;
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Canonical placement failed: {ex}");
+   _message="Canonical placement failed. This asset was not reported as saved.";
+   return false;
+  }
+ }
+
+ async Task SyncWorldBuilderDepthAsync()
+ {
+  if(_worldBuilderSourceModule is null)return;
+  try
+  {
+   await _worldBuilderSourceModule.InvokeVoidAsync("setDepth",_worldBuilderFrame,_tier,_layer,CurrentBuilderScope);
+  }
+  catch(JSException){}
  }
 
  string SavedViewerAssetClass(SavedViewerAsset asset)
