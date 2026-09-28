@@ -11,6 +11,12 @@
          @ref="_shell"
          @onkeydown="HandleKeyDown"
          aria-label="RIST universal GameMaster Suite experiment">
+ <button type="button"
+         class="experiments-browser-back"
+         data-browser-back="experiments"
+         tabindex="-1"
+         aria-hidden="true"
+         @onclick="HandleBrowserBack"></button>
 
  <main class="experiments-viewer" aria-label="Viewer">
   <div class="viewer-world @ViewerClass" aria-hidden="true"></div>
@@ -151,7 +157,7 @@
    <span>VIEWER</span>
   </header>
 
-  @if(Session.IsServerVerifiedPlatformOwner&&!IsBuilderStage)
+  @if(Session.IsServerVerifiedPlatformOwner)
   {
    <nav class="experiments-owner-links" aria-label="Owner-only experiment links">
     <a href="/relic/#capabilities" target="_blank" rel="noopener noreferrer">
@@ -303,7 +309,6 @@
  string _assetKind="IMAGE";
  string _assetScope="WORLD";
  string _activeKnowledgeNode="";
- string _activeArtTool="PENCIL";
  string _assetSource="GAME IMAGES";
  string _assetMode="ADD";
  bool _assetsLoading;
@@ -328,11 +333,10 @@
  static readonly string[] CadPhases=["SKETCH","GEOMETRY","MATERIAL","EFFECTS"];
  static readonly string[] AudioPhases=["RECORD","EDIT","EFFECTS"];
  static readonly string[] VideoPhases=["IMPORT","EDIT","EFFECTS"];
- static readonly string[] PencilTools=["PENCIL","ERASER","LINE","CURVE","RECTANGLE","ELLIPSE","POLYGON","SELECT","MOVE","ZOOM"];
- static readonly string[] ColorTools=["BRUSH","FILL","GRADIENT","AIRBRUSH","COLOR PICKER","PALETTE","RECOLOR","IMPORT TEXTURE"];
- static readonly string[] EffectTools=["LIGHT","SHADOW","GLOW","BLUR","SHARPEN","NOISE","HUE / SATURATION","TRANSPARENCY","WEATHER","FILTER","MASK"];
- static readonly string[] CadSketchTools=["PENCIL","ERASER","LINE","ARC","POLYLINE","BEZIER","SELECT","MOVE","ZOOM"];
- static readonly string[] CadGeometryTools=["RECTANGLE","ELLIPSE","POLYGON","EXTRUDE","OFFSET","TRIM","JOIN"];
+ static readonly string[] ColorTools=["BRUSH","FILL","AIRBRUSH","PALETTE","IMPORT TEXTURE"];
+ static readonly string[] EffectTools=["LIGHT","SHADOW","GLOW","WEATHER","FILTER","MASK"];
+ static readonly string[] CadSketchTools=["LINE","ARC","POLYLINE"];
+ static readonly string[] CadGeometryTools=["RECTANGLE","CIRCLE","POLYGON","EXTRUDE"];
  static readonly string[] CadMaterialTools=["WOOD","METAL","STONE","GLASS","CUSTOM"];
  static readonly string[] AudioRecordTools=["MIC","IMPORT"];
  static readonly string[] AudioEditTools=["TRIM","MIX","LOOP"];
@@ -384,7 +388,7 @@
   "ADVANCED"=>AdvancedPath,
   _=>WorldBuilderPath
  };
- string[] CurrentPathMenu=>["BACK",..CurrentGuidedPath.Distinct(StringComparer.OrdinalIgnoreCase)];
+ string[] CurrentPathMenu=>CurrentGuidedPath.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
  string CurrentPathTarget=>CurrentPathMenu[Math.Clamp(_pathMenuIndex,0,CurrentPathMenu.Length-1)];
  string CurrentArtMethod=>ArtMethods[Math.Clamp(_artMethodIndex,0,ArtMethods.Length-1)];
  string[] CurrentArtPhases=>CurrentArtMethod switch
@@ -398,7 +402,7 @@
  string CurrentArtPhase=>CurrentArtPhases[Math.Clamp(_artPhaseIndex,0,CurrentArtPhases.Length-1)];
  string[] CurrentArtTools=>CurrentArtMethod switch
  {
-  "DRAW" when CurrentArtPhase=="PENCIL"=>PencilTools,
+  "DRAW" when CurrentArtPhase=="PENCIL"=>["PENCIL"],
   "DRAW" when CurrentArtPhase=="COLOR"=>ColorTools,
   "DRAW" when CurrentArtPhase=="EFFECTS"=>EffectTools,
   "CAD" when CurrentArtPhase=="SKETCH"=>CadSketchTools,
@@ -414,8 +418,6 @@
   _=>[CurrentArtPhase]
  };
  string CurrentArtTool=>CurrentArtTools[Math.Clamp(_artToolIndex,0,CurrentArtTools.Length-1)];
- string[] CurrentArtWorkOptions=>[..CurrentArtTools,"SAVE PASS"];
- string CurrentArtWorkChoice=>CurrentArtWorkOptions[Math.Clamp(_artToolIndex,0,CurrentArtWorkOptions.Length-1)];
 
  string CurrentAnalogPlacementDraft=>AnalogPlacements[Math.Clamp(_analogPlacementDraft,0,AnalogPlacements.Length-1)];
  string AnalogPlacementClass=>$"analog-{_analogPlacement}";
@@ -447,7 +449,7 @@
   Stage.WorldBuilderLayer=>100,
   Stage.ArtMethod=>ArtMethods.Length,
   Stage.ArtPhase=>CurrentArtTools.Length,
-  Stage.ArtWork=>CurrentArtWorkOptions.Length,
+  Stage.ArtWork=>1,
   Stage.AssetKind=>AssetSources.Length,
   Stage.Scale=>38,
   _=>1
@@ -527,7 +529,7 @@
   Stage.WorldBuilderLayer=>$"LAYER {_layer}",
   Stage.ArtMethod=>CurrentArtMethod,
   Stage.ArtPhase=>CurrentArtTool,
-  Stage.ArtWork=>CurrentArtWorkChoice,
+  Stage.ArtWork=>$"SAVE {CurrentArtPhase}",
   Stage.KnowledgeNode=>"ADD ENTRY",
   Stage.AssetKind=>CurrentAssetSource,
   Stage.AssetMode=>"EDIT",
@@ -585,7 +587,7 @@
   Stage.WorldBuilderLayer=>"Y pages through layers. Touch the left display to select the shown layer, then choose an art method.",
   Stage.ArtMethod=>"Left is the A/V rail: Draw, CAD, Import Image, Sprite, Audio, or Video.",
   Stage.ArtPhase=>"Choose the tool for the current pass. Draw begins with Pencil, then Color, then Effects.",
-  Stage.ArtWork=>$"{_activeArtTool} is active. Slide the left control through familiar editor tools; choose SAVE PASS when this stage is complete.",
+  Stage.ArtWork=>$"{CurrentArtTool} is the active {CurrentArtPhase.ToLowerInvariant()} tool. Save advances to the next pass while keeping the recursive viewer.",
   Stage.KnowledgeNode=>$"Create or inspect {_activeKnowledgeNode.ToLowerInvariant()} without leaving the persistent viewer.",
   Stage.AssetKind=>"Y pages Game, My, and Upload sources. Touch the left display to open the shown source.",
   Stage.AssetMode=>"Choose an existing asset to transform.",
@@ -605,8 +607,8 @@
   Stage.PathSelect=>"Return to the Shaelvien role choice.",
   Stage.GameMasterScope=>"Return to world and settings selection.",
   Stage.ControlSettings=>"Cancel and return to GameMaster settings.",
-  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"The right rail jumps through Back, spatial scopes, journals, lore, NPCs, encounters, and the rest of the active path.",
-  Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>"The right rail is always the path/journal rail. Advanced exposes the complete graph.",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"The right rail jumps through spatial scopes, journals, lore, NPCs, encounters, and the rest of the active path. Browser Back moves backward.",
+  Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>"The right rail is always the path/journal rail. Browser Back moves backward; Advanced exposes the complete graph.",
   Stage.AssetMode=>"Add a new asset.",
   Stage.BrowsePlace=>"Back to Image/Sprite and source selection.",
   Stage.Scale=>"Back to the current source explorer.",
@@ -639,7 +641,7 @@
   Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
   Stage.ArtMethod=>CurrentArtMethod,
   Stage.ArtPhase=>CurrentArtTool,
-  Stage.ArtWork=>CurrentArtWorkChoice,
+  Stage.ArtWork=>$"SAVE {CurrentArtPhase}",
   Stage.KnowledgeNode=>"ADD ENTRY",
   Stage.AssetKind=>CurrentAssetSource,
   Stage.Scale=>$"{_assetScale:0.00}×",
@@ -668,7 +670,7 @@
   Stage.ControlSettings=>"TOUCH · SAVE",
   Stage.ArtMethod=>"SLIDE ↑↓ · TOUCH METHOD",
   Stage.ArtPhase=>"SLIDE ↑↓ · TOUCH TOOL",
-  Stage.ArtWork=>CurrentArtWorkChoice=="SAVE PASS"?"TOUCH · SAVE PASS":"SLIDE ↑↓ · TOUCH TOOL",
+  Stage.ArtWork=>"TOUCH · SAVE PASS",
   Stage.KnowledgeNode=>"TOUCH · ADD ENTRY",
   Stage.AssetKind=>"SLIDE ↑↓ · TOUCH SOURCE",
   Stage.BrowsePlace=>"TOUCH · SELECT",
@@ -704,7 +706,7 @@
   Stage.WorldBuilderLayer=>$"{CurrentBuilderSuite} · LAYER",
   Stage.ArtMethod=>$"{CurrentBuilderSuite} · SELECT ART METHOD",
   Stage.ArtPhase=>$"{CurrentBuilderSuite} · {CurrentArtMethod} · {CurrentArtPhase}",
-  Stage.ArtWork=>$"{CurrentBuilderSuite} · {CurrentArtMethod} · {_activeArtTool}",
+  Stage.ArtWork=>$"{CurrentBuilderSuite} · {CurrentArtMethod} · {CurrentArtTool}",
   Stage.KnowledgeNode=>$"{CurrentGameMasterPath} · {_activeKnowledgeNode}",
   Stage.AssetKind=>$"{CurrentBuilderSuite} · {_assetKind} SOURCE",
   Stage.AssetMode=>$"{CurrentBuilderSuite} · {_assetKind}",
@@ -730,7 +732,7 @@
   Stage.WorldBuilderLayer=>$"{CurrentBuilderScope} → LAYER",
   Stage.ArtMethod=>$"{CurrentBuilderScope} → A/V METHOD",
   Stage.ArtPhase=>$"{CurrentBuilderScope} → {CurrentArtMethod} → {CurrentArtPhase}",
-  Stage.ArtWork=>$"{CurrentBuilderScope} → {CurrentArtMethod} → {CurrentArtPhase} → {_activeArtTool}",
+  Stage.ArtWork=>$"{CurrentBuilderScope} → {CurrentArtMethod} → {CurrentArtPhase} → {CurrentArtTool}",
   Stage.KnowledgeNode=>$"{CurrentGameMasterPath} → {_activeKnowledgeNode}",
   Stage.AssetKind=>$"{CurrentBuilderScope} → {_assetKind} SOURCE",
   Stage.AssetMode=>$"{CurrentBuilderScope} → {_assetKind}",
@@ -858,12 +860,6 @@
     _artToolIndex=Wrap(_artToolIndex+direction,CurrentArtTools.Length);
     _message=$"{CurrentArtMethod} · {CurrentArtPhase}: {CurrentArtTool}.";
     break;
-   case Stage.ArtWork:
-    _artToolIndex=Wrap(_artToolIndex+direction,CurrentArtWorkOptions.Length);
-    _message=CurrentArtWorkChoice=="SAVE PASS"
-     ?$"{CurrentArtPhase}: save this pass."
-     :$"{CurrentArtPhase}: select {CurrentArtWorkChoice}.";
-    break;
    case Stage.AssetKind:
     _assetSourceIndex=Wrap(_assetSourceIndex+direction,AssetSources.Length);
     _message=$"{_assetKind} source: {CurrentAssetSource}.";
@@ -960,20 +956,11 @@
     SelectArtMethod();
     break;
    case Stage.ArtPhase:
-    _activeArtTool=CurrentArtTool;
     _stage=Stage.ArtWork;
-    _message=$"{_activeArtTool} opened for {CurrentArtMethod} · {CurrentArtPhase}. Use the same left button to switch tools; choose SAVE PASS when finished.";
+    _message=$"{CurrentArtTool} opened for {CurrentArtMethod} · {CurrentArtPhase}. The viewer stays persistent; touch Save when this pass is complete.";
     break;
    case Stage.ArtWork:
-    if(CurrentArtWorkChoice=="SAVE PASS")
-    {
-     SaveArtPass();
-    }
-    else
-    {
-     _activeArtTool=CurrentArtWorkChoice;
-     _message=$"{_activeArtTool} selected for {CurrentArtMethod} · {CurrentArtPhase}.";
-    }
+    SaveArtPass();
     break;
    case Stage.KnowledgeNode:
     _message=$"{_activeKnowledgeNode} is active in the journal/lore rail. Entry controls will be added here without leaving the persistent viewer.";
@@ -1229,7 +1216,6 @@
  {
   _artPhaseIndex=0;
   _artToolIndex=0;
-  _activeArtTool=CurrentArtTools[0];
 
   switch(CurrentArtMethod)
   {
@@ -1254,13 +1240,12 @@
  void SaveArtPass()
  {
   var savedPhase=CurrentArtPhase;
-  var savedTool=_activeArtTool;
+  var savedTool=CurrentArtTool;
 
   if(_artPhaseIndex+1<CurrentArtPhases.Length)
   {
    _artPhaseIndex++;
    _artToolIndex=0;
-   _activeArtTool=CurrentArtTools[0];
    _stage=Stage.ArtPhase;
    _message=$"{savedPhase} saved with {savedTool}. Next: {CurrentArtPhase}. Choose the preferred tool on the left; the path/journal rail remains on the right.";
    return;
@@ -1389,7 +1374,8 @@
   var path=CurrentGuidedPath;
   var index=Array.FindIndex(path,item=>string.Equals(item,node,StringComparison.OrdinalIgnoreCase));
   if(index>=0&&index+1<path.Length)SetPathMenuToNode(path[index+1]);
-  else SetPathMenuToNode("BACK");
+  else if(index>=0)SetPathMenuToNode(path[index]);
+  else _pathMenuIndex=0;
  }
 
  void EnterScope()
@@ -1426,7 +1412,6 @@
   _artMethodIndex=0;
   _artPhaseIndex=0;
   _artToolIndex=0;
-  _activeArtTool="PENCIL";
   _assetSourceIndex=0;
   _assetSource="GAME IMAGES";
   _selectedAssetKey="";
@@ -1703,6 +1688,17 @@
  {
   var result=value%360;
   return result<0?result+360:result;
+ }
+
+ async Task HandleBrowserBack()
+ {
+  if(_stage==Stage.Environment)
+  {
+   if(OnExit.HasDelegate)await OnExit.InvokeAsync();
+   return;
+  }
+
+  GoBack();
  }
 
  async Task HandleKeyDown(KeyboardEventArgs e)
