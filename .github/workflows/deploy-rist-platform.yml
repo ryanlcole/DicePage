@@ -23,6 +23,7 @@ env:
   DEPLOY_BUCKET: relic-deploy-artifacts-797661578124-us-east-1
   STACK_NAME: rist-platform
   AUTH_STACK: rist-discord-storage
+  EXTERNAL_AI_STACK: rist-external-ai
   PRODUCTION_ORIGIN: https://relicgamemaster.com
 
 jobs:
@@ -67,6 +68,22 @@ jobs:
           fi
           echo "IDENTITY_TABLE=$IDENTITY_TABLE" >> "$GITHUB_ENV"
           echo "Using auth stack $AUTH_STACK"
+
+      - name: Resolve external AI account table
+        shell: bash
+        run: |
+          set -euo pipefail
+          AI_STATE_TABLE=$(aws cloudformation describe-stack-resource \
+            --stack-name "$EXTERNAL_AI_STACK" \
+            --logical-resource-id ExternalAiStateTable \
+            --query 'StackResourceDetail.PhysicalResourceId' \
+            --output text)
+          if [ -z "$AI_STATE_TABLE" ] || [ "$AI_STATE_TABLE" = "None" ]; then
+            echo "External AI stack $EXTERNAL_AI_STACK exists, but ExternalAiStateTable could not be resolved."
+            exit 1
+          fi
+          echo "AI_STATE_TABLE=$AI_STATE_TABLE" >> "$GITHUB_ENV"
+          echo "Using external AI account table from $EXTERNAL_AI_STACK"
 
       - name: Resolve platform owner authority
         env:
@@ -125,6 +142,7 @@ jobs:
           test -n "${OWNER_USER_ID:-}"
           PARAMS=(
             "IdentityTableName=$IDENTITY_TABLE"
+            "ExternalAiStateTableName=$AI_STATE_TABLE"
             "FrontendOrigin=$PRODUCTION_ORIGIN"
             "OwnerUserId=$OWNER_USER_ID"
           )
