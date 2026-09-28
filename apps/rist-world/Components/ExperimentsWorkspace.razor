@@ -255,6 +255,7 @@
   WorldBuilderLayer,
   ArtMethod,
   ArtPhase,
+  ArtWork,
   KnowledgeNode,
   AssetKind,
   AssetMode,
@@ -281,6 +282,7 @@
  int _pathMenuIndex;
  int _artMethodIndex;
  int _artPhaseIndex;
+ int _artToolIndex;
  int _assetKindIndex;
  int _assetSourceIndex;
  int _builderChainIndex;
@@ -325,6 +327,17 @@
  static readonly string[] CadPhases=["SKETCH","GEOMETRY","MATERIAL","EFFECTS"];
  static readonly string[] AudioPhases=["RECORD","EDIT","EFFECTS"];
  static readonly string[] VideoPhases=["IMPORT","EDIT","EFFECTS"];
+ static readonly string[] ColorTools=["BRUSH","FILL","AIRBRUSH","PALETTE","IMPORT TEXTURE"];
+ static readonly string[] EffectTools=["LIGHT","SHADOW","GLOW","WEATHER","FILTER","MASK"];
+ static readonly string[] CadSketchTools=["LINE","ARC","POLYLINE"];
+ static readonly string[] CadGeometryTools=["RECTANGLE","CIRCLE","POLYGON","EXTRUDE"];
+ static readonly string[] CadMaterialTools=["WOOD","METAL","STONE","GLASS","CUSTOM"];
+ static readonly string[] AudioRecordTools=["MIC","IMPORT"];
+ static readonly string[] AudioEditTools=["TRIM","MIX","LOOP"];
+ static readonly string[] AudioEffectTools=["REVERB","EQ","FILTER"];
+ static readonly string[] VideoImportTools=["CAMERA","FILE"];
+ static readonly string[] VideoEditTools=["TRIM","LAYER","SPEED"];
+ static readonly string[] VideoEffectTools=["LIGHT","FILTER","OVERLAY"];
  static readonly string[] WorldBuilderPath=["WORLD","REGION","LOCAL","INSTANCE","COSMOLOGY","CALENDAR","LORE","HISTORY","CULTURES","FACTIONS","ECONOMY","TECHNOLOGY","MAGIC / POWERS","CREATURES","NPCS","RELATIONSHIPS","SECRETS","THREATS","ENCOUNTERS","QUESTS","CAMPAIGN","SESSION"];
  static readonly string[] CampaignBuilderPath=["LOCAL","INSTANCE","LOCAL HISTORY","NPCS","RELATIONSHIPS","SECRETS","ENCOUNTERS","QUESTS","REGION","REGIONAL HISTORY","FACTIONS","ECONOMY","WORLD","WORLD LORE","CAMPAIGN","SESSION"];
  static readonly string[] AdvancedPath=["WORLD","REGION","LOCAL","INSTANCE","ROOM / SCENE","OBJECT","CONTAINER","CONTENTS","COSMOLOGY","CALENDAR","ERAS","HISTORY","EVENTS","LORE","RUMORS","SECRETS","CLUES","LANGUAGES","RELIGIONS","CULTURES","FACTIONS","ORGANIZATIONS","ECONOMY","POLITICS","TECHNOLOGY","MAGIC / POWERS","CREATURES","NPCS","RELATIONSHIPS","THREATS","FRONTS / CLOCKS","ENCOUNTERS","COMBAT","SOCIAL","EXPLORATION","INVESTIGATION","CHASE","PUZZLE","HAZARD","DOWNTIME","TRAVEL","CRAFTING","MASS CONFLICT","QUESTS","MISSIONS","ARCS","CAMPAIGN","SESSION","RULES","CHARACTERS","EQUIPMENT","REWARDS"];
@@ -381,6 +394,24 @@
   _=>["SOURCE"]
  };
  string CurrentArtPhase=>CurrentArtPhases[Math.Clamp(_artPhaseIndex,0,CurrentArtPhases.Length-1)];
+ string[] CurrentArtTools=>CurrentArtMethod switch
+ {
+  "DRAW" when CurrentArtPhase=="PENCIL"=>["PENCIL"],
+  "DRAW" when CurrentArtPhase=="COLOR"=>ColorTools,
+  "DRAW" when CurrentArtPhase=="EFFECTS"=>EffectTools,
+  "CAD" when CurrentArtPhase=="SKETCH"=>CadSketchTools,
+  "CAD" when CurrentArtPhase=="GEOMETRY"=>CadGeometryTools,
+  "CAD" when CurrentArtPhase=="MATERIAL"=>CadMaterialTools,
+  "CAD" when CurrentArtPhase=="EFFECTS"=>EffectTools,
+  "AUDIO" when CurrentArtPhase=="RECORD"=>AudioRecordTools,
+  "AUDIO" when CurrentArtPhase=="EDIT"=>AudioEditTools,
+  "AUDIO" when CurrentArtPhase=="EFFECTS"=>AudioEffectTools,
+  "VIDEO" when CurrentArtPhase=="IMPORT"=>VideoImportTools,
+  "VIDEO" when CurrentArtPhase=="EDIT"=>VideoEditTools,
+  "VIDEO" when CurrentArtPhase=="EFFECTS"=>VideoEffectTools,
+  _=>[CurrentArtPhase]
+ };
+ string CurrentArtTool=>CurrentArtTools[Math.Clamp(_artToolIndex,0,CurrentArtTools.Length-1)];
 
  string CurrentAnalogPlacementDraft=>AnalogPlacements[Math.Clamp(_analogPlacementDraft,0,AnalogPlacements.Length-1)];
  string AnalogPlacementClass=>$"analog-{_analogPlacement}";
@@ -388,7 +419,7 @@
  string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
  string CurrentBuilderScope=>BuilderChain[Math.Clamp(_builderChainIndex,0,BuilderChain.Length-1)];
  string CurrentBuilderSuite=>BuilderSuiteNames[Math.Clamp(_builderChainIndex,0,BuilderSuiteNames.Length-1)];
- bool IsPathDrivenStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
+ bool IsPathDrivenStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
  bool IsMyAssetSource=>_assetSource is "MY IMAGES" or "MY SPRITES";
  bool IsGameAssetSource=>_assetSource is "GAME IMAGES" or "GAME SPRITES";
  const string EndemarCanonicalAssetRoot="https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/";
@@ -411,7 +442,8 @@
   Stage.WorldBuilderTier=>10,
   Stage.WorldBuilderLayer=>100,
   Stage.ArtMethod=>ArtMethods.Length,
-  Stage.ArtPhase=>CurrentArtPhases.Length,
+  Stage.ArtPhase=>CurrentArtTools.Length,
+  Stage.ArtWork=>1,
   Stage.AssetKind=>AssetSources.Length,
   Stage.Scale=>38,
   _=>1
@@ -431,7 +463,7 @@
 
  bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
  bool IsAssetTransformStage=>_stage is Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
- bool IsBuilderStage=>IsDepthStage||_stage is Stage.ArtMethod or Stage.ArtPhase or Stage.KnowledgeNode or Stage.AssetKind or Stage.AssetMode or Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel or Stage.FullMapReview;
+ bool IsBuilderStage=>IsDepthStage||_stage is Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.AssetMode or Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel or Stage.FullMapReview;
  bool HasSavedViewer=>_savedAssets.Count>0;
  int VisibleGlassSheets=>Math.Clamp(_layer+1,1,8);
  string ViewerClass=>IsBuilderStage&&!HasSavedViewer?"builder":HasSavedViewer?"recursive":"";
@@ -468,7 +500,8 @@
   Stage.ControlSettings=>"CONTROLS",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"DEPTH",
   Stage.ArtMethod=>"A/V METHOD",
-  Stage.ArtPhase=>CurrentArtMethod,
+  Stage.ArtPhase=>$"{CurrentArtMethod} · {CurrentArtPhase}",
+  Stage.ArtWork=>$"{CurrentArtMethod} · {CurrentArtPhase}",
   Stage.KnowledgeNode=>"JOURNAL / LORE",
   Stage.AssetKind=>"SOURCE",
   Stage.AssetMode=>"ASSET ACTION",
@@ -489,7 +522,8 @@
   Stage.WorldBuilderTier=>$"TIER {_tier}",
   Stage.WorldBuilderLayer=>$"LAYER {_layer}",
   Stage.ArtMethod=>CurrentArtMethod,
-  Stage.ArtPhase=>CurrentArtPhase,
+  Stage.ArtPhase=>CurrentArtTool,
+  Stage.ArtWork=>$"SAVE {CurrentArtPhase}",
   Stage.KnowledgeNode=>"ADD ENTRY",
   Stage.AssetKind=>CurrentAssetSource,
   Stage.AssetMode=>"EDIT",
@@ -510,7 +544,7 @@
   Stage.GameMasterScope=>"NAVIGATION",
   Stage.ControlSettings=>"SETTINGS",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"PATH / JOURNAL",
-  Stage.ArtMethod or Stage.ArtPhase or Stage.KnowledgeNode or Stage.AssetKind=>"PATH / JOURNAL",
+  Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>"PATH / JOURNAL",
   Stage.AssetMode=>"ASSET ACTION",
   Stage.BrowsePlace=>"NAVIGATION",
   Stage.Scale or Stage.Rotate or Stage.Move=>"CONFIRM",
@@ -527,7 +561,7 @@
   Stage.GameMasterScope=>"BACK",
   Stage.ControlSettings=>"BACK",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>CurrentPathTarget,
-  Stage.ArtMethod or Stage.ArtPhase or Stage.KnowledgeNode or Stage.AssetKind=>CurrentPathTarget,
+  Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>CurrentPathTarget,
   Stage.AssetMode=>"ADD",
   Stage.BrowsePlace=>"BACK",
   Stage.Scale or Stage.Rotate or Stage.Move=>"SET",
@@ -546,7 +580,8 @@
   Stage.WorldBuilderTier=>"Y pages through tiers. Touch the left display to select the shown tier.",
   Stage.WorldBuilderLayer=>"Y pages through layers. Touch the left display to select the shown layer, then choose an art method.",
   Stage.ArtMethod=>"Left is the A/V rail: Draw, CAD, Import Image, Sprite, Audio, or Video.",
-  Stage.ArtPhase=>"Work through the selected method in order. Draw begins with Pencil, then Color, then Effects.",
+  Stage.ArtPhase=>"Choose the tool for the current pass. Draw begins with Pencil, then Color, then Effects.",
+  Stage.ArtWork=>$"{CurrentArtTool} is the active {CurrentArtPhase.ToLowerInvariant()} tool. Save advances to the next pass while keeping the recursive viewer.",
   Stage.KnowledgeNode=>$"Create or inspect {_activeKnowledgeNode.ToLowerInvariant()} without leaving the persistent viewer.",
   Stage.AssetKind=>"Y pages Game, My, and Upload sources. Touch the left display to open the shown source.",
   Stage.AssetMode=>"Choose an existing asset to transform.",
@@ -567,7 +602,7 @@
   Stage.GameMasterScope=>"Return to world and settings selection.",
   Stage.ControlSettings=>"Cancel and return to GameMaster settings.",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"The right rail jumps through Back, spatial scopes, journals, lore, NPCs, encounters, and the rest of the active path.",
-  Stage.ArtMethod or Stage.ArtPhase or Stage.KnowledgeNode or Stage.AssetKind=>"The right rail is always the path/journal rail. Advanced exposes the complete graph.",
+  Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>"The right rail is always the path/journal rail. Advanced exposes the complete graph.",
   Stage.AssetMode=>"Add a new asset.",
   Stage.BrowsePlace=>"Back to Image/Sprite and source selection.",
   Stage.Scale=>"Back to the current source explorer.",
@@ -599,7 +634,8 @@
   Stage.SoftwareHub=>CurrentSoftware,
   Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
   Stage.ArtMethod=>CurrentArtMethod,
-  Stage.ArtPhase=>CurrentArtPhase,
+  Stage.ArtPhase=>CurrentArtTool,
+  Stage.ArtWork=>$"SAVE {CurrentArtPhase}",
   Stage.KnowledgeNode=>"ADD ENTRY",
   Stage.AssetKind=>CurrentAssetSource,
   Stage.Scale=>$"{_assetScale:0.00}×",
@@ -628,6 +664,7 @@
   Stage.ControlSettings=>"TOUCH · SAVE",
   Stage.ArtMethod=>"SLIDE ↑↓ · TOUCH METHOD",
   Stage.ArtPhase=>"SLIDE ↑↓ · TOUCH TOOL",
+  Stage.ArtWork=>"TOUCH · SAVE PASS",
   Stage.KnowledgeNode=>"TOUCH · ADD ENTRY",
   Stage.AssetKind=>"SLIDE ↑↓ · TOUCH SOURCE",
   Stage.BrowsePlace=>"TOUCH · SELECT",
@@ -663,6 +700,7 @@
   Stage.WorldBuilderLayer=>$"{CurrentBuilderSuite} · LAYER",
   Stage.ArtMethod=>$"{CurrentBuilderSuite} · SELECT ART METHOD",
   Stage.ArtPhase=>$"{CurrentBuilderSuite} · {CurrentArtMethod} · {CurrentArtPhase}",
+  Stage.ArtWork=>$"{CurrentBuilderSuite} · {CurrentArtMethod} · {CurrentArtTool}",
   Stage.KnowledgeNode=>$"{CurrentGameMasterPath} · {_activeKnowledgeNode}",
   Stage.AssetKind=>$"{CurrentBuilderSuite} · {_assetKind} SOURCE",
   Stage.AssetMode=>$"{CurrentBuilderSuite} · {_assetKind}",
@@ -688,6 +726,7 @@
   Stage.WorldBuilderLayer=>$"{CurrentBuilderScope} → LAYER",
   Stage.ArtMethod=>$"{CurrentBuilderScope} → A/V METHOD",
   Stage.ArtPhase=>$"{CurrentBuilderScope} → {CurrentArtMethod} → {CurrentArtPhase}",
+  Stage.ArtWork=>$"{CurrentBuilderScope} → {CurrentArtMethod} → {CurrentArtPhase} → {CurrentArtTool}",
   Stage.KnowledgeNode=>$"{CurrentGameMasterPath} → {_activeKnowledgeNode}",
   Stage.AssetKind=>$"{CurrentBuilderScope} → {_assetKind} SOURCE",
   Stage.AssetMode=>$"{CurrentBuilderScope} → {_assetKind}",
