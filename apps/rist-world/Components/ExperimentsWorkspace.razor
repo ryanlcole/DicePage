@@ -18,22 +18,30 @@
          aria-hidden="true"
          @onclick="HandleBrowserBack"></button>
 
- <main class="experiments-viewer" aria-label="Viewer">
-  <div class="viewer-world @ViewerClass" aria-hidden="true"></div>
-  <div class="viewer-shade" aria-hidden="true"></div>
+ <main class="experiments-viewer experiments-worldbuilder-viewer" aria-label="Shaelvien World Builder viewer">
+  <div class="experiments-worldbuilder-surface">
+   <WorldBuilderGeonaphHost EmbeddedRoleplay="true" ViewerOnly="true" />
+  </div>
   @if(CursorMode)
   {
    <div class="viewer-reticle" style="@ReticleStyle" aria-hidden="true"><span></span></div>
   }
 
-  @if(IsDepthStage)
+  @if(IsBuilderStage)
   {
-   <div class="glass-stage" aria-hidden="true">
-    @for(var sheet=0;sheet<VisibleGlassSheets;sheet++)
-    {
-     <span class="glass-sheet" style="@GlassSheetStyle(sheet)"></span>
-    }
-   </div>
+   <aside class="depth-pip" aria-label="@CurrentBuilderScope tier and layer portrayal">
+    <header>
+     <strong>@CurrentBuilderScope</strong>
+     <span>TIER @_tier · LAYER @_layer</span>
+    </header>
+    <div class="depth-pip-stage" aria-hidden="true">
+     @for(var sheet=0;sheet<DepthPipSheetCount;sheet++)
+     {
+      <span class="depth-pip-sheet" style="@DepthPipSheetStyle(sheet)"></span>
+     }
+    </div>
+    <footer><span>T@_tier</span><span>L@_layer</span></footer>
+   </aside>
   }
 
   @if(IsAssetTransformStage)
@@ -48,25 +56,6 @@
     else
     {
      <span>@_assetKind</span>
-    }
-   </div>
-  }
-
-  @if(_savedAssets.Count>0)
-  {
-   <div class="saved-viewer-stack" aria-hidden="true">
-    @foreach(var saved in _savedAssets.OrderBy(asset=>asset.Tier).ThenBy(asset=>asset.Layer).ThenBy(asset=>asset.SavedAtUtc))
-    {
-     <div class="saved-viewer-asset @SavedViewerAssetClass(saved)" style="@SavedViewerAssetStyle(saved)">
-      @if(!string.IsNullOrWhiteSpace(saved.Url))
-      {
-       <img src="@saved.Url" alt="" />
-      }
-      else
-      {
-       <span>@saved.Kind</span>
-      }
-     </div>
     }
    </div>
   }
@@ -745,7 +734,17 @@
   _=>""
  };
 
- string ReticleStyle=>$"left:{50+(_cursorX*.45):0.##}%;top:{50-(_cursorY*.45):0.##}%;";
+ int DepthPipSheetCount=>Math.Clamp(Math.Min(_layer+1,6),1,6);
+
+ string DepthPipSheetStyle(int sheet)
+ {
+  var tierLift=Math.Clamp(_tier,0,9)*3;
+  var layerLift=sheet*5;
+  var opacity=Math.Max(.32,1-(sheet*.11));
+  return $"transform:translate3d({sheet*2}px,{-tierLift-layerLift}px,{sheet}px) rotateX(58deg);opacity:{opacity:0.00};";
+ }
+
+  string ReticleStyle=>$"left:{50+(_cursorX*.45):0.##}%;top:{50-(_cursorY*.45):0.##}%;";
  string AssetPreviewStyle=>$"left:calc(50% + {_assetX}px);top:calc(50% + {_assetY}px);transform:translate(-50%,-50%) scale({_assetScale:0.00}) rotate({_assetRotation}deg);";
 
  string GlassSheetStyle(int sheet)
