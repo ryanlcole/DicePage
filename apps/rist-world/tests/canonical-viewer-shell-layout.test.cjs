@@ -25,3 +25,14 @@ test('Browser Back authority remains connected to the experiments shell',()=>{
   assert.match(bridge,/\.experiments-shell \[data-browser-back="experiments"\]/);
   assert.match(bridge,/target\.click\(\)/);
 });
+
+
+test('landscape mode prioritizes viewer visibility with a compact control deck',()=>{
+  const css=read('wwwroot/css/experiments-universal-suite.css');
+  assert.match(css,/Compact landscape visibility authority/);
+  assert.match(css,/@media \(orientation:landscape\) and \(max-height:620px\)/);
+  assert.match(css,/grid-template-rows:minmax\(0,1fr\) clamp\(92px,26dvh,112px\)!important/);
+  assert.match(css,/grid-template-columns:minmax\(0,1fr\) clamp\(76px,14vw,96px\) minmax\(0,1fr\)!important/);
+  assert.match(css,/\.single-analog-deck \.analog-pad\{[\s\S]*?width:min\(100%,76px\)!important/);
+  assert.match(css,/\.single-analog-deck button\.control-display-button>span\{[\s\S]*?display:none!important/);
+});

@@ -2138,3 +2138,88 @@
  .asset-context-fields label:first-child{grid-column:auto}
  .asset-context-fields textarea{min-height:58px}
 }
+
+
+/* Compact landscape visibility authority — 2026-09-28.
+   Landscape prioritizes the viewer while preserving large semantic hit areas.
+   Portrait geometry is intentionally untouched. */
+@media (orientation:landscape) and (max-height:620px){
+ .experiments-shell{
+  grid-template-rows:minmax(0,1fr) clamp(92px,26dvh,112px)!important;
+  padding:5px 8px max(6px,env(safe-area-inset-bottom))!important;
+ }
+ .experiments-controller.single-analog-deck{
+  grid-template-columns:minmax(0,1fr) clamp(76px,14vw,96px) minmax(0,1fr)!important;
+  gap:5px!important;
+  padding:5px!important;
+  border-radius:7px 7px 14px 14px!important;
+ }
+ .single-analog-deck .display-slider button.control-display-button{
+  min-height:44px!important;
+  padding:4px 6px!important;
+  gap:2px!important;
+  border-radius:11px!important;
+ }
+ .single-analog-deck button.control-display-button>small{
+  font-size:6px!important;
+  line-height:1!important;
+  letter-spacing:.12em!important;
+ }
+ .single-analog-deck button.control-display-button>strong.display-text,
+ .single-analog-deck button.control-display-button>strong.display-text-lg{
+  font-size:clamp(10px,1.35vw,14px)!important;
+  line-height:1!important;
+ }
+ .single-analog-deck button.control-display-button>strong.display-text-md{
+  font-size:clamp(9px,1.2vw,12px)!important;
+ }
+ .single-analog-deck button.control-display-button>strong.display-text-sm{
+  font-size:clamp(8px,1.05vw,11px)!important;
+ }
+ .single-analog-deck button.control-display-button>strong.display-text-xs{
+  font-size:clamp(7px,.9vw,10px)!important;
+ }
+ .single-analog-deck button.control-display-button>span{
+  display:none!important;
+ }
+ .single-analog-deck .analog-pad{
+  width:min(100%,76px)!important;
+  max-width:76px!important;
+ }
+ .single-analog-deck .analog-knob{
+  width:38%!important;
+ }
+ .single-analog-deck .analog-direction{
+  font-size:6px!important;
+ }
+ .single-analog-deck .analog-up{top:0!important}
+ .single-analog-deck .analog-down{bottom:0!important}
+ .single-analog-deck .analog-left{left:0!important}
+ .single-analog-deck .analog-right{right:0!important}
+ .viewer-title{
+  top:5px!important;
+  padding:3px 11px!important;
+ }
+ .viewer-title span{font-size:8px!important}
+ .viewer-readout{
+  bottom:4px!important;
+  gap:6px!important;
+  font-size:5px!important;
+ }
+ .depth-pip{
+  transform:scale(.82)!important;
+  transform-origin:top left!important;
+ }
+ .viewer-compass{
+  transform:scale(.82)!important;
+  transform-origin:top right!important;
+ }
+ .viewer-legend{
+  transform:scale(.82)!important;
+  transform-origin:bottom right!important;
+ }
+ .asset-context-pip.minimized{
+  transform:scale(.82)!important;
+  transform-origin:bottom left!important;
+ }
+}
