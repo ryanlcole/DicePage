@@ -2485,3 +2485,42 @@ html:not(.shaelvien-cursor-assets-ready) .viewer-reticle>span{
 @media(orientation:landscape) and (max-height:620px){
  .viewer-reticle{--viewer-cursor-size:36px}
 }
+
+
+/* Experiment context + Start-menu viewport authority — 2026-09-28.
+   Mobile context must never trigger Safari text-field zoom or widen the fixed shell.
+   Experiment START occupies only the viewer region so the controller stays visible. */
+@media(max-width:620px){
+ .asset-context-pip.expanded{
+  left:8px!important;
+  right:8px!important;
+  width:auto!important;
+  max-width:none!important;
+  max-height:min(68%,calc(100% - 16px))!important;
+  contain:layout paint!important;
+  overscroll-behavior:contain!important;
+ }
+ .asset-context-fields input,
+ .asset-context-fields textarea{
+  font-size:16px!important;
+  line-height:1.25!important;
+ }
+ .asset-context-fields textarea{
+  resize:none!important;
+ }
+}
+body.rist-start-open.rist-start-experiment-controller .rist-start-overlay{
+ bottom:var(--rist-start-controller-reserve,220px)!important;
+ height:auto!important;
+ padding-bottom:8px!important;
+}
+body.rist-start-open.rist-start-experiment-controller .rist-start-panel{
+ max-height:calc(100% - 8px)!important;
+}
+body.rist-start-open.rist-start-experiment-controller .experiments-controller{
+ visibility:visible!important;
+}
+.rist-start-danger{
+ color:#f2b8b8!important;
+ border-color:#8d4949!important;
+}

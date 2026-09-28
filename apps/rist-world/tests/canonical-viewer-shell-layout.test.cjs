@@ -72,7 +72,7 @@ test('portrait builder keeps source content in the vertical center and corner PI
     css,
     /@media\(max-width:430px\) and \(orientation:portrait\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/
   );
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-cursor-assets-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-context-start-save-load-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
 });
 
@@ -83,7 +83,7 @@ test('START opens the existing settings menu without duplicating settings',()=>{
   const index=read('wwwroot/index.html');
 
   assert.match(razor,/class="analog-start-button"[\s\S]{0,180}?@onclick="OpenStartMenuAsync"[\s\S]{0,180}?>START<\/button>/);
-  assert.match(razor,/await JS\.InvokeVoidAsync\("RistStartMenu\.open"\)/);
+  assert.match(razor,/await JS\.InvokeVoidAsync\("RistStartMenu\.open","experiment"\)/);
   assert.doesNotMatch(razor,/<h2>Video<\/h2>|<h2>Picture<\/h2>|<h2>Sound<\/h2>|<h2>Effects<\/h2>/);
   assert.match(css,/body\.rist-start-open \.rist-start-overlay\{[\s\S]*?z-index:2147483600!important/);
   assert.match(index,/start-menu\.js/);
@@ -106,7 +106,7 @@ test('Browse SELECT arms cursor and analog press targets the thumbnail beneath t
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
   assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button,\.analog-mode-button"\)/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-cursor-assets-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-context-start-save-load-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
 });
 
@@ -145,7 +145,7 @@ test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer d
   assert.match(css,/--rist-cursor-image-selectAlt2/);
   assert.match(index,/cursors-haptics\.js\?v=20260928-visible-cursor-assets-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-cursor-assets-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-context-start-save-load-1/);
 });
 
 
@@ -162,4 +162,46 @@ test('analog center tap selects the asset currently under the cursor',()=>{
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
   assert.match(razor,/case "select":[\s\S]{0,260}?Stage\.BrowsePlace&&CursorMode[\s\S]{0,120}?ActivateBrowseCursorTargetAsync/);
+});
+
+
+test('asset activation is select once and place on the second activation',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  assert.match(razor,/void SelectGameAsset\(string key\)=>ActivateAssetFromBrowser\(key\)/);
+  assert.match(razor,/void SelectMyAsset\(string key\)=>ActivateAssetFromBrowser\(key\)/);
+  assert.match(razor,/if\(string\.Equals\(_selectedAssetKey,key,StringComparison\.Ordinal\)\)[\s\S]*?BeginSelectedAssetPlacement\(\)/);
+  assert.match(razor,/void BeginSelectedAssetPlacement\(\)[\s\S]*?_stage=Stage\.Scale/);
+  assert.match(razor,/Stage\.BrowsePlace=>string\.IsNullOrWhiteSpace\(_selectedAssetKey\)\?"BROWSE":SelectedAssetName/);
+  assert.doesNotMatch(razor,/Stage\.BrowsePlace=>"SELECT"/);
+  assert.match(razor,/ONCE SELECTS · AGAIN PLACES/);
+});
+
+test('Experiment Start menu keeps controller visible and reuses Save Load and exit hooks',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const host=read('wwwroot/worldbuilder-source-host.js');
+  const start=read('wwwroot/start-menu.js');
+  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const index=read('wwwroot/index.html');
+
+  assert.match(razor,/data-experiment-start-save/);
+  assert.match(razor,/data-experiment-start-load/);
+  assert.match(razor,/data-experiment-start-exit/);
+  assert.match(razor,/RistStartMenu\.open","experiment"/);
+  assert.match(razor,/SaveExperimentFromStartAsync\(\)[\s\S]*?\.InvokeVoidAsync\("save",_worldBuilderFrame\)/);
+  assert.match(razor,/LoadExperimentFromStartAsync\(\)[\s\S]*?\.InvokeVoidAsync\("reload",_worldBuilderFrame,source\)/);
+  assert.match(host,/export async function save\(frame\)/);
+  assert.match(host,/export function reload\(frame,worldSource\)/);
+  assert.match(start,/data-start-action="save"/);
+  assert.match(start,/data-start-action="load"/);
+  assert.match(start,/Exit Experiment/);
+  assert.match(start,/rist-start-experiment-controller/);
+  assert.match(css,/bottom:var\(--rist-start-controller-reserve,220px\)!important/);
+  assert.match(index,/start-menu\.js\?v=20260928-experiment-save-load-1/);
+});
+
+test('mobile expanded context is contained and avoids iOS form zoom',()=>{
+  const css=read('wwwroot/css/experiments-universal-suite.css');
+  assert.match(css,/\.asset-context-pip\.expanded\{[\s\S]*?left:8px!important;[\s\S]*?right:8px!important;[\s\S]*?width:auto!important/);
+  assert.match(css,/\.asset-context-fields input,[\s\S]*?\.asset-context-fields textarea\{[\s\S]*?font-size:16px!important/);
+  assert.match(css,/resize:none!important/);
 });

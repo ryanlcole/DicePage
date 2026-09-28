@@ -4,6 +4,19 @@ function post(frame,message){
   try{frame?.contentWindow?.postMessage({source:"shaelvien-worldbuilder-host",...message},location.origin)}catch{}
 }
 
+export async function save(frame){
+  const fn=frame?.contentWindow?.ShaelvienPrototype?.save;
+  if(typeof fn!=="function")return false;
+  await fn();
+  return true;
+}
+
+export function reload(frame,worldSource){
+  if(!worldSource)return false;
+  post(frame,{type:"world-source",worldSource});
+  return true;
+}
+
 export function detach(frame){
   const existing=bridges.get(frame);
   if(!existing)return;

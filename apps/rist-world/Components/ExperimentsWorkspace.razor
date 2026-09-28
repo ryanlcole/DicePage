@@ -21,6 +21,10 @@
          hidden
          @onclick="HandleBrowserBack"></button>
 
+ <button type="button" hidden data-experiment-start-save @onclick="SaveExperimentFromStartAsync"></button>
+ <button type="button" hidden data-experiment-start-load @onclick="LoadExperimentFromStartAsync"></button>
+ <button type="button" hidden data-experiment-start-exit @onclick="ExitExperimentFromStartAsync"></button>
+
  <main class="experiments-viewer experiments-worldbuilder-viewer" aria-label="Shaelvien World Builder viewer">
   <div class="experiments-worldbuilder-surface">
    <iframe @ref="_worldBuilderFrame"
@@ -202,7 +206,7 @@
      </div>
     }
 
-    <footer>@(IsMyAssetSource?"ANALOG CURSOR · TOUCH THUMBNAIL · LEFT DISPLAY SELECTS":"ANALOG CURSOR · TOUCH · LEFT DISPLAY SELECTS")</footer>
+    <footer>TOUCH / CURSOR · ONCE SELECTS · AGAIN PLACES</footer>
    </section>
   }
 
@@ -664,7 +668,7 @@
   Stage.KnowledgeNode=>"ADD ENTRY",
   Stage.AssetKind=>CurrentAssetSource,
   Stage.AssetMode=>"EDIT",
-  Stage.BrowsePlace=>"SELECT",
+  Stage.BrowsePlace=>string.IsNullOrWhiteSpace(_selectedAssetKey)?"BROWSE":SelectedAssetName,
   Stage.Scale=>"ENLARGE / REDUCE",
   Stage.Rotate=>"ROTATE",
   Stage.Move=>"MOVE",
@@ -722,7 +726,7 @@
   Stage.KnowledgeNode=>$"Create or inspect {_activeKnowledgeNode.ToLowerInvariant()} without leaving the persistent viewer.",
   Stage.AssetKind=>"Y pages Game, My, and Upload sources. Touch the left display to open the shown source.",
   Stage.AssetMode=>"Choose an existing asset to transform.",
-  Stage.BrowsePlace=>"Use the analog cursor or touch. The left display selects the current explorer item.",
+  Stage.BrowsePlace=>"Tap an asset once to select it. Tap it again to place it. With the cursor, press the analog once to select and again to place.",
   Stage.Scale=>"Y changes preview size without changing asset identity.",
   Stage.Rotate=>"X changes preview rotation.",
   Stage.Move=>"X/Y move the preview representation.",
@@ -808,7 +812,7 @@
   Stage.ArtWork=>"TOUCH · SAVE PASS",
   Stage.KnowledgeNode=>"TOUCH · ADD ENTRY",
   Stage.AssetKind=>"SLIDE ↑↓ · TOUCH SOURCE",
-  Stage.BrowsePlace=>"TOUCH · SELECT",
+  Stage.BrowsePlace=>"TOUCH · CURSOR",
   Stage.Scale=>"SLIDE ↑↓ · TOUCH SET",
   Stage.FullMapReview=>"TOUCH · BUILD MORE",
   _=>"TOUCH · ACTIVATE"
@@ -1131,23 +1135,11 @@
     _message="Edit selected. Browse requests a source through the future image-tool adapter.";
     break;
    case Stage.BrowsePlace:
-    if(!_browseCursorActive||_analogButtonMode)
-    {
-     _browseCursorActive=true;
-     _analogButtonMode=false;
-     _message="Cursor active. Move the analog over an asset and press the analog stick to highlight it; touch SELECT again to use the highlighted asset.";
-     break;
-    }
-    if((IsMyAssetSource||IsGameAssetSource)&&string.IsNullOrWhiteSpace(_selectedAssetKey))
-    {
-     _message=$"Move the cursor over a {_assetKind.ToLowerInvariant()} and press the analog stick, or touch a thumbnail.";
-     break;
-    }
-    _browseCursorActive=false;
-    _stage=Stage.Scale;
-    _message=(IsMyAssetSource||IsGameAssetSource)
-     ?$"{SelectedAssetName} selected from {_assetSource}. Use Y or slide the left display to set scale."
-     :$"{_assetSource} {_assetKind.ToLowerInvariant()} selected. Use Y or slide the left display to set scale.";
+    _browseCursorActive=true;
+    _analogButtonMode=false;
+    _message=string.IsNullOrWhiteSpace(_selectedAssetKey)
+     ?"Cursor active. Tap or press the analog over an asset once to select it, then again to place it."
+     :$"{SelectedAssetName} is selected. Tap or press that asset again to place it.";
     break;
    case Stage.SaveCancel:
     SaveCurrentAssetToViewer();
@@ -1633,11 +1625,29 @@
   }
  }
 
- void SelectGameAsset(string key)
+ void SelectGameAsset(string key)=>ActivateAssetFromBrowser(key);
+
+ void ActivateAssetFromBrowser(string key)
  {
+  if(string.IsNullOrWhiteSpace(key))return;
+
+  if(string.Equals(_selectedAssetKey,key,StringComparison.Ordinal))
+  {
+   BeginSelectedAssetPlacement();
+   return;
+  }
+
   _selectedAssetKey=key;
   ResetAssetContextForSelection();
-  _message=$"{SelectedAssetName} selected. Touch the left display to use it; the right display opens its context.";
+  _message=$"{SelectedAssetName} selected. Tap it again, or press the analog over it again, to place it.";
+ }
+
+ void BeginSelectedAssetPlacement()
+ {
+  if(string.IsNullOrWhiteSpace(_selectedAssetKey))return;
+  _browseCursorActive=false;
+  _stage=Stage.Scale;
+  _message=$"{SelectedAssetName} ready to place. Use Y or slide the left display to set scale.";
  }
 
  async Task LoadMyAssetsAsync()
@@ -1711,12 +1721,7 @@
   }
  }
 
- void SelectMyAsset(string key)
- {
-  _selectedAssetKey=key;
-  ResetAssetContextForSelection();
-  _message=$"{SelectedAssetName} selected. Touch the left display to use it; the right display opens its context.";
- }
+ void SelectMyAsset(string key)=>ActivateAssetFromBrowser(key);
 
  async Task HandleAssetUpload(InputFileChangeEventArgs e)
  {
@@ -2204,11 +2209,55 @@
   if(shouldLoad)await LoadAssetContextAsync();
  }
 
+ async Task SaveExperimentFromStartAsync()
+ {
+  try
+  {
+   if(_worldBuilderSourceModule is not null)
+    await _worldBuilderSourceModule.InvokeVoidAsync("save",_worldBuilderFrame);
+
+   await Session.SaveAsync();
+   _message="Saved current Experiment and canonical World Builder state.";
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Experiment save failed: {ex}");
+   _message="Experiment save failed.";
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task LoadExperimentFromStartAsync()
+ {
+  try
+  {
+   var source=await GetWorldBuilderSourceForPrototypeAsync();
+   if(source is not null&&_worldBuilderSourceModule is not null)
+    await _worldBuilderSourceModule.InvokeVoidAsync("reload",_worldBuilderFrame,source);
+
+   _message=source is null
+    ?"No saved canonical World Builder source is available yet."
+    :"Loaded the saved canonical World Builder source.";
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Experiment load failed: {ex}");
+   _message="Experiment load failed.";
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task ExitExperimentFromStartAsync()
+ {
+  try{await JS.InvokeVoidAsync("RistStartMenu.close");}catch(JSException){}
+  if(OnExit.HasDelegate)await OnExit.InvokeAsync();
+ }
+
  async Task OpenStartMenuAsync()
  {
   try
   {
-   await JS.InvokeVoidAsync("RistStartMenu.open");
+   await JS.InvokeVoidAsync("RistStartMenu.open","experiment");
   }
   catch(JSException ex)
   {
@@ -2244,7 +2293,7 @@
   {
    var activated=await JS.InvokeAsync<bool>("ristExperimentsUniversalInput.activateCursorTarget");
    _message=activated
-    ?"Asset highlighted. Touch SELECT to use it, or keep moving the cursor."
+    ?"Asset action applied. First press selects; pressing the selected asset again places it."
     :"Move the cursor over an asset thumbnail, then press the analog stick.";
   }
   catch(JSException ex)
