@@ -83,6 +83,9 @@ const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
 let viewerSize=null;
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
+let viewerEditClipboard=null;
+const viewerUndoStack=[],viewerRedoStack=[];
+const VIEWER_EDIT_HISTORY_LIMIT=40;
 const userLayers=[];
 const WORLDBUILDER_SAVE_DB='rist-worldbuilder-prototype-v1';
 const WORLDBUILDER_SAVE_STORE='worlds';
@@ -472,6 +475,121 @@ function serializableUserLayer(item){
     layer:clamp(Math.trunc(Number(item.layer)||0),0,9),size:clamp(Number(item.size)||1,.05,20),
     rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),committed:true
   };
+}
+function cloneEditData(value){
+  return value==null?value:JSON.parse(JSON.stringify(value));
+}
+function editableLayerSnapshot(){
+  return userLayers.filter(item=>!item?.sourceLocked).map(item=>cloneEditData(serializableUserLayer(item)));
+}
+function rememberUndoSnapshot(snapshot=editableLayerSnapshot()){
+  viewerUndoStack.push(cloneEditData(snapshot));
+  if(viewerUndoStack.length>VIEWER_EDIT_HISTORY_LIMIT)viewerUndoStack.shift();
+  viewerRedoStack.length=0;
+}
+async function restoreEditableLayerSnapshot(snapshot){
+  deselectUserImage(false);
+  for(let index=userLayers.length-1;index>=0;index--){
+    const item=userLayers[index];
+    if(item?.sourceLocked)continue;
+    stopSpriteMotion(item);
+    item.node?.remove();
+    userLayers.splice(index,1);
+  }
+  for(const raw of Array.isArray(snapshot)?snapshot:[])await attachRestoredLayer(cloneEditData(raw));
+  selectedImage=null;
+  publishWorldBuilderSelectionContext();
+  updateLayerOrder();
+  applyParallax();
+  renderKeyboardKeys();
+  scheduleRegionEnhancement(30);
+}
+async function saveEditedSnapshotOrRollback(before){
+  const saved=await saveWorldBuilder();
+  if(saved)return true;
+  await restoreEditableLayerSnapshot(before);
+  return false;
+}
+function editableSelectedItem(){
+  if(!selectedImage)return null;
+  if(selectedImage.sourceLocked)return null;
+  return selectedImage;
+}
+async function runViewerEditCommand(command){
+  command=String(command||'').trim().toLowerCase();
+  if(READ_ONLY)return 'Viewer is read only.';
+
+  if(command==='copy'){
+    const item=editableSelectedItem();
+    if(!item)return 'Select an editable item before copying.';
+    viewerEditClipboard=cloneEditData(serializableUserLayer(item));
+    return 'Copied '+String(item.name||item.text||'selected item')+'.';
+  }
+
+  if(command==='cut'){
+    const item=editableSelectedItem();
+    if(!item)return 'Select an editable item before cutting.';
+    const before=editableLayerSnapshot();
+    viewerEditClipboard=cloneEditData(serializableUserLayer(item));
+    const label=String(item.name||item.text||'selected item');
+    removeSelectedImage();
+    if(!await saveEditedSnapshotOrRollback(before))return 'Cut was rolled back because the canonical save failed.';
+    rememberUndoSnapshot(before);
+    return 'Cut '+label+'.';
+  }
+
+  if(command==='paste'){
+    if(!viewerEditClipboard)return 'Nothing has been copied yet.';
+    const before=editableLayerSnapshot();
+    const raw=cloneEditData(viewerEditClipboard);
+    raw.id='paste:'+(crypto.randomUUID?.()||Date.now());
+    raw.name=String(raw.name||raw.text||'Copied item');
+    raw.x=clamp((Number(raw.x)||.5)+.02,0,1);
+    raw.y=clamp((Number(raw.y)||.5)+.02,0,1);
+    raw.committed=false;
+    if(raw.placementRole==='world-map'||raw.fullWorld===true){
+      raw.placementRole='layer';
+      raw.fullWorld=false;
+    }
+    const item=await attachRestoredLayer(raw);
+    if(!item)return 'Paste could not create the copied item.';
+    selectUserImage(item);
+    if(!await saveEditedSnapshotOrRollback(before))return 'Paste was rolled back because the canonical save failed.';
+    rememberUndoSnapshot(before);
+    return 'Pasted '+String(item.name||item.text||'item')+'.';
+  }
+
+  if(command==='undo'){
+    if(!viewerUndoStack.length)return 'Nothing to undo.';
+    const current=editableLayerSnapshot();
+    const target=viewerUndoStack.pop();
+    await restoreEditableLayerSnapshot(target);
+    if(!await saveWorldBuilder()){
+      await restoreEditableLayerSnapshot(current);
+      viewerUndoStack.push(target);
+      return 'Undo was rolled back because the canonical save failed.';
+    }
+    viewerRedoStack.push(cloneEditData(current));
+    if(viewerRedoStack.length>VIEWER_EDIT_HISTORY_LIMIT)viewerRedoStack.shift();
+    return 'Undo complete.';
+  }
+
+  if(command==='redo'){
+    if(!viewerRedoStack.length)return 'Nothing to redo.';
+    const current=editableLayerSnapshot();
+    const target=viewerRedoStack.pop();
+    await restoreEditableLayerSnapshot(target);
+    if(!await saveWorldBuilder()){
+      await restoreEditableLayerSnapshot(current);
+      viewerRedoStack.push(target);
+      return 'Redo was rolled back because the canonical save failed.';
+    }
+    viewerUndoStack.push(cloneEditData(current));
+    if(viewerUndoStack.length>VIEWER_EDIT_HISTORY_LIMIT)viewerUndoStack.shift();
+    return 'Redo complete.';
+  }
+
+  return 'Unknown viewer command.';
 }
 async function saveWorldBuilder(){
   if(READ_ONLY){announce('World reference mode is view only.');return false;}
@@ -3396,6 +3514,7 @@ window.ShaelvienPrototype=Object.freeze({
   getUpscaleState:()=>({enabled:upscaleEnabled,mode:stage.dataset.upscale||'original'}),
   save:saveWorldBuilder,
   placeExternalAsset,
+  editCommand:runViewerEditCommand,
   setExternalDepth,
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
