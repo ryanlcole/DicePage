@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#071117">
-<title>ReLiC Owner Project Dashboard</title>
+<title>R.e.L.i.C. Owner Project Dashboard</title>
 <style>
 :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#e8eeee;background:#071117;--panel:#0d1b22;--panel2:#102630;--line:#29404a;--gold:#e3c98e;--cyan:#8ec9d8;--muted:#91a5aa;--good:#9cddb1;--warn:#f2ce88}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 15% 0,#102a35 0,transparent 33%),#071117;color:#e8eeee}
@@ -18,18 +18,18 @@ table{width:100%;border-collapse:collapse;font-size:.88rem}th,td{text-align:left
 @media(max-width:1000px){.card{grid-column:span 6}.card.wide{grid-column:1/-1}.links{grid-template-columns:1fr 1fr}}@media(max-width:620px){main{padding:14px}.card,.card.wide{grid-column:1/-1}.links{grid-template-columns:1fr}.metric-row{grid-template-columns:1fr}}
 </style></head>
 <body>
-<header><strong>ReLiC · Owner Project Dashboard</strong><nav><a href="/">Home</a> · <a href="/Game/index.html">Game</a> · <a href="/relic/">AI</a></nav></header>
+<header><strong>R.e.L.i.C. · Owner Project Dashboard</strong><nav><a href="/">Home</a> · <a href="/Game/index.html">Game</a> · <a href="/relic/">AI</a></nav></header>
 <main>
-<section class="hero"><div><h1>Whole project.<br>One view.</h1><p>Owner-only operational view for ReLiC AI, Shaelvien/RIST, usage, accounts, tests, telemetry, and project links. Raw IP addresses and private question text are not displayed or stored here.</p></div><div class="toolbar"><span id="authStatus" class="status">Checking Discord session…</span><button id="refresh" type="button">Refresh</button></div></section>
+<section class="hero"><div><h1>Whole project.<br>One view.</h1><p>Owner-only operational view for R.e.L.i.C. AI, Shaelvien/RIST, usage, accounts, tests, telemetry, and project links. Raw IP addresses and private question text are not displayed or stored here.</p></div><div class="toolbar"><span id="authStatus" class="status">Checking Discord session…</span><button id="refresh" type="button">Refresh</button></div></section>
 <section id="denied" class="card full error hidden"><h2>Owner access required</h2><p id="deniedMessage">Sign in through the normal Shaelvien Discord flow, then return to this page.</p><p><a href="/Play/index.html" style="color:#bde4ee">Open Discord sign-in</a></p></section>
 <section id="dashboard" class="grid hidden">
  <article class="card"><h2>Game visits</h2><div class="metric" id="gameVisits">—</div><div class="sub">Recorded since dashboard telemetry activation</div></article>
  <article class="card"><h2>Game distinct IPs</h2><div class="metric" id="gameVisitors">—</div><div class="sub">Keyed hashes only; raw addresses are not retained</div></article>
  <article class="card"><h2>Game accounts</h2><div class="metric" id="gameAccounts">—</div><div class="sub">Server-side completed platform profiles</div></article>
  <article class="card"><h2>AI accounts</h2><div class="metric" id="aiAccounts">—</div><div class="sub" id="aiAccountBreakdown">External AI registrations</div></article>
- <article class="card"><h2>AI visits</h2><div class="metric" id="aiVisits">—</div><div class="sub">ReLiC AI page visits</div></article>
+ <article class="card"><h2>AI visits</h2><div class="metric" id="aiVisits">—</div><div class="sub">R.e.L.i.C. AI page visits</div></article>
  <article class="card"><h2>AI distinct IPs</h2><div class="metric" id="aiVisitors">—</div><div class="sub">Keyed hashes only; raw addresses are not retained</div></article>
- <article class="card wide"><h2>ReLiC state</h2><div class="metric-row"><div class="metric-box"><div class="sub">Canon</div><strong id="canonVersion">—</strong></div><div class="metric-box"><div class="sub">Owner identity</div><strong id="ownerName">Verified by server</strong></div></div><p class="sub" id="telemetrySince"></p></article>
+ <article class="card wide"><h2>R.e.L.i.C. state</h2><div class="metric-row"><div class="metric-box"><div class="sub">Canon</div><strong id="canonVersion">—</strong></div><div class="metric-box"><div class="sub">Owner identity</div><strong id="ownerName">Verified by server</strong></div></div><p class="sub" id="telemetrySince"></p></article>
  <article class="card wide"><h2>Project totals</h2><div class="metric-row"><div class="metric-box"><div class="sub">Visits</div><strong id="allVisits">—</strong></div><div class="metric-box"><div class="sub">Registered accounts</div><strong id="allAccounts">—</strong></div></div></article>
  <article class="card full"><h2>Online links</h2><div id="links" class="links"></div></article>
 </section>
