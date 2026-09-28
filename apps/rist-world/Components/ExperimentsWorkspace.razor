@@ -448,7 +448,7 @@
   Stage.WorldBuilderTier=>10,
   Stage.WorldBuilderLayer=>100,
   Stage.ArtMethod=>ArtMethods.Length,
-  Stage.ArtPhase=>CurrentArtTools.Length,
+  Stage.ArtPhase=>1,
   Stage.ArtWork=>1,
   Stage.AssetKind=>AssetSources.Length,
   Stage.Scale=>38,
@@ -506,7 +506,7 @@
   Stage.ControlSettings=>"CONTROLS",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"DEPTH",
   Stage.ArtMethod=>"A/V METHOD",
-  Stage.ArtPhase=>$"{CurrentArtMethod} · {CurrentArtPhase}",
+  Stage.ArtPhase=>CurrentArtMethod,
   Stage.ArtWork=>$"{CurrentArtMethod} · {CurrentArtPhase}",
   Stage.KnowledgeNode=>"JOURNAL / LORE",
   Stage.AssetKind=>"SOURCE",
@@ -528,7 +528,7 @@
   Stage.WorldBuilderTier=>$"TIER {_tier}",
   Stage.WorldBuilderLayer=>$"LAYER {_layer}",
   Stage.ArtMethod=>CurrentArtMethod,
-  Stage.ArtPhase=>CurrentArtTool,
+  Stage.ArtPhase=>$"START {CurrentArtPhase}",
   Stage.ArtWork=>$"SAVE {CurrentArtPhase}",
   Stage.KnowledgeNode=>"ADD ENTRY",
   Stage.AssetKind=>CurrentAssetSource,
@@ -586,8 +586,8 @@
   Stage.WorldBuilderTier=>"Y pages through tiers. Touch the left display to select the shown tier.",
   Stage.WorldBuilderLayer=>"Y pages through layers. Touch the left display to select the shown layer, then choose an art method.",
   Stage.ArtMethod=>"Left is the A/V rail: Draw, CAD, Import Image, Sprite, Audio, or Video.",
-  Stage.ArtPhase=>"Choose the tool for the current pass. Draw begins with Pencil, then Color, then Effects.",
-  Stage.ArtWork=>$"{CurrentArtTool} is the active {CurrentArtPhase.ToLowerInvariant()} tool. Save advances to the next pass while keeping the recursive viewer.",
+  Stage.ArtPhase=>"Open the current workbench pass. Draw runs Pencil → Color → Effects; CAD, audio, and video use their own ordered passes.",
+  Stage.ArtWork=>$"{CurrentArtPhase} workbench is active in the Viewer. Editor-specific tools live inside the workbench; Save advances to the next pass.",
   Stage.KnowledgeNode=>$"Create or inspect {_activeKnowledgeNode.ToLowerInvariant()} without leaving the persistent viewer.",
   Stage.AssetKind=>"Y pages Game, My, and Upload sources. Touch the left display to open the shown source.",
   Stage.AssetMode=>"Choose an existing asset to transform.",
@@ -640,7 +640,7 @@
   Stage.SoftwareHub=>CurrentSoftware,
   Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
   Stage.ArtMethod=>CurrentArtMethod,
-  Stage.ArtPhase=>CurrentArtTool,
+  Stage.ArtPhase=>$"START {CurrentArtPhase}",
   Stage.ArtWork=>$"SAVE {CurrentArtPhase}",
   Stage.KnowledgeNode=>"ADD ENTRY",
   Stage.AssetKind=>CurrentAssetSource,
@@ -669,7 +669,7 @@
   Stage.SoftwareHub=>"TOUCH · SELECT TOOL",
   Stage.ControlSettings=>"TOUCH · SAVE",
   Stage.ArtMethod=>"SLIDE ↑↓ · TOUCH METHOD",
-  Stage.ArtPhase=>"SLIDE ↑↓ · TOUCH TOOL",
+  Stage.ArtPhase=>"TOUCH · OPEN WORKBENCH",
   Stage.ArtWork=>"TOUCH · SAVE PASS",
   Stage.KnowledgeNode=>"TOUCH · ADD ENTRY",
   Stage.AssetKind=>"SLIDE ↑↓ · TOUCH SOURCE",
@@ -706,7 +706,7 @@
   Stage.WorldBuilderLayer=>$"{CurrentBuilderSuite} · LAYER",
   Stage.ArtMethod=>$"{CurrentBuilderSuite} · SELECT ART METHOD",
   Stage.ArtPhase=>$"{CurrentBuilderSuite} · {CurrentArtMethod} · {CurrentArtPhase}",
-  Stage.ArtWork=>$"{CurrentBuilderSuite} · {CurrentArtMethod} · {CurrentArtTool}",
+  Stage.ArtWork=>$"{CurrentBuilderSuite} · {CurrentArtMethod} · {CurrentArtPhase}",
   Stage.KnowledgeNode=>$"{CurrentGameMasterPath} · {_activeKnowledgeNode}",
   Stage.AssetKind=>$"{CurrentBuilderSuite} · {_assetKind} SOURCE",
   Stage.AssetMode=>$"{CurrentBuilderSuite} · {_assetKind}",
@@ -732,7 +732,7 @@
   Stage.WorldBuilderLayer=>$"{CurrentBuilderScope} → LAYER",
   Stage.ArtMethod=>$"{CurrentBuilderScope} → A/V METHOD",
   Stage.ArtPhase=>$"{CurrentBuilderScope} → {CurrentArtMethod} → {CurrentArtPhase}",
-  Stage.ArtWork=>$"{CurrentBuilderScope} → {CurrentArtMethod} → {CurrentArtPhase} → {CurrentArtTool}",
+  Stage.ArtWork=>$"{CurrentBuilderScope} → {CurrentArtMethod} → {CurrentArtPhase} → WORKBENCH",
   Stage.KnowledgeNode=>$"{CurrentGameMasterPath} → {_activeKnowledgeNode}",
   Stage.AssetKind=>$"{CurrentBuilderScope} → {_assetKind} SOURCE",
   Stage.AssetMode=>$"{CurrentBuilderScope} → {_assetKind}",
@@ -857,8 +857,7 @@
     _message=$"A/V method: {CurrentArtMethod}.";
     break;
    case Stage.ArtPhase:
-    _artToolIndex=Wrap(_artToolIndex+direction,CurrentArtTools.Length);
-    _message=$"{CurrentArtMethod} · {CurrentArtPhase}: {CurrentArtTool}.";
+    _message=$"{CurrentArtMethod} · {CurrentArtPhase}. Touch the left display to open the workbench.";
     break;
    case Stage.AssetKind:
     _assetSourceIndex=Wrap(_assetSourceIndex+direction,AssetSources.Length);
@@ -957,7 +956,7 @@
     break;
    case Stage.ArtPhase:
     _stage=Stage.ArtWork;
-    _message=$"{CurrentArtTool} opened for {CurrentArtMethod} · {CurrentArtPhase}. The viewer stays persistent; touch Save when this pass is complete.";
+    _message=$"{CurrentArtMethod} · {CurrentArtPhase} workbench opened in the Viewer. Use the editor there; touch the left display to save this pass.";
     break;
    case Stage.ArtWork:
     SaveArtPass();
@@ -1240,20 +1239,20 @@
  void SaveArtPass()
  {
   var savedPhase=CurrentArtPhase;
-  var savedTool=CurrentArtTool;
+  var savedTool=CurrentArtPhase;
 
   if(_artPhaseIndex+1<CurrentArtPhases.Length)
   {
    _artPhaseIndex++;
    _artToolIndex=0;
    _stage=Stage.ArtPhase;
-   _message=$"{savedPhase} saved with {savedTool}. Next: {CurrentArtPhase}. Choose the preferred tool on the left; the path/journal rail remains on the right.";
+   _message=$"{savedPhase} saved. Next: {CurrentArtPhase}. Open the next workbench pass on the left; the path/journal rail remains on the right.";
    return;
   }
 
   SetPathMenuToNext(CurrentBuilderScope);
   _stage=Stage.FullMapReview;
-  _message=$"{CurrentArtMethod} {savedPhase.ToLowerInvariant()} pass saved with {savedTool}. Full-map review is active; continue here or jump along the GameMaster path.";
+  _message=$"{CurrentArtMethod} {savedPhase.ToLowerInvariant()} pass saved. Full-map review is active; continue here or jump along the GameMaster path.";
  }
 
  void PrepareAssetSource(string kind)
