@@ -2721,3 +2721,29 @@ body.rist-viewer-overlays-off .experiments-shell .viewer-status,
 body.rist-viewer-overlays-off .experiments-shell .viewer-readout{
  display:none!important;
 }
+
+
+/* Dark / light dragon start-button authority — 2026-09-28.
+   Before the first START press, the two large controller buttons are dragon
+   sketches only: dark on the left, light on the right. After START they are
+   replaced by SHAELVIEN / RIST text; the dragon elements are removed. */
+.environment-choice-button>.experiment-dragon-head.dark-dragon{
+ background-position-x:0%!important;
+ filter:grayscale(1) contrast(1.52) brightness(.48)!important;
+ box-shadow:inset 0 0 28px rgba(0,0,0,.34)!important;
+}
+.environment-choice-button>.experiment-dragon-head.light-dragon{
+ background-position-x:100%!important;
+ filter:grayscale(.35) sepia(.10) contrast(1.18) brightness(1.38)!important;
+ box-shadow:inset 0 0 20px rgba(255,244,206,.12)!important;
+}
+.environment-choice-button.environment-head-flash>.experiment-dragon-head{
+ animation:environmentDragonStartFlash .13s ease-in-out 2!important;
+}
+@keyframes environmentDragonStartFlash{
+ 0%,100%{opacity:1;transform:scale(1)}
+ 50%{opacity:.42;transform:scale(1.035);filter:brightness(2.1) contrast(1.25)!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .environment-choice-button.environment-head-flash>.experiment-dragon-head{animation:none!important}
+}

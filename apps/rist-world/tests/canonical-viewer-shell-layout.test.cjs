@@ -72,7 +72,7 @@ test('portrait builder keeps source content in the vertical center and corner PI
     css,
     /@media\(max-width:430px\) and \(orientation:portrait\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/
   );
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-interface-grids-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-dark-light-dragons-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
 });
 
@@ -105,7 +105,7 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
   assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button,\.analog-mode-button"\)/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-interface-grids-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-dark-light-dragons-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
 });
 
@@ -144,7 +144,7 @@ test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer d
   assert.match(css,/--rist-cursor-image-selectAlt2/);
   assert.match(index,/cursors-haptics\.js\?v=20260928-visible-cursor-assets-1/);
   assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-interface-grids-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-dark-light-dragons-1/);
 });
 
 
@@ -206,20 +206,27 @@ test('mobile expanded context is contained and avoids iOS form zoom',()=>{
 });
 
 
-test('Experiments open on the start artwork and START reveals environment choices',()=>{
+test('Experiments start with dark and light dragons, then START replaces them with Shaelvien and RIST',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
   const css=read('wwwroot/css/experiments-universal-suite.css');
+  const index=read('wwwroot/index.html');
 
   assert.match(razor,/@if\(_stage==Stage\.Environment\)[\s\S]{0,500}?experiment-start-screen/);
   assert.match(razor,/shaelvien-dragon-creation-startup-screen\.png/);
   assert.match(razor,/_experimentStartRevealed\?"CHOOSE ENVIRONMENT":"PRESS START"/);
-  assert.match(razor,/experiment-dragon-head shaelvien-head[\s\S]{0,120}?is-faded/);
-  assert.match(razor,/experiment-dragon-head rist-head[\s\S]{0,120}?is-faded/);
-  assert.match(razor,/@onclick="HandleStartButtonAsync"/);
-  assert.match(razor,/HandleStartButtonAsync\(\)[\s\S]{0,360}?_experimentStartRevealed=true;[\s\S]{0,240}?Choose Shaelvien, RIST, or Legacy/);
-  assert.match(razor,/case Stage\.Environment:[\s\S]{0,260}?if\(!_experimentStartRevealed\)/);
-  assert.match(css,/Experiment boot screen authority/);
-  assert.match(css,/experiment-dragon-head/);
+  assert.match(razor,/@if\(!_experimentStartRevealed\)[\s\S]{0,180}?experiment-dragon-head dark-dragon/);
+  assert.match(razor,/@if\(!_experimentStartRevealed\)[\s\S]{0,180}?experiment-dragon-head light-dragon/);
+  assert.match(razor,/else[\s\S]{0,180}?environment-choice-label">SHAELVIEN/);
+  assert.match(razor,/else[\s\S]{0,180}?environment-choice-label">RIST/);
+  assert.doesNotMatch(razor,/experiment-dragon-head shaelvien-head/);
+  assert.doesNotMatch(razor,/experiment-dragon-head rist-head/);
+  assert.match(razor,/aria-label="@\(_stage==Stage\.Environment&&!_experimentStartRevealed\?"Dark dragon"/);
+  assert.match(razor,/aria-label="@\(_stage==Stage\.Environment&&!_experimentStartRevealed\?"Light dragon"/);
+  assert.match(razor,/HandleStartButtonAsync\(\)[\s\S]{0,220}?_experimentStartFlashing=true;[\s\S]{0,160}?Task\.Delay\(260\)[\s\S]{0,220}?_experimentStartRevealed=true;/);
+  assert.match(css,/Dark \/ light dragon start-button authority/);
+  assert.match(css,/\.experiment-dragon-head\.dark-dragon/);
+  assert.match(css,/\.experiment-dragon-head\.light-dragon/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-dark-light-dragons-1/);
 });
 
 
@@ -262,7 +269,7 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
   assert.match(prototypeIndex,/prototype\.css\?v=20260928-canonical-spatial-1/);
   assert.match(prototypeIndex,/prototype\.js\?v=20260928-canonical-spatial-1/);
   assert.match(index,/start-menu\.js\?v=20260928-grid-density-1/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-interface-grids-1/);
+  assert.match(index,/experiments-universal-suite\.css\?v=20260928-dark-light-dragons-1/);
 });
 
 

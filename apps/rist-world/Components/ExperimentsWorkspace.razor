@@ -254,15 +254,18 @@
     <span class="display-slider-cue cue-up" aria-hidden="true"></span>
    }
    <button type="button"
-           class="control-display-button control-display-left @(_stage==Stage.Environment?"environment-choice-button":"")"
+           class="control-display-button control-display-left @(_stage==Stage.Environment?"environment-choice-button":"") @(_experimentStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
            @onclick="PressLeft"
            disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
            aria-disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
-           aria-label="Left display button: @LeftDisplayValue">
+           aria-label="@(_stage==Stage.Environment&&!_experimentStartRevealed?"Dark dragon":$"Left display button: {LeftDisplayValue}")">
     @if(_stage==Stage.Environment)
     {
-     <span class="experiment-dragon-head shaelvien-head @(_experimentStartRevealed?"is-faded":"")" aria-hidden="true"></span>
-     @if(_experimentStartRevealed)
+     @if(!_experimentStartRevealed)
+     {
+      <span class="experiment-dragon-head dark-dragon" aria-hidden="true"></span>
+     }
+     else
      {
       <strong class="@LeftDisplayTextClass environment-choice-label">SHAELVIEN</strong>
      }
@@ -316,15 +319,18 @@
     <span class="display-slider-cue cue-left" aria-hidden="true"></span>
    }
    <button type="button"
-           class="control-display-button control-display-right @(_stage==Stage.Environment?"environment-choice-button":"")"
+           class="control-display-button control-display-right @(_stage==Stage.Environment?"environment-choice-button":"") @(_experimentStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
            @onclick="PressRight"
            disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
            aria-disabled="@(_stage==Stage.Environment&&!_experimentStartRevealed)"
-           aria-label="Right display button: @RightDisplayValue">
+           aria-label="@(_stage==Stage.Environment&&!_experimentStartRevealed?"Light dragon":$"Right display button: {RightDisplayValue}")">
     @if(_stage==Stage.Environment)
     {
-     <span class="experiment-dragon-head rist-head @(_experimentStartRevealed?"is-faded":"")" aria-hidden="true"></span>
-     @if(_experimentStartRevealed)
+     @if(!_experimentStartRevealed)
+     {
+      <span class="experiment-dragon-head light-dragon" aria-hidden="true"></span>
+     }
+     else
      {
       <strong class="@RightDisplayTextClass environment-choice-label">RIST</strong>
      }
@@ -2372,6 +2378,11 @@
  {
   if(_stage==Stage.Environment&&!_experimentStartRevealed)
   {
+   _experimentStartFlashing=true;
+   _message="Starting…";
+   await InvokeAsync(StateHasChanged);
+   await Task.Delay(260);
+
    _experimentStartFlashing=false;
    _experimentStartRevealed=true;
    _analogButtonMode=false;
