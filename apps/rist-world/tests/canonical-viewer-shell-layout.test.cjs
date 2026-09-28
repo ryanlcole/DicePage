@@ -330,7 +330,7 @@ test('controller Save reacts immediately, commits canonical placement, and retur
 
   assert.match(razor,/Stage\.SaveCancel=>_assetSavePending\?"SAVING…":"SAVE"/);
   assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,600}?_assetSavePending=true;[\s\S]{0,220}?InvokeAsync\(StateHasChanged\)[\s\S]{0,260}?CommitCurrentAssetToCanonicalViewerAsync\(\)/);
-  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,1200}?_stage=Stage\.PathSelect/);
+  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,1200}?_stage=Stage\.PathSelect[\s\S]{0,120}?_pathIndex=0/);
   assert.match(razor,/savedWorldId[\s\S]{0,420}?PathWorldOptions[\s\S]{0,260}?_worldIndex=savedWorldIndex>=0\?savedWorldIndex:0/);
   assert.match(razor,/Returned to the GameMaster path menu/);
   assert.doesNotMatch(razor,/case Stage\.SaveCancel:[\s\S]{0,180}?SaveCurrentAssetToViewer\(\)/);
