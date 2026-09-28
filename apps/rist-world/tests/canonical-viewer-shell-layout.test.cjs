@@ -275,21 +275,22 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
 });
 
 
-test('controller Save commits to canonical userLayers and returns to suite selection',()=>{
+test('controller Save reacts immediately, commits canonical placement, and returns to tools menu',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
   const prototype=read('wwwroot/prototype/prototype.js');
 
-  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,520}?await CommitCurrentAssetToCanonicalViewerAsync\(\)/);
+  assert.match(razor,/Stage\.SaveCancel=>_assetSavePending\?"SAVING…":"SAVE"/);
+  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,600}?_assetSavePending=true;[\s\S]{0,220}?InvokeAsync\(StateHasChanged\)[\s\S]{0,260}?CommitCurrentAssetToCanonicalViewerAsync\(\)/);
+  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,1000}?_stage=Stage\.GameMasterScope/);
+  assert.match(razor,/Returned to the tools menu/);
   assert.doesNotMatch(razor,/case Stage\.SaveCancel:[\s\S]{0,180}?SaveCurrentAssetToViewer\(\)/);
   assert.match(razor,/InvokeAsync<bool>\([\s\S]{0,180}?"placeAsset"/);
-  assert.match(razor,/_stage=Stage\.GameMasterScope/);
-  assert.match(razor,/Choose World Builder, Region Definer, Local, or Instance/);
-  assert.match(host,/export async function placeAsset\(frame,payload\)/);
+  assert.match(host,/async function waitForPrototype\(frame,timeoutMs=3000\)/);
+  assert.match(host,/post\(frame,\{type:"bridge-ready"\}\);[\s\S]{0,260}?waitForPrototype\(frame\)/);
   assert.match(prototype,/async function placeExternalAsset\(raw=\{\}\)/);
   assert.match(prototype,/userLayers\.push\(item\)/);
   assert.match(prototype,/const saved=await saveWorldBuilder\(\)/);
-  assert.match(razor,/Stage\.FullMapReview=>"SUITE OPTIONS"/);
 });
 
 test('outer depth drives embedded canonical tier and layer',()=>{
