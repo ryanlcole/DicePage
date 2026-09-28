@@ -1294,16 +1294,7 @@
  {
   if(string.Equals(target,"BACK",StringComparison.OrdinalIgnoreCase))
   {
-   if(_pathHistory.Count>0)
-   {
-    var previous=_pathHistory.Pop();
-    OpenPathNode(previous);
-   }
-   else
-   {
-    _stage=Stage.PathSelect;
-    _message="Returned to GameMaster path selection.";
-   }
+   NavigatePathBack();
    return;
   }
 
@@ -1312,6 +1303,40 @@
    _pathHistory.Push(current);
 
   OpenPathNode(target);
+ }
+
+ void NavigatePathBack()
+ {
+  switch(_stage)
+  {
+   case Stage.ArtWork:
+    _stage=Stage.ArtPhase;
+    _message=$"Back to {CurrentArtMethod} · {CurrentArtPhase} tool selection.";
+    return;
+   case Stage.ArtPhase:
+   case Stage.AssetKind:
+    _stage=Stage.ArtMethod;
+    _message="Back to art-method selection.";
+    return;
+   case Stage.ArtMethod:
+    _stage=Stage.WorldBuilderLayer;
+    _message=$"Back to {CurrentBuilderScope} Layer {_layer}.";
+    return;
+   case Stage.WorldBuilderLayer:
+    _stage=Stage.WorldBuilderTier;
+    _message=$"Back to {CurrentBuilderScope} Tier {_tier}.";
+    return;
+  }
+
+  if(_pathHistory.Count>0)
+  {
+   var previous=_pathHistory.Pop();
+   OpenPathNode(previous);
+   return;
+  }
+
+  _stage=Stage.PathSelect;
+  _message="Returned to GameMaster path selection.";
  }
 
  void OpenPathNode(string target)
