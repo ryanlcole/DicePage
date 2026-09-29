@@ -3107,7 +3107,11 @@
   }
 
   var source=await Session.SaveWorldBuilderSourceAsync(mergedState);
-  if(source is not null&&_inspectionEditMode)ConsumeInspectionReason();
+  if(source is not null&&_inspectionEditMode)
+  {
+   ConsumeInspectionReason();
+   await InvokeAsync(StateHasChanged);
+  }
   return new
   {
    success=source is not null,
