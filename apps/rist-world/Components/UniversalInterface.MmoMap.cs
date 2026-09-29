@@ -164,24 +164,32 @@ public partial class UniversalInterface
     int MmoViewRows => Math.Max(1, MmoViewMaxRow - MmoViewMinRow + 1);
 
     string MmoMapStageStyle => $"aspect-ratio:{MmoViewColumns}/{MmoViewRows};";
-    string? MmoCellSurfaceUrl(int cellIndex)
+
+    string MmoCellStyle(int cellIndex)
     {
-        // Endemar is Jeyrusal's Homeland and the origin deed. Its canonical
-        // surface belongs inside (0,0); it is never the background of Shaelvien.
+        var column = CellColumn(cellIndex);
+        var row = CellRow(cellIndex);
+        var left = (column - MmoViewMinColumn) / (double)MmoViewColumns * 100;
+        var top = (row - MmoViewMinRow) / (double)MmoViewRows * 100;
+        return $"left:{left:0.####}%;top:{top:0.####}%;width:{100d / MmoViewColumns:0.####}%;height:{100d / MmoViewRows:0.####}%;";
+    }
+
+    string MmoCellSurfaceSrc(int cellIndex)
+    {
+        // Shaelvien is the growing deed lattice, not a prebuilt map beneath it.
+        // Endemar is the origin deed at (0,0), so its complete canonical surface
+        // is clipped to that single square. Claimed deeds may render only their
+        // own Tier 0 top surface. Unclaimed frontier intentionally has no terrain.
         if (cellIndex == WorldSession.EndemarOriginCell)
             return MmoCanonicalSurfaceUrl;
 
         var parcel = Session.MmoParcels.FirstOrDefault(item => item.CellIndex == cellIndex);
         if (parcel is null || string.IsNullOrWhiteSpace(parcel.RegionId))
-            return null;
+            return "";
 
-        // Restricted parcels returned name-only by server authority have no
-        // RegionId, so this cannot accidentally expose their authored surface.
         return _mmoSurfaceLayers
-            .Where(layer => string.Equals(layer.RegionId, parcel.RegionId, StringComparison.Ordinal))
-            .OrderByDescending(layer => layer.Layer)
-            .Select(layer => layer.Src)
-            .FirstOrDefault(src => !string.IsNullOrWhiteSpace(src));
+            .FirstOrDefault(layer => string.Equals(layer.RegionId, parcel.RegionId, StringComparison.Ordinal))
+            ?.Src ?? "";
     }
 
     string MmoCellClass(int cellIndex)
