@@ -14,7 +14,7 @@ from boto3.dynamodb.conditions import Key
 WORLD_ID = "shaelvien-geonaph-alpha-001"
 WORLD_PK = f"WORLD#{WORLD_ID}"
 ZONE_NAME = "The Sunken Tundra"
-ZONE_MARKER = "sunken-tundra-v4"
+ZONE_MARKER = "sunken-tundra-v5"
 GRID_COLUMNS = 30
 GRID_ROWS = 30
 PARCEL_PIXELS = 2048
@@ -96,10 +96,15 @@ def westforde_summary(table) -> dict:
             "westfordeRow": -1,
             "westfordeWestOfEndemar": False,
             "westfordeVisibility": "",
+            "westfordeStatus": "",
+            "westfordeHasOwner": False,
+            "westfordeHasBinding": False,
+            "westfordeParcelIdMatchesCoordinate": False,
         }
 
     column = int(parcel.get("column") or 0)
     row = int(parcel.get("row") or 0)
+    expected_parcel_id = f"parcel-{column}-{row}"
     return {
         "westfordeFound": True,
         "westfordeColumn": column,
@@ -108,6 +113,12 @@ def westforde_summary(table) -> dict:
             column == ENDEMAR_COLUMN - 1 and row == ENDEMAR_ROW
         ),
         "westfordeVisibility": str(parcel.get("visibility") or "Restricted"),
+        "westfordeStatus": str(parcel.get("status") or "Claimed"),
+        "westfordeHasOwner": bool(str(parcel.get("ownerUserId") or "")),
+        "westfordeHasBinding": bool(str(parcel.get("bindingHash") or "")),
+        "westfordeParcelIdMatchesCoordinate": (
+            str(parcel.get("parcelId") or "") == expected_parcel_id
+        ),
     }
 
 
