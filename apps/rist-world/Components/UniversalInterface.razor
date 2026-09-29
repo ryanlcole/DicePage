@@ -565,7 +565,10 @@
     var mmoOptions=Session.MmoParcels
      .Where(parcel=>
       string.Equals(parcel.OwnerUserId,userId,StringComparison.Ordinal)
-      ||(!platformOwner&&Session.CanAccessMmoParcel(parcel)))
+      ||(!platformOwner
+         &&Session.CanAccessMmoParcel(parcel)
+         &&(!string.Equals(parcel.Visibility,"Public",StringComparison.OrdinalIgnoreCase)
+            ||parcel.EffectivePermission is "Edit" or "Manage" or "Owner")))
      .Select(parcel=>new ControllerWorldOption(
       parcel.ParcelId,
       parcel.DisplayName,
