@@ -1,0 +1,3451 @@
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@using System.Text.Json
+@using System.Text.Json.Nodes
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject WorldSession Session
+@inject DiscordAuthClient Auth
+
+<section class="universal-shell"
+         tabindex="0"
+         @ref="_shell"
+         @onkeydown="HandleKeyDown"
+         data-spatial-scope="@CurrentBuilderScope"
+         data-world-id="@Session.WorldId"
+         aria-label="RIST universal GameMaster Suite">
+ <button type="button"
+         class="universal-browser-back"
+         data-browser-back="universal"
+         tabindex="-1"
+         aria-hidden="true"
+         hidden
+         @onclick="HandleBrowserBack"></button>
+
+ <button type="button" hidden data-universal-start-save @onclick="SaveUniversalFromStartAsync"></button>
+ <button type="button" hidden data-universal-start-load @onclick="LoadUniversalFromStartAsync"></button>
+ <button type="button" hidden data-universal-start-exit @onclick="ExitUniversalFromStartAsync"></button>
+
+ <main class="universal-viewer universal-worldbuilder-viewer" aria-label="Shaelvien World Builder viewer">
+  <div class="universal-worldbuilder-surface">
+   <iframe @ref="_worldBuilderFrame"
+           class="universal-worldbuilder-frame"
+           src="@WorldBuilderViewerSrc"
+           title="Shaelvien World Builder viewer"
+           loading="eager"
+           allow="fullscreen"></iframe>
+  </div>
+
+  @if(_stage==Stage.Environment)
+  {
+   <section class="universal-start-screen" aria-label="Universal start screen">
+    <img src="assets/branding/shaelvien-dragon-creation-startup-screen.png" alt="" aria-hidden="true" />
+    <div class="universal-start-shade" aria-hidden="true"></div>
+    <strong>CHOOSE ENVIRONMENT</strong>
+   </section>
+  }
+  @if(CursorMode)
+  {
+   <div class="viewer-reticle" data-cursor-role="pointer" style="@ReticleStyle" aria-hidden="true"><span></span></div>
+  }
+
+  @if(IsBuilderStage)
+  {
+   <aside class="depth-pip" aria-label="@CurrentBuilderScope tier and layer portrayal">
+    <header>
+     <strong>@CurrentBuilderScope</strong>
+     <span>TIER @_tier · LAYER @_layer</span>
+    </header>
+    <div class="depth-pip-stage" aria-hidden="true">
+     @for(var sheet=0;sheet<DepthPipSheetCount;sheet++)
+     {
+      <span class="depth-pip-sheet" style="@DepthPipSheetStyle(sheet)"></span>
+     }
+    </div>
+    <footer><span>T@_tier</span><span>L@_layer</span></footer>
+   </aside>
+  }
+
+  @if(IsBuilderStage)
+  {
+   <aside class="viewer-compass" aria-label="Map compass">
+    <span class="compass-n">N</span>
+    <span class="compass-e">E</span>
+    <span class="compass-s">S</span>
+    <span class="compass-w">W</span>
+    <i class="compass-needle" aria-hidden="true"></i>
+   </aside>
+
+   <aside class="viewer-legend" aria-label="Map legend">
+    <header>LEGEND</header>
+    <span><i class="legend-swatch terrain"></i>TERRAIN</span>
+    <span><i class="legend-swatch scope"></i>@CurrentBuilderScope</span>
+    @if(HasIndividualAssetContext)
+    {
+     <span><i class="legend-swatch selected"></i>SELECTED ASSET</span>
+    }
+    <span><i class="legend-swatch context"></i>CONTEXT</span>
+   </aside>
+
+   <aside class="asset-context-pip @(_assetContextExpanded?"expanded":"minimized")"
+          aria-label="@AssetContextTitle context">
+    <header>
+     <div>
+      <small>ASSET CONTEXT</small>
+      <strong>@AssetContextTitle</strong>
+     </div>
+     @if(_assetContextExpanded)
+     {
+      <button type="button" @onclick="MinimizeAssetContext" aria-label="Minimize asset context">—</button>
+     }
+    </header>
+
+    @if(_assetContextExpanded)
+    {
+     <div class="asset-context-fields">
+      <label>NAME<input @bind="_contextName" /></label>
+      <label>LORE<textarea @bind="_contextLore"></textarea></label>
+      <label>HISTORY<textarea @bind="_contextHistory"></textarea></label>
+      <label>NPCS<textarea @bind="_contextNpcs"></textarea></label>
+      <label>ENCOUNTERS<textarea @bind="_contextEncounters"></textarea></label>
+      <label>NOTES<textarea @bind="_contextNotes"></textarea></label>
+     </div>
+     <footer>
+      <span role="status">@_contextStatus</span>
+      <button type="button" @onclick="SaveAssetContextAsync">SAVE CONTEXT</button>
+     </footer>
+    }
+    else
+    {
+     <p>@AssetContextSummary</p>
+    }
+   </aside>
+  }
+
+  @if(IsAssetTransformStage)
+  {
+   <div class="asset-preview @(_assetKind=="SPRITE"?"sprite":"image")"
+        style="@AssetPreviewStyle"
+        aria-hidden="true">
+    @if(!string.IsNullOrWhiteSpace(SelectedAssetUrl))
+    {
+     <img src="@SelectedAssetUrl" alt="" />
+    }
+    else
+    {
+     <span>@_assetKind</span>
+    }
+   </div>
+  }
+
+  @if(_stage==Stage.BrowsePlace)
+  {
+   <section class="asset-source-explorer" aria-label="@_assetSource explorer">
+    <header><strong>@_assetSource</strong><span>@_assetScope · @_assetKind</span></header>
+
+    @if(_assetSource=="UPLOAD")
+    {
+     <div class="asset-upload-pane">
+      <strong>ADD @_assetScope TO MY @(_assetKind=="SPRITE"?"SPRITES":"IMAGES")</strong>
+      <span>Choose an image from this device. It is stored in your private RIST library under @_assetScope and becomes available under My @(_assetKind=="SPRITE"?"Sprites":"Images").</span>
+      <InputFile OnChange="HandleAssetUpload"
+                 accept="image/png,image/jpeg,image/webp,image/gif,image/bmp"
+                 aria-label="Choose an image to add to your private library" />
+      @if(!string.IsNullOrWhiteSpace(_assetLoadError))
+      {
+       <small role="alert">@_assetLoadError</small>
+      }
+     </div>
+    }
+    else if(IsMyAssetSource)
+    {
+     @if(_assetsLoading)
+     {
+      <div class="asset-library-state" role="status">LOADING MY @(_assetKind=="SPRITE"?"SPRITES":"IMAGES")…</div>
+     }
+     else if(!string.IsNullOrWhiteSpace(_assetLoadError))
+     {
+      <div class="asset-library-state error" role="alert">@_assetLoadError</div>
+     }
+     else if(_myAssets.Count==0)
+     {
+      <div class="asset-library-state">NO SAVED @_assetScope @(_assetKind=="SPRITE"?"SPRITES":"IMAGES") YET · CHOOSE UPLOAD</div>
+     }
+     else
+     {
+      <div class="asset-source-explorer-grid linked-assets">
+       @foreach(var asset in _myAssets)
+       {
+        <button type="button"
+                class="linked-asset @(asset.Key==_selectedAssetKey?"selected":"")"
+                @onclick="()=>SelectMyAsset(asset.Key)"
+                aria-label="Select @asset.Name">
+         <img src="@asset.Url" alt="" loading="lazy" />
+         <span>@asset.Name</span>
+        </button>
+       }
+      </div>
+     }
+    }
+    else if(IsGameAssetSource)
+    {
+     @if(_gameAssets.Count==0)
+     {
+      <div class="asset-library-state">NO DEPLOYED @_assetScope @(_assetKind=="SPRITE"?"SPRITES":"IMAGES") FOUND</div>
+     }
+     else
+     {
+      <div class="asset-source-explorer-grid linked-assets">
+       @foreach(var asset in _gameAssets)
+       {
+        <button type="button"
+                class="linked-asset @(asset.Key==_selectedAssetKey?"selected":"")"
+                @onclick="()=>SelectGameAsset(asset.Key)"
+                aria-label="Select @asset.Name">
+         <img src="@asset.Url" alt="" loading="lazy" />
+         <span>@asset.Name</span>
+        </button>
+       }
+      </div>
+     }
+    }
+    else
+    {
+     <div class="asset-source-explorer-grid" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+     </div>
+    }
+
+    <footer>TOUCH / CURSOR · ONCE SELECTS · AGAIN PLACES</footer>
+   </section>
+  }
+
+  @if(_stage!=Stage.Environment)
+  {
+   <nav class="viewer-menu-bar" role="toolbar" aria-label="Viewer editing and navigation">
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("back")' aria-label="Back">BACK</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("undo")' aria-label="Undo">UNDO</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("cut")' aria-label="Cut selected item">CUT</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("copy")' aria-label="Copy selected item">COPY</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("redo")' aria-label="Redo">REDO</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("paste")' aria-label="Paste copied item">PASTE</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("forward")' aria-label="Forward">FORWARD</button>
+   </nav>
+  }
+
+  <div class="viewer-status" role="status" aria-live="polite">
+   <strong>@ViewerTitle</strong>
+   <span>@_message</span>
+  </div>
+
+  @if(_stage!=Stage.Environment)
+  {
+   <footer class="viewer-readout">
+    <span>X @_xPulse</span>
+    <span>Y @_yPulse</span>
+    <span>@StagePath</span>
+   </footer>
+  }
+ </main>
+
+ <section class="universal-controller single-analog-deck @AnalogPlacementClass"
+          aria-label="Universal analog and display controls">
+  <div class="@LeftSliderClass"
+       @ref="_leftSlider"
+       role="group"
+       aria-label="Left display. Slide up or down to change its selection, then touch the display to activate it.">
+   @if(LeftDisplayOptionCount>1)
+   {
+    <span class="display-slider-cue cue-up" aria-hidden="true"></span>
+   }
+   <button type="button"
+           class="control-display-button control-display-left @(_stage==Stage.Environment?"environment-choice-button":"") @(_universalStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
+           @onclick="PressLeft"
+           disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
+           aria-disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
+           aria-label="@(_stage==Stage.Environment&&!_universalStartRevealed?"Dark dragon":$"Left display button: {LeftDisplayValue}")">
+    @if(_stage==Stage.Environment)
+    {
+     @if(!_universalStartRevealed)
+     {
+      <span class="universal-dragon-head dark-dragon" aria-hidden="true"></span>
+     }
+     else
+     {
+      <strong class="@LeftDisplayTextClass environment-choice-label">SHAELVIEN</strong>
+     }
+    }
+    else
+    {
+     <small>@LeftEyebrow</small>
+     <strong class="@LeftDisplayTextClass">@LeftDisplayValue</strong>
+     <span>@LeftDisplayPrompt</span>
+    }
+   </button>
+   @if(LeftDisplayOptionCount>1)
+   {
+    <span class="display-slider-cue cue-down" aria-hidden="true"></span>
+   }
+  </div>
+
+  <div class="analog-control analog-control-xy @(CursorMode?"cursor-mode":"paging-mode")"
+       @ref="_analog"
+       role="button"
+       tabindex="0"
+       data-analog-select="true"
+       aria-label="Universal analog control. Move the stick to navigate button choices or the viewer cursor. Press the centered stick to select the current primary action.">
+   <button type="button"
+           class="analog-mode-button"
+           aria-pressed="@CursorMode"
+           @onclick="ToggleAnalogMode"
+           disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
+           aria-disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
+           aria-label="@(_stage==Stage.Environment&&_universalStartRevealed?"Open Legacy GM archive import":"Switch analog between cursor and button controls")">@AnalogModeLabel</button>
+   <span class="analog-direction analog-up" aria-hidden="true">UP</span>
+   <span class="analog-direction analog-down" aria-hidden="true">DOWN</span>
+   <span class="analog-direction analog-left" aria-hidden="true">LEFT</span>
+   <span class="analog-direction analog-right" aria-hidden="true">RIGHT</span>
+   <div class="analog-pad" aria-hidden="true">
+    <span class="analog-crosshair"></span>
+    <span class="analog-knob"></span>
+   </div>
+   <button type="button"
+           class="analog-start-button"
+           @onclick="HandleStartButtonAsync"
+           aria-label="@(_stage==Stage.Environment&&!_universalStartRevealed?"Reveal environments":"Open Start menu")">START</button>
+  </div>
+
+  <div class="@RightSliderClass"
+       @ref="_rightSlider"
+       role="group"
+       aria-label="Right display. Slide left or right to change its selection, then touch the display to activate it.">
+   @if(RightDisplayOptionCount>1)
+   {
+    <span class="display-slider-cue cue-left" aria-hidden="true"></span>
+   }
+   <button type="button"
+           class="control-display-button control-display-right @(_stage==Stage.Environment?"environment-choice-button":"") @(_universalStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
+           @onclick="PressRight"
+           disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
+           aria-disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
+           aria-label="@(_stage==Stage.Environment&&!_universalStartRevealed?"Light dragon":$"Right display button: {RightDisplayValue}")">
+    @if(_stage==Stage.Environment)
+    {
+     @if(!_universalStartRevealed)
+     {
+      <span class="universal-dragon-head light-dragon" aria-hidden="true"></span>
+     }
+     else
+     {
+      <strong class="@RightDisplayTextClass environment-choice-label">RIST</strong>
+     }
+    }
+    else
+    {
+     <small>@RightDisplayEyebrow</small>
+     <strong class="@RightDisplayTextClass">@RightDisplayValue</strong>
+     <span>@RightDisplayPrompt</span>
+    }
+   </button>
+   @if(RightDisplayOptionCount>1)
+   {
+    <span class="display-slider-cue cue-right" aria-hidden="true"></span>
+   }
+  </div>
+ </section></section>
+
+<LegacyWorldGate Open="@_legacyGateOpen"
+                 OnClose="CloseLegacyGate"
+                 OnContinue="ContinueLegacyIntoRistAsync" />
+
+<ShaelvienDeedGate Open="@_shaelvienDeedGateOpen"
+                   OnClose="CloseShaelvienDeedGate"
+                   OnClaimed="CompleteShaelvienDeedAsync" />
+<ShaelvienDeedGate Open="@_shaelvienInspectGateOpen"
+                   InspectOnly="true"
+                   OnClose="CloseShaelvienInspectGate"
+                   OnClaimed="CompleteShaelvienDeedAsync" />
+
+<WorldGate Open="@_ristDeedGateOpen"
+           OnClose="CloseRistDeedGate"
+           OnContinue="CompleteRistDeedAsync"
+           RequireSelection="false"
+           DeedMode="true" />
+
+@if(Session.IsServerVerifiedPlatformOwner&&_stage==Stage.Environment)
+{
+ <nav class="universal-owner-links universal-owner-first-screen" aria-label="Owner tools">
+  <a href="/relic/#capabilities" target="_blank" rel="noopener noreferrer">
+   <strong>R.e.L.i.C. CAPABILITIES</strong>
+   <span>Public AI surface and tested capability map</span>
+  </a>
+  <a href="/owner/" target="_blank" rel="noopener noreferrer">
+   <strong>OWNER DASHBOARD</strong>
+   <span>Private whole-project operations view</span>
+  </a>
+ </nav>
+}
+
+@code {
+ [Parameter] public EventCallback OnExit { get; set; }
+ [Parameter] public IReadOnlyList<AccountWorldReference> Worlds { get; set; } = Array.Empty<AccountWorldReference>();
+
+ enum Stage
+ {
+  Environment,
+  Role,
+  DeedSelect,
+  PathSelect,
+  ContextSelect,
+  GameMasterHub,
+  GameMasterScope,
+  SpatialSelect,
+  SoftwareHub,
+  ControlSettings,
+  WorldBuilderTier,
+  WorldBuilderLayer,
+  ArtMethod,
+  ArtPhase,
+  ArtWork,
+  KnowledgeNode,
+  AssetKind,
+  AssetMode,
+  BrowsePlace,
+  Scale,
+  Rotate,
+  Move,
+  SaveCancel,
+  FullMapReview
+ }
+
+ const string AnalogPlacementStorageKey="rist.universal.analogPlacement.v1";
+ ElementReference _shell;
+ ElementReference _worldBuilderFrame;
+ ElementReference _analog;
+ ElementReference _leftSlider;
+ ElementReference _rightSlider;
+ DotNetObjectReference<UniversalInterface>? _selfRef;
+ IJSObjectReference? _worldBuilderSourceModule;
+ bool _worldBuilderSourceAttached;
+ Stage _stage=Stage.Environment;
+ int _worldIndex;
+ int _settingIndex;
+ int _scopeIndex;
+ int _softwareIndex;
+ int _pathIndex;
+ int _pathMenuIndex;
+ int _artMethodIndex;
+ int _artPhaseIndex;
+ int _artToolIndex;
+ int _assetKindIndex;
+ int _assetSourceIndex;
+ int _builderChainIndex;
+ int _requestedBuilderChainIndex;
+ int _spatialSelectIndex;
+ int _tier;
+ int _layer;
+ int _xPulse;
+ int _yPulse;
+ int _xControl;
+ int _yControl;
+ double _cursorX;
+ double _cursorY;
+ string _analogPlacement="center";
+ int _analogPlacementDraft=1;
+ double _assetScale=1;
+ int _assetRotation;
+ int _assetX;
+ int _assetY;
+ string _assetKind="IMAGE";
+ string _assetScope="WORLD";
+ string _activeKnowledgeNode="";
+ bool _assetContextExpanded;
+ bool _browseCursorActive;
+ bool _analogButtonMode;
+ bool _universalStartRevealed=true;
+ bool _universalStartFlashing;
+ bool _legacyGateOpen;
+ bool _shaelvienDeedGateOpen;
+ bool _shaelvienInspectGateOpen;
+ bool _ristDeedGateOpen;
+ string _selectedEnvironment="SHAELVIEN";
+ string _selectedDeedId="";
+ string _selectedDeedName="";
+ string _selectedDeedKind="";
+ string _contextLoadedIdentity="";
+ string _contextName="";
+ string _contextLore="";
+ string _contextHistory="";
+ string _contextNpcs="";
+ string _contextEncounters="";
+ string _contextNotes="";
+ string _contextStatus="";
+ string _assetSource="GAME IMAGES";
+ string _assetMode="ADD";
+ bool _assetsLoading;
+ string _assetLoadError="";
+ string _selectedAssetKey="";
+ bool _assetSavePending;
+ string _worldBuilderSelectionId="";
+ string _worldBuilderSelectionName="";
+ string _worldBuilderSelectionAssetId="";
+ string _worldBuilderSelectionKind="";
+ int _worldBuilderSelectionTier;
+ int _worldBuilderSelectionLayer;
+ double _worldBuilderSelectionX;
+ double _worldBuilderSelectionY;
+ List<UserAssetEntry> _myAssets=[];
+ List<UserAssetEntry> _gameAssets=[];
+ List<AccountWorldReference> _controllerDirectoryWorlds=[];
+ List<SavedViewerAsset> _savedAssets=[];
+ Stack<string> _pathHistory=new();
+ Stack<ViewerNavState> _viewerForwardHistory=new();
+ string _message="Slide the left display vertically and the right display horizontally. The analog snaps those displays one page at a time; when neither display has multiple choices it becomes the viewer cursor.";
+
+ static readonly string[] Settings=["GRAPHICS","LANGUAGE","ACCESSIBILITY","CONTROLS","AUDIO","DISPLAY","NETWORK","ACCOUNT","HELP"];
+ static readonly string[] Scopes=["WORLD","REGION","LOCAL","INSTANCE","CAMPAIGN"];
+ static readonly string[] SoftwareCapabilities=["IMAGE EDITOR","STREAM / RECORD","NOTES / DATABASE","AUDIO","BROWSER","COMMUNICATION","AUTOMATION"];
+ static readonly string[] AnalogPlacements=["LEFT","CENTER","RIGHT"];
+ static readonly string[] AssetKinds=["IMAGE","SPRITE"];
+ static readonly string[] ImageSources=["GAME IMAGES","MY IMAGES","UPLOAD"];
+ static readonly string[] SpriteSources=["GAME SPRITES","MY SPRITES","UPLOAD"];
+ static readonly string[] GameMasterPaths=["WORLD BUILDER","CONTEXT"];
+ static readonly string[] ArtMethods=["DRAW","CAD","IMAGES","SPRITE","AUDIO","VIDEO"];
+ static readonly string[] DrawPhases=["PENCIL","COLOR","EFFECTS"];
+ static readonly string[] CadPhases=["SKETCH","GEOMETRY","MATERIAL","EFFECTS"];
+ static readonly string[] AudioPhases=["RECORD","EDIT","EFFECTS"];
+ static readonly string[] VideoPhases=["IMPORT","EDIT","EFFECTS"];
+ static readonly string[] ColorTools=["BRUSH","FILL","AIRBRUSH","PALETTE","IMPORT TEXTURE"];
+ static readonly string[] EffectTools=["LIGHT","SHADOW","GLOW","WEATHER","FILTER","MASK"];
+ static readonly string[] CadSketchTools=["LINE","ARC","POLYLINE"];
+ static readonly string[] CadGeometryTools=["RECTANGLE","CIRCLE","POLYGON","EXTRUDE"];
+ static readonly string[] CadMaterialTools=["WOOD","METAL","STONE","GLASS","CUSTOM"];
+ static readonly string[] AudioRecordTools=["MIC","IMPORT"];
+ static readonly string[] AudioEditTools=["TRIM","MIX","LOOP"];
+ static readonly string[] AudioEffectTools=["REVERB","EQ","FILTER"];
+ static readonly string[] VideoImportTools=["CAMERA","FILE"];
+ static readonly string[] VideoEditTools=["TRIM","LAYER","SPEED"];
+ static readonly string[] VideoEffectTools=["LIGHT","FILTER","OVERLAY"];
+ static readonly string[] WorldBuilderPath=["WORLD","REGION","LOCAL","INSTANCE","CAMPAIGN"];
+ static readonly string[] ContextPath=["HISTORY","LORE","TRUTH"];
+ static readonly string[] BuilderChain=["WORLD","REGION","LOCAL","INSTANCE"];
+ static readonly string[] BuilderSuiteNames=["WORLD","REGION","LOCAL","INSTANCE"];
+
+ IReadOnlyList<ControllerWorldOption> PathWorldOptions
+ {
+  get
+  {
+   if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+   {
+    var userId=Auth.Profile?.UserId?.Trim()??"";
+    var options=Session.MmoParcels
+     .Where(parcel=>
+      string.Equals(parcel.OwnerUserId,userId,StringComparison.Ordinal)
+      ||(!Auth.IsOwnerDiscordAccount&&Session.CanAccessMmoParcel(parcel)))
+     .Select(parcel=>new ControllerWorldOption(
+      parcel.ParcelId,
+      parcel.DisplayName,
+      "SHAELVIEN",
+      null,
+      parcel))
+     .OrderBy(option=>option.Name,StringComparer.OrdinalIgnoreCase)
+     .ThenBy(option=>option.Id,StringComparer.Ordinal)
+     .ToList();
+
+    if(Auth.IsOwnerDiscordAccount)
+    {
+     options.Insert(0,new ControllerWorldOption(
+      "__endemar__",
+      WorldSession.EndemarStartingPointDisplayName,
+      "SHAELVIEN_ORIGIN",
+      null,
+      null));
+     options.Add(new ControllerWorldOption(
+      "__inspect__",
+      "Inspect",
+      "SHAELVIEN_INSPECT",
+      null,
+      null));
+    }
+
+    options.Add(new ControllerWorldOption(
+     "__claim__",
+     "Claim Deed",
+     "SHAELVIEN_CLAIM",
+     null,
+     null));
+    return options;
+   }
+
+   var options=Worlds
+    .Concat(_controllerDirectoryWorlds)
+    .GroupBy(world=>world.WorldId,StringComparer.Ordinal)
+    .Select(group=>group.First())
+    .Where(WorldSession.IsSandboxWorldReference)
+    .Where(world=>!string.IsNullOrWhiteSpace(world.DisplayName))
+    .Select(world=>new ControllerWorldOption(
+     world.WorldId,
+     world.DisplayName.Trim(),
+     "RIST",
+     world,
+     null))
+    .ToList();
+
+   if(Session.HasActiveWorld&&!Session.IsGeonaphWorld
+      &&!options.Any(option=>string.Equals(option.Id,Session.WorldId,StringComparison.Ordinal)))
+   {
+    options.Add(new ControllerWorldOption(
+     Session.WorldId,
+     Session.WorldDisplayName,
+     "RIST",
+     null,
+     null));
+   }
+
+   return options
+    .OrderBy(option=>option.Name,StringComparer.OrdinalIgnoreCase)
+    .ThenBy(option=>option.Id,StringComparer.Ordinal)
+    .ToList();
+  }
+ }
+
+
+ bool IsShaelvienDeedHome=>_stage==Stage.PathSelect
+  &&string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
+  &&!string.IsNullOrWhiteSpace(_selectedDeedName);
+
+ bool IsDeedContextNode=>_stage==Stage.KnowledgeNode
+  &&string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
+  &&_pathIndex==1
+  &&ContextPath.Contains(_activeKnowledgeNode,StringComparer.OrdinalIgnoreCase)
+  &&!string.IsNullOrWhiteSpace(_selectedDeedName);
+
+ string CurrentContextSelection=>ContextPath[Math.Clamp(_pathMenuIndex,0,ContextPath.Length-1)];
+
+ string SelectedDeedRegionId
+ {
+  get
+  {
+   if(string.IsNullOrWhiteSpace(_selectedDeedId)||_selectedDeedKind=="SHAELVIEN_ORIGIN")return "";
+   return Session.MmoParcels.FirstOrDefault(parcel=>string.Equals(parcel.ParcelId,_selectedDeedId,StringComparison.Ordinal))?.RegionId?.Trim()??"";
+  }
+ }
+
+ string SelectedDeedZoneId
+ {
+  get
+  {
+   if(string.IsNullOrWhiteSpace(SelectedDeedRegionId)||string.IsNullOrWhiteSpace(_selectedDeedName))return "";
+   var value=_selectedDeedName.Trim().ToLowerInvariant();
+   var chars=value.Select(ch=>char.IsLetterOrDigit(ch)?ch:'-').ToArray();
+   var slug=new string(chars);
+   while(slug.Contains("--",StringComparison.Ordinal))slug=slug.Replace("--","-",StringComparison.Ordinal);
+   slug=slug.Trim('-');
+   if(slug.StartsWith("the-",StringComparison.Ordinal))slug=slug[4..];
+   return slug;
+  }
+ }
+
+ void SetSelectedDeed(ControllerWorldOption option)
+ {
+  _selectedDeedId=option.Id;
+  _selectedDeedName=option.Name?.Trim()??"";
+  _selectedDeedKind=option.Environment;
+  _pathIndex=0;
+  _pathMenuIndex=0;
+  _scopeIndex=0;
+  _spatialSelectIndex=0;
+ }
+
+ int PathWorldCount=>PathWorldOptions.Count;
+ bool HasPathWorlds=>PathWorldCount>0;
+ int PathWorldIndex=>PathWorldCount==0?0:Math.Clamp(_worldIndex,0,PathWorldCount-1);
+ ControllerWorldOption? CurrentPathWorld=>PathWorldCount==0?null:PathWorldOptions[PathWorldIndex];
+ string PathWorldLabel=>CurrentPathWorld?.Name?.Trim().ToUpperInvariant()??"CLAIM DEED";
+ string PathWorldEyebrow=>HasPathWorlds
+  ?(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)?"SHAELVIEN WORLDS":"RIST WORLDS")
+  :"PROPERTY";
+ string PathWorldPrompt
+ {
+  get
+  {
+   if(CurrentPathWorld?.Environment=="SHAELVIEN_CLAIM")
+   {
+    var count=Session.UnspentMmoWorldTokenCount;
+    return $"YOU HAVE {count} TOKEN{(count==1?"":"S")} REMAINING";
+   }
+   if(CurrentPathWorld?.Environment=="SHAELVIEN_INSPECT")
+    return "OWNER · AUDIT REALMS";
+   if(CurrentPathWorld is not null)
+    return PathWorldCount>1?"SLIDE ↔ · TOUCH WORLD":"TOUCH · OPEN WORLD";
+   return string.Equals(_selectedEnvironment,"RIST",StringComparison.OrdinalIgnoreCase)
+    ?"NO TOKEN REQUIRED"
+    :"CLAIM DEED";
+  }
+ }
+
+ string[] WorldChoices
+ {
+  get
+  {
+   var names=Worlds
+    .Where(world=>!string.IsNullOrWhiteSpace(world.DisplayName))
+    .OrderBy(world=>world.DisplayName,StringComparer.OrdinalIgnoreCase)
+    .Select(world=>world.DisplayName.Trim().ToUpperInvariant())
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToList();
+
+   if(Session.HasActiveWorld&&!names.Any(name=>string.Equals(name,Session.WorldDisplayName,StringComparison.OrdinalIgnoreCase)))
+    names.Insert(0,Session.WorldDisplayName.ToUpperInvariant());
+
+   names.Add("NEW WORLD");
+   return names.ToArray();
+  }
+ }
+
+ int WorldIndex=>Math.Clamp(_worldIndex,0,WorldChoices.Length-1);
+ string CurrentWorld=>WorldChoices[WorldIndex];
+ string PreviousWorld=>WorldChoices[(WorldIndex-1+WorldChoices.Length)%WorldChoices.Length];
+ string NextWorld=>WorldChoices[(WorldIndex+1)%WorldChoices.Length];
+ string CurrentSetting=>Settings[_settingIndex];
+ string PreviousSetting=>Settings[(_settingIndex-1+Settings.Length)%Settings.Length];
+ string NextSetting=>Settings[(_settingIndex+1)%Settings.Length];
+ string CurrentScope=>Scopes[_scopeIndex];
+ string CurrentSoftware=>SoftwareCapabilities[_softwareIndex];
+ string PreviousSoftware=>SoftwareCapabilities[(_softwareIndex-1+SoftwareCapabilities.Length)%SoftwareCapabilities.Length];
+ string NextSoftware=>SoftwareCapabilities[(_softwareIndex+1)%SoftwareCapabilities.Length];
+
+ string CurrentGameMasterPath=>GameMasterPaths[Math.Clamp(_pathIndex,0,GameMasterPaths.Length-1)];
+ string[] CurrentGuidedPath=>CurrentGameMasterPath=="CONTEXT"?ContextPath:WorldBuilderPath;
+ string[] CurrentPathMenu=>CurrentGuidedPath.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+ string CurrentPathTarget=>CurrentPathMenu[Math.Clamp(_pathMenuIndex,0,CurrentPathMenu.Length-1)];
+ string CurrentArtMethod=>ArtMethods[Math.Clamp(_artMethodIndex,0,ArtMethods.Length-1)];
+ string[] CurrentArtPhases=>CurrentArtMethod switch
+ {
+  "DRAW"=>DrawPhases,
+  "CAD"=>CadPhases,
+  "AUDIO"=>AudioPhases,
+  "VIDEO"=>VideoPhases,
+  _=>["SOURCE"]
+ };
+ string CurrentArtPhase=>CurrentArtPhases[Math.Clamp(_artPhaseIndex,0,CurrentArtPhases.Length-1)];
+ string[] CurrentArtTools=>CurrentArtMethod switch
+ {
+  "DRAW" when CurrentArtPhase=="PENCIL"=>["PENCIL"],
+  "DRAW" when CurrentArtPhase=="COLOR"=>ColorTools,
+  "DRAW" when CurrentArtPhase=="EFFECTS"=>EffectTools,
+  "CAD" when CurrentArtPhase=="SKETCH"=>CadSketchTools,
+  "CAD" when CurrentArtPhase=="GEOMETRY"=>CadGeometryTools,
+  "CAD" when CurrentArtPhase=="MATERIAL"=>CadMaterialTools,
+  "CAD" when CurrentArtPhase=="EFFECTS"=>EffectTools,
+  "AUDIO" when CurrentArtPhase=="RECORD"=>AudioRecordTools,
+  "AUDIO" when CurrentArtPhase=="EDIT"=>AudioEditTools,
+  "AUDIO" when CurrentArtPhase=="EFFECTS"=>AudioEffectTools,
+  "VIDEO" when CurrentArtPhase=="IMPORT"=>VideoImportTools,
+  "VIDEO" when CurrentArtPhase=="EDIT"=>VideoEditTools,
+  "VIDEO" when CurrentArtPhase=="EFFECTS"=>VideoEffectTools,
+  _=>[CurrentArtPhase]
+ };
+ string CurrentArtTool=>CurrentArtTools[Math.Clamp(_artToolIndex,0,CurrentArtTools.Length-1)];
+
+ string CurrentAnalogPlacementDraft=>AnalogPlacements[Math.Clamp(_analogPlacementDraft,0,AnalogPlacements.Length-1)];
+ string AnalogPlacementClass=>$"analog-{_analogPlacement}";
+ string[] AssetSources=>_assetKind=="SPRITE"?SpriteSources:ImageSources;
+ string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
+ string CurrentBuilderScope=>BuilderChain[Math.Clamp(_builderChainIndex,0,BuilderChain.Length-1)];
+ string CurrentBuilderSuite=>BuilderSuiteNames[Math.Clamp(_builderChainIndex,0,BuilderSuiteNames.Length-1)];
+
+ IReadOnlyList<WorldSpatialNode> CurrentSpatialOptions=>CurrentBuilderScope switch
+ {
+  "REGION"=>Session.SpatialRegions,
+  "LOCAL"=>Session.LocalsForActiveSpatialRegion,
+  "INSTANCE"=>Session.InstancesForActiveLocal,
+  _=>Array.Empty<WorldSpatialNode>()
+ };
+ int SpatialOptionCount=>CurrentSpatialOptions.Count+1;
+ int SpatialOptionIndex=>Math.Clamp(_spatialSelectIndex,0,Math.Max(0,SpatialOptionCount-1));
+ bool SpatialOptionIsNew=>SpatialOptionIndex>=CurrentSpatialOptions.Count;
+ WorldSpatialNode? CurrentSpatialOption=>SpatialOptionIsNew?null:CurrentSpatialOptions[SpatialOptionIndex];
+ string CurrentSpatialSelectionLabel=>CurrentSpatialOption?.Name?.Trim().ToUpperInvariant()??$"NEW {CurrentBuilderScope}";
+ string CurrentSpatialNodeId=>CurrentBuilderScope switch
+ {
+  "REGION"=>Session.ActiveSpatialRegion?.NodeId??"",
+  "LOCAL"=>Session.ActiveLocal?.NodeId??"",
+  "INSTANCE"=>Session.ActiveInstance?.NodeId??"",
+  _=>""
+ };
+ string CurrentSpatialPath=>string.Join("/",new[]
+ {
+  Session.ActiveSpatialRegion?.NodeId,
+  Session.ActiveLocal?.NodeId,
+  Session.ActiveInstance?.NodeId
+ }.Where(value=>!string.IsNullOrWhiteSpace(value)));
+ string CurrentSpatialBreadcrumb
+ {
+  get
+  {
+   var labels=new List<string>();
+   if(!string.IsNullOrWhiteSpace(_selectedDeedName))labels.Add(_selectedDeedName);
+   else if(CurrentPathWorld is not null)labels.Add(CurrentPathWorld.Name);
+   if(Session.ActiveSpatialRegion is not null)labels.Add(Session.ActiveSpatialRegion.Name);
+   if(Session.ActiveLocal is not null)labels.Add(Session.ActiveLocal.Name);
+   if(Session.ActiveInstance is not null)labels.Add(Session.ActiveInstance.Name);
+   return string.Join(" → ",labels);
+  }
+ }
+
+ string CurrentEditContextPath
+ {
+  get
+  {
+   var path=CurrentSpatialBreadcrumb;
+   if(string.IsNullOrWhiteSpace(path))
+    path=!string.IsNullOrWhiteSpace(_selectedDeedName)?_selectedDeedName:"SHAELVIEN";
+   return $"{path} · EDIT DEPTH: {CurrentBuilderScope}";
+  }
+ }
+ bool HasWorldBuilderSelection=>!string.IsNullOrWhiteSpace(_worldBuilderSelectionId);
+ bool HasIndividualAssetContext=>HasWorldBuilderSelection||!string.IsNullOrWhiteSpace(_selectedAssetKey);
+ string ActiveContextAssetKey=>HasWorldBuilderSelection?_worldBuilderSelectionAssetId:_selectedAssetKey;
+ int AssetContextTier=>HasWorldBuilderSelection?_worldBuilderSelectionTier:_tier;
+ int AssetContextLayer=>HasWorldBuilderSelection?_worldBuilderSelectionLayer:_layer;
+ string AssetContextIdentity=>HasWorldBuilderSelection
+  ?$"placement:{_worldBuilderSelectionId}"
+  :!string.IsNullOrWhiteSpace(_selectedAssetKey)
+   ?_selectedAssetKey
+   :$"scope:{CurrentBuilderScope.ToLowerInvariant()}:tier:{_tier}:layer:{_layer}";
+ string AssetContextTitle=>HasWorldBuilderSelection
+  ?FirstNonEmpty(_worldBuilderSelectionName,_worldBuilderSelectionAssetId,"PLACED ASSET")
+  :!string.IsNullOrWhiteSpace(_selectedAssetKey)
+   ?SelectedAssetName
+   :$"{CurrentBuilderScope} · T{_tier} L{_layer}";
+ string AssetContextButtonLabel=>_assetContextExpanded?"MINIMIZE":"CONTEXT";
+ string AssetContextSummary
+ {
+  get
+  {
+   var text=FirstNonEmpty(_contextLore,_contextHistory,_contextNotes,_contextNpcs,_contextEncounters);
+   return string.IsNullOrWhiteSpace(text)?"NO CONTEXT SAVED":Shorten(text,92);
+  }
+ }
+ string WorldBuilderViewerSrc
+ {
+  get
+  {
+   var worldId=Uri.EscapeDataString(Session.WorldId??"");
+   var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
+   var seed=Session.IsGeonaphWorld?"geonaph":"empty";
+   var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
+   var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
+   var access=Session.HasWorldBuilderEditAuthority?"edit":"view";
+   var deedId=Uri.EscapeDataString(_selectedDeedId??"");
+   var deedName=Uri.EscapeDataString(_selectedDeedName??"");
+   var deedRegionId=Uri.EscapeDataString(SelectedDeedRegionId);
+   var deedZone=Uri.EscapeDataString(SelectedDeedZoneId);
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20260929-deed-context-1";
+  }
+ }
+ bool IsPathDrivenStage=>!IsDeedContextNode&&_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
+ bool IsMyAssetSource=>_assetSource is "MY IMAGES" or "MY SPRITES";
+ bool IsGameAssetSource=>_assetSource is "GAME IMAGES" or "GAME SPRITES";
+ const string EndemarCanonicalAssetRoot="https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/";
+ string PrivateAssetPrefix=>_assetKind=="SPRITE"
+  ?$"assets/sprites/{_assetScope.ToLowerInvariant()}/"
+  :$"assets/images/{_assetScope.ToLowerInvariant()}/";
+ string EndemarSeedPrefix=>"assets/images/world/endomar/";
+ string LeftSliderClass=>$"display-slider display-slider-left {(LeftDisplayOptionCount>1?"is-scrollable":"is-static")}";
+ string RightSliderClass=>$"display-slider display-slider-right {(RightDisplayOptionCount>1?"is-scrollable":"is-static")}";
+ string LeftDisplayTextClass=>DisplayTextClass(LeftDisplayValue);
+ string RightDisplayTextClass=>DisplayTextClass(RightDisplayValue);
+
+ int LeftDisplayOptionCount=>_stage switch
+ {
+  Stage.DeedSelect=>1,
+  Stage.PathSelect=>IsShaelvienDeedHome?1:GameMasterPaths.Length,
+  Stage.ContextSelect=>1,
+  Stage.GameMasterHub=>WorldChoices.Length,
+  Stage.GameMasterScope=>Scopes.Length,
+  Stage.SpatialSelect=>SpatialOptionCount,
+  Stage.SoftwareHub=>SoftwareCapabilities.Length,
+  Stage.ControlSettings=>AnalogPlacements.Length,
+  Stage.WorldBuilderTier=>10,
+  Stage.WorldBuilderLayer=>100,
+  Stage.ArtMethod=>ArtMethods.Length,
+  Stage.ArtPhase=>1,
+  Stage.ArtWork=>1,
+  Stage.AssetKind=>AssetSources.Length,
+  Stage.Scale=>38,
+  _=>1
+ };
+
+ int RightDisplayOptionCount=>_stage switch
+ {
+  Stage.DeedSelect=>Math.Max(1,PathWorldCount),
+  Stage.ContextSelect=>ContextPath.Length,
+  _=>IsBuilderStage
+   ?1
+   :IsPathDrivenStage
+    ?CurrentPathMenu.Length
+    :_stage switch
+    {
+     Stage.PathSelect=>IsShaelvienDeedHome?1:Math.Max(1,PathWorldCount),
+     Stage.GameMasterHub=>Settings.Length,
+     Stage.Rotate=>72,
+     _=>1
+    }
+ };
+
+ bool RightActsAsBack=>_stage==Stage.SpatialSelect||IsDeedContextNode||(_stage!=Stage.PathSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1);
+ bool IsGameMasterMenuStage=>_stage is Stage.DeedSelect or Stage.ContextSelect||IsShaelvienDeedHome;
+ bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
+ bool CursorMode=>CursorAvailable
+  &&!_analogButtonMode
+  &&(_stage!=Stage.BrowsePlace||_browseCursorActive);
+ string AnalogModeLabel=>_stage==Stage.Environment&&_universalStartRevealed
+  ?"LEGACY"
+  :CursorMode?"CURSOR":"BUTTONS";
+
+ bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
+ bool IsAssetTransformStage=>_stage is Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
+ bool IsBuilderStage=>IsDepthStage
+  ||_stage is Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.AssetKind or Stage.AssetMode or Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel or Stage.FullMapReview
+  ||(_stage==Stage.KnowledgeNode&&!IsDeedContextNode);
+ bool HasSavedViewer=>_savedAssets.Count>0;
+ int VisibleGlassSheets=>Math.Clamp(_layer+1,1,8);
+ string ViewerClass=>IsBuilderStage&&!HasSavedViewer?"builder":HasSavedViewer?"recursive":"";
+
+ string LeftAxisHint=>_stage switch
+ {
+  Stage.DeedSelect=>"Y · ROOT",
+  Stage.PathSelect=>IsShaelvienDeedHome?"Y · BUILD":"Y · PATHS",
+  Stage.ContextSelect=>"Y · BACK",
+  Stage.GameMasterHub=>"Y · WORLDS",
+  Stage.GameMasterScope=>"Y · SUITES",
+  Stage.SpatialSelect=>$"Y · {CurrentBuilderScope}",
+  Stage.SoftwareHub=>"Y · CAPABILITIES",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"Y · DEPTH",
+  Stage.ArtMethod or Stage.ArtPhase or Stage.AssetKind=>"Y · A/V",
+  Stage.Scale=>"Y · SCALE",
+  Stage.Move=>"Y · MOVE",
+  _=>"Y · NAVIGATE"
+ };
+
+ string RightAxisHint=>IsBuilderStage
+  ?"X · VIEWER"
+  :IsPathDrivenStage
+   ?"X · PATH / JOURNAL"
+   :_stage switch
+  {
+   Stage.DeedSelect=>"X · DEEDS",
+   Stage.PathSelect when IsShaelvienDeedHome=>"X · CONTEXT",
+   Stage.ContextSelect=>"X · CONTEXT",
+   Stage.GameMasterHub=>"X · OPTIONS",
+   Stage.Rotate=>"X · ROTATE",
+   Stage.Move=>"X · MOVE",
+   _=>"X · NAVIGATE"
+  };
+
+ string LeftEyebrow=>_stage switch
+ {
+  Stage.Environment=>"ENVIRONMENT",
+  Stage.Role=>_selectedEnvironment,
+  Stage.DeedSelect=>"GAMEMASTER",
+  Stage.PathSelect=>IsShaelvienDeedHome?"BUILD":"GAMEMASTER PATH",
+  Stage.ContextSelect=>"NAVIGATION",
+  Stage.GameMasterScope=>"GAMEMASTER SUITE",
+  Stage.SpatialSelect=>$"SELECT {CurrentBuilderScope}",
+  Stage.ControlSettings=>"CONTROLS",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"DEPTH",
+  Stage.ArtMethod=>"A/V METHOD",
+  Stage.ArtPhase=>CurrentArtMethod,
+  Stage.ArtWork=>$"{CurrentArtMethod} · {CurrentArtPhase}",
+  Stage.KnowledgeNode=>"JOURNAL / LORE",
+  Stage.AssetKind=>"SOURCE",
+  Stage.AssetMode=>"ASSET ACTION",
+  Stage.BrowsePlace=>"SOURCE",
+  Stage.Scale or Stage.Rotate or Stage.Move=>"TRANSFORM",
+  Stage.SaveCancel=>"COMMIT",
+  Stage.FullMapReview=>CurrentBuilderSuite,
+  _=>"LEFT"
+ };
+
+ string LeftLabel=>_stage switch
+ {
+  Stage.Environment=>"SHAELVIEN",
+  Stage.Role=>"ROLEPLAYER",
+  Stage.DeedSelect=>"SHAELVIEN",
+  Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
+  Stage.ContextSelect=>"BACK",
+  Stage.GameMasterScope=>CurrentScope,
+  Stage.SpatialSelect=>CurrentSpatialSelectionLabel,
+  Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
+  Stage.WorldBuilderTier=>$"TIER {_tier}",
+  Stage.WorldBuilderLayer=>$"LAYER {_layer}",
+  Stage.ArtMethod=>CurrentArtMethod,
+  Stage.ArtPhase=>$"START {CurrentArtPhase}",
+  Stage.ArtWork=>$"SAVE {CurrentArtPhase}",
+  Stage.KnowledgeNode=>"ADD ENTRY",
+  Stage.AssetKind=>CurrentAssetSource,
+  Stage.AssetMode=>"EDIT",
+  Stage.BrowsePlace=>string.IsNullOrWhiteSpace(_selectedAssetKey)?"BROWSE":SelectedAssetName,
+  Stage.Scale=>"ENLARGE / REDUCE",
+  Stage.Rotate=>"ROTATE",
+  Stage.Move=>"MOVE",
+  Stage.SaveCancel=>_assetSavePending?"SAVING…":"SAVE",
+  Stage.FullMapReview=>"SUITE OPTIONS",
+  _=>""
+ };
+
+ string RightEyebrow=>_stage switch
+ {
+  Stage.Environment=>"ENVIRONMENT",
+  Stage.Role=>_selectedEnvironment,
+  Stage.DeedSelect=>"DEED / ACCESS",
+  Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldEyebrow,
+  Stage.ContextSelect=>"CONTEXT",
+  Stage.GameMasterScope=>"NAVIGATION",
+  Stage.SpatialSelect=>"NAVIGATION",
+  Stage.ControlSettings=>"SETTINGS",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"PATH / JOURNAL",
+  Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>"PATH / JOURNAL",
+  Stage.AssetMode=>"ASSET ACTION",
+  Stage.BrowsePlace=>"NAVIGATION",
+  Stage.Scale or Stage.Rotate or Stage.Move=>"CONFIRM",
+  Stage.SaveCancel=>"COMMIT",
+  Stage.FullMapReview=>"GAMEMASTER CHAIN",
+  _=>"RIGHT"
+ };
+
+ string RightLabel=>_stage switch
+ {
+  Stage.Environment=>"RIST",
+  Stage.Role=>"GAMEMASTER",
+  Stage.DeedSelect=>PathWorldLabel,
+  Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldLabel,
+  Stage.ContextSelect=>CurrentContextSelection,
+  Stage.GameMasterScope=>"BACK",
+  Stage.SpatialSelect=>"BACK",
+  Stage.ControlSettings=>"BACK",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>CurrentPathTarget,
+  Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>CurrentPathTarget,
+  Stage.AssetMode=>"ADD",
+  Stage.BrowsePlace=>"BACK",
+  Stage.Scale or Stage.Rotate or Stage.Move=>"SET",
+  Stage.SaveCancel=>"CANCEL",
+  Stage.FullMapReview=>CurrentPathTarget,
+  _=>""
+ };
+
+ string LeftDetail=>_stage switch
+ {
+  Stage.Environment=>"Shared Shaelvien MMO environment.",
+  Stage.Role=>"Player-facing role.",
+  Stage.DeedSelect=>"Shaelvien is the GameMaster root. Choose an owned/delegated deed, Inspect, or Claim Deed on the right.",
+  Stage.PathSelect=>IsShaelvienDeedHome
+   ?$"World Builder edits {_selectedDeedName}. Region, Local, and Instance remain selection-first."
+   :"Choose World Builder or Context.",
+  Stage.ContextSelect=>$"Context for {_selectedDeedName}: History, Lore, and Truth remain distinct.",
+  Stage.GameMasterScope=>"Y cycles GameMaster applications and capability groups.",
+  Stage.SpatialSelect=>SpatialOptionIsNew
+   ?$"Create a new {CurrentBuilderScope.ToLowerInvariant()} inside the selected parent. Editing depth stays locked until the object is selected."
+   :$"Select {CurrentSpatialSelectionLabel}. Editing Tier and Layer remains locked until selection is explicit.",
+  Stage.ControlSettings=>"Move the analog left, center, or right of the two display buttons.",
+  Stage.WorldBuilderTier=>"Y pages through tiers. Touch the left display to select the shown tier.",
+  Stage.WorldBuilderLayer=>"Y pages through layers. Touch the left display to select the shown layer, then choose an art method.",
+  Stage.ArtMethod=>"Left is the A/V rail: Draw, CAD, Images, Sprite, Audio, or Video.",
+  Stage.ArtPhase=>"Open the current workbench pass. Draw runs Pencil → Color → Effects; CAD, audio, and video use their own ordered passes.",
+  Stage.ArtWork=>$"{CurrentArtPhase} workbench is active in the Viewer. Editor-specific tools live inside the workbench; Save advances to the next pass.",
+  Stage.KnowledgeNode=>$"Create or inspect {_activeKnowledgeNode.ToLowerInvariant()} without leaving the persistent viewer.",
+  Stage.AssetKind=>"Y pages Game, My, and Upload sources. Touch the left display to open the shown source.",
+  Stage.AssetMode=>"Choose an existing asset to transform.",
+  Stage.BrowsePlace=>"Tap an asset once to select it. Tap it again to place it. With the cursor, press the analog once to select and again to place.",
+  Stage.Scale=>"Y changes preview size without changing asset identity.",
+  Stage.Rotate=>"X changes preview rotation.",
+  Stage.Move=>"X/Y move the preview representation.",
+  Stage.SaveCancel=>"Save commits the representation and opens the full-map recursive review.",
+  Stage.FullMapReview=>$"Inspect the complete {CurrentBuilderScope.ToLowerInvariant()} view, then return to World Builder, Region Definer, Local, or Instance.",
+  _=>""
+ };
+
+ string RightDetail=>_stage switch
+ {
+  Stage.Environment=>"Private/universal RIST environment.",
+  Stage.Role=>"Enter the GameMaster selector.",
+  Stage.DeedSelect=>PathWorldPrompt,
+  Stage.PathSelect=>IsShaelvienDeedHome
+   ?"Open Context for the selected deed."
+   :HasPathWorlds
+   ?"Choose a world alphabetically. Touch the right display to open the shown world."
+   :string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
+    ?"Claim a Shaelvien deed with one available Shaelvien Token."
+    :"Claim a private RIST deed without spending a Shaelvien Token.",
+  Stage.GameMasterScope=>"Return to world and settings selection.",
+  Stage.SpatialSelect=>"Back one hierarchy level without changing the selected parent.",
+  Stage.ControlSettings=>"Cancel and return to GameMaster settings.",
+  Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"The right rail jumps through spatial scopes, journals, lore, NPCs, encounters, and the rest of the active path. Browser Back moves backward.",
+  Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>"The right rail is always the path/journal rail. Browser Back moves backward; Advanced exposes the complete graph.",
+  Stage.AssetMode=>"Add a new asset.",
+  Stage.BrowsePlace=>"Back to Image/Sprite and source selection.",
+  Stage.Scale=>"Back to the current source explorer.",
+  Stage.Rotate=>"Accept current rotation.",
+  Stage.Move=>"Accept current position.",
+  Stage.SaveCancel=>"Discard preview and return to the current builder depth.",
+  Stage.FullMapReview=>"Slide left/right through the path rail, then touch the right display to jump without leaving the viewer.",
+  _=>""
+ };
+
+ string LeftButtonLabel=>_stage switch
+ {
+  Stage.GameMasterHub=>"SELECT WORLD",
+  Stage.SoftwareHub=>"SELECT TOOL",
+  _=>LeftLabel
+ };
+
+ string RightButtonLabel=>_stage switch
+ {
+  Stage.GameMasterHub=>"OPEN OPTION",
+  Stage.SoftwareHub=>"BACK",
+  _=>RightLabel
+ };
+
+ string LeftDisplayValue=>_stage switch
+ {
+  Stage.DeedSelect=>"SHAELVIEN",
+  Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
+  Stage.ContextSelect=>"BACK",
+  Stage.GameMasterHub=>CurrentWorld,
+  Stage.SpatialSelect=>CurrentSpatialSelectionLabel,
+  Stage.SoftwareHub=>CurrentSoftware,
+  Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
+  Stage.ArtMethod=>CurrentArtMethod,
+  Stage.ArtPhase=>$"START {CurrentArtPhase}",
+  Stage.ArtWork=>$"SAVE {CurrentArtPhase}",
+  Stage.KnowledgeNode=>"ADD ENTRY",
+  Stage.AssetKind=>CurrentAssetSource,
+  Stage.Scale=>$"{_assetScale:0.00}×",
+  _=>LeftLabel
+ };
+
+ string RightDisplayEyebrow=>IsBuilderStage
+  ?"ASSET CONTEXT"
+  :RightActsAsBack?"NAVIGATION":RightEyebrow;
+
+ string RightDisplayValue=>IsBuilderStage
+  ?AssetContextButtonLabel
+  :RightActsAsBack
+   ?"BACK"
+   :IsPathDrivenStage
+    ?CurrentPathTarget
+    :_stage switch
+   {
+    Stage.DeedSelect=>PathWorldLabel,
+    Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldLabel,
+    Stage.ContextSelect=>CurrentContextSelection,
+    Stage.GameMasterHub=>CurrentSetting,
+    Stage.ControlSettings=>"BACK",
+    Stage.Rotate=>$"{_assetRotation}°",
+    _=>RightLabel
+   };
+
+ string LeftDisplayPrompt=>_stage switch
+ {
+  Stage.DeedSelect=>"TOUCH · SHAELVIEN",
+  Stage.PathSelect=>IsShaelvienDeedHome?"TOUCH · BUILD":"SLIDE ↑↓ · TOUCH PATH",
+  Stage.ContextSelect=>"TOUCH · BACK",
+  Stage.GameMasterHub=>"TOUCH · SELECT WORLD",
+  Stage.SpatialSelect=>SpatialOptionIsNew?$"TOUCH · CREATE {CurrentBuilderScope}":"TOUCH · SELECT",
+  Stage.SoftwareHub=>"TOUCH · SELECT TOOL",
+  Stage.ControlSettings=>"TOUCH · SAVE",
+  Stage.ArtMethod=>"SLIDE ↑↓ · TOUCH METHOD",
+  Stage.ArtPhase=>"TOUCH · OPEN WORKBENCH",
+  Stage.ArtWork=>"TOUCH · SAVE PASS",
+  Stage.KnowledgeNode=>"TOUCH · ADD ENTRY",
+  Stage.AssetKind=>"SLIDE ↑↓ · TOUCH SOURCE",
+  Stage.BrowsePlace=>"TOUCH · CURSOR",
+  Stage.Scale=>"SLIDE ↑↓ · TOUCH SET",
+  Stage.SaveCancel=>_assetSavePending?"SAVING · PLEASE WAIT":"TOUCH · SAVE",
+  Stage.FullMapReview=>"TOUCH · SUITE OPTIONS",
+  _=>"TOUCH · ACTIVATE"
+ };
+
+ string RightDisplayPrompt=>IsBuilderStage
+  ?(_assetContextExpanded?"TOUCH · MINIMIZE":"TOUCH · OPEN")
+  :RightActsAsBack
+   ?"TOUCH · BACK"
+   :IsPathDrivenStage
+    ?"SLIDE ↔ · TOUCH JUMP"
+    :_stage switch
+   {
+    Stage.DeedSelect=>PathWorldPrompt,
+    Stage.PathSelect=>IsShaelvienDeedHome?"TOUCH · OPEN":PathWorldPrompt,
+    Stage.ContextSelect=>"SLIDE ↔ · TOUCH OPEN",
+    Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
+    Stage.SoftwareHub=>"TOUCH · BACK",
+    Stage.ControlSettings=>"TOUCH · CANCEL",
+    Stage.BrowsePlace=>"TOUCH · BACK",
+    Stage.Rotate=>"SLIDE ↔ · TOUCH SET",
+    _=>"TOUCH · ACTIVATE"
+   };
+
+ string ViewerTitle=>_stage switch
+ {
+  Stage.Environment=>"RIST UNIVERSAL VIEWER",
+  Stage.Role=>_selectedEnvironment,
+  Stage.DeedSelect=>"GAMEMASTER · SHAELVIEN",
+  Stage.PathSelect=>IsShaelvienDeedHome?$"GAMEMASTER · {_selectedDeedName.ToUpperInvariant()}":"GAMEMASTER · CHOOSE PATH",
+  Stage.ContextSelect=>$"CONTEXT · {_selectedDeedName.ToUpperInvariant()}",
+  Stage.GameMasterHub=>"GAMEMASTER · WORLD SELECTOR",
+  Stage.GameMasterScope=>"GAMEMASTER SUITE",
+  Stage.SpatialSelect=>$"{CurrentBuilderScope} · SELECT BEFORE EDIT",
+  Stage.SoftwareHub=>"SOFTWARE CAPABILITY ADAPTERS",
+  Stage.ControlSettings=>"CONTROLS · ANALOG PLACEMENT",
+  Stage.WorldBuilderTier=>$"{CurrentBuilderSuite} · TIER",
+  Stage.WorldBuilderLayer=>$"{CurrentBuilderSuite} · LAYER",
+  Stage.ArtMethod=>$"{CurrentBuilderSuite} · SELECT ART METHOD",
+  Stage.ArtPhase=>$"{CurrentBuilderSuite} · {CurrentArtMethod} · {CurrentArtPhase}",
+  Stage.ArtWork=>$"{CurrentBuilderSuite} · {CurrentArtMethod} · {CurrentArtPhase}",
+  Stage.KnowledgeNode=>$"{CurrentGameMasterPath} · {_activeKnowledgeNode}",
+  Stage.AssetKind=>$"{CurrentBuilderSuite} · {_assetKind} SOURCE",
+  Stage.AssetMode=>$"{CurrentBuilderSuite} · {_assetKind}",
+  Stage.BrowsePlace=>$"{_assetSource} · {_assetKind}",
+  Stage.Scale=>$"{_assetKind} · SCALE {_assetScale:0.00}×",
+  Stage.Rotate=>$"{_assetKind} · ROTATE {_assetRotation}°",
+  Stage.Move=>$"{_assetKind} · MOVE {_assetX},{_assetY}",
+  Stage.SaveCancel=>$"{_assetKind} · READY",
+  Stage.FullMapReview=>$"{CurrentBuilderScope} · FULL MAP",
+  _=>"VIEWER"
+ };
+
+ string StagePath=>_stage switch
+ {
+  Stage.Environment=>"START",
+  Stage.Role=>$"{_selectedEnvironment} → ROLE",
+  Stage.DeedSelect=>"SHAELVIEN → DEEDS",
+  Stage.PathSelect=>IsShaelvienDeedHome?$"{_selectedDeedName.ToUpperInvariant()} → HOME":"GAMEMASTER → PATH",
+  Stage.ContextSelect=>$"{_selectedDeedName.ToUpperInvariant()} → CONTEXT",
+  Stage.GameMasterHub=>"SHAELVIEN → GAMEMASTER",
+  Stage.GameMasterScope=>"GAMEMASTER → SUITE",
+  Stage.SpatialSelect=>string.IsNullOrWhiteSpace(CurrentSpatialBreadcrumb)?$"GAMEMASTER → {CurrentBuilderScope}":$"{CurrentSpatialBreadcrumb} → SELECT {CurrentBuilderScope}",
+  Stage.SoftwareHub=>"GAMEMASTER → SOFTWARE",
+  Stage.ControlSettings=>"GAMEMASTER → CONTROLS",
+  Stage.WorldBuilderTier=>$"{CurrentEditContextPath} → TIER",
+  Stage.WorldBuilderLayer=>$"{CurrentEditContextPath} → LAYER",
+  Stage.ArtMethod=>$"{CurrentEditContextPath} → A/V METHOD",
+  Stage.ArtPhase=>$"{CurrentEditContextPath} → {CurrentArtMethod} → {CurrentArtPhase}",
+  Stage.ArtWork=>$"{CurrentEditContextPath} → {CurrentArtMethod} → {CurrentArtPhase} → WORKBENCH",
+  Stage.KnowledgeNode=>$"{CurrentGameMasterPath} → {_activeKnowledgeNode}",
+  Stage.AssetKind=>$"{CurrentEditContextPath} → {_assetKind} SOURCE",
+  Stage.AssetMode=>$"{CurrentEditContextPath} → {_assetKind}",
+  Stage.BrowsePlace=>$"{CurrentEditContextPath} → {_assetKind} → {_assetSource}",
+  Stage.Scale=>$"{CurrentEditContextPath} → {_assetKind} → SCALE",
+  Stage.Rotate=>$"{CurrentEditContextPath} → {_assetKind} → ROTATE",
+  Stage.Move=>$"{CurrentEditContextPath} → {_assetKind} → MOVE",
+  Stage.SaveCancel=>$"{CurrentEditContextPath} → {_assetKind} → SAVE",
+  Stage.FullMapReview=>$"{CurrentEditContextPath} → FULL MAP",
+  _=>""
+ };
+
+ int DepthPipSheetCount=>Math.Clamp(Math.Min(_layer+1,6),1,6);
+
+ string DepthPipSheetStyle(int sheet)
+ {
+  var tierLift=Math.Clamp(_tier,0,9)*3;
+  var layerLift=sheet*5;
+  var opacity=Math.Max(.32,1-(sheet*.11));
+  return $"transform:translate3d({sheet*2}px,{-tierLift-layerLift}px,{sheet}px) rotateX(58deg);opacity:{opacity:0.00};";
+ }
+
+  string ReticleStyle=>$"left:{50+(_cursorX*.45):0.##}%;top:{50-(_cursorY*.45):0.##}%;";
+ string AssetPreviewStyle=>$"left:calc(50% + {_assetX}px);top:calc(50% + {_assetY}px);transform:translate(-50%,-50%) scale({_assetScale:0.00}) rotate({_assetRotation}deg);";
+
+ string GlassSheetStyle(int sheet)
+ {
+  var tierGap=_tier*44;
+  var layerGap=sheet*11;
+  var y=-(_tier*7+sheet*5);
+  return $"transform:translateY({y}px) translateZ({tierGap+layerGap}px) rotateX(58deg);opacity:{Math.Max(.28,1-sheet*.07):0.00};";
+ }
+
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if(!firstRender)return;
+  _selfRef=DotNetObjectReference.Create(this);
+  try
+  {
+   await JS.InvokeVoidAsync("ristUniversalInput.start",_selfRef,_analog,_leftSlider,_rightSlider);
+   if(!_worldBuilderSourceAttached)
+   {
+    try
+    {
+     _worldBuilderSourceModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-source-host.js?v=20260928-canonical-spatial-1");
+     await _worldBuilderSourceModule.InvokeVoidAsync("attach",_worldBuilderFrame,_selfRef);
+     _worldBuilderSourceAttached=true;
+    }
+    catch(JSException){}
+   }
+   try
+   {
+    var stored=await JS.InvokeAsync<string?>("localStorage.getItem",AnalogPlacementStorageKey);
+    if(stored is "left" or "center" or "right")
+    {
+     _analogPlacement=stored;
+     _analogPlacementDraft=Array.IndexOf(AnalogPlacements,stored.ToUpperInvariant());
+    }
+   }
+   catch{}
+   await _shell.FocusAsync();
+   await InvokeAsync(StateHasChanged);
+  }
+  catch(JSException)
+  {
+   _message="Universal keyboard, pointer and touch controls are ready. Gamepad adapter could not start.";
+   StateHasChanged();
+  }
+ }
+
+ void StepY(int direction)
+ {
+  direction=Math.Sign(direction);
+  if(direction==0)return;
+  _yControl=Math.Clamp(direction*100,-100,100);
+  if(CursorMode)
+  {
+   _yPulse=Math.Clamp(_yPulse+direction,-99,99);
+   _cursorY=Math.Clamp(_cursorY+(direction*7),-100,100);
+   if(_stage==Stage.Move)
+   {
+    _assetY=Math.Clamp(_assetY-(direction*8),-160,160);
+    _message=$"Cursor {_cursorX},{_cursorY}. Preview position {_assetX},{_assetY}.";
+   }
+   else _message=$"Cursor {_cursorX},{_cursorY}.";
+   return;
+  }
+  ApplyY(direction);
+ }
+
+ void StepX(int direction)
+ {
+  direction=Math.Sign(direction);
+  if(direction==0)return;
+  _xControl=Math.Clamp(direction*100,-100,100);
+  if(CursorMode)
+  {
+   _xPulse=Math.Clamp(_xPulse+direction,-99,99);
+   _cursorX=Math.Clamp(_cursorX+(direction*7),-100,100);
+   if(_stage==Stage.Move)
+   {
+    _assetX=Math.Clamp(_assetX+(direction*8),-200,200);
+    _message=$"Cursor {_cursorX},{_cursorY}. Preview position {_assetX},{_assetY}.";
+   }
+   else _message=$"Cursor {_cursorX},{_cursorY}.";
+   return;
+  }
+  ApplyX(direction);
+ }
+
+ void ApplyY(int direction)
+ {
+  direction=Math.Sign(direction);
+  if(direction==0)return;
+  _yPulse=Math.Clamp(_yPulse+direction,-99,99);
+
+  switch(_stage)
+  {
+   case Stage.DeedSelect:
+    _message="Shaelvien is fixed on the left. Use X or the right display to choose a deed or access action.";
+    break;
+   case Stage.PathSelect:
+    if(IsShaelvienDeedHome)
+     _message="World Builder is on the left and Context is on the right.";
+    else
+    {
+     _pathIndex=Wrap(_pathIndex+direction,GameMasterPaths.Length);
+     _message=$"GameMaster path: {CurrentGameMasterPath}.";
+    }
+    break;
+   case Stage.ContextSelect:
+    _message="Use X or the right display to choose History, Lore, or Truth.";
+    break;
+   case Stage.GameMasterHub:
+    _worldIndex=Wrap(_worldIndex+direction,WorldChoices.Length);
+    _message=$"World selector: {CurrentWorld}.";
+    break;
+   case Stage.GameMasterScope:
+    _scopeIndex=Wrap(_scopeIndex+direction,Scopes.Length);
+    _message=$"GameMaster suite: {CurrentScope}.";
+    break;
+   case Stage.SpatialSelect:
+    _spatialSelectIndex=Wrap(_spatialSelectIndex+direction,SpatialOptionCount);
+    _message=$"{CurrentBuilderScope}: {CurrentSpatialSelectionLabel}.";
+    break;
+   case Stage.SoftwareHub:
+    _softwareIndex=Wrap(_softwareIndex+direction,SoftwareCapabilities.Length);
+    _message=$"Capability adapter: {CurrentSoftware}.";
+    break;
+   case Stage.ControlSettings:
+    _analogPlacementDraft=Wrap(_analogPlacementDraft+direction,AnalogPlacements.Length);
+    _message=$"Analog placement: {CurrentAnalogPlacementDraft}.";
+    break;
+   case Stage.ArtMethod:
+    _artMethodIndex=Wrap(_artMethodIndex+direction,ArtMethods.Length);
+    _artPhaseIndex=0;
+    _message=$"A/V method: {CurrentArtMethod}.";
+    break;
+   case Stage.ArtPhase:
+    _message=$"{CurrentArtMethod} · {CurrentArtPhase}. Touch the left display to open the workbench.";
+    break;
+   case Stage.AssetKind:
+    _assetSourceIndex=Wrap(_assetSourceIndex+direction,AssetSources.Length);
+    _message=$"{_assetKind} source: {CurrentAssetSource}.";
+    break;
+   case Stage.WorldBuilderTier:
+    _tier=Math.Clamp(_tier+direction,0,9);
+    _=SyncWorldBuilderDepthAsync();
+    _message=$"Tier {_tier}. The embedded canonical viewer is following this tier.";
+    break;
+   case Stage.WorldBuilderLayer:
+    _layer=Math.Clamp(_layer+direction,0,99);
+    _=SyncWorldBuilderDepthAsync();
+    _message=$"Layer {_layer}. The embedded canonical viewer is following this layer.";
+    break;
+   case Stage.Scale:
+    _assetScale=Math.Clamp(_assetScale+(direction*.1),.25,4);
+    _message=$"Preview scale {_assetScale:0.00}×.";
+    break;
+   case Stage.Move:
+    _assetY=Math.Clamp(_assetY-(direction*8),-160,160);
+    _message=$"Preview position {_assetX},{_assetY}.";
+    break;
+   default:
+    _message="Y is available; this Shaep does not currently bind it to another action.";
+    break;
+  }
+ }
+
+ void ApplyX(int direction)
+ {
+  direction=Math.Sign(direction);
+  if(direction==0)return;
+  _xPulse=Math.Clamp(_xPulse+direction,-99,99);
+
+  if(IsPathDrivenStage&&!IsBuilderStage)
+  {
+   _pathMenuIndex=Wrap(_pathMenuIndex+direction,CurrentPathMenu.Length);
+   _message=$"Path / journal: {CurrentPathTarget}.";
+   return;
+  }
+
+  switch(_stage)
+  {
+   case Stage.DeedSelect:
+    if(PathWorldCount>1)_worldIndex=Wrap(_worldIndex+direction,PathWorldCount);
+    _message=$"Shaelvien GameMaster: {PathWorldLabel}.";
+    break;
+   case Stage.PathSelect:
+    if(IsShaelvienDeedHome)
+     _message="Context is the fixed right-side action for the selected deed.";
+    else if(PathWorldCount>1)
+    {
+     _worldIndex=Wrap(_worldIndex+direction,PathWorldCount);
+     _message=$"World: {PathWorldLabel}.";
+    }
+    else _message=HasPathWorlds?$"World: {PathWorldLabel}.":"Claim a deed to create your first world.";
+    break;
+   case Stage.ContextSelect:
+    _pathMenuIndex=Wrap(_pathMenuIndex+direction,ContextPath.Length);
+    _message=$"Context: {CurrentContextSelection}.";
+    break;
+   case Stage.GameMasterHub:
+    _settingIndex=Wrap(_settingIndex+direction,Settings.Length);
+    _message=$"Option: {CurrentSetting}.";
+    break;
+   case Stage.Rotate:
+    _assetRotation=NormalizeDegrees(_assetRotation+(direction*5));
+    _message=$"Preview rotation {_assetRotation}°.";
+    break;
+   case Stage.Move:
+    _assetX=Math.Clamp(_assetX+(direction*8),-200,200);
+    _message=$"Preview position {_assetX},{_assetY}.";
+    break;
+   default:
+    _message="X is available; this Shaep does not currently bind it to another action.";
+    break;
+  }
+ }
+
+ async Task PressLeft()
+ {
+  switch(_stage)
+  {
+   case Stage.Environment:
+     if(!_universalStartRevealed)
+     {
+      _message="Press START first.";
+      break;
+     }
+     _selectedEnvironment="SHAELVIEN";
+     _analogButtonMode=false;
+     _stage=Stage.Role;
+     _message="Shaelvien selected. Choose Roleplayer or GameMaster.";
+     break;
+   case Stage.Role:
+    _message="Roleplayer is reserved for the player-facing branch of this live interface.";
+    break;
+   case Stage.DeedSelect:
+    _message="Shaelvien selected. Use the right display to choose a deed, Inspect, or Claim Deed.";
+    break;
+   case Stage.PathSelect:
+    if(IsShaelvienDeedHome)
+    {
+     _pathIndex=0;
+     BeginGameMasterPath();
+     break;
+    }
+    if(!HasPathWorlds)
+    {
+     _message="Use the right display to Claim Deed before opening GameMaster tools.";
+     break;
+    }
+    if(await ActivateCurrentPathWorldAsync())BeginGameMasterPath();
+    break;
+   case Stage.ContextSelect:
+    GoBack();
+    break;
+   case Stage.GameMasterHub:
+    _stage=Stage.GameMasterScope;
+    _scopeIndex=0;
+    _message=CurrentWorld=="NEW WORLD"
+     ?"New World selected. Choose the GameMaster suite that will define it."
+     :$"{CurrentWorld} selected. Choose a GameMaster suite.";
+    break;
+   case Stage.GameMasterScope:
+    EnterScope();
+    break;
+   case Stage.SpatialSelect:
+    await ActivateSpatialSelectionAsync();
+    break;
+   case Stage.SoftwareHub:
+    _message=$"{CurrentSoftware} selected. Adapter contract placeholder only; no third-party UI or copied design is embedded.";
+    break;
+   case Stage.ControlSettings:
+    _analogPlacement=CurrentAnalogPlacementDraft.ToLowerInvariant();
+    _=PersistAnalogPlacementAsync();
+    _stage=Stage.GameMasterHub;
+    _message=$"Analog placement saved: {CurrentAnalogPlacementDraft}.";
+    break;
+   case Stage.ArtMethod:
+    SelectArtMethod();
+    break;
+   case Stage.ArtPhase:
+    _stage=Stage.ArtWork;
+    _message=$"{CurrentArtMethod} · {CurrentArtPhase} workbench opened in the Viewer. Use the editor there; touch the left display to save this pass.";
+    break;
+   case Stage.ArtWork:
+    SaveArtPass();
+    break;
+   case Stage.KnowledgeNode:
+    _message=$"{_activeKnowledgeNode} is active in the journal/lore rail. Entry controls will be added here without leaving the persistent viewer.";
+    break;
+   case Stage.AssetKind:
+    OpenSelectedAssetSource();
+    break;
+   case Stage.AssetMode:
+    _assetMode="EDIT";
+    _browseCursorActive=false;
+    _stage=Stage.BrowsePlace;
+    _message="Edit selected. Browse requests a source through the future image-tool adapter.";
+    break;
+   case Stage.BrowsePlace:
+    _browseCursorActive=true;
+    _analogButtonMode=false;
+    _message=string.IsNullOrWhiteSpace(_selectedAssetKey)
+     ?"Cursor active. Tap or press the analog over an asset once to select it, then again to place it."
+     :$"{SelectedAssetName} is selected. Tap or press that asset again to place it.";
+    break;
+   case Stage.SaveCancel:
+    {
+     if(_assetSavePending)break;
+     var savedScope=CurrentBuilderScope;
+     var savedTier=_tier;
+     var savedLayer=_layer;
+
+     _assetSavePending=true;
+     _message=$"Saving {_assetKind.ToLowerInvariant()}…";
+     await InvokeAsync(StateHasChanged);
+
+     var committed=await CommitCurrentAssetToCanonicalViewerAsync();
+     _assetSavePending=false;
+     if(!committed)
+     {
+      await InvokeAsync(StateHasChanged);
+      break;
+     }
+
+     ResetAssetTransform();
+     SetPathMenuToNext(savedScope);
+     _stage=Stage.PathSelect;
+     _pathIndex=0;
+     _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. Returned to {_selectedDeedName} GameMaster home.";
+     await InvokeAsync(StateHasChanged);
+     break;
+    }
+   case Stage.FullMapReview:
+    _stage=Stage.GameMasterScope;
+    _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
+    _message="Returned to the GameMaster Suite. Choose World Builder, Region Definer, Local, or Instance.";
+    break;
+   case Stage.WorldBuilderTier:
+    _stage=Stage.WorldBuilderLayer;
+    await SyncWorldBuilderDepthAsync();
+    _message=$"Tier {_tier} selected. Choose Layer.";
+    break;
+   case Stage.WorldBuilderLayer:
+    _stage=Stage.ArtMethod;
+    _artMethodIndex=0;
+    _artPhaseIndex=0;
+    SetPathMenuToNext(CurrentBuilderScope);
+    await SyncWorldBuilderDepthAsync();
+    _message=$"Tier {_tier}, Layer {_layer}. Select an art method on the left. The right rail can jump to history, lore, regions, NPCs, encounters, or another path node.";
+    break;
+   case Stage.Scale:
+    _stage=Stage.Rotate;
+    _message=$"Scale {_assetScale:0.00}× selected. Use X to rotate; touch the left display to continue.";
+    break;
+   case Stage.Rotate:
+    _stage=Stage.Move;
+    _message=$"Rotation {_assetRotation}° set. Use X/Y to move; touch the left display to continue.";
+    break;
+   case Stage.Move:
+    _stage=Stage.SaveCancel;
+    _message="Position set. Touch the left display to save; Browser Back cancels.";
+    break;
+  }
+  return;
+ }
+
+ void GoBack()
+ {
+  switch(_stage)
+  {
+   case Stage.Role:
+    _stage=Stage.Environment;
+    _message="Returned to environment selection.";
+    break;
+   case Stage.DeedSelect:
+    _stage=Stage.Role;
+    _message="Returned to Shaelvien role selection.";
+    break;
+   case Stage.PathSelect:
+    if(IsShaelvienDeedHome)
+    {
+     _stage=Stage.DeedSelect;
+     _worldIndex=0;
+     _message="Returned to Shaelvien deeds and access.";
+    }
+    else
+    {
+     _stage=Stage.Role;
+     _message="Returned to role selection.";
+    }
+    break;
+   case Stage.ContextSelect:
+    _stage=Stage.PathSelect;
+    _pathIndex=0;
+    _message=$"Returned to {_selectedDeedName}.";
+    break;
+   case Stage.GameMasterHub:
+    _stage=Stage.Role;
+    _message="Returned to Shaelvien role selection.";
+    break;
+   case Stage.GameMasterScope:
+    if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)&&!string.IsNullOrWhiteSpace(_selectedDeedName))
+    {
+     _stage=Stage.PathSelect;
+     _pathIndex=0;
+     _message=$"Returned to {_selectedDeedName}.";
+    }
+    else
+    {
+     _stage=Stage.GameMasterHub;
+     _message="Returned to worlds and GameMaster options.";
+    }
+    break;
+   case Stage.SpatialSelect:
+    BackFromSpatialSelection();
+    break;
+   case Stage.SoftwareHub:
+    _stage=Stage.GameMasterScope;
+    _message="Returned to the GameMaster suite selector.";
+    break;
+   case Stage.ControlSettings:
+    _analogPlacementDraft=Array.IndexOf(AnalogPlacements,_analogPlacement.ToUpperInvariant());
+    if(_analogPlacementDraft<0)_analogPlacementDraft=1;
+    _stage=Stage.GameMasterHub;
+    _message="Analog placement unchanged.";
+    break;
+   case Stage.WorldBuilderTier:
+    if(CurrentBuilderScope=="WORLD")
+    {
+     _stage=Stage.GameMasterScope;
+     _message="Returned to the GameMaster suite selector.";
+    }
+    else
+    {
+     _stage=Stage.SpatialSelect;
+     SelectActiveSpatialOption();
+     _message=$"Returned to {CurrentBuilderScope} selection. {CurrentSpatialSelectionLabel}.";
+    }
+    break;
+   case Stage.WorldBuilderLayer:
+    _stage=Stage.WorldBuilderTier;
+    _message=$"Returned to Tier {_tier}.";
+    break;
+   case Stage.ArtMethod:
+    _stage=Stage.WorldBuilderLayer;
+    _message=$"Returned to {CurrentBuilderScope} Layer {_layer}.";
+    break;
+   case Stage.ArtPhase:
+    _stage=Stage.ArtMethod;
+    _message="Returned to art-method selection.";
+    break;
+   case Stage.ArtWork:
+    _stage=Stage.ArtPhase;
+    _message=$"Returned to {CurrentArtMethod} · {CurrentArtPhase} tool selection.";
+    break;
+   case Stage.KnowledgeNode:
+    if(IsDeedContextNode)
+    {
+     _stage=Stage.ContextSelect;
+     _pathMenuIndex=Math.Max(0,Array.FindIndex(ContextPath,node=>string.Equals(node,_activeKnowledgeNode,StringComparison.OrdinalIgnoreCase)));
+     _message=$"Returned to context for {_selectedDeedName}.";
+    }
+    else
+    {
+     _stage=Stage.FullMapReview;
+     SetPathMenuToNode(_activeKnowledgeNode);
+     _message=$"Returned to the recursive viewer from {_activeKnowledgeNode}.";
+    }
+    break;
+   case Stage.AssetKind:
+    _stage=Stage.ArtMethod;
+    _message="Returned to art-method selection.";
+    break;
+   case Stage.AssetMode:
+    _stage=Stage.AssetKind;
+    _message="Returned to asset type and source.";
+    break;
+   case Stage.BrowsePlace:
+    _browseCursorActive=false;
+    _stage=Stage.AssetKind;
+    _message=$"Returned from {_assetSource} to {_assetKind} source selection.";
+    break;
+   case Stage.Scale:
+    _browseCursorActive=true;
+    _stage=Stage.BrowsePlace;
+    _message=$"Returned to {_assetSource} explorer. Cursor restored.";
+    break;
+   case Stage.Rotate:
+    _stage=Stage.Scale;
+    _message=$"Returned to scale {_assetScale:0.00}×.";
+    break;
+   case Stage.Move:
+    _stage=Stage.Rotate;
+    _message=$"Returned to rotation {_assetRotation}°.";
+    break;
+   case Stage.SaveCancel:
+    _stage=Stage.Move;
+    _message="Returned to placement.";
+    break;
+   case Stage.FullMapReview:
+    _stage=Stage.GameMasterScope;
+    _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
+    _message="Returned to the GameMaster Suite. The recursive viewer remains intact.";
+    break;
+  }
+ }
+
+ async Task PressRight()
+ {
+  if(IsDeedContextNode)
+  {
+   GoBack();
+   return;
+  }
+
+  if(IsBuilderStage)
+  {
+   ToggleAssetContext();
+   return;
+  }
+
+  if(IsPathDrivenStage)
+  {
+   OpenPathTarget(CurrentPathTarget);
+   return;
+  }
+
+  if(RightActsAsBack)
+  {
+   GoBack();
+   return;
+  }
+
+  switch(_stage)
+  {
+   case Stage.DeedSelect:
+    {
+     var selected=CurrentPathWorld;
+     if(selected is null)break;
+     if(await ActivateCurrentPathWorldAsync())
+     {
+      SetSelectedDeed(selected);
+      _stage=Stage.PathSelect;
+      _pathIndex=0;
+      _pathMenuIndex=0;
+      _message=$"{_selectedDeedName} selected. World Builder is on the left; Context is on the right.";
+     }
+     break;
+    }
+   case Stage.PathSelect:
+    if(IsShaelvienDeedHome)
+    {
+     _pathIndex=1;
+     _pathMenuIndex=0;
+     _stage=Stage.ContextSelect;
+     _message=$"Context for {_selectedDeedName}. Choose History, Lore, or Truth.";
+    }
+    else if(HasPathWorlds)
+    {
+     if(await ActivateCurrentPathWorldAsync())
+      _message=$"{PathWorldLabel} selected. Touch the left display to open {CurrentGameMasterPath}.";
+    }
+    else await OpenControllerDeedAsync();
+    break;
+   case Stage.ContextSelect:
+    _pathIndex=1;
+    _activeKnowledgeNode=CurrentContextSelection;
+    _stage=Stage.KnowledgeNode;
+    _message=$"{CurrentContextSelection} opened for {_selectedDeedName}. Context does not change the selected spatial edit object.";
+    break;
+   case Stage.Environment:
+     if(!_universalStartRevealed)
+     {
+      _message="Press START first.";
+      break;
+     }
+     _selectedEnvironment="RIST";
+     _analogButtonMode=false;
+     _stage=Stage.Role;
+     _message="RIST selected. Choose Roleplayer or GameMaster.";
+     break;
+   case Stage.Role:
+    await RefreshControllerWorldDirectoryAsync();
+    if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+     await EnsureShaelvienEnvironmentAsync();
+    _pathIndex=0;
+    _pathMenuIndex=0;
+    _worldIndex=0;
+    _selectedDeedId="";
+    _selectedDeedName="";
+    _selectedDeedKind="";
+    _stage=string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
+     ?Stage.DeedSelect
+     :Stage.PathSelect;
+    _message=string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
+     ?"GameMaster selected. Shaelvien is on the left; choose a deed, Inspect, or Claim Deed on the right."
+     :"GameMaster selected. Choose World Builder or Context and a RIST world.";
+    break;
+   case Stage.GameMasterHub:
+    if(CurrentSetting=="CONTROLS")
+    {
+     _analogPlacementDraft=Array.IndexOf(AnalogPlacements,_analogPlacement.ToUpperInvariant());
+     if(_analogPlacementDraft<0)_analogPlacementDraft=1;
+     _stage=Stage.ControlSettings;
+     _message="Controls. Move the analog up or down to choose LEFT, CENTER, or RIGHT placement. Center is the default.";
+    }
+    else _message=$"{CurrentSetting} selected. Settings will use the same contextual-control pattern.";
+    break;
+   case Stage.ControlSettings:
+    _analogPlacementDraft=Array.IndexOf(AnalogPlacements,_analogPlacement.ToUpperInvariant());
+    if(_analogPlacementDraft<0)_analogPlacementDraft=1;
+    _stage=Stage.GameMasterHub;
+    _message="Analog placement unchanged.";
+    break;
+   case Stage.GameMasterScope:
+    _stage=Stage.GameMasterHub;
+    _message="Returned to worlds and GameMaster options.";
+    break;
+   case Stage.SpatialSelect:
+    BackFromSpatialSelection();
+    break;
+   case Stage.SoftwareHub:
+    _stage=Stage.GameMasterScope;
+    _message="Returned to the GameMaster suite selector.";
+    break;
+   case Stage.WorldBuilderTier:
+   case Stage.WorldBuilderLayer:
+    GoBack();
+    break;
+   case Stage.AssetMode:
+    _assetMode="ADD";
+    _stage=Stage.BrowsePlace;
+    _message=$"Add {_assetKind.ToLowerInvariant()} selected. Browse or Place.";
+    break;
+   case Stage.BrowsePlace:
+    GoBack();
+    break;
+   case Stage.Scale:
+    GoBack();
+    break;
+   case Stage.Rotate:
+    _stage=Stage.Move;
+    _message="Rotation set. Use X/Y to move.";
+    break;
+   case Stage.Move:
+    _stage=Stage.SaveCancel;
+    _message="Position set. Save or Cancel.";
+    break;
+   case Stage.SaveCancel:
+    ResetAssetTransform();
+    _stage=Stage.WorldBuilderTier;
+    _message=$"Preview cancelled. Returned to {CurrentBuilderSuite} Tier.";
+    break;
+   case Stage.FullMapReview:
+    OpenPathTarget(CurrentPathTarget);
+    break;
+  }
+  return;
+ }
+
+ void BeginGameMasterPath()
+ {
+  _pathHistory.Clear();
+  if(CurrentGameMasterPath=="CONTEXT")
+  {
+   _activeKnowledgeNode=ContextPath[0];
+   _pathMenuIndex=0;
+   _stage=Stage.KnowledgeNode;
+   SetPathMenuToNext(_activeKnowledgeNode);
+   _message="Context is separate from representation: History → Lore → Truth. Choose a context node without changing the selected world depth.";
+   return;
+  }
+
+  _stage=Stage.GameMasterScope;
+  _scopeIndex=0;
+  _message="World Builder is selection-first: World → Region → Local → Instance → Campaign. Region, Local, and Instance must be selected before Tier or Layer editing unlocks.";
+ }
+
+ void SelectArtMethod()
+ {
+  _artPhaseIndex=0;
+  _artToolIndex=0;
+
+  switch(CurrentArtMethod)
+  {
+   case "IMAGES":
+    PrepareAssetSource("IMAGE");
+    _message=$"{CurrentBuilderScope} images. Choose from Game Images, My Images, or Upload; existing images and new uploads use the same image path.";
+    break;
+   case "SPRITE":
+    PrepareAssetSource("SPRITE");
+    _message=$"{CurrentBuilderScope} sprite. Slide the left display through Game Sprites, My Sprites, or Upload; the right rail still jumps through the GameMaster path.";
+    break;
+   case "DRAW":
+   case "CAD":
+   case "AUDIO":
+   case "VIDEO":
+    _stage=Stage.ArtPhase;
+    _message=$"{CurrentArtMethod} begins with {CurrentArtPhase}. Save each pass before moving to the next phase; the tool-specific controls will be added here as each adapter is wired.";
+    break;
+  }
+ }
+
+ void SaveArtPass()
+ {
+  var savedPhase=CurrentArtPhase;
+  var savedTool=CurrentArtPhase;
+
+  if(_artPhaseIndex+1<CurrentArtPhases.Length)
+  {
+   _artPhaseIndex++;
+   _artToolIndex=0;
+   _stage=Stage.ArtPhase;
+   _message=$"{savedPhase} saved. Next: {CurrentArtPhase}. Open the next workbench pass on the left; the path/journal rail remains on the right.";
+   return;
+  }
+
+  SetPathMenuToNext(CurrentBuilderScope);
+  _stage=Stage.FullMapReview;
+  _message=$"{CurrentArtMethod} {savedPhase.ToLowerInvariant()} pass saved. Full-map review is active; continue here or jump along the GameMaster path.";
+ }
+
+ void PrepareAssetSource(string kind)
+ {
+  _browseCursorActive=false;
+  _assetKind=kind;
+  _assetKindIndex=Array.IndexOf(AssetKinds,kind);
+  if(_assetKindIndex<0)_assetKindIndex=0;
+  _assetSourceIndex=0;
+  _assetSource=CurrentAssetSource;
+  _selectedAssetKey="";
+  _assetLoadError="";
+  _stage=Stage.AssetKind;
+ }
+
+ void OpenSelectedAssetSource()
+ {
+  _browseCursorActive=false;
+  _assetSource=CurrentAssetSource;
+  _selectedAssetKey="";
+  _assetLoadError="";
+  _stage=Stage.BrowsePlace;
+
+  if(IsMyAssetSource)_=LoadMyAssetsAsync();
+  else if(IsGameAssetSource)LoadGameAssets();
+
+  _message=_assetSource=="UPLOAD"
+   ?$"Upload explorer opened for {_assetKind.ToLowerInvariant()} assets. Choose from this device; uploads are added to My {_assetKind.ToLowerInvariant()}s."
+   :$"{_assetSource} explorer opened. Use the cursor or touch; left display selects and right display returns.";
+ }
+
+ static int BuilderIndexForNode(string node)=>node switch
+ {
+  "WORLD"=>0,
+  "REGION"=>1,
+  "LOCAL"=>2,
+  "INSTANCE"=>3,
+  _=>-1
+ };
+
+ string CurrentPathNode=>_stage==Stage.KnowledgeNode&&!string.IsNullOrWhiteSpace(_activeKnowledgeNode)
+  ?_activeKnowledgeNode
+  :CurrentBuilderScope;
+
+ void OpenPathTarget(string target)
+ {
+  if(string.Equals(target,"BACK",StringComparison.OrdinalIgnoreCase))
+  {
+   NavigatePathBack();
+   return;
+  }
+
+  var current=CurrentPathNode;
+  if(!string.IsNullOrWhiteSpace(current)&&!string.Equals(current,target,StringComparison.OrdinalIgnoreCase))
+   _pathHistory.Push(current);
+
+  OpenPathNode(target);
+ }
+
+ void NavigatePathBack()
+ {
+  switch(_stage)
+  {
+   case Stage.ArtWork:
+    _stage=Stage.ArtPhase;
+    _message=$"Back to {CurrentArtMethod} · {CurrentArtPhase} tool selection.";
+    return;
+   case Stage.ArtPhase:
+   case Stage.AssetKind:
+    _stage=Stage.ArtMethod;
+    _message="Back to art-method selection.";
+    return;
+   case Stage.ArtMethod:
+    _stage=Stage.WorldBuilderLayer;
+    _message=$"Back to {CurrentBuilderScope} Layer {_layer}.";
+    return;
+   case Stage.WorldBuilderLayer:
+    _stage=Stage.WorldBuilderTier;
+    _message=$"Back to {CurrentBuilderScope} Tier {_tier}.";
+    return;
+   case Stage.WorldBuilderTier:
+    if(CurrentBuilderScope=="WORLD")
+    {
+     _stage=Stage.PathSelect;
+     _message="Returned to GameMaster path selection.";
+    }
+    else
+    {
+     _stage=Stage.SpatialSelect;
+     SelectActiveSpatialOption();
+     _message=$"Returned to {CurrentBuilderScope} selection.";
+    }
+    return;
+   case Stage.SpatialSelect:
+    BackFromSpatialSelection();
+    return;
+  }
+
+  if(_pathHistory.Count>0)
+  {
+   var previous=_pathHistory.Pop();
+   OpenPathNode(previous);
+   return;
+  }
+
+  _stage=Stage.PathSelect;
+  _message="Returned to GameMaster path selection.";
+ }
+
+ void OpenPathNode(string target)
+ {
+  var builderIndex=BuilderIndexForNode(target);
+  if(builderIndex>=0)
+  {
+   BeginBuilderScope(builderIndex);
+   SetPathMenuToNext(target);
+   _message=$"{CurrentBuilderSuite} opened from the {CurrentGameMasterPath} path. The recursive viewer remains visible.";
+   return;
+  }
+
+  _activeKnowledgeNode=target;
+  _stage=Stage.KnowledgeNode;
+  SetPathMenuToNext(target);
+  _message=$"{target} opened in the journal/lore rail. The map remains visible behind it; entry controls will be added without breaking the path.";
+ }
+
+ void SetPathMenuToNode(string node)
+ {
+  var menu=CurrentPathMenu;
+  var index=Array.FindIndex(menu,item=>string.Equals(item,node,StringComparison.OrdinalIgnoreCase));
+  _pathMenuIndex=index>=0?index:0;
+ }
+
+ void SetPathMenuToNext(string node)
+ {
+  var path=CurrentGuidedPath;
+  var index=Array.FindIndex(path,item=>string.Equals(item,node,StringComparison.OrdinalIgnoreCase));
+  if(index>=0&&index+1<path.Length)SetPathMenuToNode(path[index+1]);
+  else if(index>=0)SetPathMenuToNode(path[index]);
+  else _pathMenuIndex=0;
+ }
+
+ void EnterScope()
+ {
+  var builderIndex=Array.IndexOf(BuilderSuiteNames,CurrentScope);
+  if(builderIndex>=0)
+  {
+   BeginBuilderScope(builderIndex);
+   return;
+  }
+
+  if(CurrentScope=="CAMPAIGN")
+  {
+   _activeKnowledgeNode="CAMPAIGN";
+   _stage=Stage.KnowledgeNode;
+   _message="Campaign context opened for the currently selected world hierarchy.";
+   return;
+  }
+
+  _message=$"{CurrentScope} is registered in the GameMaster flowchart.";
+ }
+
+ void BeginBuilderScope(int index,bool preserveRequestedDepth=false)
+ {
+  var requested=Math.Clamp(index,0,BuilderChain.Length-1);
+  if(!preserveRequestedDepth)_requestedBuilderChainIndex=requested;
+
+  // VIEW DEPTH != EDIT DEPTH. The requested editor stays locked until every
+  // parent object has been explicitly selected.
+  var current=requested;
+  if(requested>=2&&Session.ActiveSpatialRegion is null)current=1;
+  else if(requested>=3&&Session.ActiveLocal is null)current=2;
+
+  _builderChainIndex=current;
+  _assetScope=CurrentBuilderScope;
+  _tier=0;
+  _layer=0;
+  _assetKind="IMAGE";
+  _assetKindIndex=0;
+  _artMethodIndex=0;
+  _artPhaseIndex=0;
+  _artToolIndex=0;
+  _assetSourceIndex=0;
+  _assetSource="GAME IMAGES";
+  _selectedAssetKey="";
+  _assetLoadError="";
+  _gameAssets.Clear();
+  _myAssets.Clear();
+
+  if(CurrentBuilderScope=="WORLD")
+  {
+   _stage=Stage.WorldBuilderTier;
+   _message="World selected. Choose Tier, then Layer.";
+   _=SyncWorldBuilderDepthAsync();
+   return;
+  }
+
+  _stage=Stage.SpatialSelect;
+  SelectActiveSpatialOption();
+  _message=CurrentBuilderScope switch
+  {
+   "REGION"=>"Select a Region before editing its Tier or Layer.",
+   "LOCAL"=>"Select a Local inside the active Region before editing its Tier or Layer.",
+   "INSTANCE"=>"Select an Instance inside the active Local before editing its Tier or Layer.",
+   _=>$"Select {CurrentBuilderScope} before editing."
+  };
+ }
+
+ void SelectActiveSpatialOption()
+ {
+  var activeId=CurrentBuilderScope switch
+  {
+   "REGION"=>Session.ActiveSpatialRegion?.NodeId??"",
+   "LOCAL"=>Session.ActiveLocal?.NodeId??"",
+   "INSTANCE"=>Session.ActiveInstance?.NodeId??"",
+   _=>""
+  };
+  if(string.IsNullOrWhiteSpace(activeId))
+  {
+   _spatialSelectIndex=Math.Max(0,CurrentSpatialOptions.Count);
+   return;
+  }
+  var index=CurrentSpatialOptions.ToList().FindIndex(node=>string.Equals(node.NodeId,activeId,StringComparison.Ordinal));
+  _spatialSelectIndex=index>=0?index:Math.Max(0,CurrentSpatialOptions.Count);
+ }
+
+ async Task ActivateSpatialSelectionAsync()
+ {
+  if(CurrentBuilderScope is not ("REGION" or "LOCAL" or "INSTANCE"))
+  {
+   _stage=Stage.WorldBuilderTier;
+   await SyncWorldBuilderDepthAsync();
+   return;
+  }
+
+  if(CurrentBuilderScope=="LOCAL"&&Session.ActiveSpatialRegion is null)
+  {
+   BeginBuilderScope(1);
+   _message="Select a Region first. Local editing remains locked until then.";
+   return;
+  }
+  if(CurrentBuilderScope=="INSTANCE"&&Session.ActiveLocal is null)
+  {
+   BeginBuilderScope(2);
+   _message="Select a Local first. Instance editing remains locked until then.";
+   return;
+  }
+
+  try
+  {
+   WorldSpatialNode? node=CurrentSpatialOption;
+   if(SpatialOptionIsNew)
+   {
+    var suggested=CurrentBuilderScope switch
+    {
+     "REGION"=>"New Region",
+     "LOCAL"=>"New Local",
+     "INSTANCE"=>"New Instance",
+     _=>"New"
+    };
+    var name=await JS.InvokeAsync<string?>("prompt",$"Name this {CurrentBuilderScope.ToLowerInvariant()}",suggested);
+    name=(name??"").Trim();
+    if(name.Length==0)
+    {
+     _message=$"{CurrentBuilderScope} creation cancelled.";
+     return;
+    }
+    node=await Session.CreateSpatialNodeAsync(CurrentBuilderScope,name);
+   }
+   else if(node is not null)
+   {
+    switch(CurrentBuilderScope)
+    {
+     case "REGION":Session.SetActiveSpatialRegion(node.NodeId);break;
+     case "LOCAL":Session.SetActiveLocal(node.NodeId);break;
+     case "INSTANCE":Session.SetActiveInstance(node.NodeId);break;
+    }
+   }
+
+   if(node is null)return;
+   _spatialSelectIndex=CurrentSpatialOptions.ToList().FindIndex(item=>string.Equals(item.NodeId,node.NodeId,StringComparison.Ordinal));
+   if(_spatialSelectIndex<0)_spatialSelectIndex=0;
+
+   if(_requestedBuilderChainIndex>_builderChainIndex)
+   {
+    var completedScope=CurrentBuilderScope;
+    var completedName=node.Name;
+    BeginBuilderScope(_builderChainIndex+1,true);
+    _message=$"{completedScope} selected: {completedName}. Now select {CurrentBuilderScope}. Editing remains locked until the requested {_requestedBuilderChainIndex switch { 2=>"Local", 3=>"Instance", _=>CurrentBuilderScope }} object is selected.";
+    return;
+   }
+
+   _stage=Stage.WorldBuilderTier;
+   await SyncWorldBuilderDepthAsync();
+   _message=$"{CurrentBuilderScope} selected: {node.Name}. Editing is unlocked. Choose Tier, then Layer.";
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Spatial selection failed: {ex}");
+   _message=ex.Message;
+  }
+ }
+
+ void BackFromSpatialSelection()
+ {
+  if(CurrentBuilderScope=="INSTANCE")
+  {
+   BeginBuilderScope(2);
+   return;
+  }
+  if(CurrentBuilderScope=="LOCAL")
+  {
+   BeginBuilderScope(1);
+   return;
+  }
+  _stage=Stage.GameMasterScope;
+  _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
+  _message="Returned to the GameMaster suite selector.";
+ }
+
+ void LoadGameAssets()
+ {
+  _gameAssets.Clear();
+  _assetLoadError="";
+
+  if(_assetKind=="IMAGE"&&_assetScope=="WORLD")
+  {
+   _gameAssets=
+   [
+    new UserAssetEntry("game:endemar:surface",EndemarCanonicalAssetRoot+"geonaph_full_static_canonical_surface_v001.png","Endemar · Surface",DateTimeOffset.MinValue),
+    new UserAssetEntry("game:endemar:highlands",EndemarCanonicalAssetRoot+"geonaph_full_static_highlands_rivers_v001.png","Endemar · Highlands + Rivers",DateTimeOffset.MinValue),
+    new UserAssetEntry("game:endemar:mountains",EndemarCanonicalAssetRoot+"geonaph_full_static_mountain_volcanic_archipelago_v001.png","Endemar · Mountains + Volcanic",DateTimeOffset.MinValue)
+   ];
+   _message="Loaded the same canonical Endemar world images used by the GameMaster chain.";
+  }
+ }
+
+ string SelectedAssetUrl
+ {
+  get
+  {
+   if(string.IsNullOrWhiteSpace(_selectedAssetKey))return "";
+   return _gameAssets.Concat(_myAssets).FirstOrDefault(asset=>asset.Key==_selectedAssetKey)?.Url??"";
+  }
+ }
+
+ string SelectedAssetName
+ {
+  get
+  {
+   if(string.IsNullOrWhiteSpace(_selectedAssetKey))return _assetKind;
+   return _gameAssets.Concat(_myAssets).FirstOrDefault(asset=>asset.Key==_selectedAssetKey)?.Name??FileLabel(_selectedAssetKey);
+  }
+ }
+
+ void SelectGameAsset(string key)=>ActivateAssetFromBrowser(key);
+
+ void ActivateAssetFromBrowser(string key)
+ {
+  if(string.IsNullOrWhiteSpace(key))return;
+
+  if(string.Equals(_selectedAssetKey,key,StringComparison.Ordinal))
+  {
+   BeginSelectedAssetPlacement();
+   return;
+  }
+
+  _selectedAssetKey=key;
+  ResetAssetContextForSelection();
+  _message=$"{SelectedAssetName} selected. Tap it again, or press the analog over it again, to place it.";
+ }
+
+ void BeginSelectedAssetPlacement()
+ {
+  if(string.IsNullOrWhiteSpace(_selectedAssetKey))return;
+  _browseCursorActive=false;
+  _stage=Stage.Scale;
+  _message=$"{SelectedAssetName} ready to place. Use Y or slide the left display to set scale.";
+ }
+
+ async Task LoadMyAssetsAsync()
+ {
+  _assetsLoading=true;
+  _assetLoadError="";
+  _myAssets.Clear();
+  await InvokeAsync(StateHasChanged);
+
+  try
+  {
+   if(Auth.Profile is null)
+   {
+    _assetLoadError="Sign in to use My Images.";
+    return;
+   }
+
+   var listing=await Auth.ListAsync(PrivateAssetPrefix);
+
+   if(_assetKind=="IMAGE"&&_assetScope=="WORLD")
+   {
+    var hasEndemarSeed=(listing?.Items??[])
+     .Any(item=>item.Key.StartsWith(EndemarSeedPrefix,StringComparison.OrdinalIgnoreCase));
+
+    if(!hasEndemarSeed)
+    {
+     _message="Copying the existing Endemar world artwork into My Images…";
+     await InvokeAsync(StateHasChanged);
+     var imported=await Auth.ImportGameAssetsAsync("endomar","world");
+     if(imported?.Ok==true)
+     {
+      _message=$"Endemar world artwork linked to My Images: {imported.Imported.Count} copied, {imported.Skipped.Count} already present.";
+     }
+     else
+     {
+      _assetLoadError="Endemar world artwork was not found in the deployed Game Images yet.";
+     }
+     listing=await Auth.ListAsync(PrivateAssetPrefix);
+    }
+   }
+
+   var items=(listing?.Items??[])
+    .Where(item=>IsSupportedImageKey(item.Key))
+    .OrderByDescending(item=>item.LastModified)
+    .Take(48)
+    .ToList();
+
+   var tasks=items.Select(async item =>
+   {
+    var url=await Auth.DownloadUrlAsync(item.Key);
+    return string.IsNullOrWhiteSpace(url)
+     ?null
+     :new UserAssetEntry(item.Key,url,FileLabel(item.Key),item.LastModified);
+   });
+
+   var resolved=await Task.WhenAll(tasks);
+   _myAssets=resolved.Where(item=>item is not null).Cast<UserAssetEntry>().ToList();
+
+   if(_assetKind=="IMAGE"&&_assetScope=="WORLD"&&_myAssets.Count>0)
+    _assetLoadError="";
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"My Images load failed: {ex}");
+   _assetLoadError="My Images are temporarily unavailable. Go Back and reopen My Images to retry.";
+  }
+  finally
+  {
+   _assetsLoading=false;
+   await InvokeAsync(StateHasChanged);
+  }
+ }
+
+ void SelectMyAsset(string key)=>ActivateAssetFromBrowser(key);
+
+ async Task HandleAssetUpload(InputFileChangeEventArgs e)
+ {
+  var file=e.File;
+  _assetLoadError="";
+
+  var extension=file.ContentType.ToLowerInvariant() switch
+  {
+   "image/png"=>".png",
+   "image/jpeg"=>".jpg",
+   "image/webp"=>".webp",
+   "image/gif"=>".gif",
+   "image/bmp"=>".bmp",
+   _=>""
+  };
+
+  if(string.IsNullOrEmpty(extension))
+  {
+   _assetLoadError="Use PNG, JPEG, WebP, or GIF.";
+   return;
+  }
+
+  const long maxBytes=25L*1024*1024;
+  if(file.Size>maxBytes)
+  {
+   _assetLoadError="That image is larger than 25 MB.";
+   return;
+  }
+
+  try
+  {
+   _assetsLoading=true;
+   await InvokeAsync(StateHasChanged);
+
+   await using var stream=file.OpenReadStream(maxBytes);
+   using var buffer=new MemoryStream();
+   await stream.CopyToAsync(buffer);
+
+   var key=PrivateAssetPrefix+DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N")+extension;
+   await Auth.UploadBytesAsync(key,buffer.ToArray(),file.ContentType);
+
+   _assetSource=_assetKind=="SPRITE"?"MY SPRITES":"MY IMAGES";
+   _assetSourceIndex=Array.IndexOf(AssetSources,_assetSource);
+   if(_assetSourceIndex<0)_assetSourceIndex=0;
+   _selectedAssetKey=key;
+   _message=$"{file.Name} added to {_assetScope} {_assetSource}. It will stay linked to this account as Shaelvien grows.";
+
+   await LoadMyAssetsAsync();
+   if(_myAssets.Any(asset=>asset.Key==key))_selectedAssetKey=key;
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Asset upload failed: {ex}");
+   _assetLoadError="Upload failed. Please try again.";
+  }
+  finally
+  {
+   _assetsLoading=false;
+   await InvokeAsync(StateHasChanged);
+  }
+ }
+
+ static bool IsSupportedImageKey(string key)
+ {
+  var lower=key.ToLowerInvariant();
+  return lower.EndsWith(".png")||lower.EndsWith(".jpg")||lower.EndsWith(".jpeg")||
+         lower.EndsWith(".webp")||lower.EndsWith(".gif")||lower.EndsWith(".bmp");
+ }
+
+ static string FileLabel(string key)
+ {
+  if(string.IsNullOrWhiteSpace(key))return "IMAGE";
+  var name=key.Replace("\\","/").Split('/').LastOrDefault()??"IMAGE";
+  return name.Length<=28?name:name[..25]+"…";
+ }
+
+ async Task<bool> CommitCurrentAssetToCanonicalViewerAsync()
+ {
+  var url=SelectedAssetUrl;
+  if(string.IsNullOrWhiteSpace(url))
+  {
+   _message="The selected asset has no usable source URL.";
+   return false;
+  }
+  if(_worldBuilderSourceModule is null)
+  {
+   _message="The canonical World Builder bridge is not ready yet.";
+   return false;
+  }
+
+  try
+  {
+   var committed=await _worldBuilderSourceModule.InvokeAsync<bool>(
+    "placeAsset",
+    _worldBuilderFrame,
+    new
+    {
+     key=_selectedAssetKey,
+     assetId=_selectedAssetKey,
+     url,
+     name=SelectedAssetName,
+     kind=_assetKind,
+     scope=CurrentBuilderScope,
+     spatialNodeId=CurrentSpatialNodeId,
+     spatialPath=CurrentSpatialPath,
+     tier=_tier,
+     layer=_layer,
+     scale=_assetScale,
+     rotation=_assetRotation,
+     offsetX=_assetX,
+     offsetY=_assetY
+    });
+   if(!committed)
+   {
+    _message="The canonical World Builder did not commit the placement.";
+    return false;
+   }
+   return true;
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Canonical placement failed: {ex}");
+   _message="Canonical placement failed. This asset was not reported as saved.";
+   return false;
+  }
+ }
+
+ async Task SyncWorldBuilderDepthAsync()
+ {
+  if(_worldBuilderSourceModule is null)return;
+  try
+  {
+   await _worldBuilderSourceModule.InvokeVoidAsync("setDepth",_worldBuilderFrame,_tier,_layer,CurrentBuilderScope,CurrentSpatialNodeId,CurrentSpatialPath);
+  }
+  catch(JSException){}
+ }
+
+ string SavedViewerAssetClass(SavedViewerAsset asset)
+  =>$"scope-{asset.Scope.ToLowerInvariant()} {(asset.Kind=="SPRITE"?"sprite":"image")}";
+
+ string SavedViewerAssetStyle(SavedViewerAsset asset)
+  =>$"--saved-x:{asset.X}px;--saved-y:{asset.Y}px;--saved-scale:{asset.Scale:0.00};--saved-rotate:{asset.Rotation}deg;--saved-tier:{asset.Tier};--saved-layer:{asset.Layer};";
+
+ sealed record ControllerWorldOption(
+  string Id,
+  string Name,
+  string Environment,
+  AccountWorldReference? WorldReference,
+  AwsAuthorityClient.MmoParcel? Parcel);
+
+ sealed record ViewerNavState(
+  Stage Stage,
+  int WorldIndex,
+  int SettingIndex,
+  int ScopeIndex,
+  int SoftwareIndex,
+  int PathIndex,
+  int PathMenuIndex,
+  int ArtMethodIndex,
+  int ArtPhaseIndex,
+  int ArtToolIndex,
+  int AssetKindIndex,
+  int AssetSourceIndex,
+  int BuilderChainIndex,
+  int RequestedBuilderChainIndex,
+  int Tier,
+  int Layer,
+  double AssetScale,
+  int AssetRotation,
+  int AssetX,
+  int AssetY,
+  string AssetKind,
+  string AssetScope,
+  string ActiveKnowledgeNode,
+  string SelectedDeedId,
+  string SelectedDeedName,
+  string SelectedDeedKind,
+  bool BrowseCursorActive,
+  bool AnalogButtonMode,
+  string AssetSource,
+  string AssetMode,
+  string SelectedAssetKey);
+
+ sealed record UserAssetEntry(string Key,string Url,string Name,DateTimeOffset LastModified);
+
+ sealed record SavedViewerAsset(
+  string Key,
+  string Url,
+  string Name,
+  string Kind,
+  string Scope,
+  int Tier,
+  int Layer,
+  double Scale,
+  int Rotation,
+  int X,
+  int Y,
+  DateTimeOffset SavedAtUtc);
+
+ void ToggleAssetContext()
+ {
+  if(_assetContextExpanded)
+  {
+   MinimizeAssetContext();
+   return;
+  }
+
+  _assetContextExpanded=true;
+  _contextStatus="Loading context…";
+  _=LoadAssetContextAsync();
+ }
+
+ void MinimizeAssetContext()
+ {
+  _assetContextExpanded=false;
+  _message=$"{AssetContextTitle} context minimized.";
+ }
+
+ void ResetAssetContextForSelection()
+ {
+  _assetContextExpanded=false;
+  _contextLoadedIdentity="";
+  _contextName="";
+  _contextLore="";
+  _contextHistory="";
+  _contextNpcs="";
+  _contextEncounters="";
+  _contextNotes="";
+  _contextStatus="";
+ }
+
+ async Task LoadAssetContextAsync()
+ {
+  var identity=AssetContextIdentity;
+  var title=AssetContextTitle;
+  if(_contextLoadedIdentity==identity)
+  {
+   _contextStatus="Context ready.";
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+
+  try
+  {
+   var source=await Session.LoadWorldBuilderSourceAsync();
+   if(identity!=AssetContextIdentity)return;
+
+   JsonObject? root=null;
+   if(source is not null)
+   {
+    try{if(source.State is JsonElement state)root=JsonNode.Parse(state.GetRawText()) as JsonObject;}catch{}
+   }
+
+   var contexts=root?["assetContexts"] as JsonObject;
+   var context=contexts?[identity] as JsonObject;
+   if(context is null)
+   {
+    _contextName=title;
+    _contextLore="";
+    _contextHistory="";
+    _contextNpcs="";
+    _contextEncounters="";
+    _contextNotes="";
+    _contextStatus="New context.";
+   }
+   else
+   {
+    _contextName=NodeText(context,"name",title);
+    _contextLore=NodeText(context,"lore");
+    _contextHistory=NodeText(context,"history");
+    _contextNpcs=NodeText(context,"npcs");
+    _contextEncounters=NodeText(context,"encounters");
+    _contextNotes=NodeText(context,"notes");
+    _contextStatus="Context loaded.";
+   }
+
+   _contextLoadedIdentity=identity;
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Asset context load failed: {ex}");
+   if(identity==AssetContextIdentity)_contextStatus="Context could not be loaded.";
+  }
+
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task SaveAssetContextAsync()
+ {
+  if(!Session.HasActiveWorld)
+  {
+   _contextStatus="Choose a world before saving context.";
+   return;
+  }
+
+  var identity=AssetContextIdentity;
+  var title=AssetContextTitle;
+  var scope=CurrentBuilderScope;
+  var tier=AssetContextTier;
+  var layer=AssetContextLayer;
+  var hasPlacement=HasWorldBuilderSelection;
+  var placementId=hasPlacement?_worldBuilderSelectionId:"";
+  var assetKey=ActiveContextAssetKey;
+  var assetKind=hasPlacement?_worldBuilderSelectionKind:_assetKind;
+  var positionX=_worldBuilderSelectionX;
+  var positionY=_worldBuilderSelectionY;
+  var name=string.IsNullOrWhiteSpace(_contextName)?title:_contextName.Trim();
+  var lore=_contextLore.Trim();
+  var history=_contextHistory.Trim();
+  var npcs=_contextNpcs.Trim();
+  var encounters=_contextEncounters.Trim();
+  var notes=_contextNotes.Trim();
+
+  _contextStatus="Saving…";
+  await InvokeAsync(StateHasChanged);
+
+  try
+  {
+   var source=await Session.LoadWorldBuilderSourceAsync();
+   JsonObject root;
+   try
+   {
+    root=source is null
+     ?new JsonObject()
+     :(source.State is JsonElement state?JsonNode.Parse(state.GetRawText()) as JsonObject??new JsonObject():new JsonObject());
+   }
+   catch
+   {
+    root=new JsonObject();
+   }
+
+   if(root["worldId"] is null)root["worldId"]=Session.WorldId;
+
+   var contexts=root["assetContexts"] as JsonObject;
+   if(contexts is null)
+   {
+    contexts=new JsonObject();
+    root["assetContexts"]=contexts;
+   }
+
+   var entry=new JsonObject
+   {
+    ["name"]=name,
+    ["lore"]=lore,
+    ["history"]=history,
+    ["npcs"]=npcs,
+    ["encounters"]=encounters,
+    ["notes"]=notes,
+    ["assetKey"]=assetKey,
+    ["scope"]=scope,
+    ["tier"]=tier,
+    ["layer"]=layer,
+    ["updatedAtUtc"]=DateTimeOffset.UtcNow.ToString("O")
+   };
+   if(hasPlacement)
+   {
+    entry["placementId"]=placementId;
+    entry["assetKind"]=assetKind;
+    entry["x"]=positionX;
+    entry["y"]=positionY;
+   }
+   contexts[identity]=entry;
+
+   using var document=JsonDocument.Parse(root.ToJsonString());
+   await Session.SaveWorldBuilderSourceAsync(document.RootElement.Clone());
+
+   if(identity==AssetContextIdentity)
+   {
+    _contextLoadedIdentity=identity;
+    _contextStatus="Context saved.";
+   }
+   _message=$"{title} context saved to the world source.";
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Asset context save failed: {ex}");
+   if(identity==AssetContextIdentity)_contextStatus="Context save failed.";
+  }
+
+  await InvokeAsync(StateHasChanged);
+ }
+
+ static string NodeText(JsonObject node,string key,string fallback="")
+  =>node[key]?.ToString()??fallback;
+
+ static string FirstNonEmpty(params string[] values)
+  =>values.FirstOrDefault(value=>!string.IsNullOrWhiteSpace(value))??"";
+
+ static string Shorten(string value,int max)
+ {
+  var clean=value.Trim().Replace("\r"," ").Replace("\n"," ");
+  return clean.Length<=max?clean:clean[..Math.Max(1,max-1)]+"…";
+ }
+
+  async Task PersistAnalogPlacementAsync()
+ {
+  try{await JS.InvokeVoidAsync("localStorage.setItem",AnalogPlacementStorageKey,_analogPlacement);}catch{}
+ }
+
+ void ResetAssetTransform()
+ {
+  _assetScale=1;
+  _assetRotation=0;
+  _assetX=0;
+  _assetY=0;
+ }
+
+ static string DisplayTextClass(string? value)
+ {
+  var length=(value??string.Empty).Trim().Length;
+  if(length>=18)return "display-text display-text-xs";
+  if(length>=14)return "display-text display-text-sm";
+  if(length>=11)return "display-text display-text-md";
+  return "display-text display-text-lg";
+ }
+
+ static int Wrap(int value,int length)
+ {
+  if(length<=0)return 0;
+  var result=value%length;
+  return result<0?result+length:result;
+ }
+
+ static int NormalizeDegrees(int value)
+ {
+  var result=value%360;
+  return result<0?result+360:result;
+ }
+
+ ViewerNavState CaptureViewerNavState()=>new(
+  _stage,_worldIndex,_settingIndex,_scopeIndex,_softwareIndex,_pathIndex,_pathMenuIndex,
+  _artMethodIndex,_artPhaseIndex,_artToolIndex,_assetKindIndex,_assetSourceIndex,_builderChainIndex,_requestedBuilderChainIndex,
+  _tier,_layer,_assetScale,_assetRotation,_assetX,_assetY,_assetKind,_assetScope,_activeKnowledgeNode,
+  _selectedDeedId,_selectedDeedName,_selectedDeedKind,
+  _browseCursorActive,_analogButtonMode,_assetSource,_assetMode,_selectedAssetKey);
+
+ async Task RestoreViewerNavStateAsync(ViewerNavState state)
+ {
+  _stage=state.Stage;
+  _worldIndex=state.WorldIndex;
+  _settingIndex=state.SettingIndex;
+  _scopeIndex=state.ScopeIndex;
+  _softwareIndex=state.SoftwareIndex;
+  _pathIndex=state.PathIndex;
+  _pathMenuIndex=state.PathMenuIndex;
+  _artMethodIndex=state.ArtMethodIndex;
+  _artPhaseIndex=state.ArtPhaseIndex;
+  _artToolIndex=state.ArtToolIndex;
+  _assetKindIndex=state.AssetKindIndex;
+  _assetSourceIndex=state.AssetSourceIndex;
+  _builderChainIndex=state.BuilderChainIndex;
+  _requestedBuilderChainIndex=state.RequestedBuilderChainIndex;
+  _tier=state.Tier;
+  _layer=state.Layer;
+  _assetScale=state.AssetScale;
+  _assetRotation=state.AssetRotation;
+  _assetX=state.AssetX;
+  _assetY=state.AssetY;
+  _assetKind=state.AssetKind;
+  _assetScope=state.AssetScope;
+  _activeKnowledgeNode=state.ActiveKnowledgeNode;
+  _selectedDeedId=state.SelectedDeedId;
+  _selectedDeedName=state.SelectedDeedName;
+  _selectedDeedKind=state.SelectedDeedKind;
+  _browseCursorActive=state.BrowseCursorActive;
+  _analogButtonMode=state.AnalogButtonMode;
+  _assetSource=state.AssetSource;
+  _assetMode=state.AssetMode;
+  _selectedAssetKey=state.SelectedAssetKey;
+
+  if(_stage==Stage.BrowsePlace)
+  {
+   if(IsMyAssetSource)await LoadMyAssetsAsync();
+   else if(IsGameAssetSource)LoadGameAssets();
+  }
+  await SyncWorldBuilderDepthAsync();
+ }
+
+ async Task NavigateViewerBackAsync()
+ {
+  _viewerForwardHistory.Push(CaptureViewerNavState());
+  GoBack();
+  _message="Back.";
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task NavigateViewerForwardAsync()
+ {
+  if(_viewerForwardHistory.Count==0)
+  {
+   _message="Nothing to move forward to.";
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+
+  await RestoreViewerNavStateAsync(_viewerForwardHistory.Pop());
+  _message="Forward.";
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task HandleViewerMenuCommandAsync(string command)
+ {
+  command=(command??"").Trim().ToLowerInvariant();
+  if(command=="back"){await NavigateViewerBackAsync();return;}
+  if(command=="forward"){await NavigateViewerForwardAsync();return;}
+
+  if(_worldBuilderSourceModule is null)
+  {
+   _message="Viewer editing tools are still loading.";
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+
+  try
+  {
+   var result=await _worldBuilderSourceModule.InvokeAsync<string>("editCommand",_worldBuilderFrame,command);
+   _message=string.IsNullOrWhiteSpace(result)?$"{command.ToUpperInvariant()} completed.":result;
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Viewer menu command {command} failed: {ex}");
+   _message=$"{command.ToUpperInvariant()} could not be completed.";
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task HandleBrowserBack()
+ {
+  if(_stage==Stage.Environment)
+  {
+   if(OnExit.HasDelegate)await OnExit.InvokeAsync();
+   return;
+  }
+
+  await NavigateViewerBackAsync();
+ }
+
+ async Task HandleKeyDown(KeyboardEventArgs e)
+ {
+  if(e.Key=="Escape")
+  {
+   if(OnExit.HasDelegate)await OnExit.InvokeAsync();
+   return;
+  }
+
+  switch(e.Key)
+  {
+   case "ArrowLeft":
+   case "a":
+   case "A": StepX(-1); break;
+   case "ArrowRight":
+   case "d":
+   case "D": StepX(1); break;
+   case "ArrowUp":
+   case "w":
+   case "W": StepY(1); break;
+   case "ArrowDown":
+   case "s":
+   case "S": StepY(-1); break;
+   case "q":
+   case "Q": await PressLeft(); break;
+   case "e":
+   case "E": await PressRight(); break;
+  }
+ }
+
+ [JSInvokable]
+ public async Task RequestHomeFromPrototypeAsync()
+ {
+  if(OnExit.HasDelegate)await OnExit.InvokeAsync();
+ }
+
+ [JSInvokable]
+ public async Task<object?> GetWorldBuilderSourceForPrototypeAsync()
+ {
+  var source=await Session.LoadWorldBuilderSourceAsync();
+  if(source is null||source.State is null)return null;
+  return new
+  {
+   worldId=source.WorldId,
+   state=source.State,
+   updatedAtUtc=source.UpdatedAtUtc,
+   source="database"
+  };
+ }
+
+ [JSInvokable]
+ public async Task<object> SaveWorldBuilderSourceFromPrototypeAsync(System.Text.Json.JsonElement state)
+ {
+  // The embedded map editor owns map representation fields, not Asset Context.
+  // Preserve the latest canonical contexts so a later map save cannot erase them.
+  var mergedState=state.Clone();
+  var current=await Session.LoadWorldBuilderSourceAsync();
+  if(state.ValueKind==JsonValueKind.Object
+     &&current?.State is JsonElement currentState
+     &&currentState.ValueKind==JsonValueKind.Object
+     &&currentState.TryGetProperty("assetContexts",out var currentContexts))
+  {
+   try
+   {
+    var root=JsonNode.Parse(state.GetRawText()) as JsonObject??new JsonObject();
+    root["assetContexts"]=JsonNode.Parse(currentContexts.GetRawText());
+    using var mergedDocument=JsonDocument.Parse(root.ToJsonString());
+    mergedState=mergedDocument.RootElement.Clone();
+   }
+   catch(Exception ex)
+   {
+    Console.Error.WriteLine($"World source context preservation failed: {ex}");
+    throw;
+   }
+  }
+
+  var source=await Session.SaveWorldBuilderSourceAsync(mergedState);
+  return new
+  {
+   success=source is not null,
+   worldId=source?.WorldId??Session.WorldId,
+   updatedAtUtc=source?.UpdatedAtUtc??""
+  };
+ }
+
+ [JSInvokable]
+ public async Task ReceiveWorldBuilderSelectionContextAsync(
+  string placementId,
+  string name,
+  string assetId,
+  string kind,
+  int tier,
+  int layer,
+  double x,
+  double y)
+ {
+  var shouldLoad=false;
+  await InvokeAsync(() =>
+  {
+   var nextId=(placementId??"").Trim();
+   var identityChanged=!string.Equals(_worldBuilderSelectionId,nextId,StringComparison.Ordinal);
+
+   _worldBuilderSelectionId=nextId;
+   _worldBuilderSelectionName=(name??"").Trim();
+   _worldBuilderSelectionAssetId=(assetId??"").Trim();
+   _worldBuilderSelectionKind=(kind??"").Trim();
+   _worldBuilderSelectionTier=Math.Max(0,tier);
+   _worldBuilderSelectionLayer=Math.Max(0,layer);
+   _worldBuilderSelectionX=Math.Clamp(x,0,1);
+   _worldBuilderSelectionY=Math.Clamp(y,0,1);
+
+   if(identityChanged)
+   {
+    _contextLoadedIdentity="";
+    _contextName="";
+    _contextLore="";
+    _contextHistory="";
+    _contextNpcs="";
+    _contextEncounters="";
+    _contextNotes="";
+    _contextStatus=_assetContextExpanded?"Loading context…":"";
+    shouldLoad=_assetContextExpanded;
+   }
+
+   StateHasChanged();
+  });
+
+  if(shouldLoad)await LoadAssetContextAsync();
+ }
+
+ async Task SaveUniversalFromStartAsync()
+ {
+  try
+  {
+   if(_worldBuilderSourceModule is not null)
+    await _worldBuilderSourceModule.InvokeVoidAsync("save",_worldBuilderFrame);
+
+   await Session.SaveAsync();
+   _message="Saved current live interface and canonical World Builder state.";
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Live interface save failed: {ex}");
+   _message="Live interface save failed.";
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task LoadUniversalFromStartAsync()
+ {
+  try
+  {
+   var source=await GetWorldBuilderSourceForPrototypeAsync();
+   if(source is not null&&_worldBuilderSourceModule is not null)
+    await _worldBuilderSourceModule.InvokeVoidAsync("reload",_worldBuilderFrame,source);
+
+   _message=source is null
+    ?"No saved canonical World Builder source is available yet."
+    :"Loaded the saved canonical World Builder source.";
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Live interface load failed: {ex}");
+   _message="Live interface load failed.";
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task ExitUniversalFromStartAsync()
+ {
+  try{await JS.InvokeVoidAsync("RistStartMenu.close");}catch(JSException){}
+  if(OnExit.HasDelegate)await OnExit.InvokeAsync();
+ }
+
+ async Task HandleStartButtonAsync()
+ {
+  if(_stage==Stage.Environment&&!_universalStartRevealed)
+  {
+   _universalStartFlashing=true;
+   _message="Starting…";
+   await InvokeAsync(StateHasChanged);
+   await Task.Delay(260);
+
+   _universalStartFlashing=false;
+   _universalStartRevealed=true;
+   _analogButtonMode=false;
+   _message="Choose Shaelvien, RIST, or Legacy.";
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+
+  await OpenStartMenuAsync();
+ }
+
+ async Task OpenStartMenuAsync()
+ {
+  try
+  {
+   await JS.InvokeVoidAsync("RistStartMenu.open","universal");
+  }
+  catch(JSException ex)
+  {
+   Console.Error.WriteLine($"Start menu open failed: {ex}");
+   _message="Start menu is temporarily unavailable.";
+  }
+ }
+ async Task RefreshControllerWorldDirectoryAsync()
+ {
+  try
+  {
+   var directory=await Session.LoadWorldDirectoryAsync();
+   _controllerDirectoryWorlds.Clear();
+   _controllerDirectoryWorlds.AddRange(directory.Worlds);
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Controller world directory refresh failed: {ex}");
+  }
+ }
+
+ async Task EnsureShaelvienEnvironmentAsync()
+ {
+  try
+  {
+   var mmo=Worlds
+    .Concat(_controllerDirectoryWorlds)
+    .FirstOrDefault(WorldSession.IsMmoWorldReference);
+   if(mmo is null&&!Session.IsGeonaphWorld)
+   {
+    await RefreshControllerWorldDirectoryAsync();
+    mmo=Worlds
+     .Concat(_controllerDirectoryWorlds)
+     .FirstOrDefault(WorldSession.IsMmoWorldReference);
+   }
+   if(mmo is not null
+      &&(!Session.HasActiveWorld||!string.Equals(Session.WorldId,mmo.WorldId,StringComparison.Ordinal)))
+    await Session.LoadWorldAsync(mmo);
+
+   await Session.RefreshMmoLandAsync();
+   await Session.LoadRegionsAsync();
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Shaelvien environment refresh failed: {ex}");
+   _message="Shaelvien property authority could not be refreshed.";
+  }
+ }
+
+ async Task<bool> ActivateCurrentPathWorldAsync()
+ {
+  var option=CurrentPathWorld;
+  if(option is null)return false;
+
+  try
+  {
+   if(option.Environment.StartsWith("SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+   {
+    await EnsureShaelvienEnvironmentAsync();
+
+    if(option.Environment=="SHAELVIEN_CLAIM")
+    {
+     await OpenControllerDeedAsync();
+     return false;
+    }
+
+    if(option.Environment=="SHAELVIEN_INSPECT")
+    {
+     _shaelvienInspectGateOpen=true;
+     _message="Inspect opened. Review claimed Shaelvien realms without changing their ownership.";
+     await InvokeAsync(StateHasChanged);
+     return false;
+    }
+
+    if(option.Environment=="SHAELVIEN_ORIGIN")
+    {
+     Session.SetActiveRegion("");
+     _message=$"{WorldSession.EndemarStartingPointDisplayName} selected.";
+     return true;
+    }
+
+    var parcel=Session.MmoParcels.FirstOrDefault(item=>string.Equals(item.ParcelId,option.Id,StringComparison.Ordinal));
+    if(parcel is null||!Session.CanAccessMmoParcel(parcel))
+    {
+     _message="That Shaelvien world is no longer available to this account.";
+     return false;
+    }
+    await Session.LoadRegionsAsync();
+    Session.SetActiveRegion(parcel.RegionId);
+    _message=$"{parcel.DisplayName} selected.";
+    return true;
+   }
+
+   var world=option.WorldReference;
+   if(world is not null
+      &&(!Session.HasActiveWorld||!string.Equals(Session.WorldId,world.WorldId,StringComparison.Ordinal)))
+    await Session.LoadWorldAsync(world);
+
+   if(!Session.HasActiveWorld||Session.IsGeonaphWorld)
+   {
+    _message="That RIST world could not be activated.";
+    return false;
+   }
+
+   await Session.RefreshTrustedWorldAuthorityAsync();
+   _message=$"{Session.WorldDisplayName} selected.";
+   return true;
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Controller world selection failed: {ex}");
+   _message="That world could not be opened.";
+   return false;
+  }
+ }
+
+ async Task OpenControllerDeedAsync()
+ {
+  if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+  {
+   await EnsureShaelvienEnvironmentAsync();
+   _shaelvienDeedGateOpen=true;
+   _message=$"Claim Deed · {Session.UnspentMmoWorldTokenCount} Shaelvien token{(Session.UnspentMmoWorldTokenCount==1?"":"s")} remaining.";
+  }
+  else
+  {
+   _ristDeedGateOpen=true;
+   _message="Claim Deed · RIST private worlds do not spend Shaelvien Tokens.";
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ void CloseShaelvienDeedGate()
+ {
+  _shaelvienDeedGateOpen=false;
+  _message="Claim Deed closed.";
+ }
+
+ void CloseShaelvienInspectGate()
+ {
+  _shaelvienInspectGateOpen=false;
+  _message="Inspect closed.";
+ }
+
+ async Task CompleteShaelvienDeedAsync(AwsAuthorityClient.MmoParcel parcel)
+ {
+  _shaelvienDeedGateOpen=false;
+  await Session.RefreshMmoLandAsync();
+  await Session.LoadRegionsAsync();
+  if(!string.IsNullOrWhiteSpace(parcel.RegionId))Session.SetActiveRegion(parcel.RegionId);
+  var index=PathWorldOptions.ToList().FindIndex(option=>string.Equals(option.Id,parcel.ParcelId,StringComparison.Ordinal));
+  _worldIndex=index>=0?index:0;
+  var selected=index>=0?PathWorldOptions[index]:null;
+  if(selected is not null)SetSelectedDeed(selected);
+  else
+  {
+   _selectedDeedId=parcel.ParcelId;
+   _selectedDeedName=parcel.DisplayName;
+   _selectedDeedKind="SHAELVIEN";
+  }
+  _stage=Stage.PathSelect;
+  _pathIndex=0;
+  _message=$"{parcel.DisplayName} deed claimed and selected. World Builder is on the left; Context is on the right.";
+  await InvokeAsync(StateHasChanged);
+ }
+
+ void CloseRistDeedGate()
+ {
+  _ristDeedGateOpen=false;
+  _message="Claim Deed closed.";
+ }
+
+ async Task CompleteRistDeedAsync()
+ {
+  _ristDeedGateOpen=false;
+  await RefreshControllerWorldDirectoryAsync();
+  var index=PathWorldOptions.ToList().FindIndex(option=>string.Equals(option.Id,Session.WorldId,StringComparison.Ordinal));
+  _worldIndex=index>=0?index:0;
+  _message=$"{Session.WorldDisplayName} deed ready. RIST did not spend a Shaelvien Token.";
+  await InvokeAsync(StateHasChanged);
+ }
+
+ void CloseLegacyGate()
+ {
+  _legacyGateOpen=false;
+  _message="Choose Shaelvien, RIST, or Legacy.";
+ }
+
+ async Task ContinueLegacyIntoRistAsync()
+ {
+  _legacyGateOpen=false;
+  _selectedEnvironment="RIST";
+  _analogButtonMode=false;
+  _browseCursorActive=false;
+  _stage=Stage.Role;
+  _message="Legacy archive loaded into RIST. Choose Roleplayer or GameMaster.";
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task ToggleAnalogMode()
+ {
+  if(_stage==Stage.Environment&&_universalStartRevealed)
+  {
+   _legacyGateOpen=true;
+   _message="Legacy: import or load a preserved GM archive. Completing Legacy continues into RIST.";
+   await InvokeAsync(StateHasChanged);
+   return;
+  }
+
+  if(CursorMode)
+  {
+   _analogButtonMode=true;
+   if(_stage==Stage.BrowsePlace)_browseCursorActive=false;
+   _message="Analog set to BUTTONS. Move the stick to page the active left/right display controls.";
+   return;
+  }
+
+  if(!CursorAvailable)
+  {
+   _message="Analog remains on BUTTONS while the current displays have multiple choices.";
+   return;
+  }
+
+  _analogButtonMode=false;
+  if(_stage==Stage.BrowsePlace)_browseCursorActive=true;
+  _message="Analog set to CURSOR. Move the stick freely in the viewer.";
+ }
+
+ async Task ActivateBrowseCursorTargetAsync()
+ {
+  try
+  {
+   var activated=await JS.InvokeAsync<bool>("ristUniversalInput.activateCursorTarget");
+   _message=activated
+    ?"Asset action applied. First press selects; pressing the selected asset again places it."
+    :"Move the cursor over an asset thumbnail, then press the analog stick.";
+  }
+  catch(JSException ex)
+  {
+   Console.Error.WriteLine($"Cursor target activation failed: {ex}");
+   _message="Cursor selection is temporarily unavailable; touch a thumbnail instead.";
+  }
+ }
+
+ [JSInvokable]
+ public Task ReceiveUniversalInput(string control,int direction)
+ {
+  return InvokeAsync(async () =>
+  {
+   switch(control)
+   {
+    case "x": StepX(direction); break;
+    case "y": StepY(direction); break;
+    case "select":
+     if(_stage==Stage.BrowsePlace&&CursorMode)await ActivateBrowseCursorTargetAsync();
+     else if(_stage is Stage.DeedSelect or Stage.ContextSelect)await PressRight();
+     else await PressLeft();
+     break;
+    case "left": await PressLeft(); break;
+    case "right": await PressRight(); break;
+   }
+   StateHasChanged();
+  });
+ }
+
+ [JSInvokable]
+ public Task ReceiveCursorPosition(double x,double y)
+ {
+  _cursorX=Math.Clamp(x,-100,100);
+  _cursorY=Math.Clamp(y,-100,100);
+  return Task.CompletedTask;
+ }
+
+ public async ValueTask DisposeAsync()
+ {
+  try{await JS.InvokeVoidAsync("ristUniversalInput.stop");}catch(JSException){}
+  if(_worldBuilderSourceModule is not null)
+  {
+   try{await _worldBuilderSourceModule.InvokeVoidAsync("detach",_worldBuilderFrame);}catch{}
+   try{await _worldBuilderSourceModule.DisposeAsync();}catch{}
+  }
+  _selfRef?.Dispose();
+ }
+}
