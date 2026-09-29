@@ -33,7 +33,7 @@ class ReLiCMcpTests(unittest.TestCase):
         r = m.handler(event({"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}, {"mcp-protocol-version":"2025-11-25"}), None)
         tools = body(r)["result"]["tools"]
         names = {t["name"] for t in tools}
-        self.assertTrue({"relic_context","relic_validate","relic_canon","relic_health","relic_project_search","relic_project_fetch"}.issubset(names))
+        self.assertTrue({"relic_context","relic_validate","relic_canon","relic_health","relic_project_search","relic_project_fetch","relic_context_pack"}.issubset(names))
         self.assertTrue({"relic_profile","relic_recall","relic_identify","relic_observe","relic_trace","relic_translate","relic_imagine","relic_remember","relic_relate","relic_instantiate","relic_transition"}.issubset(names))
         public = next(t for t in tools if t["name"] == "relic_context")
         private = next(t for t in tools if t["name"] == "relic_recall")
@@ -123,8 +123,34 @@ class ReLiCMcpTests(unittest.TestCase):
         codes = {f["code"] for f in data["findings"]}
         self.assertTrue({"FACT_WITHOUT_PROVENANCE","REPRESENTATION_USED_AS_IDENTITY","GENERATED_FACT_NEEDS_EXTERNAL_EVIDENCE","ACTION_WITHOUT_EXPLICIT_CAPABILITY"}.issubset(codes))
 
+    def test_context_pack_is_read_only_and_requests_auth(self):
+        tool = next(t for t in m.TOOL_DEFS if t["name"] == "relic_context_pack")
+        self.assertTrue(tool["annotations"]["readOnlyHint"])
+        self.assertEqual(tool["securitySchemes"][0]["type"], "oauth2")
+        r = m.handler(event({
+            "jsonrpc":"2.0","id":41,"method":"tools/call",
+            "params":{"name":"relic_context_pack","arguments":{"query":"Endemar MMO deed map","maxRunes":8}}
+        }, {"mcp-protocol-version":"2025-11-25"}), None)
+        data = body(r)["result"]
+        self.assertTrue(data["isError"])
+        self.assertIn("mcp/www_authenticate", data["_meta"])
+
     def test_private_recall_requests_auth(self):
         r = m.handler(event({"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"relic_recall","arguments":{"terms":["ReLiC"]}}}, {"mcp-protocol-version":"2025-11-25"}), None)
+        data = body(r)["result"]
+        self.assertTrue(data["isError"])
+        self.assertIn("mcp/www_authenticate", data["_meta"])
+
+    def test_context_pack_requires_private_read_auth(self):
+        tool = next(t for t in m.TOOL_DEFS if t["name"] == "relic_context_pack")
+        self.assertEqual(tool["securitySchemes"][0]["type"], "oauth2")
+        self.assertEqual(tool["securitySchemes"][0]["scopes"], ["relic.read"])
+        self.assertTrue(tool["annotations"]["readOnlyHint"])
+
+        r = m.handler(event({
+            "jsonrpc":"2.0","id":7,"method":"tools/call",
+            "params":{"name":"relic_context_pack","arguments":{"query":"Endemar MMO deed map","terms":["Endemar"]}}
+        }, {"mcp-protocol-version":"2025-11-25"}), None)
         data = body(r)["result"]
         self.assertTrue(data["isError"])
         self.assertIn("mcp/www_authenticate", data["_meta"])
@@ -137,6 +163,9 @@ class ReLiCMcpTests(unittest.TestCase):
         self.assertTrue(data["privateMemoryWritesExposed"])
         self.assertFalse(data["privateMemoryIsAuthoritativeWorldTruth"])
         self.assertFalse(data["authoritativeWritesExposed"])
+        self.assertEqual(data["preferredContinuityTool"], "relic_context_pack")
+        self.assertTrue(data["compactContextTranslator"]["available"])
+        self.assertFalse(data["compactContextTranslator"]["sourceMutation"])
 
     def test_modern_discovery(self):
         req = {"jsonrpc":"2.0","id":5,"method":"server/discover","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}

@@ -6,6 +6,7 @@ from pathlib import Path
 import hashlib
 
 from relic_mcp_protocol import TOOLS as MEMORY_TOOL_DEFS
+from relic_context_translator import build_context_pack, query_terms
 
 SERVER_NAME = "relic-canon"
 SERVER_VERSION = "0.1.0"
@@ -100,6 +101,7 @@ INSTRUCTIONS = (
     "Purpose never overrides canon or safety. "
     "Use relic_context when a task depends on established Shaelvien/RIST/R.e.L.i.C. canon or semantic rules. "
     "Use relic_project_search when a task depends on documented public project decisions, architecture, policies, historical implementation context, or a request to source the project database; use relic_project_fetch for one exact returned record. "
+    "Use relic_context_pack for long-running or context-heavy project work: it translates the relevant project database records and authenticated ReLiC neurons into compact Rune/Glyph/Shaep pointers that ChatGPT can expand on demand without replacing source data. "
     "When a linked account has persistent state relevant to the task, use relic_recall to retrieve compact provenance-aware prior state "
     "instead of guessing missing continuity. Use relic_validate when a claim could confuse FACT, HYPOTHESIS, FICTION, UNKNOWN, identity, "
     "canon, provenance, or authority. Public canon tools are read-only. Private write tools change only the authenticated user's R.e.L.i.C. "
@@ -221,6 +223,32 @@ TOOL_DEFS = [
             "required": ["recordId"],
             "additionalProperties": False
         },
+        "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}
+    },
+    {
+        "name": "relic_context_pack",
+        "title": "Translate ReLiC context for ChatGPT",
+        "description": (
+            "Use this for long-running or context-heavy Shaelvien/RIST/R.e.L.i.C. work when ChatGPT needs compact continuity. "
+            "It reads the project evidence corpus plus the authenticated user's matching ReLiC neurons and returns a bounded "
+            "Rune/Glyph/Shaep pointer package. Exact source detail remains in the existing database/memory and is expanded only "
+            "when needed. Read-only; it never rewrites the database, memory, canon, or world state."
+        ),
+        "inputSchema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "minLength": 1, "maxLength": 1000},
+                "terms": {
+                    "type": "array", "maxItems": 20,
+                    "items": {"type": "string", "minLength": 1, "maxLength": 300}
+                },
+                "maxRunes": {"type": "integer", "minimum": 1, "maximum": 32, "default": 12}
+            },
+            "required": ["query"],
+            "additionalProperties": False
+        },
+        "securitySchemes": [{"type": "oauth2", "scopes": ["relic.read"]}],
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}
     },
     {
@@ -589,6 +617,48 @@ def _project_fetch(args):
     }
 
 
+def _call_context_pack(event, args):
+    query = str(args.get("query") or "").strip()
+    if not query:
+        raise ValueError("query is required")
+    if len(query) > 1000:
+        raise ValueError("query exceeds 1000 characters")
+    max_runes = max(1, min(int(args.get("maxRunes", 12)), 32))
+    terms = query_terms(query, args.get("terms") or [])
+    if not terms:
+        terms = [query[:300]]
+
+    actor = _auth_context(event)
+    if not actor or "relic.read" not in actor["scopes"]:
+        return _auth_challenge({"relic.read"})
+
+    project = _project_search({"query": query, "limit": min(max_runes, 20)})
+    import boto3
+    from relic_mcp_store import DynamoRelicStore
+    table = boto3.resource("dynamodb").Table(os.environ["MCP_MEMORY_TABLE"])
+    store = DynamoRelicStore(table, actor["userId"], actor["username"])
+    private_context = store.context(
+        terms,
+        relationship_depth=1,
+        max_entities=min(max_runes, 32),
+    )
+    packed = build_context_pack(
+        query,
+        project.get("results") or [],
+        private_context,
+        project_snapshot=project.get("snapshotDate"),
+        max_runes=max_runes,
+    )
+    packed["retrieval"] = {
+        "datasetId": project.get("datasetId"),
+        "repositorySnapshot": project.get("repositorySnapshot"),
+        "projectMatches": project.get("resultCount", 0),
+        "neuronTerms": terms,
+        "neuronMatches": private_context.get("entityCount", 0),
+    }
+    return _tool_result(packed)
+
+
 def _health():
     return {
         "ok": True,
@@ -608,7 +678,8 @@ def _health():
             "recordCount": len(PROJECT_RECORDS),
         },
         "persistentRecallAvailable": True,
-        "preferredContinuityTool": "relic_recall",
+        "preferredContinuityTool": "relic_context_pack",
+        "compactContextTranslator": {"available": True, "format": "RELIC-CONTEXT/1", "sourceMutation": False},
     }
 
 
@@ -833,7 +904,9 @@ def handler(event, context):
             if not isinstance(args, dict):
                 raise ValueError("tool arguments must be an object")
             try:
-                if name in MEMORY_TOOL_NAMES:
+                if name == "relic_context_pack":
+                    result = _call_context_pack(event, args)
+                elif name in MEMORY_TOOL_NAMES:
                     result = _call_memory_tool(event, name, args)
                 else:
                     result = _call_tool(name, args)

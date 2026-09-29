@@ -1,0 +1,62 @@
+name: ReLiC MCP CI
+
+on:
+  pull_request:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'infra/aws/rist_relic_mcp.py'
+      - 'infra/aws/relic_context_translator.py'
+      - 'infra/aws/relic_mcp_protocol.py'
+      - 'infra/aws/relic_mcp_store.py'
+      - 'infra/aws/relic_mcp_auth.py'
+      - 'infra/aws/relic-canon.json'
+      - 'infra/aws/test_rist_relic_mcp.py'
+      - 'infra/aws/test_relic_context_translator.py'
+      - 'infra/aws/test_relic_mcp_auth.py'
+      - 'knowledge/project/public.json'
+      - 'plugins/relic/**'
+      - '.github/workflows/relic-mcp-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  relic-mcp-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Stage runtime reference sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp knowledge/project/public.json infra/aws/relic-project-public.json
+          cp plugins/relic/skills/relic-grounding/SKILL.md infra/aws/relic-grounding-SKILL.md
+          python -m json.tool infra/aws/relic-project-public.json >/dev/null
+          python -m json.tool plugins/relic/plugin.json >/dev/null
+          python -m json.tool plugins/relic/mcp.json >/dev/null
+
+      - name: Compile ReLiC MCP runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile infra/aws/rist_relic_mcp.py
+          python -m py_compile infra/aws/relic_context_translator.py
+          python -m py_compile infra/aws/relic_mcp_protocol.py
+          python -m py_compile infra/aws/relic_mcp_store.py
+          python -m py_compile infra/aws/relic_mcp_auth.py
+
+      - name: Run ReLiC MCP regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python infra/aws/test_relic_context_translator.py
+          python infra/aws/test_rist_relic_mcp.py
+          python infra/aws/test_relic_mcp_auth.py
