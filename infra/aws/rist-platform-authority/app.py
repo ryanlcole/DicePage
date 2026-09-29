@@ -2670,7 +2670,7 @@ def handler(event, context):
         inspection_edit = bool(req.get("inspectionEdit"))
         inspection_reason = str(req.get("inspectionReason") or "").strip()
         if inspection_edit:
-            if not is_geonaph(world_id) or not can_manage(world_id, user_id):
+            if not is_geonaph(world_id) or not is_platform_developer(user_id):
                 return response(403, {"error": "Platform developer inspection authority required"})
             if len(inspection_reason) < 3:
                 return response(400, {"error": "Every inspection edit requires a reason"})
@@ -2777,7 +2777,7 @@ def handler(event, context):
         inspection_edit = bool(req.get("inspectionEdit"))
         inspection_reason = str(req.get("inspectionReason") or "").strip()
         if inspection_edit:
-            if not is_geonaph(world_id) or not can_manage(world_id, user_id):
+            if not is_geonaph(world_id) or not is_platform_developer(user_id):
                 return response(403, {"error": "Platform developer inspection authority required"})
             if len(inspection_reason) < 3:
                 return response(400, {"error": "Every inspection edit requires a reason"})
