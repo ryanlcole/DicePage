@@ -13,7 +13,7 @@ def test_shaelvien_deeds_expand_only_across_flat_sides():
     assert "(1, 0)" in land
     assert "(0, 1)" in land
     assert "(-1, 0)" in land
-    assert "Corner-only contact is not claimable." in gate
+    assert "not yet connected to the claim frontier" in gate
 
 
 def test_gamemaster_root_matches_worldbuilder_context_contract():
