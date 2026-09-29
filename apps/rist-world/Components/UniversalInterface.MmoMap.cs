@@ -174,7 +174,7 @@ public partial class UniversalInterface
         return $"left:{left:0.####}%;top:{top:0.####}%;width:{100d / MmoViewColumns:0.####}%;height:{100d / MmoViewRows:0.####}%;";
     }
 
-    string MmoCellSurfaceSrc(int cellIndex)
+    string? MmoCellSurfaceUrl(int cellIndex)
     {
         // Shaelvien is the growing deed lattice, not a prebuilt map beneath it.
         // Endemar is the origin deed at (0,0), so its complete canonical surface
@@ -185,11 +185,11 @@ public partial class UniversalInterface
 
         var parcel = Session.MmoParcels.FirstOrDefault(item => item.CellIndex == cellIndex);
         if (parcel is null || string.IsNullOrWhiteSpace(parcel.RegionId))
-            return "";
+            return null;
 
         return _mmoSurfaceLayers
             .FirstOrDefault(layer => string.Equals(layer.RegionId, parcel.RegionId, StringComparison.Ordinal))
-            ?.Src ?? "";
+            ?.Src;
     }
 
     string MmoCellClass(int cellIndex)
