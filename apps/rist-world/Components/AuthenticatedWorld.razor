@@ -94,7 +94,7 @@ else if (_canEnter)
   <div class="rist-authenticated-root">
    <SiteTicker Context="SHAELVIEN" OnStartMenu="OpenStartMenu" />
    <div class="rist-authenticated-body">
-    <PublicAlphaShell @ref="_alphaShell" />
+    <PublicAlphaShell @ref="_alphaShell" EnterRoleplayOnFirstRender="_universalRoleplayPending" />
    </div>
   </div>
  }
@@ -424,8 +424,9 @@ else
  {
   if(_universalRoleplayPending&&_alphaShell is not null)
   {
+   // PublicAlphaShell receives the one-shot parameter during its first render
+   // and opens Roleplay after its own first-render hub initialization.
    _universalRoleplayPending=false;
-   _alphaShell.OpenRoleplayFromUniversal();
    await InvokeAsync(StateHasChanged);
   }
 
