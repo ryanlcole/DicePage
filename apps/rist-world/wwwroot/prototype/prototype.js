@@ -98,7 +98,7 @@ const REGION_GRID_ROWS=30;
 const VIEWER_GRID_PREF='rist.viewer.grid.v1';
 const ASSET_GRID_PREF='rist.asset.grid.v1';
 const storedGridMode=key=>{try{return String(localStorage.getItem(key)||'square').toLowerCase()==='hex'?'hex':'square'}catch{return'square'}};
-let viewerGridMode=storedGridMode(VIEWER_GRID_PREF),assetGridMode=storedGridMode(ASSET_GRID_PREF),viewerGridColumns=30,viewerGridRows=30,assetGridColumns=30,assetGridRows=30,viewerGridOverlay=null,externalSpatialScope='WORLD';
+let viewerGridMode=storedGridMode(VIEWER_GRID_PREF),assetGridMode=storedGridMode(ASSET_GRID_PREF),viewerGridColumns=30,viewerGridRows=30,assetGridColumns=30,assetGridRows=30,viewerGridOverlay=null,externalSpatialScope='WORLD',externalSpatialNodeId='',externalSpatialPath='';
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
 let regionGridShape='square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
@@ -292,6 +292,8 @@ function worldBuilderSelectionContext(item=selectedImage){
     assetId:String(item.assetId||item.personalAssetKey||''),
     kind:String(item.kind||'image'),
     scope:normalizeSpatialScope(item.scope||'WORLD'),
+    spatialNodeId:String(item.spatialNodeId||''),
+    spatialPath:String(item.spatialPath||''),
     tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
     layer:clamp(Math.trunc(Number(item.layer)||0),0,9),
     x:clamp(Number(item.x)||0,0,1),
@@ -455,7 +457,7 @@ async function readSavedWorldBuilder(key=WORLDBUILDER_SAVE_KEY){
 function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
-      id:item.id,regionId:String(item.regionId||''),scope:normalizeSpatialScope(item.scope||'WORLD'),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
+      id:item.id,regionId:String(item.regionId||''),scope:normalizeSpatialScope(item.scope||'WORLD'),spatialNodeId:String(item.spatialNodeId||''),spatialPath:String(item.spatialPath||''),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
       fontSize:clamp(Number(item.fontSize)||48,12,180),bold:!!item.bold,italic:!!item.italic,color:String(item.color||LABEL_COLORS[0]),
@@ -464,7 +466,7 @@ function serializableUserLayer(item){
     };
   }
   return{
-    id:item.id,regionId:String(item.regionId||''),scope:normalizeSpatialScope(item.scope||'WORLD'),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
+    id:item.id,regionId:String(item.regionId||''),scope:normalizeSpatialScope(item.scope||'WORLD'),spatialNodeId:String(item.spatialNodeId||''),spatialPath:String(item.spatialPath||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
     originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
     spriteSheetSrc:item.spriteSheetSrc||null,spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
@@ -1454,7 +1456,12 @@ function applyParallax(){
     const regionTier=currentRegionTierIndex();
     const regionalLayerVisible=!item.canonicalSource||regionSourceLayerVisible(item.tier,item.layer);
     const itemScope=normalizeSpatialScope(item.scope||'WORLD');
-    const scopeVisible=itemScope===spatialScope||(spatialScope==='REGION'&&!regionEnhanceActive&&itemScope==='WORLD');
+    const lineage=String(externalSpatialPath||'').split('/').filter(Boolean);
+    const nodeId=String(item.spatialNodeId||'');
+    const nodeVisible=!nodeId||lineage.includes(nodeId)||nodeId===String(externalSpatialNodeId||'');
+    const scopeVisible=(itemScope===spatialScope&&nodeVisible)
+      ||(itemScope==='WORLD'&&spatialScope!=='WORLD')
+      ||(spatialScope==='REGION'&&!regionEnhanceActive&&itemScope==='WORLD');
     const visible=REGION_DEFINER
       ? (item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
       : (!item.committed||scopeVisible)&&(viewerTier==='all'||!item.committed||item.tier===tierByKey(viewerTier).index);
@@ -3472,6 +3479,8 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.
 
 function setExternalDepth(raw={}){
   externalSpatialScope=normalizeSpatialScope(raw.scope||externalSpatialScope);
+  externalSpatialNodeId=String(raw.spatialNodeId||'');
+  externalSpatialPath=String(raw.spatialPath||'');
   const tier=clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(tier).key;
   viewerLayer=Math.max(0,Math.trunc(Number(raw.layer)||0));
@@ -3491,6 +3500,8 @@ async function placeExternalAsset(raw={}){
   );
   const item={
     id:`external:${crypto.randomUUID?.()||Date.now()}`,scope,
+    spatialNodeId:String(raw.spatialNodeId||externalSpatialNodeId||''),
+    spatialPath:String(raw.spatialPath||externalSpatialPath||''),
     assetId:String(raw.assetId||raw.key||'')||null,personalAssetKey:null,
     name:String(raw.name||'Placed asset'),kind:String(raw.kind||'image').toLowerCase()==='sprite'?'sprite':'image',
     libraryTile:false,sourceLocked:false,regionOverlay:false,regionId:'',
