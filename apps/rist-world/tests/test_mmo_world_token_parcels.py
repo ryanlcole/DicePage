@@ -124,7 +124,7 @@ def test_explore_visibility_and_inspect_edits_are_server_authoritative():
     assert "InspectEditMmoParcelAsync" in session
     assert "APPLY ZONE EDIT" in gate
     assert "EDIT WORLD WITH REASON" in gate
-    assert "name visible only" in gate
+    assert "name only" in gate
 
 
 def test_inspection_reason_follows_world_region_and_region_map_writes():
