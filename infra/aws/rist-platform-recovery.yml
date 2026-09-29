@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Narrow GitHub OIDC role used only to recover the RIST platform stack from UPDATE_ROLLBACK_FAILED.
+
+Parameters:
+  GitHubOwner:
+    Type: String
+    Default: ryanlcole
+  GitHubRepository:
+    Type: String
+    Default: DicePage
+  GitHubBranch:
+    Type: String
+    Default: live-alpha-rist-blazor-world
+  PlatformStackName:
+    Type: String
+    Default: rist-platform
+
+Resources:
+  PlatformRollbackRecoveryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ReLiC-GitHub-Platform-Rollback-Recovery
+      Description: Narrow GitHub Actions authority for continuing rollback of the RIST platform stack only
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOwner}/${GitHubRepository}:ref:refs/heads/${GitHubBranch}
+      Policies:
+        - PolicyName: ContinueOnlyRistPlatformRollback
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudformation:ContinueUpdateRollback
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:DescribeStackResources
+                  - cloudformation:DescribeStackResource
+                Resource: !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${PlatformStackName}/*
+
+Outputs:
+  RecoveryRoleArn:
+    Value: !GetAtt PlatformRollbackRecoveryRole.Arn
