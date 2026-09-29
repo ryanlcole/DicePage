@@ -460,7 +460,18 @@ public partial class UniversalInterface
 
         if (MmoSelectedIsShaelvienRoleplayZone)
         {
-            _message = $"Roleplay selected for {MmoSelectedName}. The current Universal GameMaster surface does not yet embed the Roleplayer workspace.";
+            if (MmoSelectedParcel is { RegionId.Length: > 0 } roleplayParcel)
+                Session.SetActiveRegion(roleplayParcel.RegionId);
+            else
+                Session.SetActiveRegion("");
+
+            if (OnRoleplay.HasDelegate)
+            {
+                await OnRoleplay.InvokeAsync(MmoSelectedName);
+                return;
+            }
+
+            _message = $"Roleplay selected for {MmoSelectedName}.";
             return;
         }
 
