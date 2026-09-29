@@ -44,6 +44,7 @@ namespace RistWorld
         public string WorldId { get; set; } = "private-test";
         public string WorldOwnerAccountId { get; set; } = "account-1";
         public bool HasTrustedWorldBuilderAuthority { get; set; } = true;
+        public bool TrustedPlatformDeveloper { get; set; } = false;
         private bool _trustedPrivateWorldOwner;
         public bool PrivateOwner { set => _trustedPrivateWorldOwner = value; }
         private readonly FakeAuth auth = new();
@@ -80,6 +81,11 @@ namespace RistWorld
         public int Writes { get; private set; }
         public Task<WorldSource?> GetWorldSourceAsync(string worldId) { Reads++; return Task.FromResult<WorldSource?>(null); }
         public Task<WorldSource?> SaveWorldSourceAsync(string worldId, JsonElement state, bool inspectionEdit = false, string inspectionReason = "") { Writes++; return Task.FromResult<WorldSource?>(null); }
-        public Task<WorldSource?> SaveWorldRegionMapAsync(string worldId, string regionId, JsonElement layers) => throw new NotSupportedException();
+        public Task<WorldSource?> SaveWorldRegionMapAsync(
+            string worldId,
+            string regionId,
+            JsonElement layers,
+            bool inspectionEdit = false,
+            string inspectionReason = "") => throw new NotSupportedException();
     }
 }
