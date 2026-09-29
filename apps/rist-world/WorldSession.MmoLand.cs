@@ -107,9 +107,9 @@ public sealed partial class WorldSession
             string.Equals(parcel.OwnerUserId, userId, StringComparison.Ordinal));
     }
 
-    public bool IsMmoParcelClaimable(int cellIndex)
+    public bool IsMmoParcelOpen(int cellIndex)
     {
-        if (!IsLoggedIn || !IsGeonaphWorld || !HasUnspentMmoWorldToken) return false;
+        if (!IsLoggedIn || !IsGeonaphWorld) return false;
         if (cellIndex < 0 || cellIndex >= MmoParcelGridColumns * MmoParcelGridRows) return false;
 
         var column = cellIndex % MmoParcelGridColumns;
@@ -120,9 +120,8 @@ public sealed partial class WorldSession
         var frontier = _mmoParcels.Select(parcel => (parcel.Column, parcel.Row)).ToHashSet();
         frontier.Add((EndemarOriginColumn, EndemarOriginRow));
 
-        // Deeds expand orthogonally only. A corner touch is not a connected
-        // Shaelvien frontier edge and therefore never makes a parcel claimable.
-        // This keeps the MMO deed graph contiguous by shared flat sides.
+        // Explore must be able to show open frontier cells even when the viewer
+        // does not currently hold a token. Claim authorization is layered below.
         ReadOnlySpan<(int Dx, int Dy)> flatSides =
         [
             (0, -1),
@@ -137,6 +136,9 @@ public sealed partial class WorldSession
 
         return false;
     }
+
+    public bool IsMmoParcelClaimable(int cellIndex) =>
+        HasUnspentMmoWorldToken && IsMmoParcelOpen(cellIndex);
 
     public async Task RefreshMmoLandAsync(bool loadParcels = true)
     {
