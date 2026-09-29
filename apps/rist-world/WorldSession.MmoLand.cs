@@ -120,12 +120,20 @@ public sealed partial class WorldSession
         var frontier = _mmoParcels.Select(parcel => (parcel.Column, parcel.Row)).ToHashSet();
         frontier.Add((EndemarOriginColumn, EndemarOriginRow));
 
-        for (var dy = -1; dy <= 1; dy++)
-        for (var dx = -1; dx <= 1; dx++)
-        {
-            if (dx == 0 && dy == 0) continue;
-            if (frontier.Contains((column + dx, row + dy))) return true;
-        }
+        // Deeds expand orthogonally only. A corner touch is not a connected
+        // Shaelvien frontier edge and therefore never makes a parcel claimable.
+        // This keeps the MMO deed graph contiguous by shared flat sides.
+        ReadOnlySpan<(int Dx, int Dy)> flatSides =
+        [
+            (0, -1),
+            (1, 0),
+            (0, 1),
+            (-1, 0)
+        ];
+
+        foreach (var (dx, dy) in flatSides)
+            if (frontier.Contains((column + dx, row + dy)))
+                return true;
 
         return false;
     }
