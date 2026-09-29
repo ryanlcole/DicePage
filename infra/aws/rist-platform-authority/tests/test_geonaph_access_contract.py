@@ -96,6 +96,10 @@ class GeonaphAccessContractTests(unittest.TestCase):
         self.assertIn("def public_parcel(item, name_only=False):", self.source)
         self.assertIn('"ownerUserId": ""', self.source)
         self.assertIn('"regionId": ""', self.source)
+        self.assertIn("def geonaph_visible_region_ids(user_id):", self.source)
+        self.assertIn("def filtered_geonaph_source_state(state, user_id):", self.source)
+        self.assertIn('filtered.pop("inspectionAudit", None)', self.source)
+        self.assertIn("allowed_regions = geonaph_visible_region_ids(user_id)", self.source)
 
     def test_canonical_inspection_world_saves_require_reason(self):
         self.assertIn('inspection_edit = bool(req.get("inspectionEdit"))', self.source)
