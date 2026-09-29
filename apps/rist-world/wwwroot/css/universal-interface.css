@@ -2838,3 +2838,59 @@ body.rist-viewer-overlays-off .universal-shell .viewer-readout{
   top:39px!important;
  }
 }
+
+/* Developer Inspect audit authority: each committed edit requires one written reason. */
+.inspection-edit-audit{
+ position:absolute;
+ z-index:14;
+ top:10px;
+ left:50%;
+ width:min(92%,760px);
+ transform:translateX(-50%);
+ box-sizing:border-box;
+ display:grid;
+ grid-template-columns:minmax(150px,.8fr) minmax(220px,1.4fr) auto;
+ gap:9px;
+ align-items:end;
+ padding:9px;
+ border:1px solid rgba(230,183,78,.92);
+ border-radius:11px;
+ background:rgba(6,12,17,.94);
+ box-shadow:0 12px 34px rgba(0,0,0,.55);
+ font-family:system-ui,-apple-system,sans-serif;
+}
+.inspection-edit-audit>div{display:grid;gap:2px}
+.inspection-edit-audit small,.inspection-edit-audit label{color:#78c9ec;font-size:8px;font-weight:900;letter-spacing:.11em}
+.inspection-edit-audit strong{color:#f0d58c;font-size:12px}
+.inspection-edit-audit span{color:#aab8be;font-size:8px;line-height:1.25}
+.inspection-edit-audit label{display:grid;gap:4px}
+.inspection-edit-audit textarea{
+ box-sizing:border-box;
+ width:100%;
+ min-height:48px;
+ max-height:94px;
+ resize:vertical;
+ padding:7px 8px;
+ border:1px solid #536b78;
+ border-radius:7px;
+ background:#071015;
+ color:#efe6d0;
+ font:500 11px/1.25 system-ui,-apple-system,sans-serif;
+ letter-spacing:0;
+}
+.inspection-edit-audit button{
+ min-height:42px;
+ padding:7px 10px;
+ border:1px solid #b18c3b;
+ border-radius:7px;
+ background:#251c0b;
+ color:#f5db89;
+ font:900 8px/1 system-ui,-apple-system,sans-serif;
+ letter-spacing:.06em;
+}
+@media(max-width:700px){
+ .inspection-edit-audit{top:6px;width:calc(100% - 12px);grid-template-columns:1fr auto;gap:6px;padding:7px}
+ .inspection-edit-audit>div{grid-column:1/-1}
+ .inspection-edit-audit span{display:none}
+ .inspection-edit-audit textarea{min-height:42px}
+}
