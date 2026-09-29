@@ -89,7 +89,7 @@
         <span>RESTRICTED · name visible; world contents hidden.</span>
        }
       }
-      else if(Session.IsMmoParcelClaimable(_selectedCell))
+      else if(Session.IsMmoParcelOpen(_selectedCell))
       {
        <span>OPEN · @WorldSession.MmoParcelPixels×@WorldSession.MmoParcelPixels pixels · @WorldSession.MmoParcelMaxHeight layers high</span>
        @if(Session.HasUnspentMmoWorldToken)
@@ -242,7 +242,7 @@
   if(cell==WorldSession.EndemarOriginCell)return true;
   if(Session.IsMmoParcelClaimed(cell))return true;
   if(InspectOnly)return false;
-  return Session.IsMmoParcelClaimable(cell);
+  return Session.IsMmoParcelOpen(cell);
  }
 
  void SelectCell(int cell)
@@ -302,7 +302,7 @@
    if(Session.CanAccessMmoParcel(parcel))return "public"+selected;
    return "restricted"+selected;
   }
-  if(Session.IsMmoParcelClaimable(cell))return "open"+selected;
+  if(Session.IsMmoParcelOpen(cell))return "open"+selected;
   return "claimed";
  }
 
