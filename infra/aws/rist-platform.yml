@@ -349,6 +349,9 @@ Resources:
         ParcelClaim:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/parcels/claim, Method: POST }
+        ParcelRequestDeed:
+          Type: HttpApi
+          Properties: { ApiId: !Ref AuthorityApi, Path: /world/parcels/request-deed, Method: POST }
         ParcelInspectEdit:
           Type: HttpApi
           Properties: { ApiId: !Ref AuthorityApi, Path: /world/parcels/inspect-edit, Method: POST }
