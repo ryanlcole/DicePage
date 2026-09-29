@@ -369,7 +369,7 @@ async function applyDatabaseWorldBuilderState(envelope){
   if(!canonical.loaded)return;
   viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier||'sea').key;
   viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
-  await hydrateSelectedDeedZone();
+  await hydrateSelectedDeedZone({preserveView:true});
   selectedImage=null;publishWorldBuilderSelectionContext();
   updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
   localWorldBuilderRestoreComplete=true;
@@ -702,8 +702,11 @@ async function attachRestoredLayer(raw,options={}){
   }
   return item;
 }
-async function hydrateSelectedDeedZone(){
+async function hydrateSelectedDeedZone(options={}){
   if(REGION_DEFINER||!DEED_REGION_ID||!DEED_ZONE_ID)return 0;
+  const preserveView=options?.preserveView===true;
+  const preservedTier=viewerTier;
+  const preservedLayer=viewerLayer;
 
   for(let index=userLayers.length-1;index>=0;index--){
     const item=userLayers[index];
@@ -751,8 +754,13 @@ async function hydrateSelectedDeedZone(){
     }
 
     if(loaded){
-      viewerTier=tierByIndex(tier).key;
-      viewerLayer=clamp(Math.trunc(Number(manifest?.surfaceLayer)??0),0,9);
+      if(preserveView){
+        viewerTier=preservedTier;
+        viewerLayer=preservedLayer;
+      }else{
+        viewerTier=tierByIndex(tier).key;
+        viewerLayer=clamp(Math.trunc(Number(manifest?.surfaceLayer)??0),0,9);
+      }
       world.dataset.emptyWorld='false';
       stage.dataset.deedZonePack=DEED_ZONE_ID;
       stage.dataset.deedRegionId=DEED_REGION_ID;
@@ -779,12 +787,13 @@ async function restoreSavedWorldBuilder(){
       userLayers.splice(0,userLayers.length);
       world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
       const state=await readSavedWorldBuilder(WORLD_SOURCE_SAVE_KEY);
-      if(state&&state.format==='RIST_WORLDBUILDER_PROTOTYPE'&&String(state.worldId||'')===String(WORLD_ID||'')){
+      const hasSavedState=!!(state&&state.format==='RIST_WORLDBUILDER_PROTOTYPE'&&String(state.worldId||'')===String(WORLD_ID||''));
+      if(hasSavedState){
         for(const raw of Array.isArray(state.userLayers)?state.userLayers:[])await attachRestoredLayer(raw);
         viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier).key;
         viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
       }
-      await hydrateSelectedDeedZone();
+      await hydrateSelectedDeedZone({preserveView:hasSavedState});
     }
     selectedImage=null;publishWorldBuilderSelectionContext();updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
     announce(REGION_DEFINER
