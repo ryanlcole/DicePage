@@ -8,14 +8,16 @@ This contract records the selection-first Shaelvien GameMaster flow. It separate
 
 The GameMaster world selector is account-scoped.
 
-- Platform owner/admin: Endemar origin, realms owned by the account, **Inspect**, and **Claim Deed**.
-- Normal GameMaster: realms owned by the account plus explicitly delegated realms, then **Claim Deed**.
-- **Inspect** is administrative/audit access. It does not transfer realm ownership or silently grant edit authority.
-- **Claim Deed** remains present even after an account already owns a realm. Its token summary comes from server-authoritative token state.
+- Platform owner/admin: Endemar origin, realms owned by the account, **Inspect**, and **Explore**.
+- Normal GameMaster: realms owned by the account plus explicitly delegated realms, then **Explore**.
+- **Explore** is the entry to the shared MMO map. It shows open claimable zones, allows entry into public or otherwise view-authorized zones, and exposes only the names of restricted claimed zones.
+- **Claim Deed** is an action inside Explore after an open zone is selected. It remains available after an account already owns a realm when the account has an unspent token.
+- **Inspect** is developer/admin access to the same MMO map. It may edit canonical world state without transferring realm ownership, but every committed inspection edit requires a written reason.
+- Inspection reasons are append-only audit evidence. A later map save must preserve earlier inspection-audit entries rather than replacing them.
 
 The currently selected realm establishes the root world context for everything below it.
 
-## 2. Claim Deed topology
+## 2. Explore and Claim Deed topology
 
 Endemar is the Shaelvien origin. Deed expansion is orthogonal.
 
