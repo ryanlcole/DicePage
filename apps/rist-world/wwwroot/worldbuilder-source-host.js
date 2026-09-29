@@ -47,10 +47,10 @@ export async function editCommand(frame,command){
   return typeof result==="string"?result:"";
 }
 
-export function setDepth(frame,tier,layer,scope){
+export function setDepth(frame,tier,layer,scope,spatialNodeId="",spatialPath=""){
   const fn=frame?.contentWindow?.ShaelvienPrototype?.setExternalDepth;
   if(typeof fn!=="function")return false;
-  fn({tier,layer,scope});
+  fn({tier,layer,scope,spatialNodeId,spatialPath});
   return true;
 }
 
