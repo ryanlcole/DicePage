@@ -305,7 +305,7 @@ public sealed partial class WorldSession
         string visibility,
         string reason)
     {
-        if (!IsLoggedIn || !IsGeonaphWorld || !TrustedPlatformOwner) return null;
+        if (!IsLoggedIn || !IsGeonaphWorld || !TrustedPlatformDeveloper) return null;
         parcelId = (parcelId ?? "").Trim();
         displayName = (displayName ?? "").Trim();
         visibility = (visibility ?? "").Trim();
