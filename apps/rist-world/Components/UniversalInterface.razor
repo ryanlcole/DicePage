@@ -59,10 +59,7 @@
               aria-label="@MmoCellAriaLabel(cell)"
               aria-pressed="@(cell==_mmoSelectedCell)"
               @onclick="()=>SelectMmoMapCell(cell)">
-       @{
-        var cellSurface=MmoCellSurfaceUrl(cell);
-       }
-       @if(!string.IsNullOrWhiteSpace(cellSurface))
+@if(!string.IsNullOrWhiteSpace(cellSurface))
        {
         <img class="mmo-deed-cell-surface"
              src="@cellSurface"
