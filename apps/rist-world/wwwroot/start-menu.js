@@ -19,7 +19,7 @@
  function gridPref(key){const value=String(localStorage.getItem(key)||'square').toLowerCase();return value==='hex'?'hex':'square'}
  function overlayPref(){return localStorage.getItem(VIEW_OVERLAY_KEY)!=='off'}
  function activeGridArea(){
-  const shell=document.querySelector('.experiments-shell'),raw=String(shell?.dataset?.spatialScope||'WORLD').toUpperCase();
+  const shell=document.querySelector('.universal-shell'),raw=String(shell?.dataset?.spatialScope||'WORLD').toUpperCase();
   const area=raw.includes('REGION')?'REGION':raw.includes('LOCAL')?'LOCAL':raw.includes('INSTANCE')?'INSTANCE':'WORLD';
   return{area,worldId:String(shell?.dataset?.worldId||'world')};
  }
@@ -33,7 +33,7 @@
   return{shape,columns:size.columns,rows:size.rows,...activeGridArea()};
  }
  function syncFramePreference(type,value){
-  const frame=document.querySelector('.experiments-worldbuilder-frame'),kind=type==='asset-grid'?'asset':'viewer';
+  const frame=document.querySelector('.universal-worldbuilder-frame'),kind=type==='asset-grid'?'asset':'viewer';
   const settings=value&&typeof value==='object'?value:{...gridSettings(kind),shape:String(value||gridSettings(kind).shape)};
   try{frame?.contentWindow?.postMessage({source:'shaelvien-worldbuilder-host',type,value:settings.shape,grid:settings.shape,shape:settings.shape,columns:settings.columns,rows:settings.rows,area:settings.area,worldId:settings.worldId},location.origin)}catch{}
  }
@@ -62,27 +62,27 @@
   if(exit){const go=e=>{e.preventDefault();e.stopPropagation();close()};exit.addEventListener('pointerup',go,{capture:true,once:true});exit.addEventListener('click',go,{capture:true,once:true})}
  }
  function showHome(){
-  const experiment=openMode==='experiment';
-  panel.innerHTML=`<h1 class="rist-start-title">START</h1><div class="rist-start-grid"><button type="button" class="rist-start-button" data-start-action="save">Save</button><button type="button" class="rist-start-button" data-start-action="load">Load</button>${Object.keys(sections).map(name=>`<button type="button" class="rist-start-button" data-start-section="${name}">${name}</button>`).join('')}</div>${experiment?'<button type="button" class="rist-start-exit" data-start-exit>Resume</button><button type="button" class="rist-start-exit rist-start-danger" data-start-experiment-exit>Exit Experiment</button>':'<button type="button" class="rist-start-exit" data-start-exit>Exit</button>'}`;
+  const universalMode=openMode==='universal';
+  panel.innerHTML=`<h1 class="rist-start-title">START</h1><div class="rist-start-grid"><button type="button" class="rist-start-button" data-start-action="save">Save</button><button type="button" class="rist-start-button" data-start-action="load">Load</button>${Object.keys(sections).map(name=>`<button type="button" class="rist-start-button" data-start-section="${name}">${name}</button>`).join('')}</div>${universalMode?'<button type="button" class="rist-start-exit" data-start-exit>Resume</button><button type="button" class="rist-start-exit rist-start-danger" data-start-universal-exit>Exit Game</button>':'<button type="button" class="rist-start-exit" data-start-exit>Exit</button>'}`;
   directNav();
  }
- function experimentControllerReserve(){
-  if(openMode!=='experiment')return 0;
-  const controller=document.querySelector('.experiments-controller');
+ function universalControllerReserve(){
+  if(openMode!=='universal')return 0;
+  const controller=document.querySelector('.universal-controller');
   const rect=controller?.getBoundingClientRect?.();
   if(!rect)return 0;
   return Math.max(0,Math.round(window.innerHeight-rect.top));
  }
  function applyOpenMode(){
-  const experiment=openMode==='experiment';
-  document.body.classList.toggle('rist-start-experiment-controller',experiment);
-  overlay?.toggleAttribute('data-experiment',experiment);
-  const reserve=experimentControllerReserve();
+  const universalMode=openMode==='universal';
+  document.body.classList.toggle('rist-start-universal-controller',universalMode);
+  overlay?.toggleAttribute('data-universal',universalMode);
+  const reserve=universalControllerReserve();
   document.documentElement.style.setProperty('--rist-start-controller-reserve',`${reserve}px`);
  }
  function runStartAction(action){
-  if(openMode==='experiment'){
-   const hook=document.querySelector(`[data-experiment-start-${action}]`);
+  if(openMode==='universal'){
+   const hook=document.querySelector(`[data-universal-start-${action}]`);
    if(hook){hook.click();return true}
   }
   const selector=action==='save'
@@ -92,20 +92,20 @@
   if(button){close();button.click();return true}
   return false;
  }
- function exitExperiment(){
-  const hook=document.querySelector('[data-experiment-start-exit]');
+ function exitUniversal(){
+  const hook=document.querySelector('[data-universal-start-exit]');
   close();
   hook?.click();
  }
  function native(s){return document.querySelector(s)} function pushNative(s,v){const e=native(s);if(!e)return;e.value=String(v);e.dispatchEvent(new Event('change',{bubbles:true}))} function isGm(){return window.RistDicePrivacy?.isGm?.()||false}
  function hydrateLanguage(){const primary=panel?.querySelector('[data-primary-language]'),mode=panel?.querySelector('[data-language-mode]'),percent=panel?.querySelector('[data-language-percent]'),manual=panel?.querySelector('[data-language-manual]'),out=panel?.querySelector('[data-language-percent-output]'),controls=panel?.querySelector('[data-language-gm-controls]'),note=panel?.querySelector('[data-language-player-note]');const np=native('[data-native-primary-language]'),nm=native('[data-native-language-mode]'),nx=native('[data-native-language-percent]'),nn=native('[data-native-language-manual]');if(primary)primary.value=np?.value||localStorage.getItem(LANGUAGE_PREF)||'English';if(mode&&nm)mode.value=nm.value||'system';if(percent&&nx)percent.value=nx.value||'100';if(manual&&nn)manual.value=nn.value||'';if(out&&percent)out.textContent=`${percent.value}%`;const gm=isGm();if(controls)controls.hidden=!gm;if(note)note.textContent=gm?'Build languages from words and phrases actually used in play.':'Your character sheet determines known languages and proficiency.';renderLexicon()}
  function showSection(name){panel.innerHTML=`<section class="rist-start-sub">${name==='Language'?languageHtml():name==='Interface'?interfaceHtml():sections[name]}<button type="button" class="rist-start-back" data-start-back>Back</button><button type="button" class="rist-start-exit" data-start-exit>Exit</button></section>`;if(name==='Language')hydrateLanguage();if(name==='Interface')refreshInterface();directNav()}
- function ensure(){if(overlay&&document.body.contains(overlay))return;overlay=document.querySelector('.rist-start-overlay');if(!overlay){overlay=document.createElement('div');overlay.className='rist-start-overlay';overlay.hidden=true;overlay.innerHTML='<div class="rist-start-panel" role="dialog" aria-modal="true" aria-label="Start menu"></div>';document.body.appendChild(overlay)}panel=overlay.querySelector('.rist-start-panel');showHome();if(overlay.dataset.wired==='2')return;overlay.dataset.wired='2';overlay.addEventListener('click',e=>{const t=e.target instanceof Element?e.target:null;if(!t)return;const action=t.closest('[data-start-action]');if(action){runStartAction(action.dataset.startAction);return}if(t.closest('[data-start-experiment-exit]')){exitExperiment();return}const overlay=t.closest('[data-interface-overlay]');if(overlay){setOverlay(overlay.dataset.interfaceOverlay);return}const viewGrid=t.closest('[data-interface-view-grid]');if(viewGrid){setViewerGrid(viewGrid.dataset.interfaceViewGrid);return}const assetGrid=t.closest('[data-interface-asset-grid]');if(assetGrid){setAssetGrid(assetGrid.dataset.interfaceAssetGrid);return}const section=t.closest('[data-start-section]');if(section){showSection(section.dataset.startSection);return}if(t.closest('[data-lex-save]')){storeLexicon();return}const edit=t.closest('[data-lex-edit]');if(edit){editLexicon(+edit.dataset.lexEdit);return}const del=t.closest('[data-lex-delete]');if(del){const list=lexicon();list.splice(+del.dataset.lexDelete,1);saveLexicon(list);renderLexicon();return}if(t.closest('[data-start-back]')){showHome();return}if(t.closest('[data-start-exit]'))close()});overlay.addEventListener('change',e=>{const t=e.target;if(!(t instanceof Element))return;if(t.matches('[data-interface-grid-count]')){setGridCount(t.dataset.interfaceGridCount,t.value);return}if(t.matches('[data-primary-language]')){localStorage.setItem(LANGUAGE_PREF,t.value);pushNative('[data-native-primary-language]',t.value);return}if(t.matches('[data-language-mode]')&&isGm())pushNative('[data-native-language-mode]',t.value);if(t.matches('[data-language-percent]')&&isGm())pushNative('[data-native-language-percent]',t.value);if(t.matches('[data-language-manual]')&&isGm())pushNative('[data-native-language-manual]',t.value)});overlay.addEventListener('input',e=>{const t=e.target;if(t instanceof Element&&t.matches('[data-language-percent]')){const out=panel.querySelector('[data-language-percent-output]');if(out)out.textContent=`${t.value}%`}})}
- function open(mode='default'){openMode=mode==='experiment'?'experiment':'default';ensure();showHome();applyOpenMode();overlay.hidden=false;pause(true)} function close(){if(!overlay)return;overlay.hidden=true;pause(false);document.body.classList.remove('rist-start-experiment-controller');document.documentElement.style.removeProperty('--rist-start-controller-reserve');openMode='default'}
- function refreshExperimentFrame(){if(overlay&&!overlay.hidden&&openMode==='experiment')applyOpenMode()}
- addEventListener('resize',refreshExperimentFrame,{passive:true});
- window.visualViewport?.addEventListener?.('resize',refreshExperimentFrame,{passive:true});
+ function ensure(){if(overlay&&document.body.contains(overlay))return;overlay=document.querySelector('.rist-start-overlay');if(!overlay){overlay=document.createElement('div');overlay.className='rist-start-overlay';overlay.hidden=true;overlay.innerHTML='<div class="rist-start-panel" role="dialog" aria-modal="true" aria-label="Start menu"></div>';document.body.appendChild(overlay)}panel=overlay.querySelector('.rist-start-panel');showHome();if(overlay.dataset.wired==='2')return;overlay.dataset.wired='2';overlay.addEventListener('click',e=>{const t=e.target instanceof Element?e.target:null;if(!t)return;const action=t.closest('[data-start-action]');if(action){runStartAction(action.dataset.startAction);return}if(t.closest('[data-start-universal-exit]')){exitUniversal();return}const overlay=t.closest('[data-interface-overlay]');if(overlay){setOverlay(overlay.dataset.interfaceOverlay);return}const viewGrid=t.closest('[data-interface-view-grid]');if(viewGrid){setViewerGrid(viewGrid.dataset.interfaceViewGrid);return}const assetGrid=t.closest('[data-interface-asset-grid]');if(assetGrid){setAssetGrid(assetGrid.dataset.interfaceAssetGrid);return}const section=t.closest('[data-start-section]');if(section){showSection(section.dataset.startSection);return}if(t.closest('[data-lex-save]')){storeLexicon();return}const edit=t.closest('[data-lex-edit]');if(edit){editLexicon(+edit.dataset.lexEdit);return}const del=t.closest('[data-lex-delete]');if(del){const list=lexicon();list.splice(+del.dataset.lexDelete,1);saveLexicon(list);renderLexicon();return}if(t.closest('[data-start-back]')){showHome();return}if(t.closest('[data-start-exit]'))close()});overlay.addEventListener('change',e=>{const t=e.target;if(!(t instanceof Element))return;if(t.matches('[data-interface-grid-count]')){setGridCount(t.dataset.interfaceGridCount,t.value);return}if(t.matches('[data-primary-language]')){localStorage.setItem(LANGUAGE_PREF,t.value);pushNative('[data-native-primary-language]',t.value);return}if(t.matches('[data-language-mode]')&&isGm())pushNative('[data-native-language-mode]',t.value);if(t.matches('[data-language-percent]')&&isGm())pushNative('[data-native-language-percent]',t.value);if(t.matches('[data-language-manual]')&&isGm())pushNative('[data-native-language-manual]',t.value)});overlay.addEventListener('input',e=>{const t=e.target;if(t instanceof Element&&t.matches('[data-language-percent]')){const out=panel.querySelector('[data-language-percent-output]');if(out)out.textContent=`${t.value}%`}})}
+ function open(mode='default'){openMode=mode==='universal'?'universal':'default';ensure();showHome();applyOpenMode();overlay.hidden=false;pause(true)} function close(){if(!overlay)return;overlay.hidden=true;pause(false);document.body.classList.remove('rist-start-universal-controller');document.documentElement.style.removeProperty('--rist-start-controller-reserve');openMode='default'}
+ function refreshUniversalFrame(){if(overlay&&!overlay.hidden&&openMode==='universal')applyOpenMode()}
+ addEventListener('resize',refreshUniversalFrame,{passive:true});
+ window.visualViewport?.addEventListener?.('resize',refreshUniversalFrame,{passive:true});
  applyInterfacePreferences();
- addEventListener('load',e=>{if(e.target instanceof HTMLIFrameElement&&e.target.matches('.experiments-worldbuilder-frame')){syncFramePreference('viewer-grid',gridPref(VIEWER_GRID_KEY));syncFramePreference('asset-grid',gridPref(ASSET_GRID_KEY))}},true);
+ addEventListener('load',e=>{if(e.target instanceof HTMLIFrameElement&&e.target.matches('.universal-worldbuilder-frame')){syncFramePreference('viewer-grid',gridPref(VIEWER_GRID_KEY));syncFramePreference('asset-grid',gridPref(ASSET_GRID_KEY))}},true);
  window.RistStartMenu={open,close,languageLexicon:lexicon,setOverlay,setViewerGrid,setAssetGrid,setGridCount,gridSettings};addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay&&!overlay.hidden)close()});ensure();
 })();
