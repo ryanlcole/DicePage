@@ -163,15 +163,30 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
             "/world/source",
             new { worldId, state, inspectionEdit, inspectionReason });
 
-    public async Task<WorldSource?> SaveWorldRegionMapAsync(string worldId, string regionId, JsonElement userLayers)
-        => await SendAsync<WorldSource>(HttpMethod.Post, "/world/source/region", new { worldId, regionId, userLayers });
+    public async Task<WorldSource?> SaveWorldRegionMapAsync(
+        string worldId,
+        string regionId,
+        JsonElement userLayers,
+        bool inspectionEdit = false,
+        string inspectionReason = "")
+        => await SendAsync<WorldSource>(
+            HttpMethod.Post,
+            "/world/source/region",
+            new { worldId, regionId, userLayers, inspectionEdit, inspectionReason });
 
     public async Task<List<WorldRegion>?> GetRegionsAsync(string worldId)
         => await SendAsync<List<WorldRegion>>(HttpMethod.Get,
             "/world/regions?worldId=" + Uri.EscapeDataString(worldId));
 
-    public async Task<WorldRegion?> SaveRegionAsync(string worldId, WorldRegion region)
-        => await SendAsync<WorldRegion>(HttpMethod.Post, "/world/regions", new { worldId, region });
+    public async Task<WorldRegion?> SaveRegionAsync(
+        string worldId,
+        WorldRegion region,
+        bool inspectionEdit = false,
+        string inspectionReason = "")
+        => await SendAsync<WorldRegion>(
+            HttpMethod.Post,
+            "/world/regions",
+            new { worldId, region, inspectionEdit, inspectionReason });
 
     private async Task<T?> SendAsync<T>(HttpMethod method, string path, object? body = null)
     {
