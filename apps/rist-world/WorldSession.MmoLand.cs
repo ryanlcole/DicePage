@@ -306,7 +306,7 @@ public sealed partial class WorldSession
 
         var parcel = _mmoParcels.FirstOrDefault(item => item.CellIndex == cellIndex);
         if (parcel is null) throw new InvalidOperationException("Select a claimed Shaelvien zone first.");
-        if (IsMmoParcelOwnedByCurrentUser(parcel)) throw new InvalidOperationException("You already own this deed.");
+        if (IsMmoParcelOwnedByCurrentUser(parcel.CellIndex)) throw new InvalidOperationException("You already own this deed.");
 
         var authority = new AwsAuthorityClient(http, auth);
         await authority.InitializeAsync();
