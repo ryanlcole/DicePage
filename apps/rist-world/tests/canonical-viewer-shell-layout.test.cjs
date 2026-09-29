@@ -383,6 +383,7 @@ test('Explore exposes open public and restricted MMO zones while Inspect can aud
   assert.match(authority,/access\.developer/);
   assert.match(razor,/var platformDeveloper=Session\.TrustedPlatformDeveloper/);
   assert.match(razor,/if\(platformDeveloper\)[\s\S]{0,260}?"Inspect"[\s\S]{0,120}?"SHAELVIEN_INSPECT"/);
+  assert.match(razor,/BeginInspectionEditAsync[\s\S]{0,180}?if\(!Session\.TrustedPlatformDeveloper\)/);
 });
 
 test('controller Save reacts immediately, commits canonical placement, and stays on the same Art method',()=>{
