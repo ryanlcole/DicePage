@@ -7,14 +7,32 @@ def text(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
-def test_mmo_map_flattens_only_tier_zero_top_surface_per_region():
+def test_mmo_map_flattens_only_tier_zero_top_surface_per_region_into_its_deed():
     component = text("Components/UniversalInterface.MmoMap.cs")
+    interface = text("Components/UniversalInterface.razor")
+    css = text("wwwroot/css/universal-interface.css")
     assert 'if (tier != 0) continue;' in component
     assert 'var topByRegion = new Dictionary<string, MmoSurfaceLayer>' in component
     assert 'layer.Layer > current.Layer' in component
     assert '_mmoSurfaceLayers.AddRange(topByRegion.Values' in component
-    assert 'MmoWorldBuilderPlacementWidthFraction = 0.12' in component
-    assert 'var normalizedWidth = layer.Size * MmoWorldBuilderPlacementWidthFraction;' in component
+    assert 'string? MmoCellSurfaceUrl(int cellIndex)' in component
+    assert 'if (cellIndex == WorldSession.EndemarOriginCell)' in component
+    assert 'return MmoCanonicalSurfaceUrl;' in component
+    assert 'MmoCellSurfaceUrl(cell)' in interface
+    assert 'class="mmo-deed-cell-surface"' in interface
+    assert 'class="mmo-inline-map-base"' not in interface
+    assert '.mmo-deed-cell-surface{' in css
+    assert 'object-fit:contain;' in css
+
+
+def test_mmo_view_extent_is_driven_by_created_world_and_frontier_without_artificial_margin():
+    component = text("Components/UniversalInterface.MmoMap.cs")
+    assert ': _mmoMapCells.Min(CellColumn);' in component
+    assert ': _mmoMapCells.Max(CellColumn);' in component
+    assert ': _mmoMapCells.Min(CellRow);' in component
+    assert ': _mmoMapCells.Max(CellRow);' in component
+    assert 'MmoBaseImageStyle' not in component
+    assert 'MmoSurfaceLayerStyle' not in component
 
 
 def test_mmo_map_includes_claimed_zones_and_all_open_flat_side_frontier_cells():

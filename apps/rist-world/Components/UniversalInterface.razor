@@ -50,21 +50,6 @@
     </header>
 
     <div class="mmo-inline-map-stage" style="@MmoMapStageStyle">
-     <img class="mmo-inline-map-base"
-          src="@MmoCanonicalSurfaceUrl"
-          style="@MmoBaseImageStyle"
-          alt=""
-          aria-hidden="true" />
-
-     @foreach(var surfaceLayer in _mmoSurfaceLayers)
-     {
-      <img class="mmo-inline-surface-layer"
-           src="@surfaceLayer.Src"
-           style="@MmoSurfaceLayerStyle(surfaceLayer)"
-           alt=""
-           aria-hidden="true" />
-     }
-
      @foreach(var cell in _mmoMapCells)
      {
       <button type="button"
@@ -73,6 +58,16 @@
               aria-label="@MmoCellAriaLabel(cell)"
               aria-pressed="@(cell==_mmoSelectedCell)"
               @onclick="()=>SelectMmoMapCell(cell)">
+       @{
+        var cellSurface=MmoCellSurfaceUrl(cell);
+       }
+       @if(!string.IsNullOrWhiteSpace(cellSurface))
+       {
+        <img class="mmo-deed-cell-surface"
+             src="@cellSurface"
+             alt=""
+             aria-hidden="true" />
+       }
        @if(!string.IsNullOrWhiteSpace(MmoCellText(cell)))
        {
         <span>@MmoCellText(cell)</span>

@@ -16,6 +16,9 @@ def test_universal_mmo_map_flattens_tier_zero_and_keeps_frontier_selectable():
     assert "Stage.MmoMap" in interface
     assert "mmo-inline-map" in interface
     assert "MmoCanonicalSurfaceUrl" in mmo
+    assert "MmoCellSurfaceUrl(cell)" in interface
+    assert 'class="mmo-deed-cell-surface"' in interface
+    assert 'class="mmo-inline-map-base"' not in interface
     assert 'JsonInt(item, "tier", 0)' in mmo
     assert "if (tier != 0) continue;" in mmo
     assert "layer.Layer > current.Layer" in mmo

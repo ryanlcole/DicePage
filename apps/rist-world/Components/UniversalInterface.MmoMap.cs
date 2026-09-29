@@ -7,7 +7,6 @@ public partial class UniversalInterface
 {
     const string MmoCanonicalSurfaceUrl =
         "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_canonical_surface_v001.png";
-    const double MmoWorldBuilderPlacementWidthFraction = 0.12;
 
     int _mmoSelectedCell = WorldSession.EndemarOriginCell;
     int _mmoLeftIndex;
@@ -146,57 +145,43 @@ public partial class UniversalInterface
         ? "CLAIM DISABLED"
         : $"{Session.UnspentMmoWorldTokenCount} TOKEN{(Session.UnspentMmoWorldTokenCount == 1 ? "" : "S")}";
 
+    // The MMO map is the currently-created Shaelvien footprint, not a crop of
+    // Endemar. Claimed deeds plus their open flat-side frontier define the
+    // visible extent, so the representation expands as the world expands.
     int MmoViewMinColumn => _mmoMapCells.Count == 0
-        ? Math.Max(0, WorldSession.EndemarOriginColumn - 2)
-        : Math.Max(0, _mmoMapCells.Min(CellColumn) - 1);
+        ? WorldSession.EndemarOriginColumn
+        : _mmoMapCells.Min(CellColumn);
     int MmoViewMaxColumn => _mmoMapCells.Count == 0
-        ? Math.Min(WorldSession.MmoParcelGridColumns - 1, WorldSession.EndemarOriginColumn + 2)
-        : Math.Min(WorldSession.MmoParcelGridColumns - 1, _mmoMapCells.Max(CellColumn) + 1);
+        ? WorldSession.EndemarOriginColumn
+        : _mmoMapCells.Max(CellColumn);
     int MmoViewMinRow => _mmoMapCells.Count == 0
-        ? Math.Max(0, WorldSession.EndemarOriginRow - 2)
-        : Math.Max(0, _mmoMapCells.Min(CellRow) - 1);
+        ? WorldSession.EndemarOriginRow
+        : _mmoMapCells.Min(CellRow);
     int MmoViewMaxRow => _mmoMapCells.Count == 0
-        ? Math.Min(WorldSession.MmoParcelGridRows - 1, WorldSession.EndemarOriginRow + 2)
-        : Math.Min(WorldSession.MmoParcelGridRows - 1, _mmoMapCells.Max(CellRow) + 1);
+        ? WorldSession.EndemarOriginRow
+        : _mmoMapCells.Max(CellRow);
     int MmoViewColumns => Math.Max(1, MmoViewMaxColumn - MmoViewMinColumn + 1);
     int MmoViewRows => Math.Max(1, MmoViewMaxRow - MmoViewMinRow + 1);
 
     string MmoMapStageStyle => $"aspect-ratio:{MmoViewColumns}/{MmoViewRows};";
-    string MmoBaseImageStyle
+    string? MmoCellSurfaceUrl(int cellIndex)
     {
-        get
-        {
-            var width = WorldSession.MmoParcelGridColumns / (double)MmoViewColumns * 100;
-            var height = WorldSession.MmoParcelGridRows / (double)MmoViewRows * 100;
-            var left = -(MmoViewMinColumn / (double)MmoViewColumns) * 100;
-            var top = -(MmoViewMinRow / (double)MmoViewRows) * 100;
-            return $"width:{width:0.####}%;height:{height:0.####}%;left:{left:0.####}%;top:{top:0.####}%;";
-        }
-    }
+        // Endemar is Jeyrusal's Homeland and the origin deed. Its canonical
+        // surface belongs inside (0,0); it is never the background of Shaelvien.
+        if (cellIndex == WorldSession.EndemarOriginCell)
+            return MmoCanonicalSurfaceUrl;
 
-    string MmoCellStyle(int cellIndex)
-    {
-        var column = CellColumn(cellIndex);
-        var row = CellRow(cellIndex);
-        var left = (column - MmoViewMinColumn) / (double)MmoViewColumns * 100;
-        var top = (row - MmoViewMinRow) / (double)MmoViewRows * 100;
-        return $"left:{left:0.####}%;top:{top:0.####}%;width:{100d / MmoViewColumns:0.####}%;height:{100d / MmoViewRows:0.####}%;";
-    }
+        var parcel = Session.MmoParcels.FirstOrDefault(item => item.CellIndex == cellIndex);
+        if (parcel is null || string.IsNullOrWhiteSpace(parcel.RegionId))
+            return null;
 
-    string MmoSurfaceLayerStyle(MmoSurfaceLayer layer)
-    {
-        var minX = MmoViewMinColumn / (double)WorldSession.MmoParcelGridColumns;
-        var minY = MmoViewMinRow / (double)WorldSession.MmoParcelGridRows;
-        var viewWidth = MmoViewColumns / (double)WorldSession.MmoParcelGridColumns;
-        var viewHeight = MmoViewRows / (double)WorldSession.MmoParcelGridRows;
-        var left = (layer.X - minX) / viewWidth * 100;
-        var top = (layer.Y - minY) / viewHeight * 100;
-        // World Builder stores size as a multiplier of 12% of the canonical
-        // world width (prototype userImageBaseSize), not as a direct normalized
-        // world fraction. Preserve that geometry when flattening Tier 0.
-        var normalizedWidth = layer.Size * MmoWorldBuilderPlacementWidthFraction;
-        var width = normalizedWidth / viewWidth * 100;
-        return $"left:{left:0.####}%;top:{top:0.####}%;width:{width:0.####}%;opacity:{Math.Clamp(layer.Opacity, 0, 1):0.###};transform:translate(-50%,-50%) rotate({layer.Rotation:0.###}deg);";
+        // Restricted parcels returned name-only by server authority have no
+        // RegionId, so this cannot accidentally expose their authored surface.
+        return _mmoSurfaceLayers
+            .Where(layer => string.Equals(layer.RegionId, parcel.RegionId, StringComparison.Ordinal))
+            .OrderByDescending(layer => layer.Layer)
+            .Select(layer => layer.Src)
+            .FirstOrDefault(src => !string.IsNullOrWhiteSpace(src));
     }
 
     string MmoCellClass(int cellIndex)
@@ -274,7 +259,7 @@ public partial class UniversalInterface
         _stage = Stage.MmoMap;
         _message = _mmoInspectMode
             ? "Inspect · Tier 0 surface. Analog selects a zone. Left rail accepts coordinates or user ID. Claiming is disabled."
-            : "Shaelvien MMO · Tier 0 top surfaces flattened. Analog selects the next deed zone in the direction moved.";
+            : "Shaelvien MMO · Each visible deed owns its flattened Tier 0 top surface. Analog selects the next deed zone in the direction moved.";
         await InvokeAsync(StateHasChanged);
     }
 
