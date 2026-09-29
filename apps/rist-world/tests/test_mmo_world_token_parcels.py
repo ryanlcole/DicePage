@@ -181,6 +181,7 @@ def test_shaelvien_is_the_mmo_world_and_endemar_is_the_starting_point():
 
 def test_explore_visibility_and_developer_inspection_are_authoritative():
     backend = text("infra/aws/rist-platform-authority/app.py")
+    template = text("infra/aws/rist-platform.yml")
     client = text("apps/rist-world/AwsAuthorityClient.cs")
     session = text("apps/rist-world/WorldSession.MmoLand.cs")
     gate = text("apps/rist-world/Components/ShaelvienDeedGate.razor")
@@ -190,6 +191,7 @@ def test_explore_visibility_and_developer_inspection_are_authoritative():
     assert '"visibility": "Restricted"' in backend
     assert 'parcel.get("visibility") == "Public"' in backend
     assert 'path == "/world/parcels/inspect-edit"' in backend
+    assert "Path: /world/parcels/inspect-edit" in template
     assert '"Every inspection edit requires a reason"' in backend
     assert '"parcel.inspect.edit"' in backend
     assert '{"reason": reason, "before": before, "after": after}' in backend
