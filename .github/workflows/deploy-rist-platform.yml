@@ -96,9 +96,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          OWNER_USER_ID="${CONFIGURED_OWNER_USER_ID:-}"
-          if [ -z "$OWNER_USER_ID" ]; then
-            OWNER_USER_ID=$(python - <<'PY'
+          DERIVED_OWNER_USER_ID=$(python - <<'PY'
           import json
           import uuid
           from pathlib import Path
@@ -109,19 +107,27 @@ jobs:
               raise SystemExit("auth-config.json must contain a numeric ownerDiscordUserId")
           print(uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id))
           PY
-            )
-          fi
-          python - "$OWNER_USER_ID" <<'PY'
+          )
+          python - "$DERIVED_OWNER_USER_ID" <<'PY'
           import sys
           import uuid
 
           value = sys.argv[1].strip()
           parsed = uuid.UUID(value)
           if str(parsed) != value.lower():
-              raise SystemExit("RIST platform owner identity is not a canonical UUID")
+              raise SystemExit("Derived RIST platform owner identity is not a canonical UUID")
           PY
+
+          # Discord auth creates the internal user ID with this exact UUIDv5
+          # formula. The checked-in auth configuration therefore remains the
+          # deterministic identity bridge. A stale repository variable may warn,
+          # but it must never silently lock the real owner out of Endemar/Inspect.
+          if [ -n "${CONFIGURED_OWNER_USER_ID:-}" ] && [ "$CONFIGURED_OWNER_USER_ID" != "$DERIVED_OWNER_USER_ID" ]; then
+            echo "::warning::RIST_OWNER_USER_ID differs from the deterministic Discord owner identity; using the deterministic identity."
+          fi
+          OWNER_USER_ID="$DERIVED_OWNER_USER_ID"
           echo "OWNER_USER_ID=$OWNER_USER_ID" >> "$GITHUB_ENV"
-          echo "Resolved authenticated platform-owner authority."
+          echo "Resolved authenticated platform-owner authority from the canonical Discord identity mapping."
 
       - name: Ensure narrow platform rollback recovery role
         shell: bash

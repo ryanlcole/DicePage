@@ -45,7 +45,7 @@ def test_universal_mmo_map_has_requested_deed_actions_and_left_rail():
     assert '"BID (CURRENT BID' in mmo
     assert '"MANAGE"' in mmo
     assert 'return $"USE 1/{count} TOKEN' in mmo
-    assert 'return $"CURRENT BID {bid.ToString(' in mmo
+    assert 'return $"BID (CURRENT BID {bid.ToString(' in mmo
     assert '"left-slider"' in input_js
     assert '"right-slider"' in input_js
 
@@ -83,3 +83,22 @@ def test_mmo_map_exposes_refund_bid_metadata_without_fake_settlement():
     assert '"Refunded"' in mmo
     assert "bid submission is not enabled until server-side auction settlement is implemented" in mmo
     assert "paid Shaelvien Token checkout is not implemented yet" in mmo
+
+
+def test_inline_inspect_manage_can_open_selection_first_worldbuilder():
+    interface = text("apps/rist-world/Components/UniversalInterface.razor")
+    mmo = text("apps/rist-world/Components/UniversalInterface.MmoMap.cs")
+
+    assert '@onclick="OpenMmoInspectEditorAsync"' in interface
+    assert "OPEN WORLD BUILDER" in interface
+    assert "@if(!MmoSelectedIsEndemar)" in interface
+    assert "async Task OpenMmoInspectEditorAsync()" in mmo
+    assert "if (!_mmoInspectMode || !Session.TrustedPlatformDeveloper)" in mmo
+    assert "if (MmoSelectedIsEndemar)" in mmo
+    assert 'new ControllerWorldOption(' in mmo
+    assert '"__endemar__"' in mmo
+    assert "_inspectionEditMode = true;" in mmo
+    assert "_inspectionEditReason = reason.Length > 500 ? reason[..500] : reason;" in mmo
+    assert "_stage = Stage.PathSelect;" in mmo
+    assert "Every committed edit requires an audit reason." in mmo
+    assert "await EnterMmoMapAsync(inspect:true);" in interface

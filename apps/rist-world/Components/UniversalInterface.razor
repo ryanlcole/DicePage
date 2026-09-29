@@ -88,15 +88,22 @@
        <strong>MANAGE DEED</strong>
        <button type="button" @onclick="CloseMmoManage" aria-label="Close deed management">×</button>
       </header>
-      <label>NAME<input maxlength="80" @bind="_mmoManageName" /></label>
-      <label>VISIBILITY
-       <select @bind="_mmoManageVisibility">
-        <option value="Restricted">Restricted</option>
-        <option value="Public">Public</option>
-       </select>
-      </label>
+      @if(!MmoSelectedIsEndemar)
+      {
+       <label>NAME<input maxlength="80" @bind="_mmoManageName" /></label>
+       <label>VISIBILITY
+        <select @bind="_mmoManageVisibility">
+         <option value="Restricted">Restricted</option>
+         <option value="Public">Public</option>
+        </select>
+       </label>
+      }
       <label>REASON<textarea maxlength="500" @bind="_mmoManageReason" @bind:event="oninput" placeholder="Required for every committed Inspect change"></textarea></label>
-      <button type="button" class="mmo-inline-manage-save" disabled="@_mmoMapBusy" @onclick="SaveMmoManageAsync">SAVE MANAGED DEED</button>
+      @if(!MmoSelectedIsEndemar)
+      {
+       <button type="button" class="mmo-inline-manage-save" disabled="@_mmoMapBusy" @onclick="SaveMmoManageAsync">SAVE MANAGED DEED</button>
+      }
+      <button type="button" class="mmo-inline-manage-save" disabled="@_mmoMapBusy" @onclick="OpenMmoInspectEditorAsync">OPEN WORLD BUILDER</button>
      </section>
     }
    </section>
@@ -3576,10 +3583,8 @@
  {
   _inspectionEditMode=false;
   _inspectionEditReason="";
-  ReturnToShaelvienDeedSelector();
-  _shaelvienInspectGateOpen=true;
+  await EnterMmoMapAsync(inspect:true);
   _message="Returned to developer Inspect map.";
-  await InvokeAsync(StateHasChanged);
  }
 
  void ReturnToShaelvienDeedSelector()

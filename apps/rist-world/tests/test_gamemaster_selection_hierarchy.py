@@ -1,6 +1,7 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+REPO = ROOT.parents[1]
 
 
 def test_shaelvien_deeds_expand_only_across_flat_sides():
@@ -12,7 +13,7 @@ def test_shaelvien_deeds_expand_only_across_flat_sides():
     assert "(1, 0)" in land
     assert "(0, 1)" in land
     assert "(-1, 0)" in land
-    assert "Corner-only contact is not claimable." in gate
+    assert "not yet connected to the claim frontier" in gate
 
 
 def test_gamemaster_root_matches_worldbuilder_context_contract():
@@ -57,13 +58,32 @@ def test_selected_spatial_identity_is_persisted_with_assets():
 
 def test_owner_inspect_and_account_world_list_are_separate_from_claiming():
     component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
-    gate = (ROOT / "Components/ShaelvienDeedGate.razor").read_text(encoding="utf-8")
+    mmo = (ROOT / "Components/UniversalInterface.MmoMap.cs").read_text(encoding="utf-8")
+    authority = (ROOT / "WorldSession.WorldAuthority.cs").read_text(encoding="utf-8")
+    workflow = (REPO / ".github/workflows/deploy-rist-platform.yml").read_text(encoding="utf-8")
+    discord = (REPO / "infra/aws/rist-discord-storage.yml").read_text(encoding="utf-8")
 
+    # Deed-selector authority is server-derived. Client display/config state must
+    # never manufacture owner/developer capability.
+    assert "Session.TrustedPlatformOwner" in component
+    assert "Session.TrustedPlatformDeveloper" in component
+    assert '"__endemar__"' in component
     assert '"__inspect__"' in component
-    assert '"__claim__"' in component
-    assert "Auth.IsOwnerDiscordAccount" in component
-    assert 'InspectOnly="true"' in component
-    assert "[Parameter] public bool InspectOnly" in gate
-    assert "Owner inspection is read-only." in gate
-    assert "var x=column-WorldSession.EndemarOriginColumn;" in gate
-    assert "var y=WorldSession.EndemarOriginRow-row;" in gate
+    assert '"__explore__"' in component
+    assert "Auth.IsOwnerDiscordAccount" not in component
+    assert "profile?.PlatformOwner == true" in authority
+    assert '"access.developer"' in authority
+
+    # Discord auth and platform deployment must derive the owner from the same
+    # stable UUIDv5 mapping so a stale repository variable cannot hide Inspect.
+    formula = 'uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id)'
+    assert formula in workflow
+    assert formula in discord
+    assert 'OWNER_USER_ID="$DERIVED_OWNER_USER_ID"' in workflow
+
+    # Inline Inspect keeps MANAGE as the right-side action but can hand the
+    # selected deed into the normal audited World Builder.
+    assert "OpenMmoInspectEditorAsync" in mmo
+    assert "_inspectionEditMode = true;" in mmo
+    assert "_stage = Stage.PathSelect;" in mmo
+    assert "Developer Inspect authority is required." in mmo
