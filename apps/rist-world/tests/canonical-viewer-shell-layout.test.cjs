@@ -371,9 +371,9 @@ test('Explore exposes open public and restricted MMO zones while Inspect can aud
   assert.match(deed,/PUBLIC \/ VIEWABLE|Public \/ viewable/);
   assert.match(deed,/RESTRICTED|Restricted/);
   assert.match(deed,/Restricted Shaelvien zone .* name only/);
-  assert.match(deed,/ApplyInspectionZoneEditAsync/);
-  assert.match(deed,/APPLY ZONE EDIT/);
-  assert.match(deed,/EDIT WORLD WITH REASON/);
+  assert.match(deed,/SaveInspectionZoneEditAsync/);
+  assert.match(deed,/SAVE ZONE EDIT/);
+  assert.match(deed,/OPEN WORLD EDITOR WITH REASON/);
   assert.match(session,/InspectEditMmoParcelAsync/);
   assert.match(client,/\/world\/parcels\/inspect-edit/);
   assert.match(client,/string Visibility = "Restricted"/);
