@@ -7,17 +7,54 @@ public sealed partial class WorldSession
 {
     readonly List<WorldRegion> _regions = [];
     string _activeRegionId = "";
+    string _activeSpatialRegionId = "";
+    string _activeLocalId = "";
+    string _activeInstanceId = "";
 
     public IReadOnlyList<WorldRegion> Regions => _regions;
     public WorldRegion? ActiveRegion => _regions.FirstOrDefault(x => string.Equals(x.RegionId, _activeRegionId, StringComparison.Ordinal));
+    public IReadOnlyList<WorldSpatialNode> ActiveSpatialNodes => ActiveRegion?.SpatialNodes ?? [];
+    public WorldSpatialNode? ActiveSpatialRegion => ActiveSpatialNodes.FirstOrDefault(x =>
+        string.Equals(x.NodeId, _activeSpatialRegionId, StringComparison.Ordinal)
+        && string.Equals(x.Kind, "REGION", StringComparison.OrdinalIgnoreCase));
+    public WorldSpatialNode? ActiveLocal => ActiveSpatialNodes.FirstOrDefault(x =>
+        string.Equals(x.NodeId, _activeLocalId, StringComparison.Ordinal)
+        && string.Equals(x.Kind, "LOCAL", StringComparison.OrdinalIgnoreCase));
+    public WorldSpatialNode? ActiveInstance => ActiveSpatialNodes.FirstOrDefault(x =>
+        string.Equals(x.NodeId, _activeInstanceId, StringComparison.Ordinal)
+        && string.Equals(x.Kind, "INSTANCE", StringComparison.OrdinalIgnoreCase));
+    public IReadOnlyList<WorldSpatialNode> SpatialRegions => ActiveSpatialNodes
+        .Where(x => string.Equals(x.Kind, "REGION", StringComparison.OrdinalIgnoreCase))
+        .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+        .ToList();
+    public IReadOnlyList<WorldSpatialNode> LocalsForActiveSpatialRegion => ActiveSpatialRegion is null
+        ? []
+        : ActiveSpatialNodes
+            .Where(x => string.Equals(x.Kind, "LOCAL", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(x.ParentNodeId, ActiveSpatialRegion.NodeId, StringComparison.Ordinal))
+            .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    public IReadOnlyList<WorldSpatialNode> InstancesForActiveLocal => ActiveLocal is null
+        ? []
+        : ActiveSpatialNodes
+            .Where(x => string.Equals(x.Kind, "INSTANCE", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(x.ParentNodeId, ActiveLocal.NodeId, StringComparison.Ordinal))
+            .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     public string RegionDirectoryKey => $"{WorldStoragePrefix}/regions/index.json";
     public string RegionLocalSaveKey => $"rist.regions.v1.{WorldId}";
 
     public async Task LoadRegionsAsync()
     {
         var requestedActiveRegionId = _activeRegionId;
+        var requestedSpatialRegionId = _activeSpatialRegionId;
+        var requestedLocalId = _activeLocalId;
+        var requestedInstanceId = _activeInstanceId;
         _regions.Clear();
         _activeRegionId = "";
+        _activeSpatialRegionId = "";
+        _activeLocalId = "";
+        _activeInstanceId = "";
         if (!HasActiveWorld) { Notify(); return; }
 
         WorldRegionCatalog? catalog = null;
@@ -60,6 +97,28 @@ public sealed partial class WorldSession
                 && _regions.Any(x => string.Equals(x.RegionId, requestedActiveRegionId, StringComparison.Ordinal))
                 ? requestedActiveRegionId
                 : "";
+
+            if (ActiveRegion is not null)
+            {
+                var nodes = ActiveRegion.SpatialNodes ?? [];
+                _activeSpatialRegionId = nodes.Any(x =>
+                    string.Equals(x.NodeId, requestedSpatialRegionId, StringComparison.Ordinal)
+                    && string.Equals(x.Kind, "REGION", StringComparison.OrdinalIgnoreCase))
+                    ? requestedSpatialRegionId
+                    : "";
+                _activeLocalId = nodes.Any(x =>
+                    string.Equals(x.NodeId, requestedLocalId, StringComparison.Ordinal)
+                    && string.Equals(x.Kind, "LOCAL", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(x.ParentNodeId, _activeSpatialRegionId, StringComparison.Ordinal))
+                    ? requestedLocalId
+                    : "";
+                _activeInstanceId = nodes.Any(x =>
+                    string.Equals(x.NodeId, requestedInstanceId, StringComparison.Ordinal)
+                    && string.Equals(x.Kind, "INSTANCE", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(x.ParentNodeId, _activeLocalId, StringComparison.Ordinal))
+                    ? requestedInstanceId
+                    : "";
+            }
         }
 
         Notify();
@@ -70,14 +129,134 @@ public sealed partial class WorldSession
         if (string.IsNullOrWhiteSpace(regionId))
         {
             _activeRegionId = "";
+            ClearSpatialSelection();
             Notify();
             return;
         }
         if (_regions.Any(x => string.Equals(x.RegionId, regionId, StringComparison.Ordinal)))
         {
+            if (!string.Equals(_activeRegionId, regionId, StringComparison.Ordinal))
+                ClearSpatialSelection();
             _activeRegionId = regionId;
             Notify();
         }
+    }
+
+    public void SetActiveSpatialRegion(string nodeId)
+    {
+        var node = ActiveSpatialNodes.FirstOrDefault(x =>
+            string.Equals(x.NodeId, nodeId, StringComparison.Ordinal)
+            && string.Equals(x.Kind, "REGION", StringComparison.OrdinalIgnoreCase));
+        if (node is null) return;
+        _activeSpatialRegionId = node.NodeId;
+        _activeLocalId = "";
+        _activeInstanceId = "";
+        Notify();
+    }
+
+    public void SetActiveLocal(string nodeId)
+    {
+        if (ActiveSpatialRegion is null) return;
+        var node = ActiveSpatialNodes.FirstOrDefault(x =>
+            string.Equals(x.NodeId, nodeId, StringComparison.Ordinal)
+            && string.Equals(x.Kind, "LOCAL", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(x.ParentNodeId, ActiveSpatialRegion.NodeId, StringComparison.Ordinal));
+        if (node is null) return;
+        _activeLocalId = node.NodeId;
+        _activeInstanceId = "";
+        Notify();
+    }
+
+    public void SetActiveInstance(string nodeId)
+    {
+        if (ActiveLocal is null) return;
+        var node = ActiveSpatialNodes.FirstOrDefault(x =>
+            string.Equals(x.NodeId, nodeId, StringComparison.Ordinal)
+            && string.Equals(x.Kind, "INSTANCE", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(x.ParentNodeId, ActiveLocal.NodeId, StringComparison.Ordinal));
+        if (node is null) return;
+        _activeInstanceId = node.NodeId;
+        Notify();
+    }
+
+    public async Task<WorldSpatialNode> CreateSpatialNodeAsync(string kind, string name)
+    {
+        var authorityRegion = ActiveRegion
+            ?? throw new InvalidOperationException("Select a Shaelvien world before creating a spatial depth.");
+        if (!CanEditRegion(authorityRegion))
+            throw new UnauthorizedAccessException("Edit authority is required to create this spatial depth.");
+
+        kind = (kind ?? "").Trim().ToUpperInvariant();
+        if (kind is not ("REGION" or "LOCAL" or "INSTANCE"))
+            throw new InvalidOperationException("Spatial depth must be Region, Local, or Instance.");
+
+        name = (name ?? "").Trim();
+        if (name.Length == 0) throw new InvalidOperationException($"Enter a {kind.ToLowerInvariant()} name.");
+        if (name.Length > 80) throw new InvalidOperationException("Spatial names must be 80 characters or fewer.");
+
+        string parentNodeId = kind switch
+        {
+            "REGION" => authorityRegion.RegionId,
+            "LOCAL" when ActiveSpatialRegion is not null => ActiveSpatialRegion.NodeId,
+            "INSTANCE" when ActiveLocal is not null => ActiveLocal.NodeId,
+            "LOCAL" => throw new InvalidOperationException("Select a Region before creating a Local."),
+            "INSTANCE" => throw new InvalidOperationException("Select a Local before creating an Instance."),
+            _ => authorityRegion.RegionId
+        };
+
+        var now = DateTimeOffset.UtcNow;
+        var node = new WorldSpatialNode(
+            NodeId: NewSpatialNodeId(kind, name),
+            Kind: kind,
+            Name: name,
+            ParentNodeId: parentNodeId,
+            CreatedAtUtc: now,
+            UpdatedAtUtc: now);
+
+        var nodes = (authorityRegion.SpatialNodes ?? []).ToList();
+        nodes.Add(node);
+        var index = _regions.FindIndex(x => string.Equals(x.RegionId, authorityRegion.RegionId, StringComparison.Ordinal));
+        if (index < 0) throw new InvalidOperationException("The active Shaelvien world record is unavailable.");
+        _regions[index] = authorityRegion with { SpatialNodes = nodes, UpdatedAtUtc = now };
+
+        switch (kind)
+        {
+            case "REGION":
+                _activeSpatialRegionId = node.NodeId;
+                _activeLocalId = "";
+                _activeInstanceId = "";
+                break;
+            case "LOCAL":
+                _activeLocalId = node.NodeId;
+                _activeInstanceId = "";
+                break;
+            case "INSTANCE":
+                _activeInstanceId = node.NodeId;
+                break;
+        }
+
+        await SaveRegionsAsync();
+        Notify();
+        return node;
+    }
+
+    void ClearSpatialSelection()
+    {
+        _activeSpatialRegionId = "";
+        _activeLocalId = "";
+        _activeInstanceId = "";
+    }
+
+    static string NewSpatialNodeId(string kind, string name)
+    {
+        var segment = new string(name.ToLowerInvariant()
+            .Select(ch => char.IsLetterOrDigit(ch) ? ch : '-')
+            .ToArray()).Trim('-');
+        while (segment.Contains("--", StringComparison.Ordinal))
+            segment = segment.Replace("--", "-", StringComparison.Ordinal);
+        if (segment.Length == 0) segment = kind.ToLowerInvariant();
+        if (segment.Length > 32) segment = segment[..32].Trim('-');
+        return $"{kind.ToLowerInvariant()}-{segment}-{Guid.NewGuid():N}";
     }
 
     public async Task<WorldRegion> CreateRegionAsync(string name, IEnumerable<int> selectedCells, int tierIndex = 0, IEnumerable<int>? sourceLayerOffsets = null, string gridShape = "square")
@@ -305,11 +484,21 @@ public sealed record WorldRegion(
     double CanonicalMaxY = 0,
     int CanonicalZMin = 0,
     int CanonicalZMax = 0,
-    string Description = "")
+    string Description = "",
+    List<WorldSpatialNode>? SpatialNodes = null)
 {
     [JsonIgnore] public int Width => Math.Max(1, MaxColumn - MinColumn + 1);
     [JsonIgnore] public int Height => Math.Max(1, MaxRow - MinRow + 1);
 }
+
+public sealed record WorldSpatialNode(
+    string NodeId,
+    string Kind,
+    string Name,
+    string ParentNodeId,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset UpdatedAtUtc,
+    string Description = "");
 
 public sealed record RegionOverlayTile(
     string Id,
