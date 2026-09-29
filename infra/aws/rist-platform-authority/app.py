@@ -53,7 +53,8 @@ ENDEMAR_ORIGIN_COLUMN = 15
 ENDEMAR_ORIGIN_ROW = 15
 GENESIS_WORLD_TOKEN_SK = "WORLD_TOKEN#GENESIS"
 PARCEL_DELEGATION_PERMISSIONS = {"View", "Edit", "Manage", "None"}
-PARCEL_VISIBILITIES = {"Public", "Restricted"}  # Explore visibility; Inspect changes are reason-audited.
+PARCEL_VISIBILITIES = {"Public", "Restricted"}
+PLATFORM_DEVELOPER_ENTITLEMENT = "access.developer"  # Explore visibility; Inspect changes are reason-audited.
 
 # Commerce is deliberately authority-first. Paid providers may fulfill these
 # records later, but a browser can never manufacture a subscription, access
@@ -552,9 +553,26 @@ def public_world_token(item):
     }
 
 
-def public_parcel(item):
+def public_parcel(item, name_only=False):
     if not item:
         return None
+    if name_only:
+        return {
+            "parcelId": "",
+            "worldId": str(item.get("worldId") or ""),
+            "regionId": "",
+            "displayName": str(item.get("displayName") or ""),
+            "ownerUserId": "",
+            "cellIndex": int(item.get("cellIndex") or 0),
+            "column": int(item.get("column") or 0),
+            "row": int(item.get("row") or 0),
+            "pixelWidth": MMO_PARCEL_PIXELS,
+            "pixelHeight": MMO_PARCEL_PIXELS,
+            "maxHeight": MMO_PARCEL_MAX_HEIGHT,
+            "bindingHash": "",
+            "claimedAtUtc": "",
+            "visibility": "Restricted",
+        }
     return {
         "parcelId": str(item.get("parcelId") or ""),
         "worldId": str(item.get("worldId") or ""),
@@ -844,6 +862,21 @@ def merge_commercial_entitlements(user_id, profile, now=None):
         )
     merged["entitlements"] = sorted(values)
     return merged
+
+
+def is_platform_developer(user_id):
+    if owner_user_id and user_id == owner_user_id:
+        return True
+    profile = users.get_item(
+        Key={"pk": "USER#" + user_id, "sk": "PROFILE"},
+        ConsistentRead=True,
+    ).get("Item") or {}
+    merged = merge_commercial_entitlements(user_id, profile)
+    return PLATFORM_DEVELOPER_ENTITLEMENT in {
+        str(value).strip()
+        for value in (merged.get("entitlements") or [])
+        if str(value).strip()
+    }
 
 
 def commerce_summary(user_id, profile=None):
@@ -1168,7 +1201,10 @@ def commercial_profile(existing, platform_owner):
         surface_pixels = DEFAULT_SURFACE_WORLD_PIXELS
 
     if platform_owner:
-        entitlements = sorted(set(entitlements) | {"worlds.unlimited", "surface.unlimited"})
+        entitlements = sorted(
+            set(entitlements)
+            | {"worlds.unlimited", "surface.unlimited", PLATFORM_DEVELOPER_ENTITLEMENT}
+        )
 
     return {
         "entitlements": entitlements,
@@ -2001,18 +2037,23 @@ def handler(event, context):
         world_id = safe_id(q.get("worldId"), "worldId")
         if not is_geonaph(world_id):
             return response(400, {"error": "MMO parcel claims belong to Shaelvien"})
-        parcels = [public_parcel(item) for item in query_world_prefix(world_id, "PARCEL#")]
-        parcels = [item for item in parcels if item is not None]
-        for parcel in parcels:
-            if parcel["ownerUserId"] == user_id:
-                parcel["effectivePermission"] = "Owner"
-            elif can_manage(world_id, user_id):
-                parcel["effectivePermission"] = "Manage"
+        developer = is_platform_developer(user_id)
+        parcels = []
+        for item in query_world_prefix(world_id, "PARCEL#"):
+            parcel_id = str(item.get("parcelId") or "")
+            visibility = str(item.get("visibility") or "Restricted")
+            if str(item.get("ownerUserId") or "") == user_id:
+                permission = "Owner"
             else:
-                permission = parcel_permission(world_id, parcel["parcelId"], user_id)
-                if permission == "None" and parcel.get("visibility") == "Public":
+                permission = parcel_permission(world_id, parcel_id, user_id)
+                if permission == "None" and visibility == "Public":
                     permission = "View"
-                parcel["effectivePermission"] = permission
+            name_only = visibility == "Restricted" and permission == "None" and not developer
+            parcel = public_parcel(item, name_only=name_only)
+            if parcel is None:
+                continue
+            parcel["effectivePermission"] = permission
+            parcels.append(parcel)
         parcels.sort(key=lambda item: (item["row"], item["column"]))
         return response(200, parcels)
 
@@ -2387,7 +2428,7 @@ def handler(event, context):
         req = body(event)
         world_id = safe_id(req.get("worldId"), "worldId")
         parcel_id = safe_id(req.get("parcelId"), "parcelId")
-        if not is_geonaph(world_id) or not can_manage(world_id, user_id):
+        if not is_geonaph(world_id) or not is_platform_developer(user_id):
             return response(403, {"error": "Platform developer inspection authority required"})
 
         reason = str(req.get("reason") or "").strip()
@@ -2557,18 +2598,20 @@ def handler(event, context):
     if method == "POST" and path == "/world/source":
         req = body(event)
         world_id = safe_id(req.get("worldId"), "worldId")
-        if not can_manage(world_id, user_id):
-            return response(403, {"error": "World Builder authority required"})
-        state = req.get("state")
-        if not isinstance(state, dict):
-            return response(400, {"error": "World source state must be an object"})
         inspection_edit = bool(req.get("inspectionEdit"))
         inspection_reason = str(req.get("inspectionReason") or "").strip()
         if inspection_edit:
+            if not is_geonaph(world_id) or not is_platform_developer(user_id):
+                return response(403, {"error": "Platform developer inspection authority required"})
             if len(inspection_reason) < 3:
                 return response(400, {"error": "Every inspection edit requires a reason"})
             if len(inspection_reason) > 500:
                 return response(400, {"error": "Inspection edit reason is limited to 500 characters"})
+        elif not can_manage(world_id, user_id):
+            return response(403, {"error": "World Builder authority required"})
+        state = req.get("state")
+        if not isinstance(state, dict):
+            return response(400, {"error": "World source state must be an object"})
         state_world_id = str(state.get("worldId") or "").strip()
         if state_world_id and state_world_id != world_id:
             return response(400, {"error": "World source identity mismatch"})
@@ -2633,7 +2676,14 @@ def handler(event, context):
                 return response(400, {"error": "Every inspection edit requires a reason"})
             if len(inspection_reason) > 500:
                 return response(400, {"error": "Inspection edit reason is limited to 500 characters"})
-        region_state = editable_region_state(world_id, region_id, user_id)
+        if inspection_edit and is_platform_developer(user_id):
+            region_item = world.get_item(
+                Key=region_key(world_id, region_id),
+                ConsistentRead=True,
+            ).get("Item")
+            region_state = dict((region_item or {}).get("state") or {}) if region_item else None
+        else:
+            region_state = editable_region_state(world_id, region_id, user_id)
         if region_state is None:
             return response(403, {"error": "Region edit authority required"})
         incoming = req.get("userLayers") or []
@@ -2739,7 +2789,9 @@ def handler(event, context):
         region_id = safe_id(region.get("regionId"), "regionId")
         key = region_key(world_id, region_id)
         current = world.get_item(Key=key, ConsistentRead=True).get("Item")
-        manager = can_manage(world_id, user_id)
+        manager = can_manage(world_id, user_id) or (
+            inspection_edit and is_platform_developer(user_id)
+        )
         owner = str(
             (current or {}).get("ownerUserId") or region.get("ownerUserId") or ""
         )
