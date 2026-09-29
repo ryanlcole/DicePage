@@ -362,6 +362,10 @@
 <ShaelvienDeedGate Open="@_shaelvienDeedGateOpen"
                    OnClose="CloseShaelvienDeedGate"
                    OnClaimed="CompleteShaelvienDeedAsync" />
+<ShaelvienDeedGate Open="@_shaelvienInspectGateOpen"
+                   InspectOnly="true"
+                   OnClose="CloseShaelvienInspectGate"
+                   OnClaimed="CompleteShaelvienDeedAsync" />
 
 <WorldGate Open="@_ristDeedGateOpen"
            OnClose="CloseRistDeedGate"
@@ -460,6 +464,7 @@
  bool _experimentStartFlashing;
  bool _legacyGateOpen;
  bool _shaelvienDeedGateOpen;
+ bool _shaelvienInspectGateOpen;
  bool _ristDeedGateOpen;
  string _selectedEnvironment="SHAELVIEN";
  string _contextLoadedIdentity="";
@@ -527,8 +532,11 @@
   {
    if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
    {
-    return Session.MmoParcels
-     .Where(Session.CanAccessMmoParcel)
+    var userId=Auth.Profile?.UserId?.Trim()??"";
+    var options=Session.MmoParcels
+     .Where(parcel=>
+      string.Equals(parcel.OwnerUserId,userId,StringComparison.Ordinal)
+      ||(!Auth.IsOwnerDiscordAccount&&Session.CanAccessMmoParcel(parcel)))
      .Select(parcel=>new ControllerWorldOption(
       parcel.ParcelId,
       parcel.DisplayName,
@@ -538,6 +546,30 @@
      .OrderBy(option=>option.Name,StringComparer.OrdinalIgnoreCase)
      .ThenBy(option=>option.Id,StringComparer.Ordinal)
      .ToList();
+
+    if(Auth.IsOwnerDiscordAccount)
+    {
+     options.Insert(0,new ControllerWorldOption(
+      "__endemar__",
+      WorldSession.EndemarStartingPointDisplayName,
+      "SHAELVIEN_ORIGIN",
+      null,
+      null));
+     options.Add(new ControllerWorldOption(
+      "__inspect__",
+      "Inspect",
+      "SHAELVIEN_INSPECT",
+      null,
+      null));
+    }
+
+    options.Add(new ControllerWorldOption(
+     "__claim__",
+     "Claim Deed",
+     "SHAELVIEN_CLAIM",
+     null,
+     null));
+    return options;
    }
 
    var options=Worlds
@@ -584,13 +616,18 @@
  {
   get
   {
-   if(HasPathWorlds)return PathWorldCount>1?"SLIDE ↔ · TOUCH WORLD":"TOUCH · OPEN WORLD";
-   if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+   if(CurrentPathWorld?.Environment=="SHAELVIEN_CLAIM")
    {
     var count=Session.UnspentMmoWorldTokenCount;
     return $"YOU HAVE {count} TOKEN{(count==1?"":"S")} REMAINING";
    }
-   return "NO TOKEN REQUIRED";
+   if(CurrentPathWorld?.Environment=="SHAELVIEN_INSPECT")
+    return "OWNER · AUDIT REALMS";
+   if(CurrentPathWorld is not null)
+    return PathWorldCount>1?"SLIDE ↔ · TOUCH WORLD":"TOUCH · OPEN WORLD";
+   return string.Equals(_selectedEnvironment,"RIST",StringComparison.OrdinalIgnoreCase)
+    ?"NO TOKEN REQUIRED"
+    :"CLAIM DEED";
   }
  }
 
@@ -2948,9 +2985,31 @@
 
   try
   {
-   if(string.Equals(option.Environment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+   if(option.Environment.StartsWith("SHAELVIEN",StringComparison.OrdinalIgnoreCase))
    {
     await EnsureShaelvienEnvironmentAsync();
+
+    if(option.Environment=="SHAELVIEN_CLAIM")
+    {
+     await OpenControllerDeedAsync();
+     return false;
+    }
+
+    if(option.Environment=="SHAELVIEN_INSPECT")
+    {
+     _shaelvienInspectGateOpen=true;
+     _message="Inspect opened. Review claimed Shaelvien realms without changing their ownership.";
+     await InvokeAsync(StateHasChanged);
+     return false;
+    }
+
+    if(option.Environment=="SHAELVIEN_ORIGIN")
+    {
+     Session.SetActiveRegion("");
+     _message=$"{WorldSession.EndemarStartingPointDisplayName} selected.";
+     return true;
+    }
+
     var parcel=Session.MmoParcels.FirstOrDefault(item=>string.Equals(item.ParcelId,option.Id,StringComparison.Ordinal));
     if(parcel is null||!Session.CanAccessMmoParcel(parcel))
     {
@@ -3006,6 +3065,12 @@
  {
   _shaelvienDeedGateOpen=false;
   _message="Claim Deed closed.";
+ }
+
+ void CloseShaelvienInspectGate()
+ {
+  _shaelvienInspectGateOpen=false;
+  _message="Inspect closed.";
  }
 
  async Task CompleteShaelvienDeedAsync(AwsAuthorityClient.MmoParcel parcel)
