@@ -59,7 +59,7 @@
       {
        @if(_selectedCell==WorldSession.EndemarOriginCell)
        {
-        <span>Endemar · canonical Shaelvien origin · coordinate 0,0</span>
+        <span>Endemar · canonical Shaelvien origin · coordinate (0,0)</span>
        }
        else if(SelectedParcel is not null)
        {
@@ -286,6 +286,6 @@
   var row=cell/WorldSession.MmoParcelGridColumns;
   var x=column-WorldSession.EndemarOriginColumn;
   var y=WorldSession.EndemarOriginRow-row;
-  return $"{x},{y}";
+  return $"({x},{y})";
  }
 }

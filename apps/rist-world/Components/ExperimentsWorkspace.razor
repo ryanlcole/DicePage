@@ -395,7 +395,9 @@
  {
   Environment,
   Role,
+  DeedSelect,
   PathSelect,
+  ContextSelect,
   GameMasterHub,
   GameMasterScope,
   SpatialSelect,
@@ -467,6 +469,9 @@
  bool _shaelvienInspectGateOpen;
  bool _ristDeedGateOpen;
  string _selectedEnvironment="SHAELVIEN";
+ string _selectedDeedId="";
+ string _selectedDeedName="";
+ string _selectedDeedKind="";
  string _contextLoadedIdentity="";
  string _contextName="";
  string _contextLore="";
@@ -604,6 +609,30 @@
   }
  }
 
+
+ bool IsShaelvienDeedHome=>_stage==Stage.PathSelect
+  &&string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
+  &&!string.IsNullOrWhiteSpace(_selectedDeedName);
+
+ bool IsDeedContextNode=>_stage==Stage.KnowledgeNode
+  &&string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
+  &&_pathIndex==1
+  &&ContextPath.Contains(_activeKnowledgeNode,StringComparer.OrdinalIgnoreCase)
+  &&!string.IsNullOrWhiteSpace(_selectedDeedName);
+
+ string CurrentContextSelection=>ContextPath[Math.Clamp(_pathMenuIndex,0,ContextPath.Length-1)];
+
+ void SetSelectedDeed(ControllerWorldOption option)
+ {
+  _selectedDeedId=option.Id;
+  _selectedDeedName=option.Name?.Trim()??"";
+  _selectedDeedKind=option.Environment;
+  _pathIndex=0;
+  _pathMenuIndex=0;
+  _scopeIndex=0;
+  _spatialSelectIndex=0;
+ }
+
  int PathWorldCount=>PathWorldOptions.Count;
  bool HasPathWorlds=>PathWorldCount>0;
  int PathWorldIndex=>PathWorldCount==0?0:Math.Clamp(_worldIndex,0,PathWorldCount-1);
@@ -732,7 +761,8 @@
   get
   {
    var labels=new List<string>();
-   if(CurrentPathWorld is not null)labels.Add(CurrentPathWorld.Name);
+   if(!string.IsNullOrWhiteSpace(_selectedDeedName))labels.Add(_selectedDeedName);
+   else if(CurrentPathWorld is not null)labels.Add(CurrentPathWorld.Name);
    if(Session.ActiveSpatialRegion is not null)labels.Add(Session.ActiveSpatialRegion.Name);
    if(Session.ActiveLocal is not null)labels.Add(Session.ActiveLocal.Name);
    if(Session.ActiveInstance is not null)labels.Add(Session.ActiveInstance.Name);
@@ -776,7 +806,7 @@
    return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&embedded-controller=1&renderer=20260928-universal-viewer-1";
   }
  }
- bool IsPathDrivenStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
+ bool IsPathDrivenStage=>!IsDeedContextNode&&_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
  bool IsMyAssetSource=>_assetSource is "MY IMAGES" or "MY SPRITES";
  bool IsGameAssetSource=>_assetSource is "GAME IMAGES" or "GAME SPRITES";
  const string EndemarCanonicalAssetRoot="https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/";
@@ -791,7 +821,9 @@
 
  int LeftDisplayOptionCount=>_stage switch
  {
-  Stage.PathSelect=>GameMasterPaths.Length,
+  Stage.DeedSelect=>1,
+  Stage.PathSelect=>IsShaelvienDeedHome?1:GameMasterPaths.Length,
+  Stage.ContextSelect=>1,
   Stage.GameMasterHub=>WorldChoices.Length,
   Stage.GameMasterScope=>Scopes.Length,
   Stage.SpatialSelect=>SpatialOptionCount,
@@ -807,20 +839,26 @@
   _=>1
  };
 
- int RightDisplayOptionCount=>IsBuilderStage
-  ?1
-  :IsPathDrivenStage
-   ?CurrentPathMenu.Length
-   :_stage switch
-   {
-    Stage.PathSelect=>Math.Max(1,PathWorldCount),
-    Stage.GameMasterHub=>Settings.Length,
-    Stage.Rotate=>72,
-    _=>1
-   };
+ int RightDisplayOptionCount=>_stage switch
+ {
+  Stage.DeedSelect=>Math.Max(1,PathWorldCount),
+  Stage.ContextSelect=>ContextPath.Length,
+  _=>IsBuilderStage
+   ?1
+   :IsPathDrivenStage
+    ?CurrentPathMenu.Length
+    :_stage switch
+    {
+     Stage.PathSelect=>IsShaelvienDeedHome?1:Math.Max(1,PathWorldCount),
+     Stage.GameMasterHub=>Settings.Length,
+     Stage.Rotate=>72,
+     _=>1
+    }
+ };
 
- bool RightActsAsBack=>_stage==Stage.SpatialSelect||(_stage!=Stage.PathSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1);
- bool CursorAvailable=>_stage!=Stage.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
+ bool RightActsAsBack=>_stage==Stage.SpatialSelect||IsDeedContextNode||(_stage!=Stage.PathSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1);
+ bool IsGameMasterMenuStage=>_stage is Stage.DeedSelect or Stage.ContextSelect||IsShaelvienDeedHome;
+ bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
  bool CursorMode=>CursorAvailable
   &&!_analogButtonMode
   &&(_stage!=Stage.BrowsePlace||_browseCursorActive);
@@ -830,14 +868,18 @@
 
  bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
  bool IsAssetTransformStage=>_stage is Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
- bool IsBuilderStage=>IsDepthStage||_stage is Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.AssetMode or Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel or Stage.FullMapReview;
+ bool IsBuilderStage=>IsDepthStage
+  ||_stage is Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.AssetKind or Stage.AssetMode or Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel or Stage.FullMapReview
+  ||(_stage==Stage.KnowledgeNode&&!IsDeedContextNode);
  bool HasSavedViewer=>_savedAssets.Count>0;
  int VisibleGlassSheets=>Math.Clamp(_layer+1,1,8);
  string ViewerClass=>IsBuilderStage&&!HasSavedViewer?"builder":HasSavedViewer?"recursive":"";
 
  string LeftAxisHint=>_stage switch
  {
-  Stage.PathSelect=>"Y · PATHS",
+  Stage.DeedSelect=>"Y · ROOT",
+  Stage.PathSelect=>IsShaelvienDeedHome?"Y · BUILD":"Y · PATHS",
+  Stage.ContextSelect=>"Y · BACK",
   Stage.GameMasterHub=>"Y · WORLDS",
   Stage.GameMasterScope=>"Y · SUITES",
   Stage.SpatialSelect=>$"Y · {CurrentBuilderScope}",
@@ -855,6 +897,9 @@
    ?"X · PATH / JOURNAL"
    :_stage switch
   {
+   Stage.DeedSelect=>"X · DEEDS",
+   Stage.PathSelect when IsShaelvienDeedHome=>"X · CONTEXT",
+   Stage.ContextSelect=>"X · CONTEXT",
    Stage.GameMasterHub=>"X · OPTIONS",
    Stage.Rotate=>"X · ROTATE",
    Stage.Move=>"X · MOVE",
@@ -865,7 +910,9 @@
  {
   Stage.Environment=>"ENVIRONMENT",
   Stage.Role=>_selectedEnvironment,
-  Stage.PathSelect=>"GAMEMASTER PATH",
+  Stage.DeedSelect=>"GAMEMASTER",
+  Stage.PathSelect=>IsShaelvienDeedHome?"BUILD":"GAMEMASTER PATH",
+  Stage.ContextSelect=>"NAVIGATION",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
   Stage.SpatialSelect=>$"SELECT {CurrentBuilderScope}",
   Stage.ControlSettings=>"CONTROLS",
@@ -887,7 +934,9 @@
  {
   Stage.Environment=>"SHAELVIEN",
   Stage.Role=>"ROLEPLAYER",
-  Stage.PathSelect=>CurrentGameMasterPath,
+  Stage.DeedSelect=>"SHAELVIEN",
+  Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
+  Stage.ContextSelect=>"BACK",
   Stage.GameMasterScope=>CurrentScope,
   Stage.SpatialSelect=>CurrentSpatialSelectionLabel,
   Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
@@ -912,7 +961,9 @@
  {
   Stage.Environment=>"ENVIRONMENT",
   Stage.Role=>_selectedEnvironment,
-  Stage.PathSelect=>PathWorldEyebrow,
+  Stage.DeedSelect=>"DEED / ACCESS",
+  Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldEyebrow,
+  Stage.ContextSelect=>"CONTEXT",
   Stage.GameMasterScope=>"NAVIGATION",
   Stage.SpatialSelect=>"NAVIGATION",
   Stage.ControlSettings=>"SETTINGS",
@@ -930,7 +981,9 @@
  {
   Stage.Environment=>"RIST",
   Stage.Role=>"GAMEMASTER",
-  Stage.PathSelect=>PathWorldLabel,
+  Stage.DeedSelect=>PathWorldLabel,
+  Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldLabel,
+  Stage.ContextSelect=>CurrentContextSelection,
   Stage.GameMasterScope=>"BACK",
   Stage.SpatialSelect=>"BACK",
   Stage.ControlSettings=>"BACK",
@@ -948,7 +1001,11 @@
  {
   Stage.Environment=>"Shared Shaelvien MMO environment.",
   Stage.Role=>"Player-facing role.",
-  Stage.PathSelect=>"Choose World Builder or Context. World Builder controls representation; Context carries History, Lore, and Truth.",
+  Stage.DeedSelect=>"Shaelvien is the GameMaster root. Choose an owned/delegated deed, Inspect, or Claim Deed on the right.",
+  Stage.PathSelect=>IsShaelvienDeedHome
+   ?$"World Builder edits {_selectedDeedName}. Region, Local, and Instance remain selection-first."
+   :"Choose World Builder or Context.",
+  Stage.ContextSelect=>$"Context for {_selectedDeedName}: History, Lore, and Truth remain distinct.",
   Stage.GameMasterScope=>"Y cycles GameMaster applications and capability groups.",
   Stage.SpatialSelect=>SpatialOptionIsNew
    ?$"Create a new {CurrentBuilderScope.ToLowerInvariant()} inside the selected parent. Editing depth stays locked until the object is selected."
@@ -974,8 +1031,11 @@
  string RightDetail=>_stage switch
  {
   Stage.Environment=>"Private/universal RIST environment.",
-  Stage.Role=>"Enter the GameMaster path selector.",
-  Stage.PathSelect=>HasPathWorlds
+  Stage.Role=>"Enter the GameMaster selector.",
+  Stage.DeedSelect=>PathWorldPrompt,
+  Stage.PathSelect=>IsShaelvienDeedHome
+   ?"Open Context for the selected deed."
+   :HasPathWorlds
    ?"Choose a world alphabetically. Touch the right display to open the shown world."
    :string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
     ?"Claim a Shaelvien deed with one available Shaelvien Token."
@@ -1011,7 +1071,9 @@
 
  string LeftDisplayValue=>_stage switch
  {
-  Stage.PathSelect=>CurrentGameMasterPath,
+  Stage.DeedSelect=>"SHAELVIEN",
+  Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
+  Stage.ContextSelect=>"BACK",
   Stage.GameMasterHub=>CurrentWorld,
   Stage.SpatialSelect=>CurrentSpatialSelectionLabel,
   Stage.SoftwareHub=>CurrentSoftware,
@@ -1037,7 +1099,9 @@
     ?CurrentPathTarget
     :_stage switch
    {
-    Stage.PathSelect=>PathWorldLabel,
+    Stage.DeedSelect=>PathWorldLabel,
+    Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldLabel,
+    Stage.ContextSelect=>CurrentContextSelection,
     Stage.GameMasterHub=>CurrentSetting,
     Stage.ControlSettings=>"BACK",
     Stage.Rotate=>$"{_assetRotation}°",
@@ -1046,7 +1110,9 @@
 
  string LeftDisplayPrompt=>_stage switch
  {
-  Stage.PathSelect=>"SLIDE ↑↓ · TOUCH PATH",
+  Stage.DeedSelect=>"TOUCH · SHAELVIEN",
+  Stage.PathSelect=>IsShaelvienDeedHome?"TOUCH · BUILD":"SLIDE ↑↓ · TOUCH PATH",
+  Stage.ContextSelect=>"TOUCH · BACK",
   Stage.GameMasterHub=>"TOUCH · SELECT WORLD",
   Stage.SpatialSelect=>SpatialOptionIsNew?$"TOUCH · CREATE {CurrentBuilderScope}":"TOUCH · SELECT",
   Stage.SoftwareHub=>"TOUCH · SELECT TOOL",
@@ -1071,7 +1137,9 @@
     ?"SLIDE ↔ · TOUCH JUMP"
     :_stage switch
    {
-    Stage.PathSelect=>PathWorldPrompt,
+    Stage.DeedSelect=>PathWorldPrompt,
+    Stage.PathSelect=>IsShaelvienDeedHome?"TOUCH · OPEN":PathWorldPrompt,
+    Stage.ContextSelect=>"SLIDE ↔ · TOUCH OPEN",
     Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
     Stage.SoftwareHub=>"TOUCH · BACK",
     Stage.ControlSettings=>"TOUCH · CANCEL",
@@ -1084,7 +1152,9 @@
  {
   Stage.Environment=>"RIST UNIVERSAL VIEWER",
   Stage.Role=>_selectedEnvironment,
-  Stage.PathSelect=>"GAMEMASTER · CHOOSE PATH",
+  Stage.DeedSelect=>"GAMEMASTER · SHAELVIEN",
+  Stage.PathSelect=>IsShaelvienDeedHome?$"GAMEMASTER · {_selectedDeedName.ToUpperInvariant()}":"GAMEMASTER · CHOOSE PATH",
+  Stage.ContextSelect=>$"CONTEXT · {_selectedDeedName.ToUpperInvariant()}",
   Stage.GameMasterHub=>"GAMEMASTER · WORLD SELECTOR",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
   Stage.SpatialSelect=>$"{CurrentBuilderScope} · SELECT BEFORE EDIT",
@@ -1111,7 +1181,9 @@
  {
   Stage.Environment=>"START",
   Stage.Role=>$"{_selectedEnvironment} → ROLE",
-  Stage.PathSelect=>"GAMEMASTER → PATH",
+  Stage.DeedSelect=>"SHAELVIEN → DEEDS",
+  Stage.PathSelect=>IsShaelvienDeedHome?$"{_selectedDeedName.ToUpperInvariant()} → HOME":"GAMEMASTER → PATH",
+  Stage.ContextSelect=>$"{_selectedDeedName.ToUpperInvariant()} → CONTEXT",
   Stage.GameMasterHub=>"SHAELVIEN → GAMEMASTER",
   Stage.GameMasterScope=>"GAMEMASTER → SUITE",
   Stage.SpatialSelect=>string.IsNullOrWhiteSpace(CurrentSpatialBreadcrumb)?$"GAMEMASTER → {CurrentBuilderScope}":$"{CurrentSpatialBreadcrumb} → SELECT {CurrentBuilderScope}",
@@ -1240,9 +1312,20 @@
 
   switch(_stage)
   {
+   case Stage.DeedSelect:
+    _message="Shaelvien is fixed on the left. Use X or the right display to choose a deed or access action.";
+    break;
    case Stage.PathSelect:
-    _pathIndex=Wrap(_pathIndex+direction,GameMasterPaths.Length);
-    _message=$"GameMaster path: {CurrentGameMasterPath}.";
+    if(IsShaelvienDeedHome)
+     _message="World Builder is on the left and Context is on the right.";
+    else
+    {
+     _pathIndex=Wrap(_pathIndex+direction,GameMasterPaths.Length);
+     _message=$"GameMaster path: {CurrentGameMasterPath}.";
+    }
+    break;
+   case Stage.ContextSelect:
+    _message="Use X or the right display to choose History, Lore, or Truth.";
     break;
    case Stage.GameMasterHub:
     _worldIndex=Wrap(_worldIndex+direction,WorldChoices.Length);
@@ -1315,13 +1398,23 @@
 
   switch(_stage)
   {
+   case Stage.DeedSelect:
+    if(PathWorldCount>1)_worldIndex=Wrap(_worldIndex+direction,PathWorldCount);
+    _message=$"Shaelvien GameMaster: {PathWorldLabel}.";
+    break;
    case Stage.PathSelect:
-    if(PathWorldCount>1)
+    if(IsShaelvienDeedHome)
+     _message="Context is the fixed right-side action for the selected deed.";
+    else if(PathWorldCount>1)
     {
      _worldIndex=Wrap(_worldIndex+direction,PathWorldCount);
      _message=$"World: {PathWorldLabel}.";
     }
     else _message=HasPathWorlds?$"World: {PathWorldLabel}.":"Claim a deed to create your first world.";
+    break;
+   case Stage.ContextSelect:
+    _pathMenuIndex=Wrap(_pathMenuIndex+direction,ContextPath.Length);
+    _message=$"Context: {CurrentContextSelection}.";
     break;
    case Stage.GameMasterHub:
     _settingIndex=Wrap(_settingIndex+direction,Settings.Length);
@@ -1359,13 +1452,25 @@
    case Stage.Role:
     _message="Roleplayer is reserved for the player-facing branch of this experiment.";
     break;
+   case Stage.DeedSelect:
+    _message="Shaelvien selected. Use the right display to choose a deed, Inspect, or Claim Deed.";
+    break;
    case Stage.PathSelect:
+    if(IsShaelvienDeedHome)
+    {
+     _pathIndex=0;
+     BeginGameMasterPath();
+     break;
+    }
     if(!HasPathWorlds)
     {
      _message="Use the right display to Claim Deed before opening GameMaster tools.";
      break;
     }
     if(await ActivateCurrentPathWorldAsync())BeginGameMasterPath();
+    break;
+   case Stage.ContextSelect:
+    GoBack();
     break;
    case Stage.GameMasterHub:
     _stage=Stage.GameMasterScope;
@@ -1441,14 +1546,7 @@
      SetPathMenuToNext(savedScope);
      _stage=Stage.PathSelect;
      _pathIndex=0;
-     var savedWorldId=string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
-      ?Session.OwnedMmoParcel?.ParcelId
-      :Session.WorldId;
-     var savedWorldIndex=string.IsNullOrWhiteSpace(savedWorldId)
-      ?-1
-      :PathWorldOptions.ToList().FindIndex(option=>string.Equals(option.Id,savedWorldId,StringComparison.Ordinal));
-     _worldIndex=savedWorldIndex>=0?savedWorldIndex:0;
-     _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. Returned to the GameMaster path menu.";
+     _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. Returned to {_selectedDeedName} GameMaster home.";
      await InvokeAsync(StateHasChanged);
      break;
     }
@@ -1494,17 +1592,44 @@
     _stage=Stage.Environment;
     _message="Returned to environment selection.";
     break;
-   case Stage.PathSelect:
+   case Stage.DeedSelect:
     _stage=Stage.Role;
     _message="Returned to Shaelvien role selection.";
+    break;
+   case Stage.PathSelect:
+    if(IsShaelvienDeedHome)
+    {
+     _stage=Stage.DeedSelect;
+     _worldIndex=0;
+     _message="Returned to Shaelvien deeds and access.";
+    }
+    else
+    {
+     _stage=Stage.Role;
+     _message="Returned to role selection.";
+    }
+    break;
+   case Stage.ContextSelect:
+    _stage=Stage.PathSelect;
+    _pathIndex=0;
+    _message=$"Returned to {_selectedDeedName}.";
     break;
    case Stage.GameMasterHub:
     _stage=Stage.Role;
     _message="Returned to Shaelvien role selection.";
     break;
    case Stage.GameMasterScope:
-    _stage=Stage.GameMasterHub;
-    _message="Returned to worlds and GameMaster options.";
+    if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)&&!string.IsNullOrWhiteSpace(_selectedDeedName))
+    {
+     _stage=Stage.PathSelect;
+     _pathIndex=0;
+     _message=$"Returned to {_selectedDeedName}.";
+    }
+    else
+    {
+     _stage=Stage.GameMasterHub;
+     _message="Returned to worlds and GameMaster options.";
+    }
     break;
    case Stage.SpatialSelect:
     BackFromSpatialSelection();
@@ -1549,9 +1674,18 @@
     _message=$"Returned to {CurrentArtMethod} · {CurrentArtPhase} tool selection.";
     break;
    case Stage.KnowledgeNode:
-    _stage=Stage.FullMapReview;
-    SetPathMenuToNode(_activeKnowledgeNode);
-    _message=$"Returned to the recursive viewer from {_activeKnowledgeNode}.";
+    if(IsDeedContextNode)
+    {
+     _stage=Stage.ContextSelect;
+     _pathMenuIndex=Math.Max(0,Array.FindIndex(ContextPath,node=>string.Equals(node,_activeKnowledgeNode,StringComparison.OrdinalIgnoreCase)));
+     _message=$"Returned to context for {_selectedDeedName}.";
+    }
+    else
+    {
+     _stage=Stage.FullMapReview;
+     SetPathMenuToNode(_activeKnowledgeNode);
+     _message=$"Returned to the recursive viewer from {_activeKnowledgeNode}.";
+    }
     break;
    case Stage.AssetKind:
     _stage=Stage.ArtMethod;
@@ -1593,6 +1727,12 @@
 
  async Task PressRight()
  {
+  if(IsDeedContextNode)
+  {
+   GoBack();
+   return;
+  }
+
   if(IsBuilderStage)
   {
    ToggleAssetContext();
@@ -1613,13 +1753,40 @@
 
   switch(_stage)
   {
+   case Stage.DeedSelect:
+    {
+     var selected=CurrentPathWorld;
+     if(selected is null)break;
+     if(await ActivateCurrentPathWorldAsync())
+     {
+      SetSelectedDeed(selected);
+      _stage=Stage.PathSelect;
+      _pathIndex=0;
+      _pathMenuIndex=0;
+      _message=$"{_selectedDeedName} selected. World Builder is on the left; Context is on the right.";
+     }
+     break;
+    }
    case Stage.PathSelect:
-    if(HasPathWorlds)
+    if(IsShaelvienDeedHome)
+    {
+     _pathIndex=1;
+     _pathMenuIndex=0;
+     _stage=Stage.ContextSelect;
+     _message=$"Context for {_selectedDeedName}. Choose History, Lore, or Truth.";
+    }
+    else if(HasPathWorlds)
     {
      if(await ActivateCurrentPathWorldAsync())
       _message=$"{PathWorldLabel} selected. Touch the left display to open {CurrentGameMasterPath}.";
     }
     else await OpenControllerDeedAsync();
+    break;
+   case Stage.ContextSelect:
+    _pathIndex=1;
+    _activeKnowledgeNode=CurrentContextSelection;
+    _stage=Stage.KnowledgeNode;
+    _message=$"{CurrentContextSelection} opened for {_selectedDeedName}. Context does not change the selected spatial edit object.";
     break;
    case Stage.Environment:
      if(!_experimentStartRevealed)
@@ -1636,10 +1803,18 @@
     await RefreshControllerWorldDirectoryAsync();
     if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
      await EnsureShaelvienEnvironmentAsync();
-    _stage=Stage.PathSelect;
     _pathIndex=0;
+    _pathMenuIndex=0;
     _worldIndex=0;
-    _message="GameMaster selected. Choose a path on the left and a world or Claim Deed on the right.";
+    _selectedDeedId="";
+    _selectedDeedName="";
+    _selectedDeedKind="";
+    _stage=string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
+     ?Stage.DeedSelect
+     :Stage.PathSelect;
+    _message=string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
+     ?"GameMaster selected. Shaelvien is on the left; choose a deed, Inspect, or Claim Deed on the right."
+     :"GameMaster selected. Choose World Builder or Context and a RIST world.";
     break;
    case Stage.GameMasterHub:
     if(CurrentSetting=="CONTROLS")
@@ -2376,6 +2551,9 @@
   string AssetKind,
   string AssetScope,
   string ActiveKnowledgeNode,
+  string SelectedDeedId,
+  string SelectedDeedName,
+  string SelectedDeedKind,
   bool BrowseCursorActive,
   bool AnalogButtonMode,
   string AssetSource,
@@ -2632,6 +2810,7 @@
   _stage,_worldIndex,_settingIndex,_scopeIndex,_softwareIndex,_pathIndex,_pathMenuIndex,
   _artMethodIndex,_artPhaseIndex,_artToolIndex,_assetKindIndex,_assetSourceIndex,_builderChainIndex,
   _tier,_layer,_assetScale,_assetRotation,_assetX,_assetY,_assetKind,_assetScope,_activeKnowledgeNode,
+  _selectedDeedId,_selectedDeedName,_selectedDeedKind,
   _browseCursorActive,_analogButtonMode,_assetSource,_assetMode,_selectedAssetKey);
 
  async Task RestoreViewerNavStateAsync(ViewerNavState state)
@@ -2658,6 +2837,9 @@
   _assetKind=state.AssetKind;
   _assetScope=state.AssetScope;
   _activeKnowledgeNode=state.ActiveKnowledgeNode;
+  _selectedDeedId=state.SelectedDeedId;
+  _selectedDeedName=state.SelectedDeedName;
+  _selectedDeedKind=state.SelectedDeedKind;
   _browseCursorActive=state.BrowseCursorActive;
   _analogButtonMode=state.AnalogButtonMode;
   _assetSource=state.AssetSource;
@@ -3081,7 +3263,17 @@
   if(!string.IsNullOrWhiteSpace(parcel.RegionId))Session.SetActiveRegion(parcel.RegionId);
   var index=PathWorldOptions.ToList().FindIndex(option=>string.Equals(option.Id,parcel.ParcelId,StringComparison.Ordinal));
   _worldIndex=index>=0?index:0;
-  _message=$"{parcel.DisplayName} deed claimed and selected.";
+  var selected=index>=0?PathWorldOptions[index]:null;
+  if(selected is not null)SetSelectedDeed(selected);
+  else
+  {
+   _selectedDeedId=parcel.ParcelId;
+   _selectedDeedName=parcel.DisplayName;
+   _selectedDeedKind="SHAELVIEN";
+  }
+  _stage=Stage.PathSelect;
+  _pathIndex=0;
+  _message=$"{parcel.DisplayName} deed claimed and selected. World Builder is on the left; Context is on the right.";
   await InvokeAsync(StateHasChanged);
  }
 
@@ -3174,6 +3366,7 @@
     case "y": StepY(direction); break;
     case "select":
      if(_stage==Stage.BrowsePlace&&CursorMode)await ActivateBrowseCursorTargetAsync();
+     else if(_stage is Stage.DeedSelect or Stage.ContextSelect)await PressRight();
      else await PressLeft();
      break;
     case "left": await PressLeft(); break;
