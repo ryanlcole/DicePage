@@ -2894,3 +2894,251 @@ body.rist-viewer-overlays-off .universal-shell .viewer-readout{
  .inspection-edit-audit span{display:none}
  .inspection-edit-audit textarea{min-height:42px}
 }
+
+
+/* Inline Shaelvien MMO deed map — Tier 0 is flattened to one readable surface.
+   The persistent World Builder remains mounted beneath it so entering/leaving
+   Explore or Inspect never destroys canonical editor state. */
+.mmo-inline-map{
+ position:absolute;
+ z-index:15;
+ top:48px;
+ left:10px;
+ right:10px;
+ bottom:30px;
+ display:grid;
+ grid-template-rows:auto minmax(0,1fr) auto;
+ gap:7px;
+ padding:8px;
+ box-sizing:border-box;
+ border:1px solid rgba(205,166,75,.72);
+ border-radius:12px;
+ background:rgba(2,8,12,.94);
+ box-shadow:0 14px 40px rgba(0,0,0,.55),inset 0 0 28px rgba(53,116,145,.05);
+ overflow:hidden;
+ font-family:system-ui,-apple-system,sans-serif;
+}
+.mmo-inline-map-header{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+ min-height:38px;
+}
+.mmo-inline-map-header>div{display:grid;gap:1px;min-width:0}
+.mmo-inline-map-header small{
+ color:#6bc4eb;
+ font-size:7px;
+ font-weight:900;
+ letter-spacing:.14em;
+}
+.mmo-inline-map-header strong{
+ overflow:hidden;
+ color:#f2d98f;
+ font:900 13px/1.05 Georgia,serif;
+ text-overflow:ellipsis;
+ white-space:nowrap;
+}
+.mmo-inline-map-header span{
+ color:#8fb5c6;
+ font-size:7px;
+ font-weight:800;
+ letter-spacing:.06em;
+}
+.mmo-inline-map-token{
+ flex:0 0 auto;
+ padding:6px 8px;
+ border:1px solid rgba(138,156,163,.55);
+ border-radius:999px;
+ background:#0a151a;
+ color:#c6d6dc!important;
+ text-align:center;
+}
+.mmo-inline-map-stage{
+ position:relative;
+ align-self:center;
+ justify-self:center;
+ width:min(100%,720px);
+ max-height:100%;
+ overflow:hidden;
+ border:1px solid rgba(87,123,139,.78);
+ border-radius:9px;
+ background:#071118;
+ box-shadow:inset 0 0 24px rgba(0,0,0,.58),0 5px 18px rgba(0,0,0,.35);
+ isolation:isolate;
+}
+.mmo-inline-map-base{
+ position:absolute;
+ z-index:0;
+ max-width:none!important;
+ max-height:none!important;
+ object-fit:fill;
+ user-select:none;
+ pointer-events:none;
+}
+.mmo-inline-surface-layer{
+ position:absolute;
+ z-index:1;
+ height:auto;
+ max-width:none!important;
+ pointer-events:none;
+ user-select:none;
+}
+.mmo-deed-cell{
+ position:absolute;
+ z-index:4;
+ box-sizing:border-box;
+ margin:0;
+ padding:0;
+ border:1px solid rgba(181,190,194,.7);
+ border-radius:3px;
+ background:rgba(137,145,149,.2);
+ color:#eaf3f6;
+ overflow:visible;
+ touch-action:manipulation;
+ transition:border-color .1s ease,background .1s ease,box-shadow .1s ease,transform .1s ease;
+}
+.mmo-deed-cell.available{
+ border-color:rgba(191,197,200,.9);
+ background:rgba(145,150,153,.38);
+ box-shadow:inset 0 0 7px rgba(231,237,239,.09);
+}
+.mmo-deed-cell.endemar{
+ border-color:rgba(230,191,91,.82);
+ background:rgba(62,49,17,.26);
+}
+.mmo-deed-cell.owned{
+ border-color:rgba(90,205,168,.9);
+ background:rgba(21,84,66,.22);
+}
+.mmo-deed-cell.public{
+ border-color:rgba(81,182,225,.85);
+ background:rgba(20,72,98,.18);
+}
+.mmo-deed-cell.private{
+ border-color:rgba(158,165,169,.72);
+ background:rgba(61,66,69,.20);
+}
+.mmo-deed-cell.refunded{
+ border-color:rgba(218,166,80,.9);
+ background:rgba(90,56,18,.28);
+}
+.mmo-deed-cell.selected{
+ z-index:7;
+ border:3px solid #f4d36f;
+ background:rgba(235,211,136,.20);
+ box-shadow:0 0 0 2px rgba(54,178,226,.82),0 0 18px rgba(237,205,104,.72),inset 0 0 12px rgba(255,239,173,.18);
+ transform:scale(1.035);
+}
+.mmo-deed-cell span{
+ position:absolute;
+ z-index:2;
+ left:50%;
+ top:50%;
+ width:max-content;
+ max-width:220%;
+ transform:translate(-50%,-50%);
+ padding:2px 4px;
+ border-radius:3px;
+ background:rgba(2,8,11,.66);
+ color:#f2f6f7;
+ font:900 clamp(6px,.8vw,10px)/1.05 system-ui,-apple-system,sans-serif;
+ letter-spacing:.02em;
+ text-align:center;
+ text-shadow:0 1px 2px #000;
+ white-space:nowrap;
+ pointer-events:none;
+}
+.mmo-deed-cell.endemar span{color:#f4db8d}
+.mmo-deed-cell.owned span{color:#9ee7ce}
+.mmo-inline-map-legend{
+ display:flex;
+ justify-content:center;
+ flex-wrap:wrap;
+ gap:8px 12px;
+ color:#8fa8b2;
+ font-size:6px;
+ font-weight:900;
+ letter-spacing:.08em;
+}
+.mmo-inline-map-legend span{display:flex;align-items:center;gap:4px}
+.mmo-inline-map-legend i{
+ width:7px;
+ height:7px;
+ box-sizing:border-box;
+ border:1px solid #adb4b8;
+ background:rgba(145,150,153,.38);
+}
+.mmo-inline-map-legend i.private{background:rgba(61,66,69,.35)}
+.mmo-inline-map-legend i.owned{border-color:#5acda8;background:rgba(21,84,66,.45)}
+.mmo-inline-map-legend i.selected{border:2px solid #f4d36f;background:rgba(235,211,136,.3)}
+
+.mmo-inline-manage{
+ position:absolute;
+ z-index:12;
+ inset:52px max(8px,8%) 34px;
+ display:grid;
+ grid-template-columns:1fr 150px;
+ grid-auto-rows:min-content;
+ align-content:center;
+ gap:8px;
+ padding:12px;
+ box-sizing:border-box;
+ border:1px solid rgba(227,185,83,.9);
+ border-radius:11px;
+ background:rgba(4,11,15,.97);
+ box-shadow:0 12px 34px rgba(0,0,0,.66);
+}
+.mmo-inline-manage header{
+ grid-column:1/-1;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ color:#f1d58a;
+ font-size:10px;
+ letter-spacing:.1em;
+}
+.mmo-inline-manage header button{
+ width:30px;height:30px;border:1px solid #65747b;border-radius:7px;background:#0b151a;color:#dce7ea;font-size:18px;
+}
+.mmo-inline-manage label{
+ display:grid;
+ gap:4px;
+ color:#78c9ec;
+ font-size:7px;
+ font-weight:900;
+ letter-spacing:.1em;
+}
+.mmo-inline-manage label:nth-of-type(3){grid-column:1/-1}
+.mmo-inline-manage input,.mmo-inline-manage select,.mmo-inline-manage textarea{
+ box-sizing:border-box;
+ width:100%;
+ border:1px solid #526b77;
+ border-radius:7px;
+ background:#071015;
+ color:#efe6d0;
+ padding:8px;
+ font:600 11px/1.2 system-ui,-apple-system,sans-serif;
+}
+.mmo-inline-manage textarea{min-height:70px;resize:vertical}
+.mmo-inline-manage-save{
+ grid-column:1/-1;
+ min-height:38px;
+ border:1px solid #b48d3d;
+ border-radius:8px;
+ background:#261d0c;
+ color:#f5db89;
+ font:900 8px/1 system-ui,-apple-system,sans-serif;
+ letter-spacing:.08em;
+}
+
+@media(max-width:700px) and (orientation:portrait){
+ .mmo-inline-map{top:43px;left:6px;right:6px;bottom:25px;gap:5px;padding:6px;border-radius:9px}
+ .mmo-inline-map-header{min-height:34px}
+ .mmo-inline-map-header strong{font-size:11px}
+ .mmo-inline-map-token{padding:5px 6px;font-size:6px!important}
+ .mmo-deed-cell span{font-size:6.5px;max-width:260%}
+ .mmo-inline-manage{inset:44px 5px 26px;grid-template-columns:1fr;overflow:auto}
+ .mmo-inline-manage label:nth-of-type(3){grid-column:1}
+ .mmo-inline-manage-save,.mmo-inline-manage header{grid-column:1}
+}
