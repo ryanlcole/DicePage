@@ -37,6 +37,78 @@
            allow="fullscreen"></iframe>
   </div>
 
+  @if(_stage==Stage.MmoMap)
+  {
+   <section class="mmo-inline-map" aria-label="@MmoMapModeLabel">
+    <header class="mmo-inline-map-header">
+     <div>
+      <small>@MmoMapModeLabel</small>
+      <strong>@MmoSelectedName</strong>
+      <span>@MmoCoordinate(_mmoSelectedCell) · TIER 0 · TOP SURFACE</span>
+     </div>
+     <span class="mmo-inline-map-token">@(_mmoInspectMode?"CLAIM DISABLED":$"{Session.UnspentMmoWorldTokenCount} TOKEN{(Session.UnspentMmoWorldTokenCount==1?"":"S")}")</span>
+    </header>
+
+    <div class="mmo-inline-map-stage" style="@MmoMapStageStyle">
+     <img class="mmo-inline-map-base"
+          src="@MmoCanonicalSurfaceUrl"
+          style="@MmoBaseImageStyle"
+          alt=""
+          aria-hidden="true" />
+
+     @foreach(var surfaceLayer in _mmoSurfaceLayers)
+     {
+      <img class="mmo-inline-surface-layer"
+           src="@surfaceLayer.Src"
+           style="@MmoSurfaceLayerStyle(surfaceLayer)"
+           alt=""
+           aria-hidden="true" />
+     }
+
+     @foreach(var cell in _mmoMapCells)
+     {
+      <button type="button"
+              class="@MmoCellClass(cell)"
+              style="@MmoCellStyle(cell)"
+              aria-label="@MmoCellAriaLabel(cell)"
+              aria-pressed="@(cell==_mmoSelectedCell)"
+              @onclick="()=>SelectMmoMapCell(cell)">
+       @if(!string.IsNullOrWhiteSpace(MmoCellText(cell)))
+       {
+        <span>@MmoCellText(cell)</span>
+       }
+      </button>
+     }
+    </div>
+
+    <footer class="mmo-inline-map-legend">
+     <span><i class="available"></i>AVAILABLE</span>
+     <span><i class="private"></i>PRIVATE NAME</span>
+     <span><i class="owned"></i>OWNED</span>
+     <span><i class="selected"></i>SELECTED</span>
+    </footer>
+
+    @if(_mmoManageOpen)
+    {
+     <section class="mmo-inline-manage" aria-label="Inspect zone management">
+      <header>
+       <strong>MANAGE DEED</strong>
+       <button type="button" @onclick="CloseMmoManage" aria-label="Close deed management">×</button>
+      </header>
+      <label>NAME<input maxlength="80" @bind="_mmoManageName" /></label>
+      <label>VISIBILITY
+       <select @bind="_mmoManageVisibility">
+        <option value="Restricted">Restricted</option>
+        <option value="Public">Public</option>
+       </select>
+      </label>
+      <label>REASON<textarea maxlength="500" @bind="_mmoManageReason" @bind:event="oninput" placeholder="Required for every committed Inspect change"></textarea></label>
+      <button type="button" class="mmo-inline-manage-save" disabled="@_mmoMapBusy" @onclick="SaveMmoManageAsync">SAVE MANAGED DEED</button>
+     </section>
+    }
+   </section>
+  }
+
   @if(_inspectionEditMode)
   {
    <section class="inspection-edit-audit" aria-label="Developer inspection edit audit">
@@ -414,6 +486,7 @@
   Environment,
   Role,
   DeedSelect,
+  MmoMap,
   PathSelect,
   ContextSelect,
   GameMasterHub,
@@ -896,6 +969,7 @@
  int LeftDisplayOptionCount=>_stage switch
  {
   Stage.DeedSelect=>1,
+  Stage.MmoMap=>MmoLeftOptionCount,
   Stage.PathSelect=>IsShaelvienDeedHome?1:GameMasterPaths.Length,
   Stage.ContextSelect=>1,
   Stage.GameMasterHub=>WorldChoices.Length,
@@ -916,6 +990,7 @@
  int RightDisplayOptionCount=>_stage switch
  {
   Stage.DeedSelect=>Math.Max(1,PathWorldCount),
+  Stage.MmoMap=>1,
   Stage.ContextSelect=>ContextPath.Length,
   _=>IsBuilderStage
    ?1
@@ -930,9 +1005,9 @@
     }
  };
 
- bool RightActsAsBack=>_stage==Stage.SpatialSelect||IsDeedContextNode||(_stage!=Stage.PathSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1);
+ bool RightActsAsBack=>_stage==Stage.SpatialSelect||IsDeedContextNode||(_stage!=Stage.PathSelect&&_stage!=Stage.MmoMap&&!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1);
  bool IsGameMasterMenuStage=>_stage is Stage.DeedSelect or Stage.ContextSelect||IsShaelvienDeedHome;
- bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
+ bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage.MmoMap&&_stage!=Stage.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
  bool CursorMode=>CursorAvailable
   &&!_analogButtonMode
   &&(_stage!=Stage.BrowsePlace||_browseCursorActive);
@@ -952,6 +1027,7 @@
  string LeftAxisHint=>_stage switch
  {
   Stage.DeedSelect=>"Y · ROOT",
+  Stage.MmoMap=>"Y · MAP",
   Stage.PathSelect=>IsShaelvienDeedHome?"Y · BUILD":"Y · PATHS",
   Stage.ContextSelect=>"Y · BACK",
   Stage.GameMasterHub=>"Y · WORLDS",
@@ -972,6 +1048,7 @@
    :_stage switch
   {
    Stage.DeedSelect=>"X · DEEDS",
+   Stage.MmoMap=>"X · MAP",
    Stage.PathSelect when IsShaelvienDeedHome=>"X · CONTEXT",
    Stage.ContextSelect=>"X · CONTEXT",
    Stage.GameMasterHub=>"X · OPTIONS",
@@ -985,6 +1062,7 @@
   Stage.Environment=>"ENVIRONMENT",
   Stage.Role=>_selectedEnvironment,
   Stage.DeedSelect=>"GAMEMASTER",
+  Stage.MmoMap=>"MMO NAVIGATION",
   Stage.PathSelect=>IsShaelvienDeedHome?"BUILD":"GAMEMASTER PATH",
   Stage.ContextSelect=>"NAVIGATION",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
@@ -1009,6 +1087,7 @@
   Stage.Environment=>"SHAELVIEN",
   Stage.Role=>"ROLEPLAYER",
   Stage.DeedSelect=>"SHAELVIEN",
+  Stage.MmoMap=>MmoLeftValue,
   Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
   Stage.ContextSelect=>"BACK",
   Stage.GameMasterScope=>CurrentScope,
@@ -1036,6 +1115,7 @@
   Stage.Environment=>"ENVIRONMENT",
   Stage.Role=>_selectedEnvironment,
   Stage.DeedSelect=>"DEED / ACCESS",
+  Stage.MmoMap=>_mmoInspectMode?"INSPECT / DEED":"DEED / ACCESS",
   Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldEyebrow,
   Stage.ContextSelect=>"CONTEXT",
   Stage.GameMasterScope=>"NAVIGATION",
@@ -1056,6 +1136,7 @@
   Stage.Environment=>"RIST",
   Stage.Role=>"GAMEMASTER",
   Stage.DeedSelect=>PathWorldLabel,
+  Stage.MmoMap=>MmoRightValue,
   Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldLabel,
   Stage.ContextSelect=>CurrentContextSelection,
   Stage.GameMasterScope=>"BACK",
@@ -1146,6 +1227,7 @@
  string LeftDisplayValue=>_stage switch
  {
   Stage.DeedSelect=>"SHAELVIEN",
+  Stage.MmoMap=>MmoLeftValue,
   Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
   Stage.ContextSelect=>"BACK",
   Stage.GameMasterHub=>CurrentWorld,
@@ -1174,6 +1256,7 @@
     :_stage switch
    {
     Stage.DeedSelect=>PathWorldLabel,
+    Stage.MmoMap=>MmoRightValue,
     Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldLabel,
     Stage.ContextSelect=>CurrentContextSelection,
     Stage.GameMasterHub=>CurrentSetting,
@@ -1185,6 +1268,7 @@
  string LeftDisplayPrompt=>_stage switch
  {
   Stage.DeedSelect=>"TOUCH · SHAELVIEN",
+  Stage.MmoMap=>MmoLeftPrompt,
   Stage.PathSelect=>IsShaelvienDeedHome?"TOUCH · BUILD":"SLIDE ↑↓ · TOUCH PATH",
   Stage.ContextSelect=>"TOUCH · BACK",
   Stage.GameMasterHub=>"TOUCH · SELECT WORLD",
@@ -1212,6 +1296,7 @@
     :_stage switch
    {
     Stage.DeedSelect=>PathWorldPrompt,
+    Stage.MmoMap=>MmoRightPrompt,
     Stage.PathSelect=>IsShaelvienDeedHome?"TOUCH · OPEN":PathWorldPrompt,
     Stage.ContextSelect=>"SLIDE ↔ · TOUCH OPEN",
     Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
@@ -1227,6 +1312,7 @@
   Stage.Environment=>"RIST UNIVERSAL VIEWER",
   Stage.Role=>_selectedEnvironment,
   Stage.DeedSelect=>"GAMEMASTER · SHAELVIEN",
+  Stage.MmoMap=>_mmoInspectMode?"SHAELVIEN · INSPECT · TIER 0":"SHAELVIEN · MMO MAP · TIER 0",
   Stage.PathSelect=>IsShaelvienDeedHome?$"GAMEMASTER · {_selectedDeedName.ToUpperInvariant()}":"GAMEMASTER · CHOOSE PATH",
   Stage.ContextSelect=>$"CONTEXT · {_selectedDeedName.ToUpperInvariant()}",
   Stage.GameMasterHub=>"GAMEMASTER · WORLD SELECTOR",
@@ -1256,6 +1342,7 @@
   Stage.Environment=>"START",
   Stage.Role=>$"{_selectedEnvironment} → ROLE",
   Stage.DeedSelect=>"SHAELVIEN → DEEDS",
+  Stage.MmoMap=>_mmoInspectMode?"SHAELVIEN → INSPECT → TIER 0":"SHAELVIEN → DEEDS → TIER 0",
   Stage.PathSelect=>IsShaelvienDeedHome?$"{_selectedDeedName.ToUpperInvariant()} → HOME":"GAMEMASTER → PATH",
   Stage.ContextSelect=>$"{_selectedDeedName.ToUpperInvariant()} → CONTEXT",
   Stage.GameMasterHub=>"SHAELVIEN → GAMEMASTER",
@@ -1389,6 +1476,9 @@
    case Stage.DeedSelect:
     _message="Shaelvien is fixed on the left. Use X or the right display to choose a deed or access action.";
     break;
+   case Stage.MmoMap:
+    MoveMmoSelection(0,-direction);
+    break;
    case Stage.PathSelect:
     if(IsShaelvienDeedHome)
      _message="World Builder is on the left and Context is on the right.";
@@ -1476,6 +1566,9 @@
     if(PathWorldCount>1)_worldIndex=Wrap(_worldIndex+direction,PathWorldCount);
     _message=$"Shaelvien GameMaster: {PathWorldLabel}.";
     break;
+   case Stage.MmoMap:
+    MoveMmoSelection(direction,0);
+    break;
    case Stage.PathSelect:
     if(IsShaelvienDeedHome)
      _message="Context is the fixed right-side action for the selected deed.";
@@ -1528,6 +1621,9 @@
     break;
    case Stage.DeedSelect:
     _message="Shaelvien selected. Use the right display to choose a deed, developer Inspect, or Explore.";
+    break;
+   case Stage.MmoMap:
+    await PressMmoLeftAsync();
     break;
    case Stage.PathSelect:
     if(IsShaelvienDeedHome)
@@ -1667,6 +1763,11 @@
    case Stage.DeedSelect:
     _stage=Stage.Role;
     _message="Returned to Shaelvien role selection.";
+    break;
+   case Stage.MmoMap:
+    _mmoManageOpen=false;
+    _stage=Stage.DeedSelect;
+    _message="Returned to Shaelvien deeds and access.";
     break;
    case Stage.PathSelect:
     if(IsShaelvienDeedHome)
@@ -1825,6 +1926,9 @@
 
   switch(_stage)
   {
+   case Stage.MmoMap:
+    await PressMmoRightAsync();
+    break;
    case Stage.DeedSelect:
     {
      var selected=CurrentPathWorld;
@@ -3315,15 +3419,13 @@
 
     if(option.Environment=="SHAELVIEN_CLAIM")
     {
-     await OpenControllerDeedAsync();
+     await EnterMmoMapAsync(inspect:false);
      return false;
     }
 
     if(option.Environment=="SHAELVIEN_INSPECT")
     {
-     _shaelvienInspectGateOpen=true;
-     _message="Developer Inspect opened. The MMO map is shared with Explore; edits require a reason for every committed change.";
-     await InvokeAsync(StateHasChanged);
+     await EnterMmoMapAsync(inspect:true);
      return false;
     }
 
@@ -3373,9 +3475,8 @@
  {
   if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
   {
-   await EnsureShaelvienEnvironmentAsync();
-   _shaelvienDeedGateOpen=true;
-   _message=$"Explore · MMO map · {Session.UnspentMmoWorldTokenCount} Shaelvien token{(Session.UnspentMmoWorldTokenCount==1?"":"s")} remaining.";
+   await EnterMmoMapAsync(inspect:false);
+   return;
   }
   else
   {
@@ -3674,9 +3775,16 @@
    {
     case "x": StepX(direction); break;
     case "y": StepY(direction); break;
+    case "left-slider":
+     if(_stage==Stage.MmoMap)CycleMmoLeftOption(direction);
+     else ApplyY(direction);
+     break;
+    case "right-slider":
+     if(_stage!=Stage.MmoMap)ApplyX(direction);
+     break;
     case "select":
      if(_stage==Stage.BrowsePlace&&CursorMode)await ActivateBrowseCursorTargetAsync();
-     else if(_stage is Stage.DeedSelect or Stage.ContextSelect)await PressRight();
+     else if(_stage is Stage.DeedSelect or Stage.ContextSelect or Stage.MmoMap)await PressRight();
      else await PressLeft();
      break;
     case "left": await PressLeft(); break;
