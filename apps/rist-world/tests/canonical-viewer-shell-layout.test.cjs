@@ -363,6 +363,7 @@ test('developer Inspect shares the MMO map and requires one reason per committed
 });
 
 test('Explore exposes open public and restricted MMO zones while Inspect can audit visibility edits',()=>{
+  const razor=read('Components/UniversalInterface.razor');
   const deed=read('Components/ShaelvienDeedGate.razor');
   const session=read('WorldSession.MmoLand.cs');
   const client=read('AwsAuthorityClient.cs');
