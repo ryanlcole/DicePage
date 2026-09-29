@@ -572,6 +572,9 @@ def public_parcel(item, name_only=False):
             "bindingHash": "",
             "claimedAtUtc": "",
             "visibility": "Restricted",
+            "status": str(item.get("status") or "Claimed"),
+            "currentBid": float(item.get("currentBid") or 0),
+            "currentBidUsername": str(item.get("currentBidUsername") or ""),
         }
     return {
         "parcelId": str(item.get("parcelId") or ""),
@@ -588,6 +591,9 @@ def public_parcel(item, name_only=False):
         "bindingHash": str(item.get("bindingHash") or ""),
         "claimedAtUtc": str(item.get("claimedAtUtc") or ""),
         "visibility": str(item.get("visibility") or "Restricted"),
+        "status": str(item.get("status") or "Claimed"),
+        "currentBid": float(item.get("currentBid") or 0),
+        "currentBidUsername": str(item.get("currentBidUsername") or ""),
     }
 
 
@@ -2103,6 +2109,80 @@ def handler(event, context):
         parcels.sort(key=lambda item: (item["row"], item["column"]))
         return response(200, parcels)
 
+    if method == "POST" and path == "/world/parcels/request-deed":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        if not is_geonaph(world_id):
+            return response(400, {"error": "Deed requests belong to Shaelvien"})
+
+        try:
+            cell_index = int(req.get("cellIndex"))
+        except (TypeError, ValueError):
+            return response(400, {"error": "A valid deed cell is required"})
+        if cell_index < 0 or cell_index >= MMO_PARCEL_GRID_COLUMNS * MMO_PARCEL_GRID_ROWS:
+            return response(400, {"error": "Deed cell is outside the Shaelvien lattice"})
+
+        parcel = next(
+            (
+                item
+                for item in query_world_prefix(world_id, "PARCEL#")
+                if int(item.get("cellIndex") or -1) == cell_index
+            ),
+            None,
+        )
+        if not parcel:
+            return response(404, {"error": "That Shaelvien deed is not claimed"})
+        owner_user_id = str(parcel.get("ownerUserId") or "")
+        if not owner_user_id:
+            return response(409, {"error": "That deed does not have a GameMaster owner"})
+        if owner_user_id == user_id:
+            return response(409, {"error": "You already own this deed"})
+        if str(parcel.get("status") or "Claimed").lower() == "refunded":
+            return response(409, {"error": "Refunded deeds use the bid action instead of a GameMaster request"})
+
+        parcel_id = str(parcel.get("parcelId") or parcel_id_from_cell(cell_index))
+        request_item = {
+            "pk": "WORLD#" + world_id,
+            "sk": f"DEEDREQUEST#{parcel_id}#USER#{user_id}",
+            "entityType": "deedRequest",
+            "worldId": world_id,
+            "parcelId": parcel_id,
+            "cellIndex": cell_index,
+            "requesterUserId": user_id,
+            "ownerUserId": owner_user_id,
+            "displayName": str(parcel.get("displayName") or ""),
+            "status": "Pending",
+            "requestedAtUtc": utc_stamp(),
+        }
+        world.put_item(Item=dynamo_safe(request_item))
+        notify_user(
+            owner_user_id,
+            "parcel.deed.request",
+            world_id,
+            {
+                "parcelId": parcel_id,
+                "cellIndex": cell_index,
+                "displayName": str(parcel.get("displayName") or ""),
+                "requesterUserId": user_id,
+            },
+        )
+        audit_write(
+            world_id,
+            user_id,
+            "parcel.deed.request",
+            parcel_id,
+            {"cellIndex": cell_index, "ownerUserId": owner_user_id},
+        )
+        return response(
+            200,
+            {
+                "ok": True,
+                "status": "Pending",
+                "parcelId": parcel_id,
+                "cellIndex": cell_index,
+            },
+        )
+
     if method == "POST" and path == "/world/parcels/claim":
         req = body(event)
         world_id = safe_id(req.get("worldId"), "worldId")
@@ -2232,6 +2312,7 @@ def handler(event, context):
             "bindingHash": binding_hash,
             "claimedAtUtc": stamp,
             "visibility": "Restricted",
+            "status": "Claimed",
         }
         region_state = {
             "regionId": region_id,
