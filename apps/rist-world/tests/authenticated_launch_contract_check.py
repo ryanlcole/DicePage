@@ -36,9 +36,9 @@ def main() -> None:
     auth_template = (ROOT.parents[1] / "infra" / "aws" / "rist-discord-storage.yml").read_text(encoding="utf-8")
     auth_workflow = (ROOT.parents[1] / ".github" / "workflows" / "deploy-rist-discord-auth.yml").read_text(encoding="utf-8")
 
-    # Provider session -> Press Start -> environment choice. The user chooses
-    # Shaelvien or one of their sandboxes; MMO-world navigation happens only after
-    # entering the Shaelvien environment.
+    # Provider session -> Press Start -> live universal interface.
+    # The previous environment-choice/landing implementation remains in source as
+    # rollback compatibility, but it is no longer the normal authenticated route.
     require(authenticated, "@if(!_launchStarted)", "authenticated shell must show Press Start")
     require(authenticated, "PRESS START", "authenticated shell must expose the start user gesture")
     require(authenticated, "ristPrivacy.set", "Press Start must present storage/privacy choice")
@@ -64,9 +64,9 @@ def main() -> None:
     require(rist, "Math.max(48", "legal consent authority must tolerate mobile scroll rounding and momentum")
     require(authenticated, "ristLaunch.pressStart", "Press Start must use the canonical launch authority")
     forbid(authenticated, "HARD REFRESH", "authenticated Press Start must stay focused on launch and permissions")
-    require(authenticated, "else if(!_launchWorldChosen)", "environment choice must follow Press Start")
-    require(authenticated, "Choose Your Environment", "launch must offer Shaelvien or RIST")
-    require(authenticated, "<strong>SHAELVIEN</strong>", "launch must expose Shaelvien as the MMO environment")
+    require(authenticated, "else if(_universalInterfaceOpen)", "live universal interface must follow Press Start")
+    require(authenticated, '<UniversalInterface Worlds="_launchWorlds" OnExit="ReturnToStartAsync" />', "authenticated launch must render the live universal interface")
+    require(authenticated, "_universalInterfaceOpen=true;", "Press Start must open the universal interface directly")
     require(authenticated, "<strong>RIST</strong>", "launch must expose RIST as the sandbox environment")
     require(authenticated, 'class="rist-environment-option rist-sandbox"', "RIST environment control must use a collision-safe sandbox class")
     require(authenticated, ".rist-environment-option.shaelvien,.rist-environment-option.rist-sandbox", "Shaelvien and RIST environment controls must share the same visual treatment")
@@ -192,7 +192,7 @@ def main() -> None:
     require(discord, 'string AuthProvider = "discord"', "account client must model provider identity")
     require(discord, "long SessionExpiresAt = 0", "account client must model provider expiry")
 
-    print("Authenticated launch contract verified: provider session -> Press Start -> Shaelvien-or-sandbox choice -> nested MMO navigation inside Shaelvien.")
+    print("Authenticated launch contract verified: provider session -> Press Start -> live universal interface; legacy landing retained only as rollback compatibility.")
 
 
 if __name__ == "__main__":
