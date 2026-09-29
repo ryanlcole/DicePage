@@ -3376,6 +3376,9 @@
  void CloseShaelvienInspectGate()
  {
   _shaelvienInspectGateOpen=false;
+  _inspectionEditMode=false;
+  _inspectionEditReason="";
+  if(_stage!=Stage.DeedSelect)ReturnToShaelvienDeedSelector();
   _message="Inspect closed.";
  }
 
@@ -3460,9 +3463,24 @@
  {
   _inspectionEditMode=false;
   _inspectionEditReason="";
+  ReturnToShaelvienDeedSelector();
   _shaelvienInspectGateOpen=true;
   _message="Returned to developer Inspect map.";
   await InvokeAsync(StateHasChanged);
+ }
+
+ void ReturnToShaelvienDeedSelector()
+ {
+  _selectedDeedId="";
+  _selectedDeedName="";
+  _selectedDeedKind="";
+  _selectedDeedRegionId="";
+  _exploreReadOnlyMode=false;
+  _stage=Stage.DeedSelect;
+  _pathIndex=0;
+  _pathMenuIndex=0;
+  var inspectIndex=PathWorldOptions.ToList().FindIndex(option=>option.Environment=="SHAELVIEN_INSPECT");
+  _worldIndex=inspectIndex>=0?inspectIndex:0;
  }
 
  string RequireInspectionReason()
