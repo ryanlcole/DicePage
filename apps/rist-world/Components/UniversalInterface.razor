@@ -696,15 +696,15 @@
    if(CurrentPathWorld?.Environment=="SHAELVIEN_CLAIM")
    {
     var count=Session.UnspentMmoWorldTokenCount;
-    return $"YOU HAVE {count} TOKEN{(count==1?"":"S")} REMAINING";
+    return $"EXPLORE MMO · {count} TOKEN{(count==1?"":"S")} REMAINING";
    }
    if(CurrentPathWorld?.Environment=="SHAELVIEN_INSPECT")
-    return "OWNER · AUDIT REALMS";
+    return "DEVELOPER · INSPECT MMO";
    if(CurrentPathWorld is not null)
     return PathWorldCount>1?"SLIDE ↔ · TOUCH WORLD":"TOUCH · OPEN WORLD";
    return string.Equals(_selectedEnvironment,"RIST",StringComparison.OrdinalIgnoreCase)
     ?"NO TOKEN REQUIRED"
-    :"CLAIM DEED";
+    :"EXPLORE";
   }
  }
 
