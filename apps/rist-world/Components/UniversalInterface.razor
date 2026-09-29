@@ -37,6 +37,22 @@
            allow="fullscreen"></iframe>
   </div>
 
+  @if(_inspectionEditMode)
+  {
+   <section class="inspection-edit-audit" aria-label="Developer inspection edit audit">
+    <div>
+     <small>DEVELOPER INSPECT EDIT</small>
+     <strong>@_selectedDeedName</strong>
+     <span>Every committed inspection edit consumes one written reason.</span>
+    </div>
+    <label>
+     REASON FOR NEXT EDIT
+     <textarea maxlength="500" @bind="_inspectionEditReason" @bind:event="oninput" placeholder="Required before the next edit can be saved"></textarea>
+    </label>
+    <button type="button" @onclick="ReturnToInspectMapAsync">RETURN TO INSPECT</button>
+   </section>
+  }
+
   @if(_stage==Stage.Environment)
   {
    <section class="universal-start-screen" aria-label="Universal start screen">
@@ -361,11 +377,13 @@
 
 <ShaelvienDeedGate Open="@_shaelvienDeedGateOpen"
                    OnClose="CloseShaelvienDeedGate"
-                   OnClaimed="CompleteShaelvienDeedAsync" />
+                   OnClaimed="CompleteShaelvienDeedAsync"
+                   OnViewRequested="OpenExploredZoneAsync" />
 <ShaelvienDeedGate Open="@_shaelvienInspectGateOpen"
                    InspectOnly="true"
                    OnClose="CloseShaelvienInspectGate"
-                   OnClaimed="CompleteShaelvienDeedAsync" />
+                   OnClaimed="CompleteShaelvienDeedAsync"
+                   OnInspectionEditRequested="BeginInspectionEditAsync" />
 
 <WorldGate Open="@_ristDeedGateOpen"
            OnClose="CloseRistDeedGate"
@@ -469,6 +487,9 @@
  bool _shaelvienDeedGateOpen;
  bool _shaelvienInspectGateOpen;
  bool _ristDeedGateOpen;
+ bool _exploreReadOnlyMode;
+ bool _inspectionEditMode;
+ string _inspectionEditReason="";
  string _selectedEnvironment="SHAELVIEN";
  string _selectedDeedId="";
  string _selectedDeedName="";
@@ -572,8 +593,8 @@
     }
 
     mmoOptions.Add(new ControllerWorldOption(
-     "__claim__",
-     "Claim Deed",
+     "__explore__",
+     "Explore",
      "SHAELVIEN_CLAIM",
      null,
      null));
@@ -647,6 +668,9 @@
 
  void SetSelectedDeed(ControllerWorldOption option)
  {
+  _exploreReadOnlyMode=false;
+  _inspectionEditMode=false;
+  _inspectionEditReason="";
   _selectedDeedId=option.Id;
   _selectedDeedName=option.Name?.Trim()??"";
   _selectedDeedKind=option.Environment;
@@ -661,7 +685,7 @@
  bool HasPathWorlds=>PathWorldCount>0;
  int PathWorldIndex=>PathWorldCount==0?0:Math.Clamp(_worldIndex,0,PathWorldCount-1);
  ControllerWorldOption? CurrentPathWorld=>PathWorldCount==0?null:PathWorldOptions[PathWorldIndex];
- string PathWorldLabel=>CurrentPathWorld?.Name?.Trim().ToUpperInvariant()??"CLAIM DEED";
+ string PathWorldLabel=>CurrentPathWorld?.Name?.Trim().ToUpperInvariant()??"EXPLORE";
  string PathWorldEyebrow=>HasPathWorlds
   ?(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)?"SHAELVIEN WORLDS":"RIST WORLDS")
   :"PROPERTY";
@@ -837,7 +861,11 @@
    var seed=Session.IsGeonaphWorld?"geonaph":"empty";
    var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
    var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
-   var access=Session.HasWorldBuilderEditAuthority?"edit":"view";
+   var access=_exploreReadOnlyMode
+    ?"view"
+    :_inspectionEditMode&&Session.TrustedPlatformOwner
+     ?"edit"
+     :Session.HasWorldBuilderEditAuthority?"edit":"view";
    var deedId=Uri.EscapeDataString(_selectedDeedId??"");
    var deedName=Uri.EscapeDataString(_selectedDeedName??"");
    var deedRegionId=Uri.EscapeDataString(SelectedDeedRegionId);
@@ -1503,7 +1531,7 @@
     }
     if(!HasPathWorlds)
     {
-     _message="Use the right display to Claim Deed before opening GameMaster tools.";
+     _message="Use the right display to Explore the MMO map before claiming a deed.";
      break;
     }
     if(await ActivateCurrentPathWorldAsync())BeginGameMasterPath();
@@ -1851,7 +1879,7 @@
      ?Stage.DeedSelect
      :Stage.PathSelect;
     _message=string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
-     ?"GameMaster selected. Shaelvien is on the left; choose a deed, Inspect, or Claim Deed on the right."
+     ?"GameMaster selected. Shaelvien is on the left; choose a deed, developer Inspect, or Explore on the right."
      :"GameMaster selected. Choose World Builder or Context and a RIST world.";
     break;
    case Stage.GameMasterHub:
@@ -2229,6 +2257,13 @@
    WorldSpatialNode? node=CurrentSpatialOption;
    if(SpatialOptionIsNew)
    {
+    var inspectionReason=_inspectionEditMode?RequireInspectionReason():"";
+    if(_inspectionEditMode&&string.IsNullOrWhiteSpace(inspectionReason))
+    {
+     _message="Enter a reason for this inspection edit before creating a new spatial object.";
+     return;
+    }
+
     var suggested=CurrentBuilderScope switch
     {
      "REGION"=>"New Region",
@@ -2244,6 +2279,11 @@
      return;
     }
     node=await Session.CreateSpatialNodeAsync(CurrentBuilderScope,name);
+    if(_inspectionEditMode)
+    {
+     await RecordInspectionAuditAsync($"CREATE {CurrentBuilderScope}",inspectionReason);
+     ConsumeInspectionReason();
+    }
    }
    else if(node is not null)
    {
@@ -2742,6 +2782,19 @@
   var encounters=_contextEncounters.Trim();
   var notes=_contextNotes.Trim();
 
+  string inspectionReason="";
+  if(_inspectionEditMode)
+  {
+   inspectionReason=RequireInspectionReason();
+   if(string.IsNullOrWhiteSpace(inspectionReason))
+   {
+    _contextStatus="Inspection edit requires a reason.";
+    _message="Enter a reason for this inspection edit before saving.";
+    await InvokeAsync(StateHasChanged);
+    return;
+   }
+  }
+
   _contextStatus="Saving…";
   await InvokeAsync(StateHasChanged);
 
@@ -2791,9 +2844,11 @@
     entry["y"]=positionY;
    }
    contexts[identity]=entry;
+   if(_inspectionEditMode)AppendInspectionAudit(root,"SAVE ASSET CONTEXT",inspectionReason);
 
    using var document=JsonDocument.Parse(root.ToJsonString());
    await Session.SaveWorldBuilderSourceAsync(document.RootElement.Clone());
+   if(_inspectionEditMode)ConsumeInspectionReason();
 
    if(identity==AssetContextIdentity)
    {
@@ -3019,30 +3074,40 @@
  [JSInvokable]
  public async Task<object> SaveWorldBuilderSourceFromPrototypeAsync(System.Text.Json.JsonElement state)
  {
-  // The embedded map editor owns map representation fields, not Asset Context.
-  // Preserve the latest canonical contexts so a later map save cannot erase them.
+  var inspectionReason=_inspectionEditMode?RequireInspectionReason():"";
+  if(_inspectionEditMode&&string.IsNullOrWhiteSpace(inspectionReason))
+   throw new InvalidOperationException("Inspection edit requires a reason. Enter a reason in the Inspect audit bar, then save again.");
+
+  // The embedded map editor owns map representation fields, not Asset Context
+  // or the append-only developer inspection audit. Preserve both.
   var mergedState=state.Clone();
   var current=await Session.LoadWorldBuilderSourceAsync();
-  if(state.ValueKind==JsonValueKind.Object
-     &&current?.State is JsonElement currentState
-     &&currentState.ValueKind==JsonValueKind.Object
-     &&currentState.TryGetProperty("assetContexts",out var currentContexts))
+  try
   {
-   try
+   var root=state.ValueKind==JsonValueKind.Object
+    ?JsonNode.Parse(state.GetRawText()) as JsonObject??new JsonObject()
+    :new JsonObject();
+
+   if(current?.State is JsonElement currentState&&currentState.ValueKind==JsonValueKind.Object)
    {
-    var root=JsonNode.Parse(state.GetRawText()) as JsonObject??new JsonObject();
-    root["assetContexts"]=JsonNode.Parse(currentContexts.GetRawText());
-    using var mergedDocument=JsonDocument.Parse(root.ToJsonString());
-    mergedState=mergedDocument.RootElement.Clone();
+    if(currentState.TryGetProperty("assetContexts",out var currentContexts))
+     root["assetContexts"]=JsonNode.Parse(currentContexts.GetRawText());
+    if(currentState.TryGetProperty("inspectionAudit",out var currentAudit))
+     root["inspectionAudit"]=JsonNode.Parse(currentAudit.GetRawText());
    }
-   catch(Exception ex)
-   {
-    Console.Error.WriteLine($"World source context preservation failed: {ex}");
-    throw;
-   }
+
+   if(_inspectionEditMode)AppendInspectionAudit(root,"SAVE WORLD REPRESENTATION",inspectionReason);
+   using var mergedDocument=JsonDocument.Parse(root.ToJsonString());
+   mergedState=mergedDocument.RootElement.Clone();
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"World source metadata preservation failed: {ex}");
+   throw;
   }
 
   var source=await Session.SaveWorldBuilderSourceAsync(mergedState);
+  if(source is not null&&_inspectionEditMode)ConsumeInspectionReason();
   return new
   {
    success=source is not null,
@@ -3235,7 +3300,7 @@
     if(option.Environment=="SHAELVIEN_INSPECT")
     {
      _shaelvienInspectGateOpen=true;
-     _message="Inspect opened. Review claimed Shaelvien realms without changing their ownership.";
+     _message="Developer Inspect opened. The MMO map is shared with Explore; edits require a reason for every committed change.";
      await InvokeAsync(StateHasChanged);
      return false;
     }
@@ -3288,7 +3353,7 @@
   {
    await EnsureShaelvienEnvironmentAsync();
    _shaelvienDeedGateOpen=true;
-   _message=$"Claim Deed · {Session.UnspentMmoWorldTokenCount} Shaelvien token{(Session.UnspentMmoWorldTokenCount==1?"":"s")} remaining.";
+   _message=$"Explore · MMO map · {Session.UnspentMmoWorldTokenCount} Shaelvien token{(Session.UnspentMmoWorldTokenCount==1?"":"s")} remaining.";
   }
   else
   {
@@ -3301,7 +3366,7 @@
  void CloseShaelvienDeedGate()
  {
   _shaelvienDeedGateOpen=false;
-  _message="Claim Deed closed.";
+  _message="Explore closed.";
  }
 
  void CloseShaelvienInspectGate()
@@ -3310,9 +3375,155 @@
   _message="Inspect closed.";
  }
 
+ async Task OpenExploredZoneAsync(ShaelvienDeedGate.MapViewRequest request)
+ {
+  _shaelvienDeedGateOpen=false;
+  await Session.LoadRegionsAsync();
+
+  ControllerWorldOption selected;
+  if(request.CellIndex==WorldSession.EndemarOriginCell||request.Parcel is null)
+  {
+   selected=new ControllerWorldOption(
+    "__endemar__",
+    WorldSession.EndemarStartingPointDisplayName,
+    "SHAELVIEN_ORIGIN",
+    null,
+    null);
+   Session.SetActiveRegion("");
+  }
+  else
+  {
+   selected=new ControllerWorldOption(
+    request.Parcel.ParcelId,
+    request.Parcel.DisplayName,
+    "SHAELVIEN",
+    null,
+    request.Parcel);
+   if(!string.IsNullOrWhiteSpace(request.Parcel.RegionId))Session.SetActiveRegion(request.Parcel.RegionId);
+  }
+
+  SetSelectedDeed(selected);
+  _exploreReadOnlyMode=true;
+  _stage=Stage.PathSelect;
+  _pathIndex=0;
+  _message=$"Explore view · {_selectedDeedName}. World contents are read-only from Explore.";
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task BeginInspectionEditAsync(ShaelvienDeedGate.InspectionEditRequest request)
+ {
+  if(!Session.TrustedPlatformOwner)
+  {
+   _message="Developer Inspect authority is required.";
+   return;
+  }
+
+  _shaelvienInspectGateOpen=false;
+  await Session.LoadRegionsAsync();
+
+  ControllerWorldOption selected;
+  if(request.CellIndex==WorldSession.EndemarOriginCell||request.Parcel is null)
+  {
+   selected=new ControllerWorldOption(
+    "__endemar__",
+    WorldSession.EndemarStartingPointDisplayName,
+    "SHAELVIEN_ORIGIN",
+    null,
+    null);
+   Session.SetActiveRegion("");
+  }
+  else
+  {
+   selected=new ControllerWorldOption(
+    request.Parcel.ParcelId,
+    request.Parcel.DisplayName,
+    "SHAELVIEN",
+    null,
+    request.Parcel);
+   if(!string.IsNullOrWhiteSpace(request.Parcel.RegionId))Session.SetActiveRegion(request.Parcel.RegionId);
+  }
+
+  SetSelectedDeed(selected);
+  _inspectionEditMode=true;
+  _inspectionEditReason=request.Reason.Trim();
+  _stage=Stage.PathSelect;
+  _pathIndex=0;
+  _message=$"Inspect edit · {_selectedDeedName}. The first edit is authorized by the supplied reason; every later edit requires a new reason.";
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task ReturnToInspectMapAsync()
+ {
+  _inspectionEditMode=false;
+  _inspectionEditReason="";
+  _shaelvienInspectGateOpen=true;
+  _message="Returned to developer Inspect map.";
+  await InvokeAsync(StateHasChanged);
+ }
+
+ string RequireInspectionReason()
+ {
+  if(!_inspectionEditMode)return "";
+  var reason=(_inspectionEditReason??"").Trim();
+  return reason.Length>500?reason[..500]:reason;
+ }
+
+ void ConsumeInspectionReason()
+ {
+  if(!_inspectionEditMode)return;
+  _inspectionEditReason="";
+  _message="Inspection edit committed. Enter a new reason before the next edit.";
+ }
+
+ void AppendInspectionAudit(JsonObject root,string action,string reason)
+ {
+  var audit=root["inspectionAudit"] as JsonArray;
+  if(audit is null)
+  {
+   audit=new JsonArray();
+   root["inspectionAudit"]=audit;
+  }
+
+  audit.Add(new JsonObject
+  {
+   ["timestampUtc"]=DateTimeOffset.UtcNow.ToString("O"),
+   ["actorUserId"]=Auth.Profile?.UserId?.Trim()??"",
+   ["actorDisplayName"]=Auth.Profile?.DisplayName?.Trim()??"",
+   ["reason"]=reason,
+   ["action"]=action,
+   ["deedId"]=_selectedDeedId,
+   ["deedName"]=_selectedDeedName,
+   ["regionId"]=_selectedDeedRegionId
+  });
+ }
+
+ async Task RecordInspectionAuditAsync(string action,string reason)
+ {
+  if(!_inspectionEditMode)return;
+  var source=await Session.LoadWorldBuilderSourceAsync();
+  JsonObject root;
+  try
+  {
+   root=source?.State is JsonElement state&&state.ValueKind==JsonValueKind.Object
+    ?JsonNode.Parse(state.GetRawText()) as JsonObject??new JsonObject()
+    :new JsonObject();
+  }
+  catch
+  {
+   root=new JsonObject();
+  }
+  if(root["worldId"] is null)root["worldId"]=Session.WorldId;
+  AppendInspectionAudit(root,action,reason);
+  using var document=JsonDocument.Parse(root.ToJsonString());
+  await Session.SaveWorldBuilderSourceAsync(document.RootElement.Clone());
+ }
+
  async Task CompleteShaelvienDeedAsync(AwsAuthorityClient.MmoParcel parcel)
  {
   _shaelvienDeedGateOpen=false;
+  _exploreReadOnlyMode=false;
+  _inspectionEditMode=false;
+  _inspectionEditReason="";
   await Session.RefreshMmoLandAsync();
   await Session.LoadRegionsAsync();
   if(!string.IsNullOrWhiteSpace(parcel.RegionId))Session.SetActiveRegion(parcel.RegionId);
