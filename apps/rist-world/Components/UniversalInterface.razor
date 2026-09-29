@@ -46,7 +46,7 @@
       <strong>@MmoSelectedName</strong>
       <span>@MmoCoordinate(_mmoSelectedCell) · TIER 0 · TOP SURFACE</span>
      </div>
-     <span class="mmo-inline-map-token">@(_mmoInspectMode?"CLAIM DISABLED":$"{Session.UnspentMmoWorldTokenCount} TOKEN{(Session.UnspentMmoWorldTokenCount==1?"":"S")}")</span>
+     <span class="mmo-inline-map-token">@MmoTokenBadge</span>
     </header>
 
     <div class="mmo-inline-map-stage" style="@MmoMapStageStyle">
