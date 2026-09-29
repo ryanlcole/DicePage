@@ -44,9 +44,9 @@ else if (_canEnter)
    </div>
   </section>
  }
- else if(_experimentsOpen)
+ else if(_universalInterfaceOpen)
  {
-  <ExperimentsWorkspace Worlds="_launchWorlds" OnExit="CloseExperimentsAsync" />
+  <UniversalInterface Worlds="_launchWorlds" OnExit="ReturnToStartAsync" />
  }
  else if(!_launchWorldChosen)
  {
@@ -84,12 +84,6 @@ else if (_canEnter)
      </button>
     }
 
-    @if(Auth.IsOwnerDiscordAccount)
-    {
-     <button type="button" class="rist-environment-dev" disabled="@_launchBusy" @onclick="OpenExperiments">
-      <strong>EXPERIMENTS</strong><small>OWNER DEVELOPMENT</small>
-     </button>
-    }
    </section>
    <WorldGate Open="@_launchSandboxChooserOpen" RequireSelection="false" OnClose="CloseLaunchSandboxChooser" OnContinue="CompleteLaunchSandboxSelectionAsync" />
    <LegacyWorldGate Open="@_launchLegacyChooserOpen" OnClose="CloseLegacyChooser" OnContinue="CompleteLaunchLegacySelectionAsync" />
@@ -235,7 +229,7 @@ else
  bool _launchBusy;
  bool _launchSandboxChooserOpen;
  bool _launchLegacyChooserOpen;
- bool _experimentsOpen;
+ bool _universalInterfaceOpen;
  string _launchWorldsError="";
  readonly List<AccountWorldReference> _launchWorlds=[];
  readonly List<AccountWorldReference> _launchMmoWorlds=[];
@@ -275,7 +269,7 @@ else
   if(_termsRequired||string.IsNullOrWhiteSpace(_privacyChoice))return;
   try{await JS.InvokeAsync<bool[]>("ristLaunch.pressStart",string.Equals(_privacyChoice,"optional",StringComparison.Ordinal));}catch{}
   _launchStarted=true;
-  _experimentsOpen=true;
+  _universalInterfaceOpen=true;
   await InvokeAsync(StateHasChanged);
   await LoadLaunchWorldsAsync();
  }
@@ -351,17 +345,13 @@ else
   _launchLegacyChooserOpen=true;
  }
 
- void OpenExperiments()
+ async Task ReturnToStartAsync()
  {
-  if(_launchBusy)return;
+  _universalInterfaceOpen=false;
+  _launchStarted=false;
+  _launchWorldChosen=false;
   _launchSandboxChooserOpen=false;
   _launchLegacyChooserOpen=false;
-  _experimentsOpen=true;
- }
-
- async Task CloseExperimentsAsync()
- {
-  _experimentsOpen=false;
   await InvokeAsync(StateHasChanged);
  }
 
