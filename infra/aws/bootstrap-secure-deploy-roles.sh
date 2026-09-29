@@ -81,6 +81,12 @@ cat >/tmp/relic-cfn-exec-policy.json <<JSON
       "Resource":"*"
     },
     {
+      "Sid":"ReLiCSecretsManager",
+      "Effect":"Allow",
+      "Action":["secretsmanager:GetRandomPassword","secretsmanager:CreateSecret","secretsmanager:DeleteSecret","secretsmanager:DescribeSecret","secretsmanager:GetSecretValue","secretsmanager:ListSecretVersionIds","secretsmanager:PutSecretValue","secretsmanager:UpdateSecret","secretsmanager:TagResource","secretsmanager:UntagResource"],
+      "Resource":"*"
+    },
+    {
       "Sid":"ReLiCLogsAndTracing",
       "Effect":"Allow",
       "Action":["logs:CreateLogGroup","logs:DeleteLogGroup","logs:DescribeLogGroups","logs:PutRetentionPolicy","logs:DeleteRetentionPolicy","logs:TagResource","logs:UntagResource","xray:PutTraceSegments","xray:PutTelemetryRecords"],
