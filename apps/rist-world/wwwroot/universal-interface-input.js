@@ -510,8 +510,11 @@
       renderCursor();
       cleanupLeftSlider?.();
       cleanupRightSlider?.();
-      cleanupLeftSlider = bindDisplaySlider(leftSliderElement, "y", "y");
-      cleanupRightSlider = bindDisplaySlider(rightSliderElement, "x", "x");
+      // Display rails have their own semantic channels. The analog continues
+      // to emit x/y so a map can bind the stick to spatial navigation while
+      // the left/right displays independently page their own choices.
+      cleanupLeftSlider = bindDisplaySlider(leftSliderElement, "y", "left-slider");
+      cleanupRightSlider = bindDisplaySlider(rightSliderElement, "x", "right-slider");
       if (!frame) frame = requestAnimationFrame(poll);
     },
     stop() {
