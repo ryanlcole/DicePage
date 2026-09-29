@@ -404,8 +404,10 @@
     return $"Restricted Shaelvien zone {parcel.DisplayName} at {CellCoordinate(cell)}; authorized for this account";
    return $"Restricted Shaelvien zone {parcel?.DisplayName} at {CellCoordinate(cell)}; name only";
   }
-  if(Session.IsMmoParcelClaimable(cell))return $"Available Shaelvien deed {CellCoordinate(cell)}";
-  return $"Shaelvien property {CellCoordinate(cell)}; not yet connected to the claim frontier";
+  if(Session.IsMmoParcelOpen(cell))return Session.IsMmoParcelClaimable(cell)
+   ?$"Open Shaelvien zone {CellCoordinate(cell)}; available to claim"
+   :$"Open Shaelvien zone {CellCoordinate(cell)}; explore now, token required to claim";
+  return $"Shaelvien zone {CellCoordinate(cell)}; not yet connected to the claim frontier";
  }
 
  public sealed record MapViewRequest(int CellIndex,AwsAuthorityClient.MmoParcel? Parcel);
