@@ -7,28 +7,28 @@ const root=path.resolve(__dirname,'..');
 const read=relative=>fs.readFileSync(path.join(root,relative),'utf8');
 
 test('Browser Back authority is not a visible or grid-flow control',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
-  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const razor=read('Components/UniversalInterface.razor');
+  const css=read('wwwroot/css/universal-interface.css');
 
   assert.match(
     razor,
-    /class="experiments-browser-back"[\s\S]{0,220}?data-browser-back="experiments"[\s\S]{0,220}?hidden/
+    /class="universal-browser-back"[\s\S]{0,220}?data-browser-back="universal"[\s\S]{0,220}?hidden/
   );
   assert.match(
     css,
-    /\.experiments-browser-back\s*\{[\s\S]*?display:none!important;[\s\S]*?\}/
+    /\.universal-browser-back\s*\{[\s\S]*?display:none!important;[\s\S]*?\}/
   );
 });
 
-test('Browser Back authority remains connected to the experiments shell',()=>{
+test('Browser Back authority remains connected to the universal shell',()=>{
   const bridge=read('wwwroot/browser-back-authority.js');
-  assert.match(bridge,/\.experiments-shell \[data-browser-back="experiments"\]/);
+  assert.match(bridge,/\.universal-shell \[data-browser-back="universal"\]/);
   assert.match(bridge,/target\.click\(\)/);
 });
 
 
 test('landscape mode prioritizes viewer visibility with a compact control deck',()=>{
-  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const css=read('wwwroot/css/universal-interface.css');
   assert.match(css,/Compact landscape visibility authority/);
   assert.match(css,/@media \(orientation:landscape\) and \(max-height:620px\)/);
   assert.match(css,/grid-template-rows:minmax\(0,1fr\) clamp\(92px,26dvh,112px\)!important/);
@@ -39,8 +39,8 @@ test('landscape mode prioritizes viewer visibility with a compact control deck',
 
 
 test('universal analog stick press acts as the primary Select control',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
-  const input=read('wwwroot/experiments-universal-input.js');
+  const razor=read('Components/UniversalInterface.razor');
+  const input=read('wwwroot/universal-interface-input.js');
 
   assert.match(razor,/data-analog-select="true"/);
   assert.match(
@@ -55,7 +55,7 @@ test('universal analog stick press acts as the primary Select control',()=>{
 });
 
 test('portrait builder keeps source content in the vertical center and corner PIPs translucent',()=>{
-  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const css=read('wwwroot/css/universal-interface.css');
   const index=read('wwwroot/index.html');
 
   assert.match(css,/Analog Select \+ four-corner pip safe-center authority/);
@@ -65,34 +65,34 @@ test('portrait builder keeps source content in the vertical center and corner PI
   );
   assert.match(
     css,
-    /@media\(max-width:700px\) and \(orientation:portrait\)\{[\s\S]*?\.experiments-worldbuilder-viewer \.asset-source-explorer\{[\s\S]*?top:144px!important;[\s\S]*?bottom:82px!important;/
+    /@media\(max-width:700px\) and \(orientation:portrait\)\{[\s\S]*?\.universal-worldbuilder-viewer \.asset-source-explorer\{[\s\S]*?top:144px!important;[\s\S]*?bottom:82px!important;/
   );
   assert.match(css,/grid-template-columns:repeat\(auto-fit,minmax\(82px,1fr\)\)!important;/);
   assert.match(
     css,
     /@media\(max-width:430px\) and \(orientation:portrait\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/
   );
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-dark-light-dragons-1/);
-  assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
+  assert.match(index,/universal-universal-suite\.css\?v=20260929-live-1/);
+  assert.match(index,/universal-universal-input\.js\?v=20260929-live-1/);
 });
 
 
 test('START opens the existing settings menu without duplicating settings',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
-  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const razor=read('Components/UniversalInterface.razor');
+  const css=read('wwwroot/css/universal-interface.css');
   const index=read('wwwroot/index.html');
 
   assert.match(razor,/class="analog-start-button"[\s\S]{0,220}?@onclick="HandleStartButtonAsync"[\s\S]{0,220}?>START<\/button>/);
   assert.match(razor,/HandleStartButtonAsync\(\)[\s\S]*?await OpenStartMenuAsync\(\)/);
-  assert.match(razor,/await JS\.InvokeVoidAsync\("RistStartMenu\.open","experiment"\)/);
+  assert.match(razor,/await JS\.InvokeVoidAsync\("RistStartMenu\.open","universal"\)/);
   assert.doesNotMatch(razor,/<h2>Video<\/h2>|<h2>Picture<\/h2>|<h2>Sound<\/h2>|<h2>Effects<\/h2>/);
   assert.match(css,/body\.rist-start-open \.rist-start-overlay\{[\s\S]*?z-index:2147483600!important/);
   assert.match(index,/start-menu\.js/);
 });
 
 test('Browse cursor and analog press target the thumbnail beneath the reticle',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
-  const input=read('wwwroot/experiments-universal-input.js');
+  const razor=read('Components/UniversalInterface.razor');
+  const input=read('wwwroot/universal-interface-input.js');
   const index=read('wwwroot/index.html');
 
   assert.match(razor,/bool _browseCursorActive;/);
@@ -105,19 +105,19 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
   assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button,\.analog-mode-button"\)/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-dark-light-dragons-1/);
-  assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
+  assert.match(index,/universal-universal-suite\.css\?v=20260929-live-1/);
+  assert.match(index,/universal-universal-input\.js\?v=20260929-live-1/);
 });
 
 
 test('authenticated launch enters the universal controller instead of the old environment cards',()=>{
   const auth=read('Components/AuthenticatedWorld.razor');
-  assert.match(auth,/BeginAuthenticatedLaunchAsync\(\)[\s\S]{0,420}?_launchStarted=true;[\s\S]{0,140}?_experimentsOpen=true;[\s\S]{0,180}?LoadLaunchWorldsAsync\(\)/);
-  assert.match(auth,/else if\(_experimentsOpen\)[\s\S]{0,180}?<ExperimentsWorkspace/);
+  assert.match(auth,/BeginAuthenticatedLaunchAsync\(\)[\s\S]{0,420}?_launchStarted=true;[\s\S]{0,140}?_universalOpen=true;[\s\S]{0,180}?LoadLaunchWorldsAsync\(\)/);
+  assert.match(auth,/else if\(_universalOpen\)[\s\S]{0,180}?<UniversalWorkspace/);
 });
 
 test('LEGACY opens the GM archive importer and continues into RIST',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+  const razor=read('Components/UniversalInterface.razor');
   assert.match(razor,/<LegacyWorldGate[\s\S]{0,260}?Open="@_legacyGateOpen"[\s\S]{0,260}?OnContinue="ContinueLegacyIntoRistAsync"/);
   assert.match(razor,/Legacy: import or load a preserved GM archive\. Completing Legacy continues into RIST\./);
   assert.match(razor,/ContinueLegacyIntoRistAsync\(\)[\s\S]{0,420}?_selectedEnvironment="RIST"[\s\S]{0,260}?_stage=Stage\.Role/);
@@ -125,12 +125,12 @@ test('LEGACY opens the GM archive importer and continues into RIST',()=>{
 });
 
 test('analog top button switches CURSOR and BUTTONS without changing START',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
-  const input=read('wwwroot/experiments-universal-input.js');
-  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const razor=read('Components/UniversalInterface.razor');
+  const input=read('wwwroot/universal-interface-input.js');
+  const css=read('wwwroot/css/universal-interface.css');
 
   assert.match(razor,/class="analog-mode-button"[\s\S]{0,360}?@onclick="ToggleAnalogMode"[\s\S]{0,420}?@AnalogModeLabel<\/button>/);
-  assert.match(razor,/string AnalogModeLabel=>_stage==Stage\.Environment&&_experimentStartRevealed[\s\S]{0,260}?CursorMode\?"CURSOR":"BUTTONS"/);
+  assert.match(razor,/string AnalogModeLabel=>_stage==Stage\.Environment&&_universalStartRevealed[\s\S]{0,260}?CursorMode\?"CURSOR":"BUTTONS"/);
   assert.match(razor,/async Task ToggleAnalogMode\(\)[\s\S]*?_analogButtonMode=true;[\s\S]*?_analogButtonMode=false;/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]*?_analogButtonMode=false;[\s\S]*?Cursor active/);
   assert.match(razor,/class="analog-start-button"[\s\S]*?@onclick="HandleStartButtonAsync"/);
@@ -140,10 +140,10 @@ test('analog top button switches CURSOR and BUTTONS without changing START',()=>
 
 
 test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer devices',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
-  const input=read('wwwroot/experiments-universal-input.js');
+  const razor=read('Components/UniversalInterface.razor');
+  const input=read('wwwroot/universal-interface-input.js');
   const cursors=read('wwwroot/cursors-haptics.js');
-  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const css=read('wwwroot/css/universal-interface.css');
   const index=read('wwwroot/index.html');
 
   assert.match(razor,/class="viewer-reticle" data-cursor-role="pointer"/);
@@ -157,14 +157,14 @@ test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer d
   assert.match(css,/--rist-cursor-image-pointer/);
   assert.match(css,/--rist-cursor-image-selectAlt2/);
   assert.match(index,/cursors-haptics\.js\?v=20260928-visible-cursor-assets-1/);
-  assert.match(index,/experiments-universal-input\.js\?v=20260928-cursor-assets-1/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-dark-light-dragons-1/);
+  assert.match(index,/universal-universal-input\.js\?v=20260929-live-1/);
+  assert.match(index,/universal-universal-suite\.css\?v=20260929-live-1/);
 });
 
 
 test('analog center tap selects the asset currently under the cursor',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
-  const input=read('wwwroot/experiments-universal-input.js');
+  const razor=read('Components/UniversalInterface.razor');
+  const input=read('wwwroot/universal-interface-input.js');
 
   assert.match(input,/const ANALOG_SELECT_RADIUS = 0\.46;/);
   assert.match(input,/const ANALOG_SELECT_MOVE_PX = 10;/);
@@ -179,7 +179,7 @@ test('analog center tap selects the asset currently under the cursor',()=>{
 
 
 test('asset activation is select once and place on the second activation',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+  const razor=read('Components/UniversalInterface.razor');
   assert.match(razor,/void SelectGameAsset\(string key\)=>ActivateAssetFromBrowser\(key\)/);
   assert.match(razor,/void SelectMyAsset\(string key\)=>ActivateAssetFromBrowser\(key\)/);
   assert.match(razor,/if\(string\.Equals\(_selectedAssetKey,key,StringComparison\.Ordinal\)\)[\s\S]*?BeginSelectedAssetPlacement\(\)/);
@@ -189,45 +189,45 @@ test('asset activation is select once and place on the second activation',()=>{
   assert.match(razor,/ONCE SELECTS · AGAIN PLACES/);
 });
 
-test('Experiment Start menu keeps controller visible and reuses Save Load and exit hooks',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+test('Universal Start menu keeps controller visible and reuses Save Load and exit hooks',()=>{
+  const razor=read('Components/UniversalInterface.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
   const start=read('wwwroot/start-menu.js');
-  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const css=read('wwwroot/css/universal-interface.css');
   const index=read('wwwroot/index.html');
 
-  assert.match(razor,/data-experiment-start-save/);
-  assert.match(razor,/data-experiment-start-load/);
-  assert.match(razor,/data-experiment-start-exit/);
-  assert.match(razor,/RistStartMenu\.open","experiment"/);
-  assert.match(razor,/SaveExperimentFromStartAsync\(\)[\s\S]*?\.InvokeVoidAsync\("save",_worldBuilderFrame\)/);
-  assert.match(razor,/LoadExperimentFromStartAsync\(\)[\s\S]*?\.InvokeVoidAsync\("reload",_worldBuilderFrame,source\)/);
+  assert.match(razor,/data-universal-start-save/);
+  assert.match(razor,/data-universal-start-load/);
+  assert.match(razor,/data-universal-start-exit/);
+  assert.match(razor,/RistStartMenu\.open","universal"/);
+  assert.match(razor,/SaveUniversalFromStartAsync\(\)[\s\S]*?\.InvokeVoidAsync\("save",_worldBuilderFrame\)/);
+  assert.match(razor,/LoadUniversalFromStartAsync\(\)[\s\S]*?\.InvokeVoidAsync\("reload",_worldBuilderFrame,source\)/);
   assert.match(host,/export async function save\(frame\)/);
   assert.match(host,/export function reload\(frame,worldSource\)/);
   assert.match(start,/data-start-action="save"/);
   assert.match(start,/data-start-action="load"/);
-  assert.match(start,/Exit Experiment/);
-  assert.match(start,/rist-start-experiment-controller/);
+  assert.match(start,/Exit Game/);
+  assert.match(start,/rist-start-universal-controller/);
   assert.match(css,/bottom:var\(--rist-start-controller-reserve,220px\)!important/);
   assert.match(index,/start-menu\.js\?v=20260928-grid-density-1/);
 });
 
 test('mobile expanded context is contained and avoids iOS form zoom',()=>{
-  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const css=read('wwwroot/css/universal-interface.css');
   assert.match(css,/\.asset-context-pip\.expanded\{[\s\S]*?left:8px!important;[\s\S]*?right:8px!important;[\s\S]*?width:auto!important/);
   assert.match(css,/\.asset-context-fields input,[\s\S]*?\.asset-context-fields textarea\{[\s\S]*?font-size:16px!important/);
   assert.match(css,/resize:none!important/);
 });
 
 
-test('Experiments open directly on Shaelvien Legacy and RIST choices',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+test('Universal open directly on Shaelvien Legacy and RIST choices',()=>{
+  const razor=read('Components/UniversalInterface.razor');
 
-  assert.match(razor,/bool _experimentStartRevealed=true;/);
+  assert.match(razor,/bool _universalStartRevealed=true;/);
   assert.match(razor,/<strong>CHOOSE ENVIRONMENT<\/strong>/);
   assert.match(razor,/environment-choice-label">SHAELVIEN/);
   assert.match(razor,/environment-choice-label">RIST/);
-  assert.match(razor,/string AnalogModeLabel=>_stage==Stage\.Environment&&_experimentStartRevealed[\s\S]{0,120}?"LEGACY"/);
+  assert.match(razor,/string AnalogModeLabel=>_stage==Stage\.Environment&&_universalStartRevealed[\s\S]{0,120}?"LEGACY"/);
   assert.match(razor,/class="analog-start-button"[\s\S]{0,220}?@onclick="HandleStartButtonAsync"/);
 });
 
@@ -235,7 +235,7 @@ test('Experiments open directly on Shaelvien Legacy and RIST choices',()=>{
 test('START Interface separates overlay viewer grid and asset grid',()=>{
   const start=read('wwwroot/start-menu.js');
   const sourceCss=read('css-source/start-menu.css');
-  const shellCss=read('wwwroot/css/experiments-universal-suite.css');
+  const shellCss=read('wwwroot/css/universal-interface.css');
   const prototype=read('wwwroot/prototype/prototype.js');
   const prototypeCss=read('wwwroot/prototype/prototype.css');
   const prototypeIndex=read('wwwroot/prototype/index.html');
@@ -271,12 +271,12 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
   assert.match(prototypeIndex,/prototype\.css\?v=20260928-canonical-spatial-1/);
   assert.match(prototypeIndex,/prototype\.js\?v=20260928-canonical-spatial-1/);
   assert.match(index,/start-menu\.js\?v=20260928-grid-density-1/);
-  assert.match(index,/experiments-universal-suite\.css\?v=20260928-dark-light-dragons-1/);
+  assert.match(index,/universal-universal-suite\.css\?v=20260929-live-1/);
 });
 
 
 test('image tool is labeled IMAGES and exposes existing libraries plus upload',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+  const razor=read('Components/UniversalInterface.razor');
   assert.match(razor,/ArtMethods=\["DRAW","CAD","IMAGES","SPRITE","AUDIO","VIDEO"\]/);
   assert.match(razor,/case "IMAGES":[\s\S]{0,120}?PrepareAssetSource\("IMAGE"\)/);
   assert.match(razor,/ImageSources=\["GAME IMAGES","MY IMAGES","UPLOAD"\]/);
@@ -284,10 +284,10 @@ test('image tool is labeled IMAGES and exposes existing libraries plus upload',(
 });
 
 test('viewer top menu exposes back undo cut copy redo paste and forward',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+  const razor=read('Components/UniversalInterface.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
   const prototype=read('wwwroot/prototype/prototype.js');
-  const css=read('wwwroot/css/experiments-universal-suite.css');
+  const css=read('wwwroot/css/universal-interface.css');
 
   assert.match(razor,/class="viewer-menu-bar"[\s\S]{0,900}?BACK[\s\S]{0,200}?UNDO[\s\S]{0,200}?CUT[\s\S]{0,200}?COPY[\s\S]{0,200}?REDO[\s\S]{0,200}?PASTE[\s\S]{0,200}?FORWARD/);
   assert.match(razor,/HandleViewerMenuCommandAsync\("back"\)/);
@@ -304,7 +304,7 @@ test('viewer top menu exposes back undo cut copy redo paste and forward',()=>{
 });
 
 test('Shaelvien GameMaster is deed-first and selected deed becomes World Builder plus Context',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+  const razor=read('Components/UniversalInterface.razor');
   const land=read('WorldSession.MmoLand.cs');
   const deed=read('Components/ShaelvienDeedGate.razor');
 
@@ -323,7 +323,7 @@ test('Shaelvien GameMaster is deed-first and selected deed becomes World Builder
 });
 
 test('controller Save reacts immediately, commits canonical placement, and returns to the selected deed home',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+  const razor=read('Components/UniversalInterface.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
   const prototype=read('wwwroot/prototype/prototype.js');
 
@@ -339,7 +339,7 @@ test('controller Save reacts immediately, commits canonical placement, and retur
 });
 
 test('outer depth drives embedded canonical tier and layer',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+  const razor=read('Components/UniversalInterface.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
   const prototype=read('wwwroot/prototype/prototype.js');
 
@@ -378,7 +378,7 @@ test('canonical placements retain their World Region Local or Instance scope',()
 
 
 test('selected Shaelvien deed identity drives the embedded map and Sunken Tundra pack',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+  const razor=read('Components/UniversalInterface.razor');
   const prototype=read('wwwroot/prototype/prototype.js');
 
   assert.match(razor,/deedRegionId=\{deedRegionId\}/);
