@@ -22,14 +22,14 @@ test('host bridge forwards placed selection identity into the Blazor controller'
 });
 
 test('map saves preserve canonical Asset Context extensions',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+  const razor=read('Components/UniversalInterface.razor');
   assert.match(razor,/currentState\.TryGetProperty\("assetContexts",out var currentContexts\)/);
   assert.match(razor,/root\["assetContexts"\]=JsonNode\.Parse\(currentContexts\.GetRawText\(\)\)/);
   assert.match(razor,/SaveWorldBuilderSourceAsync\(mergedState\)/);
 });
 
 test('asset context prioritizes placed identity and persists it in canonical world source context',()=>{
-  const razor=read('Components/ExperimentsWorkspace.razor');
+  const razor=read('Components/UniversalInterface.razor');
   assert.match(razor,/HasWorldBuilderSelection=>!string\.IsNullOrWhiteSpace\(_worldBuilderSelectionId\)/);
   assert.match(razor,/\?\$"placement:\{_worldBuilderSelectionId\}"/);
   assert.match(razor,/entry\["placementId"\]=placementId/);
