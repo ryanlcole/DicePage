@@ -394,6 +394,7 @@
   PathSelect,
   GameMasterHub,
   GameMasterScope,
+  SpatialSelect,
   SoftwareHub,
   ControlSettings,
   WorldBuilderTier,
@@ -434,6 +435,7 @@
  int _assetKindIndex;
  int _assetSourceIndex;
  int _builderChainIndex;
+ int _spatialSelectIndex;
  int _tier;
  int _layer;
  int _xPulse;
@@ -668,6 +670,44 @@
  string CurrentAssetSource=>AssetSources[Math.Clamp(_assetSourceIndex,0,AssetSources.Length-1)];
  string CurrentBuilderScope=>BuilderChain[Math.Clamp(_builderChainIndex,0,BuilderChain.Length-1)];
  string CurrentBuilderSuite=>BuilderSuiteNames[Math.Clamp(_builderChainIndex,0,BuilderSuiteNames.Length-1)];
+
+ IReadOnlyList<WorldSpatialNode> CurrentSpatialOptions=>CurrentBuilderScope switch
+ {
+  "REGION"=>Session.SpatialRegions,
+  "LOCAL"=>Session.LocalsForActiveSpatialRegion,
+  "INSTANCE"=>Session.InstancesForActiveLocal,
+  _=>Array.Empty<WorldSpatialNode>()
+ };
+ int SpatialOptionCount=>CurrentSpatialOptions.Count+1;
+ int SpatialOptionIndex=>Math.Clamp(_spatialSelectIndex,0,Math.Max(0,SpatialOptionCount-1));
+ bool SpatialOptionIsNew=>SpatialOptionIndex>=CurrentSpatialOptions.Count;
+ WorldSpatialNode? CurrentSpatialOption=>SpatialOptionIsNew?null:CurrentSpatialOptions[SpatialOptionIndex];
+ string CurrentSpatialSelectionLabel=>CurrentSpatialOption?.Name?.Trim().ToUpperInvariant()??$"NEW {CurrentBuilderScope}";
+ string CurrentSpatialNodeId=>CurrentBuilderScope switch
+ {
+  "REGION"=>Session.ActiveSpatialRegion?.NodeId??"",
+  "LOCAL"=>Session.ActiveLocal?.NodeId??"",
+  "INSTANCE"=>Session.ActiveInstance?.NodeId??"",
+  _=>""
+ };
+ string CurrentSpatialPath=>string.Join("/",new[]
+ {
+  Session.ActiveSpatialRegion?.NodeId,
+  Session.ActiveLocal?.NodeId,
+  Session.ActiveInstance?.NodeId
+ }.Where(value=>!string.IsNullOrWhiteSpace(value)));
+ string CurrentSpatialBreadcrumb
+ {
+  get
+  {
+   var labels=new List<string>();
+   if(CurrentPathWorld is not null)labels.Add(CurrentPathWorld.Name);
+   if(Session.ActiveSpatialRegion is not null)labels.Add(Session.ActiveSpatialRegion.Name);
+   if(Session.ActiveLocal is not null)labels.Add(Session.ActiveLocal.Name);
+   if(Session.ActiveInstance is not null)labels.Add(Session.ActiveInstance.Name);
+   return string.Join(" → ",labels);
+  }
+ }
  bool HasWorldBuilderSelection=>!string.IsNullOrWhiteSpace(_worldBuilderSelectionId);
  bool HasIndividualAssetContext=>HasWorldBuilderSelection||!string.IsNullOrWhiteSpace(_selectedAssetKey);
  string ActiveContextAssetKey=>HasWorldBuilderSelection?_worldBuilderSelectionAssetId:_selectedAssetKey;
@@ -723,6 +763,7 @@
   Stage.PathSelect=>GameMasterPaths.Length,
   Stage.GameMasterHub=>WorldChoices.Length,
   Stage.GameMasterScope=>Scopes.Length,
+  Stage.SpatialSelect=>SpatialOptionCount,
   Stage.SoftwareHub=>SoftwareCapabilities.Length,
   Stage.ControlSettings=>AnalogPlacements.Length,
   Stage.WorldBuilderTier=>10,
@@ -747,8 +788,8 @@
     _=>1
    };
 
- bool RightActsAsBack=>_stage!=Stage.PathSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1;
- bool CursorAvailable=>!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
+ bool RightActsAsBack=>_stage==Stage.SpatialSelect||(_stage!=Stage.PathSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1);
+ bool CursorAvailable=>_stage!=Stage.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
  bool CursorMode=>CursorAvailable
   &&!_analogButtonMode
   &&(_stage!=Stage.BrowsePlace||_browseCursorActive);
@@ -768,6 +809,7 @@
   Stage.PathSelect=>"Y · PATHS",
   Stage.GameMasterHub=>"Y · WORLDS",
   Stage.GameMasterScope=>"Y · SUITES",
+  Stage.SpatialSelect=>$"Y · {CurrentBuilderScope}",
   Stage.SoftwareHub=>"Y · CAPABILITIES",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"Y · DEPTH",
   Stage.ArtMethod or Stage.ArtPhase or Stage.AssetKind=>"Y · A/V",
@@ -794,6 +836,7 @@
   Stage.Role=>_selectedEnvironment,
   Stage.PathSelect=>"GAMEMASTER PATH",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
+  Stage.SpatialSelect=>$"SELECT {CurrentBuilderScope}",
   Stage.ControlSettings=>"CONTROLS",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"DEPTH",
   Stage.ArtMethod=>"A/V METHOD",
@@ -815,6 +858,7 @@
   Stage.Role=>"ROLEPLAYER",
   Stage.PathSelect=>CurrentGameMasterPath,
   Stage.GameMasterScope=>CurrentScope,
+  Stage.SpatialSelect=>CurrentSpatialSelectionLabel,
   Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
   Stage.WorldBuilderTier=>$"TIER {_tier}",
   Stage.WorldBuilderLayer=>$"LAYER {_layer}",
@@ -839,6 +883,7 @@
   Stage.Role=>_selectedEnvironment,
   Stage.PathSelect=>PathWorldEyebrow,
   Stage.GameMasterScope=>"NAVIGATION",
+  Stage.SpatialSelect=>"NAVIGATION",
   Stage.ControlSettings=>"SETTINGS",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"PATH / JOURNAL",
   Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>"PATH / JOURNAL",
@@ -856,6 +901,7 @@
   Stage.Role=>"GAMEMASTER",
   Stage.PathSelect=>PathWorldLabel,
   Stage.GameMasterScope=>"BACK",
+  Stage.SpatialSelect=>"BACK",
   Stage.ControlSettings=>"BACK",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>CurrentPathTarget,
   Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>CurrentPathTarget,
@@ -873,6 +919,9 @@
   Stage.Role=>"Player-facing role.",
   Stage.PathSelect=>"Choose World Builder, Campaign Builder, or Advanced. This selects the controller's guided route.",
   Stage.GameMasterScope=>"Y cycles GameMaster applications and capability groups.",
+  Stage.SpatialSelect=>SpatialOptionIsNew
+   ?$"Create a new {CurrentBuilderScope.ToLowerInvariant()} inside the selected parent. Editing depth stays locked until the object is selected."
+   :$"Select {CurrentSpatialSelectionLabel}. Editing Tier and Layer remains locked until selection is explicit.",
   Stage.ControlSettings=>"Move the analog left, center, or right of the two display buttons.",
   Stage.WorldBuilderTier=>"Y pages through tiers. Touch the left display to select the shown tier.",
   Stage.WorldBuilderLayer=>"Y pages through layers. Touch the left display to select the shown layer, then choose an art method.",
@@ -901,6 +950,7 @@
     ?"Claim a Shaelvien deed with one available Shaelvien Token."
     :"Claim a private RIST deed without spending a Shaelvien Token.",
   Stage.GameMasterScope=>"Return to world and settings selection.",
+  Stage.SpatialSelect=>"Back one hierarchy level without changing the selected parent.",
   Stage.ControlSettings=>"Cancel and return to GameMaster settings.",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"The right rail jumps through spatial scopes, journals, lore, NPCs, encounters, and the rest of the active path. Browser Back moves backward.",
   Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>"The right rail is always the path/journal rail. Browser Back moves backward; Advanced exposes the complete graph.",
@@ -932,6 +982,7 @@
  {
   Stage.PathSelect=>CurrentGameMasterPath,
   Stage.GameMasterHub=>CurrentWorld,
+  Stage.SpatialSelect=>CurrentSpatialSelectionLabel,
   Stage.SoftwareHub=>CurrentSoftware,
   Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
   Stage.ArtMethod=>CurrentArtMethod,
@@ -966,6 +1017,7 @@
  {
   Stage.PathSelect=>"SLIDE ↑↓ · TOUCH PATH",
   Stage.GameMasterHub=>"TOUCH · SELECT WORLD",
+  Stage.SpatialSelect=>SpatialOptionIsNew?$"TOUCH · CREATE {CurrentBuilderScope}":"TOUCH · SELECT",
   Stage.SoftwareHub=>"TOUCH · SELECT TOOL",
   Stage.ControlSettings=>"TOUCH · SAVE",
   Stage.ArtMethod=>"SLIDE ↑↓ · TOUCH METHOD",
@@ -1004,6 +1056,7 @@
   Stage.PathSelect=>"GAMEMASTER · CHOOSE PATH",
   Stage.GameMasterHub=>"GAMEMASTER · WORLD SELECTOR",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
+  Stage.SpatialSelect=>$"{CurrentBuilderScope} · SELECT BEFORE EDIT",
   Stage.SoftwareHub=>"SOFTWARE CAPABILITY ADAPTERS",
   Stage.ControlSettings=>"CONTROLS · ANALOG PLACEMENT",
   Stage.WorldBuilderTier=>$"{CurrentBuilderSuite} · TIER",
@@ -1030,6 +1083,7 @@
   Stage.PathSelect=>"GAMEMASTER → PATH",
   Stage.GameMasterHub=>"SHAELVIEN → GAMEMASTER",
   Stage.GameMasterScope=>"GAMEMASTER → SUITE",
+  Stage.SpatialSelect=>string.IsNullOrWhiteSpace(CurrentSpatialBreadcrumb)?$"GAMEMASTER → {CurrentBuilderScope}":$"{CurrentSpatialBreadcrumb} → SELECT {CurrentBuilderScope}",
   Stage.SoftwareHub=>"GAMEMASTER → SOFTWARE",
   Stage.ControlSettings=>"GAMEMASTER → CONTROLS",
   Stage.WorldBuilderTier=>$"{CurrentBuilderScope} → TIER",
@@ -1167,6 +1221,10 @@
     _scopeIndex=Wrap(_scopeIndex+direction,Scopes.Length);
     _message=$"GameMaster suite: {CurrentScope}.";
     break;
+   case Stage.SpatialSelect:
+    _spatialSelectIndex=Wrap(_spatialSelectIndex+direction,SpatialOptionCount);
+    _message=$"{CurrentBuilderScope}: {CurrentSpatialSelectionLabel}.";
+    break;
    case Stage.SoftwareHub:
     _softwareIndex=Wrap(_softwareIndex+direction,SoftwareCapabilities.Length);
     _message=$"Capability adapter: {CurrentSoftware}.";
@@ -1287,6 +1345,9 @@
     break;
    case Stage.GameMasterScope:
     EnterScope();
+    break;
+   case Stage.SpatialSelect:
+    await ActivateSpatialSelectionAsync();
     break;
    case Stage.SoftwareHub:
     _message=$"{CurrentSoftware} selected. Adapter contract placeholder only; no third-party UI or copied design is embedded.";
@@ -1414,6 +1475,9 @@
     _stage=Stage.GameMasterHub;
     _message="Returned to worlds and GameMaster options.";
     break;
+   case Stage.SpatialSelect:
+    BackFromSpatialSelection();
+    break;
    case Stage.SoftwareHub:
     _stage=Stage.GameMasterScope;
     _message="Returned to the GameMaster suite selector.";
@@ -1425,8 +1489,17 @@
     _message="Analog placement unchanged.";
     break;
    case Stage.WorldBuilderTier:
-    _stage=Stage.GameMasterScope;
-    _message="Returned to the GameMaster suite selector.";
+    if(CurrentBuilderScope=="WORLD")
+    {
+     _stage=Stage.GameMasterScope;
+     _message="Returned to the GameMaster suite selector.";
+    }
+    else
+    {
+     _stage=Stage.SpatialSelect;
+     SelectActiveSpatialOption();
+     _message=$"Returned to {CurrentBuilderScope} selection. {CurrentSpatialSelectionLabel}.";
+    }
     break;
    case Stage.WorldBuilderLayer:
     _stage=Stage.WorldBuilderTier;
@@ -1556,6 +1629,9 @@
    case Stage.GameMasterScope:
     _stage=Stage.GameMasterHub;
     _message="Returned to worlds and GameMaster options.";
+    break;
+   case Stage.SpatialSelect:
+    BackFromSpatialSelection();
     break;
    case Stage.SoftwareHub:
     _stage=Stage.GameMasterScope;
@@ -1735,6 +1811,22 @@
     _stage=Stage.WorldBuilderTier;
     _message=$"Back to {CurrentBuilderScope} Tier {_tier}.";
     return;
+   case Stage.WorldBuilderTier:
+    if(CurrentBuilderScope=="WORLD")
+    {
+     _stage=Stage.PathSelect;
+     _message="Returned to GameMaster path selection.";
+    }
+    else
+    {
+     _stage=Stage.SpatialSelect;
+     SelectActiveSpatialOption();
+     _message=$"Returned to {CurrentBuilderScope} selection.";
+    }
+    return;
+   case Stage.SpatialSelect:
+    BackFromSpatialSelection();
+    return;
   }
 
   if(_pathHistory.Count>0)
@@ -1806,7 +1898,14 @@
 
  void BeginBuilderScope(int index)
  {
-  _builderChainIndex=Math.Clamp(index,0,BuilderChain.Length-1);
+  index=Math.Clamp(index,0,BuilderChain.Length-1);
+
+  // Selection-first hierarchy: a Local cannot be edited until a Region is
+  // selected, and an Instance cannot be edited until its Local is selected.
+  if(index>=2&&Session.ActiveSpatialRegion is null)index=1;
+  if(index>=3&&Session.ActiveLocal is null)index=2;
+
+  _builderChainIndex=index;
   _assetScope=CurrentBuilderScope;
   _tier=0;
   _layer=0;
@@ -1821,7 +1920,126 @@
   _assetLoadError="";
   _gameAssets.Clear();
   _myAssets.Clear();
-  _stage=Stage.WorldBuilderTier;
+
+  if(CurrentBuilderScope=="WORLD")
+  {
+   _stage=Stage.WorldBuilderTier;
+   _message="World selected. Choose Tier, then Layer.";
+   _=SyncWorldBuilderDepthAsync();
+   return;
+  }
+
+  _stage=Stage.SpatialSelect;
+  SelectActiveSpatialOption();
+  _message=CurrentBuilderScope switch
+  {
+   "REGION"=>"Select a Region before editing its Tier or Layer.",
+   "LOCAL"=>"Select a Local inside the active Region before editing its Tier or Layer.",
+   "INSTANCE"=>"Select an Instance inside the active Local before editing its Tier or Layer.",
+   _=>$"Select {CurrentBuilderScope} before editing."
+  };
+ }
+
+ void SelectActiveSpatialOption()
+ {
+  var activeId=CurrentBuilderScope switch
+  {
+   "REGION"=>Session.ActiveSpatialRegion?.NodeId??"",
+   "LOCAL"=>Session.ActiveLocal?.NodeId??"",
+   "INSTANCE"=>Session.ActiveInstance?.NodeId??"",
+   _=>""
+  };
+  if(string.IsNullOrWhiteSpace(activeId))
+  {
+   _spatialSelectIndex=Math.Max(0,CurrentSpatialOptions.Count);
+   return;
+  }
+  var index=CurrentSpatialOptions.ToList().FindIndex(node=>string.Equals(node.NodeId,activeId,StringComparison.Ordinal));
+  _spatialSelectIndex=index>=0?index:Math.Max(0,CurrentSpatialOptions.Count);
+ }
+
+ async Task ActivateSpatialSelectionAsync()
+ {
+  if(CurrentBuilderScope is not ("REGION" or "LOCAL" or "INSTANCE"))
+  {
+   _stage=Stage.WorldBuilderTier;
+   await SyncWorldBuilderDepthAsync();
+   return;
+  }
+
+  if(CurrentBuilderScope=="LOCAL"&&Session.ActiveSpatialRegion is null)
+  {
+   BeginBuilderScope(1);
+   _message="Select a Region first. Local editing remains locked until then.";
+   return;
+  }
+  if(CurrentBuilderScope=="INSTANCE"&&Session.ActiveLocal is null)
+  {
+   BeginBuilderScope(2);
+   _message="Select a Local first. Instance editing remains locked until then.";
+   return;
+  }
+
+  try
+  {
+   WorldSpatialNode? node=CurrentSpatialOption;
+   if(SpatialOptionIsNew)
+   {
+    var suggested=CurrentBuilderScope switch
+    {
+     "REGION"=>"New Region",
+     "LOCAL"=>"New Local",
+     "INSTANCE"=>"New Instance",
+     _=>"New"
+    };
+    var name=await JS.InvokeAsync<string?>("prompt",$"Name this {CurrentBuilderScope.ToLowerInvariant()}",suggested);
+    name=(name??"").Trim();
+    if(name.Length==0)
+    {
+     _message=$"{CurrentBuilderScope} creation cancelled.";
+     return;
+    }
+    node=await Session.CreateSpatialNodeAsync(CurrentBuilderScope,name);
+   }
+   else if(node is not null)
+   {
+    switch(CurrentBuilderScope)
+    {
+     case "REGION":Session.SetActiveSpatialRegion(node.NodeId);break;
+     case "LOCAL":Session.SetActiveLocal(node.NodeId);break;
+     case "INSTANCE":Session.SetActiveInstance(node.NodeId);break;
+    }
+   }
+
+   if(node is null)return;
+   _spatialSelectIndex=CurrentSpatialOptions.ToList().FindIndex(item=>string.Equals(item.NodeId,node.NodeId,StringComparison.Ordinal));
+   if(_spatialSelectIndex<0)_spatialSelectIndex=0;
+   _stage=Stage.WorldBuilderTier;
+   await SyncWorldBuilderDepthAsync();
+   _message=$"{CurrentBuilderScope} selected: {node.Name}. Choose Tier, then Layer.";
+  }
+  catch(Exception ex)
+  {
+   Console.Error.WriteLine($"Spatial selection failed: {ex}");
+   _message=ex.Message;
+  }
+ }
+
+ void BackFromSpatialSelection()
+ {
+  if(CurrentBuilderScope=="INSTANCE")
+  {
+   BeginBuilderScope(2);
+   return;
+  }
+  if(CurrentBuilderScope=="LOCAL")
+  {
+   BeginBuilderScope(1);
+   return;
+  }
+  _stage=Stage.GameMasterScope;
+  _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
+  _message="Returned to the GameMaster suite selector.";
  }
 
  void LoadGameAssets()
@@ -2059,6 +2277,8 @@
      name=SelectedAssetName,
      kind=_assetKind,
      scope=CurrentBuilderScope,
+     spatialNodeId=CurrentSpatialNodeId,
+     spatialPath=CurrentSpatialPath,
      tier=_tier,
      layer=_layer,
      scale=_assetScale,
@@ -2086,7 +2306,7 @@
   if(_worldBuilderSourceModule is null)return;
   try
   {
-   await _worldBuilderSourceModule.InvokeVoidAsync("setDepth",_worldBuilderFrame,_tier,_layer,CurrentBuilderScope);
+   await _worldBuilderSourceModule.InvokeVoidAsync("setDepth",_worldBuilderFrame,_tier,_layer,CurrentBuilderScope,CurrentSpatialNodeId,CurrentSpatialPath);
   }
   catch(JSException){}
  }
