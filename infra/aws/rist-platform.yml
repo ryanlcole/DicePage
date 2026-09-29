@@ -16,6 +16,10 @@ Parameters:
   ExternalAiStateTableName:
     Type: String
     Description: Existing external-AI state table used for owner dashboard account totals
+  CloudFormationExecutionRoleName:
+    Type: String
+    Default: ReLiC-CloudFormation-Execution
+    Description: Existing least-privilege CloudFormation execution role managed by secure bootstrap
 
 Globals:
   Function:
@@ -74,9 +78,39 @@ Resources:
             Status: Enabled
             AbortIncompleteMultipartUpload: { DaysAfterInitiation: 1 }
 
+  CloudFormationExecutionSecretsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ReLiCPlatformSecretsExecution
+      Roles:
+        - !Ref CloudFormationExecutionRoleName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: GenerateSecretMaterial
+            Effect: Allow
+            Action:
+              - secretsmanager:GetRandomPassword
+            Resource: '*'
+          - Sid: ManageRistPlatformTelemetrySecret
+            Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:DeleteSecret
+              - secretsmanager:DescribeSecret
+              - secretsmanager:GetSecretValue
+              - secretsmanager:ListSecretVersionIds
+              - secretsmanager:PutSecretValue
+              - secretsmanager:UpdateSecret
+              - secretsmanager:TagResource
+              - secretsmanager:UntagResource
+            Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rist-platform-project-telemetry-salt-*
+
   ProjectTelemetrySalt:
     Type: AWS::SecretsManager::Secret
+    DependsOn: CloudFormationExecutionSecretsPolicy
     Properties:
+      Name: rist-platform-project-telemetry-salt
       Description: Server-only HMAC salt for privacy-preserving project visitor identities
       GenerateSecretString:
         PasswordLength: 64
