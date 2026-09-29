@@ -2281,7 +2281,11 @@
      _message=$"{CurrentBuilderScope} creation cancelled.";
      return;
     }
-    node=await Session.CreateSpatialNodeAsync(CurrentBuilderScope,name);
+    node=await Session.CreateSpatialNodeAsync(
+     CurrentBuilderScope,
+     name,
+     _inspectionEditMode,
+     inspectionReason);
     if(_inspectionEditMode)
     {
      await RecordInspectionAuditAsync($"CREATE {CurrentBuilderScope}",inspectionReason);
