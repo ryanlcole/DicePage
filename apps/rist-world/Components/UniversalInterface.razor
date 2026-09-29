@@ -479,6 +479,7 @@
 
 @code {
  [Parameter] public EventCallback OnExit { get; set; }
+ [Parameter] public EventCallback<string> OnRoleplay { get; set; }
  [Parameter] public IReadOnlyList<AccountWorldReference> Worlds { get; set; } = Array.Empty<AccountWorldReference>();
 
  enum Stage
