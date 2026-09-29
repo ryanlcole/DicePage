@@ -74,6 +74,28 @@ public partial class UniversalInterface
     bool MmoSelectedIsOpen => !MmoSelectedIsEndemar && MmoSelectedParcel is null && Session.IsMmoParcelOpen(_mmoSelectedCell);
     bool MmoSelectedIsOwned => MmoSelectedParcel is { } parcel && Session.IsMmoParcelOwnedByCurrentUser(parcel.CellIndex);
     bool MmoSelectedIsRefunded => string.Equals(MmoSelectedParcel?.Status, "Refunded", StringComparison.OrdinalIgnoreCase);
+    bool MmoSelectedIsShaelvienRoleplayZone =>
+        MmoSelectedIsEndemar || IsCanonicalShaelvienRoleplayZone(MmoSelectedParcel);
+
+    static bool IsCanonicalShaelvienRoleplayZone(AwsAuthorityClient.MmoParcel? parcel)
+    {
+        if (parcel is null) return false;
+        var name = (parcel.DisplayName ?? "").Trim();
+        return string.Equals(name, "The Sunken Tundra", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(name, "Sunken Tundra", StringComparison.OrdinalIgnoreCase);
+    }
+
+    string MmoBidLabel
+    {
+        get
+        {
+            var bid = MmoSelectedParcel?.CurrentBid ?? 0m;
+            var bidder = string.IsNullOrWhiteSpace(MmoSelectedParcel?.CurrentBidUsername)
+                ? "NO BIDS"
+                : MmoSelectedParcel!.CurrentBidUsername.Trim();
+            return $"BID (CURRENT BID {bid.ToString("0.##", CultureInfo.InvariantCulture)} {bidder})";
+        }
+    }
 
     string MmoSelectedName =>
         MmoSelectedIsEndemar
@@ -89,8 +111,8 @@ public partial class UniversalInterface
         get
         {
             if (_mmoInspectMode) return "MANAGE";
-            if (MmoSelectedIsRefunded) return "BID";
-            if (MmoSelectedIsEndemar) return "ROLEPLAY";
+            if (MmoSelectedIsRefunded) return MmoBidLabel;
+            if (MmoSelectedIsShaelvienRoleplayZone) return "ROLEPLAY";
             if (MmoSelectedParcel is not null)
                 return MmoSelectedIsOwned ? "MANAGE" : "REQUEST DEED FROM GM";
             if (MmoSelectedIsOpen)
@@ -104,15 +126,8 @@ public partial class UniversalInterface
         get
         {
             if (_mmoInspectMode) return $"TOUCH · {MmoSelectedName.ToUpperInvariant()}";
-            if (MmoSelectedIsRefunded)
-            {
-                var bid = MmoSelectedParcel?.CurrentBid ?? 0m;
-                var bidder = string.IsNullOrWhiteSpace(MmoSelectedParcel?.CurrentBidUsername)
-                    ? "NO BIDS"
-                    : MmoSelectedParcel!.CurrentBidUsername.Trim();
-                return $"CURRENT BID {bid.ToString("0.##", CultureInfo.InvariantCulture)} · {bidder}";
-            }
-            if (MmoSelectedIsEndemar) return "TOUCH · ENTER SHAELVIEN";
+            if (MmoSelectedIsRefunded) return MmoBidLabel;
+            if (MmoSelectedIsShaelvienRoleplayZone) return $"TOUCH · ROLEPLAY · {MmoSelectedName.ToUpperInvariant()}";
             if (MmoSelectedParcel is not null)
                 return MmoSelectedIsOwned ? "TOUCH · MANAGE DEED" : "TOUCH · SEND REQUEST";
             if (MmoSelectedIsOpen && Session.HasUnspentMmoWorldToken)
@@ -335,23 +350,29 @@ public partial class UniversalInterface
 
     void MoveMmoSelection(int dx, int dy)
     {
+        dx = Math.Sign(dx);
+        dy = Math.Sign(dy);
         if (dx == 0 && dy == 0) return;
-        var column = CellColumn(_mmoSelectedCell);
-        var row = CellRow(_mmoSelectedCell);
 
-        for (var step = 1; step < Math.Max(WorldSession.MmoParcelGridColumns, WorldSession.MmoParcelGridRows); step++)
+        // A stick move is one flat-side topology step. Never jump across a
+        // missing deed/frontier cell to a more distant zone.
+        var nextColumn = CellColumn(_mmoSelectedCell) + dx;
+        var nextRow = CellRow(_mmoSelectedCell) + dy;
+        if (nextColumn < 0 || nextColumn >= WorldSession.MmoParcelGridColumns
+            || nextRow < 0 || nextRow >= WorldSession.MmoParcelGridRows)
         {
-            var nextColumn = column + dx * step;
-            var nextRow = row + dy * step;
-            if (nextColumn < 0 || nextColumn >= WorldSession.MmoParcelGridColumns || nextRow < 0 || nextRow >= WorldSession.MmoParcelGridRows)
-                break;
-            var nextCell = nextRow * WorldSession.MmoParcelGridColumns + nextColumn;
-            if (!_mmoMapCells.Contains(nextCell)) continue;
-            SelectMmoMapCell(nextCell);
+            _message = "That direction is outside the Shaelvien deed lattice.";
             return;
         }
 
-        _message = "No deed zone exists farther in that direction.";
+        var nextCell = nextRow * WorldSession.MmoParcelGridColumns + nextColumn;
+        if (!_mmoMapCells.Contains(nextCell))
+        {
+            _message = $"No adjacent deed zone exists at {MmoCoordinate(nextCell)}.";
+            return;
+        }
+
+        SelectMmoMapCell(nextCell);
     }
 
     void CycleMmoLeftOption(int direction)
@@ -432,9 +453,9 @@ public partial class UniversalInterface
             return;
         }
 
-        if (MmoSelectedIsEndemar)
+        if (MmoSelectedIsShaelvienRoleplayZone)
         {
-            _message = "Roleplay selected for Endemar. The current Universal GameMaster surface does not yet embed the Roleplayer workspace.";
+            _message = $"Roleplay selected for {MmoSelectedName}. The current Universal GameMaster surface does not yet embed the Roleplayer workspace.";
             return;
         }
 
