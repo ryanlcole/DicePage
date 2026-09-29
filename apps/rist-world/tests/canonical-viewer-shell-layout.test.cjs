@@ -403,9 +403,12 @@ test('selected Shaelvien deed identity drives the embedded map and Sunken Tundra
   assert.match(razor,/deedZone=\{deedZone\}/);
   assert.match(razor,/SelectedDeedZoneId/);
   assert.match(prototype,/const DEED_REGION_ID=String\(QUERY\.get\('deedRegionId'\)/);
-  assert.match(prototype,/async function hydrateSelectedDeedZone\(\)/);
+  assert.match(prototype,/async function hydrateSelectedDeedZone\(options=\{\}\)/);
   assert.match(prototype,/\/Game\/assets\/zones\/\$\{encodeURIComponent\(DEED_ZONE_ID\)\}\//);
   assert.match(prototype,/const worldVisible=!DEED_REGION_ID/);
   assert.match(prototype,/const deedVisible=!DEED_REGION_ID\|\|item\.deedZoneLayer\|\|String\(item\.regionId\|\|''\)===DEED_REGION_ID/);
   assert.match(prototype,/item\.deedZoneLayer=true/);
+  assert.match(prototype,/hydrateSelectedDeedZone\(\{preserveView:true\}\)/);
+  assert.match(prototype,/const preserveView=options\?\.preserveView===true/);
+  assert.match(prototype,/if\(preserveView\)[\s\S]{0,180}?viewerTier=preservedTier;[\s\S]{0,120}?viewerLayer=preservedLayer/);
 });
