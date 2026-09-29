@@ -185,7 +185,7 @@ public partial class UniversalInterface
         else if (parcel is not null)
         {
             if (string.Equals(parcel.Status, "Refunded", StringComparison.OrdinalIgnoreCase)) classes.Add("refunded");
-            else if (Session.IsMmoParcelOwnedByCurrentUser(parcel)) classes.Add("owned");
+            else if (Session.IsMmoParcelOwnedByCurrentUser(parcel.CellIndex)) classes.Add("owned");
             else classes.Add(string.Equals(parcel.Visibility, "Public", StringComparison.OrdinalIgnoreCase) ? "public" : "private");
         }
         else classes.Add("available");
