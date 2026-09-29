@@ -53,7 +53,7 @@ ENDEMAR_ORIGIN_COLUMN = 15
 ENDEMAR_ORIGIN_ROW = 15
 GENESIS_WORLD_TOKEN_SK = "WORLD_TOKEN#GENESIS"
 PARCEL_DELEGATION_PERMISSIONS = {"View", "Edit", "Manage", "None"}
-PARCEL_VISIBILITIES = {"Public", "Restricted"}
+PARCEL_VISIBILITIES = {"Public", "Restricted"}  # Explore visibility; Inspect changes are reason-audited.
 
 # Commerce is deliberately authority-first. Paid providers may fulfill these
 # records later, but a browser can never manufacture a subscription, access
