@@ -1,0 +1,569 @@
+using System.Globalization;
+using System.Text.Json;
+
+namespace RistWorld.Components;
+
+public partial class UniversalInterface
+{
+    const string MmoCanonicalSurfaceUrl =
+        "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_canonical_surface_v001.png";
+
+    int _mmoSelectedCell = WorldSession.EndemarOriginCell;
+    int _mmoLeftIndex;
+    bool _mmoInspectMode;
+    bool _mmoMapBusy;
+    bool _mmoManageOpen;
+    string _mmoManageName = "";
+    string _mmoManageVisibility = "Restricted";
+    string _mmoManageReason = "";
+    readonly List<int> _mmoMapCells = [];
+    readonly List<MmoSurfaceLayer> _mmoSurfaceLayers = [];
+
+    sealed record MmoLeftChoice(string Label, string Kind, int? CellIndex = null);
+    sealed record MmoSurfaceLayer(
+        string RegionId,
+        string Name,
+        string Src,
+        int Layer,
+        double X,
+        double Y,
+        double Size,
+        double Rotation,
+        double Opacity);
+
+    IReadOnlyList<MmoLeftChoice> MmoLeftChoices
+    {
+        get
+        {
+            var result = new List<MmoLeftChoice>
+            {
+                new("ENTER COORDINATES", "coordinates")
+            };
+
+            if (_mmoInspectMode)
+            {
+                result.Add(new("ENTER USER ID", "user"));
+                return result;
+            }
+
+            result.AddRange(
+                Session.MmoParcels
+                    .Where(Session.IsMmoParcelOwnedByCurrentUser)
+                    .OrderBy(parcel => parcel.DisplayName, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(parcel => parcel.CellIndex)
+                    .Select(parcel => new MmoLeftChoice(
+                        string.IsNullOrWhiteSpace(parcel.DisplayName) ? MmoCoordinate(parcel.CellIndex) : parcel.DisplayName.ToUpperInvariant(),
+                        "owned",
+                        parcel.CellIndex)));
+            return result;
+        }
+    }
+
+    int MmoLeftOptionCount => Math.Max(1, MmoLeftChoices.Count);
+    string MmoLeftValue => MmoLeftChoices[Math.Clamp(_mmoLeftIndex, 0, MmoLeftChoices.Count - 1)].Label;
+    string MmoLeftPrompt => _mmoInspectMode
+        ? "SLIDE ↑↓ · COORDINATES / USER ID"
+        : MmoLeftOptionCount > 1
+            ? "SLIDE ↑↓ · COORDINATES / OWNED ZONES"
+            : "TOUCH · ENTER X,Y";
+
+    AwsAuthorityClient.MmoParcel? MmoSelectedParcel =>
+        Session.MmoParcels.FirstOrDefault(parcel => parcel.CellIndex == _mmoSelectedCell);
+
+    bool MmoSelectedIsEndemar => _mmoSelectedCell == WorldSession.EndemarOriginCell;
+    bool MmoSelectedIsOpen => !MmoSelectedIsEndemar && MmoSelectedParcel is null && Session.IsMmoParcelOpen(_mmoSelectedCell);
+    bool MmoSelectedIsOwned => MmoSelectedParcel is not null && Session.IsMmoParcelOwnedByCurrentUser(MmoSelectedParcel);
+    bool MmoSelectedIsRefunded => string.Equals(MmoSelectedParcel?.Status, "Refunded", StringComparison.OrdinalIgnoreCase);
+
+    string MmoSelectedName =>
+        MmoSelectedIsEndemar
+            ? WorldSession.EndemarStartingPointDisplayName
+            : MmoSelectedParcel is not null && !string.IsNullOrWhiteSpace(MmoSelectedParcel.DisplayName)
+                ? MmoSelectedParcel.DisplayName
+                : MmoSelectedIsOpen
+                    ? $"Available deed {MmoCoordinate(_mmoSelectedCell)}"
+                    : MmoCoordinate(_mmoSelectedCell);
+
+    string MmoRightValue
+    {
+        get
+        {
+            if (_mmoInspectMode) return "MANAGE";
+            if (MmoSelectedIsRefunded) return "BID";
+            if (MmoSelectedIsEndemar) return "ROLEPLAY";
+            if (MmoSelectedParcel is not null)
+                return MmoSelectedIsOwned ? "MANAGE" : "REQUEST DEED FROM GM";
+            if (MmoSelectedIsOpen)
+                return Session.HasUnspentMmoWorldToken ? "CLAIM DEED" : "PURCHASE TOKEN AND CLAIM DEED";
+            return "UNAVAILABLE";
+        }
+    }
+
+    string MmoRightPrompt
+    {
+        get
+        {
+            if (_mmoInspectMode) return $"TOUCH · {MmoSelectedName.ToUpperInvariant()}";
+            if (MmoSelectedIsRefunded)
+            {
+                var bid = MmoSelectedParcel?.CurrentBid ?? 0m;
+                var bidder = string.IsNullOrWhiteSpace(MmoSelectedParcel?.CurrentBidUsername)
+                    ? "NO BIDS"
+                    : MmoSelectedParcel!.CurrentBidUsername.Trim();
+                return $"CURRENT BID {bid.ToString("0.##", CultureInfo.InvariantCulture)} · {bidder}";
+            }
+            if (MmoSelectedIsEndemar) return "TOUCH · ENTER SHAELVIEN";
+            if (MmoSelectedParcel is not null)
+                return MmoSelectedIsOwned ? "TOUCH · MANAGE DEED" : "TOUCH · SEND REQUEST";
+            if (MmoSelectedIsOpen && Session.HasUnspentMmoWorldToken)
+            {
+                var count = Session.UnspentMmoWorldTokenCount;
+                return $"USE 1/{count} TOKEN{(count == 1 ? "" : "S")}";
+            }
+            if (MmoSelectedIsOpen) return "TOKEN REQUIRED";
+            return "NO ACTION";
+        }
+    }
+
+    string MmoMapModeLabel => _mmoInspectMode ? "DEVELOPER INSPECT" : "MMO DEED MAP";
+
+    int MmoViewMinColumn => _mmoMapCells.Count == 0
+        ? Math.Max(0, WorldSession.EndemarOriginColumn - 2)
+        : Math.Max(0, _mmoMapCells.Min(CellColumn) - 1);
+    int MmoViewMaxColumn => _mmoMapCells.Count == 0
+        ? Math.Min(WorldSession.MmoParcelGridColumns - 1, WorldSession.EndemarOriginColumn + 2)
+        : Math.Min(WorldSession.MmoParcelGridColumns - 1, _mmoMapCells.Max(CellColumn) + 1);
+    int MmoViewMinRow => _mmoMapCells.Count == 0
+        ? Math.Max(0, WorldSession.EndemarOriginRow - 2)
+        : Math.Max(0, _mmoMapCells.Min(CellRow) - 1);
+    int MmoViewMaxRow => _mmoMapCells.Count == 0
+        ? Math.Min(WorldSession.MmoParcelGridRows - 1, WorldSession.EndemarOriginRow + 2)
+        : Math.Min(WorldSession.MmoParcelGridRows - 1, _mmoMapCells.Max(CellRow) + 1);
+    int MmoViewColumns => Math.Max(1, MmoViewMaxColumn - MmoViewMinColumn + 1);
+    int MmoViewRows => Math.Max(1, MmoViewMaxRow - MmoViewMinRow + 1);
+
+    string MmoMapStageStyle => $"aspect-ratio:{MmoViewColumns}/{MmoViewRows};";
+    string MmoBaseImageStyle
+    {
+        get
+        {
+            var width = WorldSession.MmoParcelGridColumns / (double)MmoViewColumns * 100;
+            var height = WorldSession.MmoParcelGridRows / (double)MmoViewRows * 100;
+            var left = -(MmoViewMinColumn / (double)MmoViewColumns) * 100;
+            var top = -(MmoViewMinRow / (double)MmoViewRows) * 100;
+            return $"width:{width:0.####}%;height:{height:0.####}%;left:{left:0.####}%;top:{top:0.####}%;";
+        }
+    }
+
+    string MmoCellStyle(int cellIndex)
+    {
+        var column = CellColumn(cellIndex);
+        var row = CellRow(cellIndex);
+        var left = (column - MmoViewMinColumn) / (double)MmoViewColumns * 100;
+        var top = (row - MmoViewMinRow) / (double)MmoViewRows * 100;
+        return $"left:{left:0.####}%;top:{top:0.####}%;width:{100d / MmoViewColumns:0.####}%;height:{100d / MmoViewRows:0.####}%;";
+    }
+
+    string MmoSurfaceLayerStyle(MmoSurfaceLayer layer)
+    {
+        var minX = MmoViewMinColumn / (double)WorldSession.MmoParcelGridColumns;
+        var minY = MmoViewMinRow / (double)WorldSession.MmoParcelGridRows;
+        var viewWidth = MmoViewColumns / (double)WorldSession.MmoParcelGridColumns;
+        var viewHeight = MmoViewRows / (double)WorldSession.MmoParcelGridRows;
+        var left = (layer.X - minX) / viewWidth * 100;
+        var top = (layer.Y - minY) / viewHeight * 100;
+        var width = layer.Size / viewWidth * 100;
+        return $"left:{left:0.####}%;top:{top:0.####}%;width:{width:0.####}%;opacity:{Math.Clamp(layer.Opacity, 0, 1):0.###};transform:translate(-50%,-50%) rotate({layer.Rotation:0.###}deg);";
+    }
+
+    string MmoCellClass(int cellIndex)
+    {
+        var classes = new List<string> { "mmo-deed-cell" };
+        var parcel = Session.MmoParcels.FirstOrDefault(item => item.CellIndex == cellIndex);
+
+        if (cellIndex == WorldSession.EndemarOriginCell) classes.Add("endemar");
+        else if (parcel is not null)
+        {
+            if (string.Equals(parcel.Status, "Refunded", StringComparison.OrdinalIgnoreCase)) classes.Add("refunded");
+            else if (Session.IsMmoParcelOwnedByCurrentUser(parcel)) classes.Add("owned");
+            else classes.Add(string.Equals(parcel.Visibility, "Public", StringComparison.OrdinalIgnoreCase) ? "public" : "private");
+        }
+        else classes.Add("available");
+
+        if (cellIndex == _mmoSelectedCell) classes.Add("selected");
+        return string.Join(' ', classes);
+    }
+
+    string MmoCellText(int cellIndex)
+    {
+        if (cellIndex == WorldSession.EndemarOriginCell) return WorldSession.EndemarStartingPointDisplayName;
+        var parcel = Session.MmoParcels.FirstOrDefault(item => item.CellIndex == cellIndex);
+        return parcel?.DisplayName?.Trim() ?? "";
+    }
+
+    string MmoCellAriaLabel(int cellIndex)
+    {
+        var text = MmoCellText(cellIndex);
+        if (string.IsNullOrWhiteSpace(text)) text = "Available deed";
+        return $"{text} {MmoCoordinate(cellIndex)}";
+    }
+
+    static int CellColumn(int cellIndex) => cellIndex % WorldSession.MmoParcelGridColumns;
+    static int CellRow(int cellIndex) => cellIndex / WorldSession.MmoParcelGridColumns;
+
+    static string MmoCoordinate(int cellIndex)
+    {
+        var column = CellColumn(cellIndex);
+        var row = CellRow(cellIndex);
+        var x = column - WorldSession.EndemarOriginColumn;
+        var y = WorldSession.EndemarOriginRow - row;
+        return $"({x},{y})";
+    }
+
+    void RefreshMmoMapCells()
+    {
+        var cells = new HashSet<int> { WorldSession.EndemarOriginCell };
+        foreach (var parcel in Session.MmoParcels)
+            if (parcel.CellIndex >= 0 && parcel.CellIndex < WorldSession.MmoParcelGridColumns * WorldSession.MmoParcelGridRows)
+                cells.Add(parcel.CellIndex);
+
+        for (var cell = 0; cell < WorldSession.MmoParcelGridColumns * WorldSession.MmoParcelGridRows; cell++)
+            if (Session.IsMmoParcelOpen(cell))
+                cells.Add(cell);
+
+        _mmoMapCells.Clear();
+        _mmoMapCells.AddRange(cells.OrderBy(CellRow).ThenBy(CellColumn));
+
+        if (!_mmoMapCells.Contains(_mmoSelectedCell))
+            _mmoSelectedCell = WorldSession.EndemarOriginCell;
+    }
+
+    async Task EnterMmoMapAsync(bool inspect)
+    {
+        await EnsureShaelvienEnvironmentAsync();
+        _mmoInspectMode = inspect && Session.TrustedPlatformDeveloper;
+        _mmoLeftIndex = 0;
+        _mmoSelectedCell = WorldSession.EndemarOriginCell;
+        _mmoManageOpen = false;
+        _mmoManageReason = "";
+        RefreshMmoMapCells();
+        await LoadMmoTierZeroSurfaceAsync();
+        _stage = Stage.MmoMap;
+        _message = _mmoInspectMode
+            ? "Inspect · Tier 0 surface. Analog selects a zone. Left rail accepts coordinates or user ID. Claiming is disabled."
+            : "Shaelvien MMO · Tier 0 top surfaces flattened. Analog selects the next deed zone in the direction moved.";
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task LoadMmoTierZeroSurfaceAsync()
+    {
+        _mmoSurfaceLayers.Clear();
+        try
+        {
+            var source = await Session.LoadWorldBuilderSourceAsync();
+            if (source?.State is not JsonElement state || state.ValueKind != JsonValueKind.Object) return;
+            if (!state.TryGetProperty("userLayers", out var layers) || layers.ValueKind != JsonValueKind.Array) return;
+
+            var topByRegion = new Dictionary<string, MmoSurfaceLayer>(StringComparer.Ordinal);
+            foreach (var item in layers.EnumerateArray())
+            {
+                if (item.ValueKind != JsonValueKind.Object) continue;
+                var tier = JsonInt(item, "tier", 0);
+                if (tier != 0) continue;
+                var regionId = JsonString(item, "regionId");
+                if (string.IsNullOrWhiteSpace(regionId)) continue;
+
+                var src = JsonString(item, "transparentSrc");
+                if (string.IsNullOrWhiteSpace(src)) src = JsonString(item, "originalSrc");
+                if (string.IsNullOrWhiteSpace(src)) continue;
+
+                var layer = new MmoSurfaceLayer(
+                    regionId,
+                    JsonString(item, "name"),
+                    src,
+                    JsonInt(item, "layer", 0),
+                    JsonDouble(item, "x", .5),
+                    JsonDouble(item, "y", .5),
+                    Math.Max(.001, JsonDouble(item, "size", 1)),
+                    JsonDouble(item, "rotation", 0),
+                    JsonDouble(item, "opacity", 1));
+
+                if (!topByRegion.TryGetValue(regionId, out var current) || layer.Layer > current.Layer)
+                    topByRegion[regionId] = layer;
+            }
+
+            _mmoSurfaceLayers.AddRange(topByRegion.Values.OrderBy(layer => layer.Layer).ThenBy(layer => layer.RegionId, StringComparer.Ordinal));
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"MMO Tier 0 surface load failed: {ex}");
+            _message = "The deed lattice loaded, but authored Tier 0 surface overlays could not be read.";
+        }
+    }
+
+    static string JsonString(JsonElement item, string name) =>
+        item.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
+            ? value.GetString()?.Trim() ?? ""
+            : "";
+
+    static int JsonInt(JsonElement item, string name, int fallback)
+    {
+        if (!item.TryGetProperty(name, out var value)) return fallback;
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var result)) return result;
+        if (value.ValueKind == JsonValueKind.String && int.TryParse(value.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out result)) return result;
+        return fallback;
+    }
+
+    static double JsonDouble(JsonElement item, string name, double fallback)
+    {
+        if (!item.TryGetProperty(name, out var value)) return fallback;
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetDouble(out var result)) return result;
+        if (value.ValueKind == JsonValueKind.String && double.TryParse(value.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return result;
+        return fallback;
+    }
+
+    void SelectMmoMapCell(int cellIndex)
+    {
+        if (!_mmoMapCells.Contains(cellIndex)) return;
+        _mmoSelectedCell = cellIndex;
+        _mmoManageOpen = false;
+        _message = $"{MmoSelectedName} {MmoCoordinate(cellIndex)} selected.";
+    }
+
+    void MoveMmoSelection(int dx, int dy)
+    {
+        if (dx == 0 && dy == 0) return;
+        var column = CellColumn(_mmoSelectedCell);
+        var row = CellRow(_mmoSelectedCell);
+
+        for (var step = 1; step < Math.Max(WorldSession.MmoParcelGridColumns, WorldSession.MmoParcelGridRows); step++)
+        {
+            var nextColumn = column + dx * step;
+            var nextRow = row + dy * step;
+            if (nextColumn < 0 || nextColumn >= WorldSession.MmoParcelGridColumns || nextRow < 0 || nextRow >= WorldSession.MmoParcelGridRows)
+                break;
+            var nextCell = nextRow * WorldSession.MmoParcelGridColumns + nextColumn;
+            if (!_mmoMapCells.Contains(nextCell)) continue;
+            SelectMmoMapCell(nextCell);
+            return;
+        }
+
+        _message = "No deed zone exists farther in that direction.";
+    }
+
+    void CycleMmoLeftOption(int direction)
+    {
+        var choices = MmoLeftChoices;
+        if (choices.Count <= 1) return;
+        _mmoLeftIndex = Wrap(_mmoLeftIndex + Math.Sign(direction), choices.Count);
+        _message = $"Left action: {MmoLeftValue}.";
+    }
+
+    async Task PressMmoLeftAsync()
+    {
+        var choices = MmoLeftChoices;
+        var choice = choices[Math.Clamp(_mmoLeftIndex, 0, choices.Count - 1)];
+        if (choice.Kind == "owned" && choice.CellIndex is int cell)
+        {
+            SelectMmoMapCell(cell);
+            return;
+        }
+
+        if (choice.Kind == "user")
+        {
+            var userId = (await JS.InvokeAsync<string?>("prompt", "Enter the exact user ID to inspect:", ""))?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(userId)) return;
+            var match = Session.MmoParcels
+                .Where(parcel => string.Equals(parcel.OwnerUserId, userId, StringComparison.Ordinal))
+                .OrderBy(parcel => parcel.CellIndex)
+                .FirstOrDefault();
+            if (match is null)
+            {
+                _message = "No visible Shaelvien deed is owned by that user ID.";
+                return;
+            }
+            SelectMmoMapCell(match.CellIndex);
+            return;
+        }
+
+        var initial = MmoCoordinate(_mmoSelectedCell).Trim('(', ')');
+        var coordinate = (await JS.InvokeAsync<string?>("prompt", "Enter Endemar-relative coordinates as x,y. Endemar is 0,0.", initial))?.Trim() ?? "";
+        if (string.IsNullOrWhiteSpace(coordinate)) return;
+        var parts = coordinate.Trim('(', ')').Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var x)
+            || !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var y))
+        {
+            _message = "Coordinates must use x,y, for example 0,1.";
+            return;
+        }
+
+        var column = WorldSession.EndemarOriginColumn + x;
+        var row = WorldSession.EndemarOriginRow - y;
+        if (column < 0 || column >= WorldSession.MmoParcelGridColumns || row < 0 || row >= WorldSession.MmoParcelGridRows)
+        {
+            _message = "Those coordinates are outside the Shaelvien deed lattice.";
+            return;
+        }
+
+        var target = row * WorldSession.MmoParcelGridColumns + column;
+        if (!_mmoMapCells.Contains(target))
+        {
+            _message = $"{MmoCoordinate(target)} is not currently a deed, claimed zone, or available frontier zone.";
+            return;
+        }
+        SelectMmoMapCell(target);
+    }
+
+    async Task PressMmoRightAsync()
+    {
+        if (_mmoInspectMode)
+        {
+            OpenMmoManage();
+            return;
+        }
+
+        if (MmoSelectedIsRefunded)
+        {
+            _message = "This deed is marked Refunded. The current bid is shown on the right; bid submission is not enabled until server-side auction settlement is implemented.";
+            return;
+        }
+
+        if (MmoSelectedIsEndemar)
+        {
+            _message = "Roleplay selected for Endemar. The current Universal GameMaster surface does not yet embed the Roleplayer workspace.";
+            return;
+        }
+
+        if (MmoSelectedParcel is { } parcel)
+        {
+            if (MmoSelectedIsOwned)
+            {
+                var selected = PathWorldOptions.FirstOrDefault(option => string.Equals(option.Id, parcel.ParcelId, StringComparison.Ordinal));
+                if (selected is not null)
+                {
+                    SetSelectedDeed(selected);
+                    if (!string.IsNullOrWhiteSpace(parcel.RegionId)) Session.SetActiveRegion(parcel.RegionId);
+                    _stage = Stage.PathSelect;
+                    _message = $"{parcel.DisplayName} selected. World Builder is on the left; Context is on the right.";
+                }
+                return;
+            }
+
+            _mmoMapBusy = true;
+            try
+            {
+                var requested = await Session.RequestMmoDeedAsync(_mmoSelectedCell);
+                _message = requested
+                    ? $"Deed request sent to the GameMaster for {parcel.DisplayName}."
+                    : "The deed request could not be sent.";
+            }
+            catch (Exception ex)
+            {
+                _message = string.IsNullOrWhiteSpace(ex.Message) ? "The deed request could not be sent." : ex.Message;
+            }
+            finally
+            {
+                _mmoMapBusy = false;
+            }
+            return;
+        }
+
+        if (!MmoSelectedIsOpen) return;
+
+        if (!Session.HasUnspentMmoWorldToken)
+        {
+            _message = "Purchase Token and Claim Deed is reserved in the interface, but paid Shaelvien Token checkout is not implemented yet. No purchase was attempted.";
+            return;
+        }
+
+        var suggested = $"Shaelvien {MmoCoordinate(_mmoSelectedCell)}";
+        var name = (await JS.InvokeAsync<string?>("prompt", "Name this deed before claiming it:", suggested))?.Trim() ?? "";
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        _mmoMapBusy = true;
+        try
+        {
+            var claimed = await Session.ClaimMmoParcelAsync(_mmoSelectedCell, name);
+            RefreshMmoMapCells();
+            await CompleteShaelvienDeedAsync(claimed);
+        }
+        catch (Exception ex)
+        {
+            await Session.RefreshMmoLandAsync();
+            RefreshMmoMapCells();
+            _message = string.IsNullOrWhiteSpace(ex.Message) ? "The deed could not be claimed." : ex.Message;
+        }
+        finally
+        {
+            _mmoMapBusy = false;
+        }
+    }
+
+    void OpenMmoManage()
+    {
+        var parcel = MmoSelectedParcel;
+        if (parcel is null)
+        {
+            _message = MmoSelectedIsEndemar
+                ? "Endemar is the canonical Shaelvien origin, not a claimable parcel record."
+                : "Select a claimed zone to manage.";
+            return;
+        }
+
+        _mmoManageName = parcel.DisplayName;
+        _mmoManageVisibility = string.Equals(parcel.Visibility, "Public", StringComparison.OrdinalIgnoreCase) ? "Public" : "Restricted";
+        _mmoManageReason = "";
+        _mmoManageOpen = true;
+        _message = $"Manage {parcel.DisplayName}. Every committed Inspect change requires a reason.";
+    }
+
+    void CloseMmoManage()
+    {
+        _mmoManageOpen = false;
+        _mmoManageReason = "";
+    }
+
+    async Task SaveMmoManageAsync()
+    {
+        var parcel = MmoSelectedParcel;
+        if (!_mmoInspectMode || parcel is null || string.IsNullOrWhiteSpace(parcel.ParcelId)) return;
+
+        var reason = _mmoManageReason.Trim();
+        if (reason.Length < 3)
+        {
+            _message = "Enter a reason before committing an Inspect change.";
+            return;
+        }
+
+        _mmoMapBusy = true;
+        try
+        {
+            var updated = await Session.InspectEditMmoParcelAsync(
+                parcel.ParcelId,
+                _mmoManageName.Trim(),
+                _mmoManageVisibility,
+                reason);
+            if (updated is null)
+            {
+                _message = "The Inspect change was not accepted.";
+                return;
+            }
+
+            await Session.RefreshMmoLandAsync();
+            RefreshMmoMapCells();
+            await LoadMmoTierZeroSurfaceAsync();
+            _mmoManageOpen = false;
+            _mmoManageReason = "";
+            _message = $"{updated.DisplayName} updated and audit reason recorded.";
+        }
+        catch (Exception ex)
+        {
+            _message = string.IsNullOrWhiteSpace(ex.Message) ? "The Inspect change could not be saved." : ex.Message;
+        }
+        finally
+        {
+            _mmoMapBusy = false;
+        }
+    }
+}
