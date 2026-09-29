@@ -2913,7 +2913,7 @@ body.rist-viewer-overlays-off .universal-shell .viewer-readout{
  box-sizing:border-box;
  border:1px solid rgba(205,166,75,.72);
  border-radius:12px;
- background:rgba(2,8,12,.94);
+ background:#02080c;
  box-shadow:0 14px 40px rgba(0,0,0,.55),inset 0 0 28px rgba(53,116,145,.05);
  overflow:hidden;
  font-family:system-ui,-apple-system,sans-serif;
