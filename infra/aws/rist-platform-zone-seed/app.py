@@ -14,9 +14,18 @@ from boto3.dynamodb.conditions import Key
 WORLD_ID = "shaelvien-geonaph-alpha-001"
 WORLD_PK = f"WORLD#{WORLD_ID}"
 ZONE_NAME = "The Sunken Tundra"
-ZONE_MARKER = "sunken-tundra-v2"
+ZONE_MARKER = "sunken-tundra-v3"
 GRID_COLUMNS = 30
 GRID_ROWS = 30
+PARCEL_PIXELS = 2048
+PARCEL_MAX_HEIGHT = 100
+ENDEMAR_COLUMN = 15
+ENDEMAR_ROW = 15
+CANONICAL_COLUMN = ENDEMAR_COLUMN
+CANONICAL_ROW = ENDEMAR_ROW - 1
+CANONICAL_CELL = CANONICAL_ROW * GRID_COLUMNS + CANONICAL_COLUMN
+CANONICAL_PARCEL_ID = f"parcel-{CANONICAL_COLUMN}-{CANONICAL_ROW}"
+CANONICAL_REGION_ID = "region-" + CANONICAL_PARCEL_ID
 PLACEMENT_WIDTH_FRACTION = Decimal("0.12")
 ZONE_SIZE = (Decimal(1) / Decimal(GRID_COLUMNS)) / PLACEMENT_WIDTH_FRACTION
 
@@ -70,63 +79,157 @@ def query_world_prefix(table, prefix: str) -> list[dict]:
     return items
 
 
-def choose_target(table, owner_user_id: str, world_layers: list):
-    parcels = [
-        item
-        for item in query_world_prefix(table, "PARCEL#")
-        if str(item.get("ownerUserId") or "") == owner_user_id
-    ]
-    if not parcels:
-        raise RuntimeError("No owner Shaelvien parcel exists to receive The Sunken Tundra.")
+def _region_item(table, region_id: str) -> dict:
+    if not region_id:
+        return {}
+    return table.get_item(
+        Key={"pk": WORLD_PK, "sk": "REGION#" + region_id},
+        ConsistentRead=True,
+    ).get("Item") or {}
 
+
+def _canonical_region(parcel: dict, existing: dict | None = None) -> dict:
+    existing = dict(existing or {})
+    state = dict(existing.get("state") or {})
+    stamp = utc_stamp()
+    state.update(
+        {
+            "regionId": CANONICAL_REGION_ID,
+            "worldId": WORLD_ID,
+            "name": ZONE_NAME,
+            "minColumn": CANONICAL_COLUMN,
+            "minRow": CANONICAL_ROW,
+            "maxColumn": CANONICAL_COLUMN,
+            "maxRow": CANONICAL_ROW,
+            "selectedCells": [CANONICAL_CELL],
+            "sourceTiles": list(state.get("sourceTiles") or []),
+            "overlayTiles": list(state.get("overlayTiles") or []),
+            "createdAtUtc": str(state.get("createdAtUtc") or stamp),
+            "updatedAtUtc": stamp,
+            "tierIndex": 0,
+            "sourceLayerOffsets": list(range(PARCEL_MAX_HEIGHT)),
+            "gridShape": str(state.get("gridShape") or "square"),
+            # Canonical Shaelvien zones are world truth, not a token-bound
+            # personal deed. Platform-owner authority manages them separately.
+            "ownerUserId": "",
+            "parcelId": CANONICAL_PARCEL_ID,
+            "parcelPixelWidth": PARCEL_PIXELS,
+            "parcelPixelHeight": PARCEL_PIXELS,
+            "maxHeight": PARCEL_MAX_HEIGHT,
+            "parentNodeId": "world:" + WORLD_ID,
+            "coordinateSpace": "world-normalized-v1",
+            "canonicalMinX": Decimal(CANONICAL_COLUMN) / Decimal(GRID_COLUMNS),
+            "canonicalMinY": Decimal(CANONICAL_ROW) / Decimal(GRID_ROWS),
+            "canonicalMaxX": Decimal(CANONICAL_COLUMN + 1) / Decimal(GRID_COLUMNS),
+            "canonicalMaxY": Decimal(CANONICAL_ROW + 1) / Decimal(GRID_ROWS),
+            "canonicalZMin": 0,
+            "canonicalZMax": PARCEL_MAX_HEIGHT,
+        }
+    )
+    return {
+        **existing,
+        "pk": WORLD_PK,
+        "sk": "REGION#" + CANONICAL_REGION_ID,
+        "worldId": WORLD_ID,
+        "regionId": CANONICAL_REGION_ID,
+        "parcelId": CANONICAL_PARCEL_ID,
+        "ownerUserId": "",
+        "state": state,
+        "updatedAt": int(time.time()),
+    }
+
+
+def _new_canonical_parcel() -> dict:
+    stamp = utc_stamp()
+    return {
+        "pk": WORLD_PK,
+        "sk": "PARCEL#" + CANONICAL_PARCEL_ID,
+        "parcelId": CANONICAL_PARCEL_ID,
+        "regionId": CANONICAL_REGION_ID,
+        "worldId": WORLD_ID,
+        "displayName": ZONE_NAME,
+        "ownerUserId": "",
+        "cellIndex": CANONICAL_CELL,
+        "column": CANONICAL_COLUMN,
+        "row": CANONICAL_ROW,
+        "pixelWidth": PARCEL_PIXELS,
+        "pixelHeight": PARCEL_PIXELS,
+        "maxHeight": PARCEL_MAX_HEIGHT,
+        "bindingHash": "",
+        "claimedAtUtc": stamp,
+        "visibility": "Public",
+        "status": "Canonical",
+        "canonicalZone": True,
+    }
+
+
+def choose_target(table, owner_user_id: str, world_layers: list):
+    # Canonical zones are not created by spending a user's deed token. First
+    # preserve an existing Sunken Tundra identity wherever it already exists.
+    # Only when no such identity exists do we create the canonical public zone
+    # directly north of Endemar, and only if that exact cell is unoccupied.
+    parcels = query_world_prefix(table, "PARCEL#")
     exact = []
-    empty = []
     for parcel in parcels:
         region_id = str(parcel.get("regionId") or "")
-        if not region_id:
-            continue
-        region_item = table.get_item(
-            Key={"pk": WORLD_PK, "sk": "REGION#" + region_id},
-            ConsistentRead=True,
-        ).get("Item")
-        if not region_item:
-            continue
-
+        region_item = _region_item(table, region_id)
         names = {
             normalized_name(parcel.get("displayName")),
             normalized_name(region_name(region_item)),
         }
         if normalized_name(ZONE_NAME) in names or "sunken tundra" in names:
             exact.append((parcel, region_item))
-        elif region_is_empty(region_item, world_layers, region_id):
-            empty.append((parcel, region_item))
 
-    pool = exact or empty
-    if not pool:
+    if exact:
+        exact.sort(
+            key=lambda pair: (
+                int(pair[0].get("column") or 0) == CANONICAL_COLUMN
+                and int(pair[0].get("row") or 0) == CANONICAL_ROW,
+                str(pair[0].get("claimedAtUtc") or ""),
+                int(pair[0].get("cellIndex") or 0),
+            ),
+            reverse=True,
+        )
+        parcel, region_item = exact[0]
+        if not region_item:
+            region_item = _canonical_region(parcel)
+        return parcel, region_item, False
+
+    occupied = next(
+        (
+            parcel
+            for parcel in parcels
+            if int(parcel.get("cellIndex") or -1) == CANONICAL_CELL
+        ),
+        None,
+    )
+    if occupied is not None:
         raise RuntimeError(
-            "No empty owner parcel is available. Refusing to overwrite authored Shaelvien content."
+            "The canonical Sunken Tundra cell north of Endemar is already occupied by "
+            + str(occupied.get("displayName") or occupied.get("parcelId") or "another deed")
+            + "; refusing to overwrite existing world truth."
         )
 
-    # Canonical MMO topology places The Sunken Tundra directly north of
-    # Endemar when that already-owned deed cell is available. Existing named
-    # Sunken Tundra identity is never moved silently; claim geometry remains law.
-    canonical = [
-        pair
-        for pair in pool
-        if int(pair[0].get("column") or 0) == 15
-        and int(pair[0].get("row") or 0) == 14
-    ]
-    if canonical:
-        pool = canonical
+    legacy_region = _region_item(table, CANONICAL_REGION_ID)
+    if legacy_region:
+        legacy_name = normalized_name(region_name(legacy_region))
+        if legacy_name and legacy_name not in {
+            normalized_name(ZONE_NAME),
+            "sunken tundra",
+        }:
+            raise RuntimeError(
+                "The canonical Sunken Tundra region identity conflicts with an existing region; "
+                "refusing to overwrite existing world truth."
+            )
+        if not region_is_empty(legacy_region, world_layers, CANONICAL_REGION_ID):
+            raise RuntimeError(
+                "The canonical Sunken Tundra region already contains unrelated authored content; "
+                "refusing to overwrite it."
+            )
 
-    pool.sort(
-        key=lambda pair: (
-            str(pair[0].get("claimedAtUtc") or ""),
-            int(pair[0].get("cellIndex") or 0),
-        ),
-        reverse=True,
-    )
-    return pool[0]
+    parcel = _new_canonical_parcel()
+    region_item = _canonical_region(parcel, legacy_region)
+    return parcel, region_item, True
 
 
 def build_layers(parcel: dict, asset_base_url: str) -> list[dict]:
@@ -193,7 +296,9 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
                 "layerCount": len(seeded),
             }
 
-    parcel, region_item = choose_target(table, owner_user_id, existing_layers)
+    parcel, region_item, created_canonical_parcel = choose_target(
+        table, owner_user_id, existing_layers
+    )
     region_id = str(parcel["regionId"])
     zone_layers = build_layers(parcel, asset_base_url)
 
@@ -236,10 +341,15 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
     source_item["updatedAtUtc"] = utc_stamp()
     source_item["updatedByUserId"] = owner_user_id
 
-    # Preserve the existing claim geometry and all unrelated world data. Only the
-    # selected empty owner parcel, its derived region name, and its canonical
-    # world-source layers are changed.
-    table.put_item(Item=parcel)
+    # Preserve every unrelated deed and region. A newly created Sunken Tundra
+    # record is canonical world state rather than a token-bound personal deed.
+    if created_canonical_parcel:
+        table.put_item(
+            Item=parcel,
+            ConditionExpression="attribute_not_exists(pk) AND attribute_not_exists(sk)",
+        )
+    else:
+        table.put_item(Item=parcel)
     table.put_item(Item=region_item)
     table.put_item(Item=source_item)
 
@@ -272,6 +382,23 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
             and int(parcel.get("row") or 0) == 14
         ),
         "visibility": str(parcel.get("visibility") or "Restricted"),
+        "createdCanonicalParcel": created_canonical_parcel,
+        "westforde": next(
+            (
+                {
+                    "column": int(item.get("column") or 0),
+                    "row": int(item.get("row") or 0),
+                    "westOfEndemar": (
+                        int(item.get("column") or 0) == ENDEMAR_COLUMN - 1
+                        and int(item.get("row") or 0) == ENDEMAR_ROW
+                    ),
+                    "visibility": str(item.get("visibility") or "Restricted"),
+                }
+                for item in query_world_prefix(table, "PARCEL#")
+                if normalized_name(item.get("displayName")) == "westforde"
+            ),
+            None,
+        ),
     }
 
 
