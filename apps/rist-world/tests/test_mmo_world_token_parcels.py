@@ -105,6 +105,44 @@ def test_parcel_permissions_delegate_without_transferring_ownership():
     assert "CanEditMmoParcel(parcel)" in regions
 
 
+def test_explore_visibility_and_inspect_edits_are_server_authoritative():
+    backend = text("infra/aws/rist-platform-authority/app.py")
+    client = text("apps/rist-world/AwsAuthorityClient.cs")
+    session = text("apps/rist-world/WorldSession.MmoLand.cs")
+    gate = text("apps/rist-world/Components/ShaelvienDeedGate.razor")
+
+    assert 'PARCEL_VISIBILITIES = {"Public", "Restricted"}' in backend
+    assert '"visibility": str(item.get("visibility") or "Restricted")' in backend
+    assert '"visibility": "Restricted"' in backend
+    assert 'path == "/world/parcels/inspect-edit"' in backend
+    assert '"Every inspection edit requires a reason"' in backend
+    assert '"parcel.inspect.edit"' in backend
+    assert '"reason": reason' in backend
+    assert 'parcel.get("visibility") == "Public"' in backend
+    assert "InspectEditMmoParcelAsync" in client
+    assert '"/world/parcels/inspect-edit"' in client
+    assert "InspectEditMmoParcelAsync" in session
+    assert "APPLY ZONE EDIT" in gate
+    assert "EDIT WORLD WITH REASON" in gate
+    assert "name visible only" in gate
+
+
+def test_inspection_reason_follows_world_region_and_region_map_writes():
+    backend = text("infra/aws/rist-platform-authority/app.py")
+    client = text("apps/rist-world/AwsAuthorityClient.cs")
+    regions = text("apps/rist-world/WorldSession.Regions.cs")
+    source = text("apps/rist-world/WorldSession.WorldBuilderSource.cs")
+
+    assert backend.count('"Every inspection edit requires a reason"') >= 4
+    assert '"inspectionEdit": inspection_edit' in backend
+    assert '"inspectionReason": inspection_reason if inspection_edit else ""' in backend
+    assert "SaveWorldRegionMapAsync(" in client and "inspectionReason" in client
+    assert "SaveRegionAsync(" in client and "inspectionReason" in client
+    assert "SaveRegionsAsync(" in regions and "inspectionReason" in regions
+    assert "CreateSpatialNodeAsync(" in regions and "inspectionReason" in regions
+    assert "SaveRegionMapLayersAsync(" in source and "inspectionReason" in source
+
+
 def test_worldbuilder_exposes_token_claim_map_and_enters_scoped_region():
     host = text("apps/rist-world/Components/WorldBuilderGeonaphHost.razor")
     router = text("apps/rist-world/Components/TaskWorkspaceRouter.razor")
