@@ -14,8 +14,10 @@ test('environment offers Shaelvien RIST and Legacy as the three user-facing path
  assert.match(auth,/<strong>RIST<\/strong>/);
  assert.match(auth,/<strong>LEGACY<\/strong>/);
  assert.match(auth,/<LegacyWorldGate/);
- assert.match(auth,/@if\(Auth\.IsOwnerDiscordAccount\)[\s\S]*?class="rist-environment-dev"[\s\S]*?EXPERIMENTS/);
- assert.doesNotMatch(auth,/class="rist-environment-option experiments"/);
+ assert.match(auth,/else if\(_universalInterfaceOpen\)[\s\S]{0,220}?<UniversalInterface/);
+ assert.match(auth,/BeginAuthenticatedLaunchAsync\(\)[\s\S]{0,420}?_universalInterfaceOpen=true;/);
+ assert.doesNotMatch(auth,/EXPERIMENTS/);
+ assert.doesNotMatch(auth,/class="rist-environment-dev"/);
  assert.doesNotMatch(auth,/>MERGED</);
  assert.doesNotMatch(gate,/RIST LEGACY/);
  assert.match(gate,/<small>LEGACY<\/small>/);
