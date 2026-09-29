@@ -7,6 +7,7 @@ public partial class UniversalInterface
 {
     const string MmoCanonicalSurfaceUrl =
         "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_canonical_surface_v001.png";
+    const double MmoWorldBuilderPlacementWidthFraction = 0.12;
 
     int _mmoSelectedCell = WorldSession.EndemarOriginCell;
     int _mmoLeftIndex;
@@ -190,7 +191,11 @@ public partial class UniversalInterface
         var viewHeight = MmoViewRows / (double)WorldSession.MmoParcelGridRows;
         var left = (layer.X - minX) / viewWidth * 100;
         var top = (layer.Y - minY) / viewHeight * 100;
-        var width = layer.Size / viewWidth * 100;
+        // World Builder stores size as a multiplier of 12% of the canonical
+        // world width (prototype userImageBaseSize), not as a direct normalized
+        // world fraction. Preserve that geometry when flattening Tier 0.
+        var normalizedWidth = layer.Size * MmoWorldBuilderPlacementWidthFraction;
+        var width = normalizedWidth / viewWidth * 100;
         return $"left:{left:0.####}%;top:{top:0.####}%;width:{width:0.####}%;opacity:{Math.Clamp(layer.Opacity, 0, 1):0.###};transform:translate(-50%,-50%) rotate({layer.Rotation:0.###}deg);";
     }
 
