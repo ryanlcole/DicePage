@@ -50,7 +50,7 @@ public sealed partial class WorldSession
 
         var region = _regions.FirstOrDefault(item =>
             string.Equals(item.RegionId, (regionId ?? "").Trim(), StringComparison.Ordinal));
-        if (region is null || !CanEditRegion(region))
+        if (region is null || (!CanEditRegion(region) && !(inspectionEdit && TrustedPlatformDeveloper)))
             throw new UnauthorizedAccessException("Region edit authority is required to save this part of the world map.");
 
         var authority = await GetClaimAuthorityClientAsync();
@@ -82,7 +82,9 @@ public sealed partial class WorldSession
         var privateOwnerAtEntry = await HasOwnedPrivateWorldDescriptorAsync(worldId, accountId);
         if (WorldId != worldId || WorldOwnerAccountId != accountId || auth.SessionToken != token)
             throw new UnauthorizedAccessException("The active world or account changed while saving.");
-        if (!HasTrustedWorldBuilderAuthority && !privateOwnerAtEntry)
+        if (!HasTrustedWorldBuilderAuthority
+            && !privateOwnerAtEntry
+            && !(inspectionEdit && TrustedPlatformDeveloper))
             throw new UnauthorizedAccessException("World Builder authority is required to save the canonical world map.");
         if (state.ValueKind != JsonValueKind.Object)
             throw new InvalidOperationException("World map state must be an object.");
