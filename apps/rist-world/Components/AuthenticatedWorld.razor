@@ -46,7 +46,7 @@ else if (_canEnter)
  }
  else if(_universalInterfaceOpen)
  {
-  <UniversalInterface Worlds="_launchWorlds" OnExit="ReturnToStartAsync" />
+  <UniversalInterface Worlds="_launchWorlds" OnExit="ReturnToStartAsync" OnRoleplay="EnterUniversalRoleplayAsync" />
  }
  else if(!_launchWorldChosen)
  {
@@ -230,6 +230,7 @@ else
  bool _launchSandboxChooserOpen;
  bool _launchLegacyChooserOpen;
  bool _universalInterfaceOpen;
+ bool _universalRoleplayPending;
  string _launchWorldsError="";
  readonly List<AccountWorldReference> _launchWorlds=[];
  readonly List<AccountWorldReference> _launchMmoWorlds=[];
@@ -345,6 +346,15 @@ else
   _launchLegacyChooserOpen=true;
  }
 
+ async Task EnterUniversalRoleplayAsync(string zoneName)
+ {
+  if(!Session.IsGeonaphWorld)return;
+  _universalInterfaceOpen=false;
+  _launchWorldChosen=true;
+  _universalRoleplayPending=true;
+  await InvokeAsync(StateHasChanged);
+ }
+
  async Task ReturnToStartAsync()
  {
   _universalInterfaceOpen=false;
@@ -412,6 +422,13 @@ else
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
+  if(_universalRoleplayPending&&_alphaShell is not null)
+  {
+   _universalRoleplayPending=false;
+   _alphaShell.OpenRoleplayFromUniversal();
+   await InvokeAsync(StateHasChanged);
+  }
+
   if(!firstRender||_authStarted)return;
   _authStarted=true;
 
