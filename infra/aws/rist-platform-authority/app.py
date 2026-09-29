@@ -2564,6 +2564,13 @@ def handler(event, context):
         state = req.get("state")
         if not isinstance(state, dict):
             return response(400, {"error": "World source state must be an object"})
+        inspection_edit = bool(req.get("inspectionEdit"))
+        inspection_reason = str(req.get("inspectionReason") or "").strip()
+        if inspection_edit:
+            if len(inspection_reason) < 3:
+                return response(400, {"error": "Every inspection edit requires a reason"})
+            if len(inspection_reason) > 500:
+                return response(400, {"error": "Inspection edit reason is limited to 500 characters"})
         state_world_id = str(state.get("worldId") or "").strip()
         if state_world_id and state_world_id != world_id:
             return response(400, {"error": "World source identity mismatch"})
@@ -2600,7 +2607,11 @@ def handler(event, context):
             user_id,
             "world.source.save",
             "WORLDSOURCE",
-            {"bytes": encoded_size},
+            {
+                "bytes": encoded_size,
+                "inspectionEdit": inspection_edit,
+                "inspectionReason": inspection_reason if inspection_edit else "",
+            },
         )
         return response(
             200,
