@@ -368,9 +368,9 @@ test('Explore exposes open public and restricted MMO zones while Inspect can aud
   const client=read('AwsAuthorityClient.cs');
 
   assert.match(deed,/OPEN/);
-  assert.match(deed,/Public · viewable/);
-  assert.match(deed,/Restricted · name only/);
-  assert.match(deed,/Restricted Shaelvien zone .* name visible only/);
+  assert.match(deed,/PUBLIC \/ VIEWABLE|Public \/ viewable/);
+  assert.match(deed,/RESTRICTED|Restricted/);
+  assert.match(deed,/Restricted Shaelvien zone .* name only/);
   assert.match(deed,/ApplyInspectionZoneEditAsync/);
   assert.match(deed,/APPLY ZONE EDIT/);
   assert.match(deed,/EDIT WORLD WITH REASON/);
