@@ -25,7 +25,7 @@ test('map saves preserve canonical Asset Context extensions',()=>{
   const razor=read('Components/UniversalInterface.razor');
   assert.match(razor,/currentState\.TryGetProperty\("assetContexts",out var currentContexts\)/);
   assert.match(razor,/root\["assetContexts"\]=JsonNode\.Parse\(currentContexts\.GetRawText\(\)\)/);
-  assert.match(razor,/SaveWorldBuilderSourceAsync\(mergedState\)/);
+  assert.match(razor,/SaveWorldBuilderSourceAsync\([\s\S]{0,120}?mergedState,[\s\S]{0,100}?_inspectionEditMode,[\s\S]{0,100}?inspectionReason/);
 });
 
 test('asset context prioritizes placed identity and persists it in canonical world source context',()=>{
@@ -33,6 +33,6 @@ test('asset context prioritizes placed identity and persists it in canonical wor
   assert.match(razor,/HasWorldBuilderSelection=>!string\.IsNullOrWhiteSpace\(_worldBuilderSelectionId\)/);
   assert.match(razor,/\?\$"placement:\{_worldBuilderSelectionId\}"/);
   assert.match(razor,/entry\["placementId"\]=placementId/);
-  assert.match(razor,/await Session\.SaveWorldBuilderSourceAsync\(document\.RootElement\.Clone\(\)\)/);
+  assert.match(razor,/await Session\.SaveWorldBuilderSourceAsync\([\s\S]{0,140}?document\.RootElement\.Clone\(\),[\s\S]{0,100}?_inspectionEditMode,[\s\S]{0,100}?inspectionReason/);
   assert.match(razor,/if\(IsBuilderStage\)[\s\S]*?ToggleAssetContext\(\)/);
 });
