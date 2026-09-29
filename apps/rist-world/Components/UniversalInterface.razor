@@ -3436,7 +3436,7 @@
 
  async Task BeginInspectionEditAsync(ShaelvienDeedGate.InspectionEditRequest request)
  {
-  if(!Session.TrustedPlatformOwner)
+  if(!Session.TrustedPlatformDeveloper)
   {
    _message="Developer Inspect authority is required.";
    return;
