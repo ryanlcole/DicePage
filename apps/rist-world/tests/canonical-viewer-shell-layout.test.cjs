@@ -45,7 +45,7 @@ test('universal analog stick press acts as the primary Select control',()=>{
   assert.match(razor,/data-analog-select="true"/);
   assert.match(
     razor,
-    /case "select":[\s\S]{0,260}?if\(_stage==Stage\.BrowsePlace&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\);[\s\S]{0,120}?else await PressLeft\(\);/
+    /case "select":[\s\S]{0,260}?if\(_stage==Stage\.BrowsePlace&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\);[\s\S]{0,220}?Stage\.MmoMap[\s\S]{0,140}?else await PressLeft\(\);/
   );
   assert.match(input,/const ANALOG_SELECT_RADIUS = 0\.46;/);
   assert.match(input,/const ANALOG_SELECT_MOVE_PX = 10;/);
@@ -96,7 +96,7 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
   const index=read('wwwroot/index.html');
 
   assert.match(razor,/bool _browseCursorActive;/);
-  assert.match(razor,/bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage\.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;/);
+  assert.match(razor,/bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage\.MmoMap&&_stage!=Stage\.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;/);
   assert.match(razor,/bool CursorMode=>CursorAvailable[\s\S]{0,120}?!_analogButtonMode/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]{0,360}?_browseCursorActive=true;[\s\S]{0,120}?_analogButtonMode=false;/);
   assert.match(razor,/if\(_stage==Stage\.BrowsePlace&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\)/);
@@ -315,7 +315,7 @@ test('Shaelvien GameMaster uses Explore for discovery and Claim Deed as an in-ma
   assert.match(razor,/Stage\.PathSelect=>IsShaelvienDeedHome\?"CONTEXT"/);
   assert.match(razor,/case Stage\.DeedSelect:[\s\S]{0,420}?ActivateCurrentPathWorldAsync\(\)[\s\S]{0,260}?SetSelectedDeed\(selected\)/);
   assert.match(razor,/World Builder is on the left; Context is on the right/);
-  assert.match(razor,/Explore · MMO map · \{Session\.UnspentMmoWorldTokenCount\} Shaelvien token/);
+  assert.match(razor,/EnterMmoMapAsync\(inspect:false\)/);
   assert.match(razor,/<ShaelvienDeedGate[\s\S]{0,280}?OnClaimed="CompleteShaelvienDeedAsync"[\s\S]{0,180}?OnViewRequested="OpenExploredZoneAsync"/);
   assert.match(land,/UnspentMmoWorldTokenCount/);
   assert.match(deed,/EXPLORE/);
