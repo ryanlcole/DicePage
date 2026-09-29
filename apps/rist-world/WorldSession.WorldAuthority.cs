@@ -11,6 +11,7 @@ public sealed partial class WorldSession
     private string _trustedWorldRole = "";
     private WorldClaimPermission _trustedClaimPermission = WorldClaimPermission.Blocked;
     private bool _trustedPlatformOwner;
+    private bool _trustedPlatformDeveloper;
     private bool _trustedWorldAuthorityLoading;
     private bool _trustedWorldAuthorityResolved;
     private DateTimeOffset _trustedWorldAuthorityRetryAfter = DateTimeOffset.MinValue;
@@ -18,6 +19,7 @@ public sealed partial class WorldSession
     public string TrustedWorldRole => _trustedWorldRole;
     public WorldClaimPermission TrustedClaimPermission => _trustedClaimPermission;
     public bool TrustedPlatformOwner => _trustedPlatformOwner;
+    public bool TrustedPlatformDeveloper => _trustedPlatformDeveloper;
 
     // Browser role/workspace state is representation only. Worldbuilder capability is
     // granted only after the authenticated AWS authority endpoint confirms either
@@ -86,7 +88,7 @@ public sealed partial class WorldSession
         var sessionToken = auth.SessionToken ?? "";
         if (!IsLoggedIn || !HasActiveWorld || string.IsNullOrWhiteSpace(sessionToken))
         {
-            if (_trustedWorldAuthorityResolved || _trustedWorldAuthorityLoading || _trustedPlatformOwner || _trustedWorldRole.Length > 0)
+            if (_trustedWorldAuthorityResolved || _trustedWorldAuthorityLoading || _trustedPlatformOwner || _trustedPlatformDeveloper || _trustedWorldRole.Length > 0)
                 ResetTrustedWorldAuthority();
             return;
         }
@@ -165,6 +167,9 @@ public sealed partial class WorldSession
             _trustedWorldRole = "";
             _trustedClaimPermission = WorldClaimPermission.Blocked;
             _trustedPlatformOwner = profile?.PlatformOwner == true;
+            _trustedPlatformDeveloper = _trustedPlatformOwner
+                || (profile?.Entitlements?.Any(value =>
+                    string.Equals(value?.Trim(), "access.developer", StringComparison.OrdinalIgnoreCase)) == true);
             if (membership is not null
                 && string.Equals(membership.WorldId, worldId, StringComparison.Ordinal))
             {
@@ -185,6 +190,7 @@ public sealed partial class WorldSession
             _trustedWorldRole = "";
             _trustedClaimPermission = WorldClaimPermission.Blocked;
             _trustedPlatformOwner = false;
+            _trustedPlatformDeveloper = false;
             _trustedWorldAuthorityResolved = true;
             _trustedWorldAuthorityRetryAfter = DateTimeOffset.UtcNow.AddSeconds(30);
         }
@@ -209,6 +215,7 @@ public sealed partial class WorldSession
         _trustedWorldRole = "";
         _trustedClaimPermission = WorldClaimPermission.Blocked;
         _trustedPlatformOwner = false;
+        _trustedPlatformDeveloper = false;
         _trustedWorldAuthorityLoading = false;
         _trustedWorldAuthorityResolved = false;
         _trustedWorldAuthorityRetryAfter = DateTimeOffset.MinValue;
