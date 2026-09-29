@@ -27,6 +27,14 @@ The claim coordinate display is relative to the Endemar origin. Endemar is **0,0
 
 The MMO deed surface is a single world-level representation. Parallax is not required to decide land ownership.
 
+Zone visibility is explicit canonical metadata:
+
+- **Public** — visible/openable from Explore.
+- **Restricted** — Explore shows the zone name, but not its contents unless the current account has explicit access.
+- **Open** — unclaimed frontier property space. Open topology is visible even without a token; token ownership determines whether the Claim Deed action is enabled.
+
+Developer Inspect shares this exact map rather than maintaining a second administrative map. Inspect may change zone name or Public/Restricted visibility and may enter the normal world editor with developer authority. Every Inspect commit consumes one reason; a subsequent edit requires a new reason.
+
 ### Deferred claim actions already reserved by canon
 
 These remain required follow-on actions and must not be silently replaced with generic claiming:
