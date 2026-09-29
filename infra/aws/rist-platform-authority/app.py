@@ -2626,6 +2626,15 @@ def handler(event, context):
         req = body(event)
         world_id = safe_id(req.get("worldId"), "worldId")
         region_id = safe_id(req.get("regionId"), "regionId")
+        inspection_edit = bool(req.get("inspectionEdit"))
+        inspection_reason = str(req.get("inspectionReason") or "").strip()
+        if inspection_edit:
+            if not is_geonaph(world_id) or not can_manage(world_id, user_id):
+                return response(403, {"error": "Platform developer inspection authority required"})
+            if len(inspection_reason) < 3:
+                return response(400, {"error": "Every inspection edit requires a reason"})
+            if len(inspection_reason) > 500:
+                return response(400, {"error": "Inspection edit reason is limited to 500 characters"})
         region_state = editable_region_state(world_id, region_id, user_id)
         if region_state is None:
             return response(403, {"error": "Region edit authority required"})
@@ -2683,7 +2692,12 @@ def handler(event, context):
             user_id,
             "world.map.region.save",
             region_id,
-            {"layers": len(normalized), "bytes": encoded_size},
+            {
+                "layers": len(normalized),
+                "bytes": encoded_size,
+                "inspectionEdit": inspection_edit,
+                "inspectionReason": inspection_reason if inspection_edit else "",
+            },
         )
         return response(
             200,
@@ -2712,6 +2726,15 @@ def handler(event, context):
     if method == "POST" and path == "/world/regions":
         req = body(event)
         world_id = safe_id(req.get("worldId"), "worldId")
+        inspection_edit = bool(req.get("inspectionEdit"))
+        inspection_reason = str(req.get("inspectionReason") or "").strip()
+        if inspection_edit:
+            if not is_geonaph(world_id) or not can_manage(world_id, user_id):
+                return response(403, {"error": "Platform developer inspection authority required"})
+            if len(inspection_reason) < 3:
+                return response(400, {"error": "Every inspection edit requires a reason"})
+            if len(inspection_reason) > 500:
+                return response(400, {"error": "Inspection edit reason is limited to 500 characters"})
         region = req.get("region") or {}
         if not isinstance(region, dict):
             return response(400, {"error": "Region payload must be an object"})
@@ -2796,7 +2819,11 @@ def handler(event, context):
             user_id,
             "region.save",
             region_id,
-            {"ownerUserId": owner},
+            {
+                "ownerUserId": owner,
+                "inspectionEdit": inspection_edit,
+                "inspectionReason": inspection_reason if inspection_edit else "",
+            },
         )
         return response(200, region)
 
