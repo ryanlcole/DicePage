@@ -622,6 +622,30 @@
 
  string CurrentContextSelection=>ContextPath[Math.Clamp(_pathMenuIndex,0,ContextPath.Length-1)];
 
+ string SelectedDeedRegionId
+ {
+  get
+  {
+   if(string.IsNullOrWhiteSpace(_selectedDeedId)||_selectedDeedKind=="SHAELVIEN_ORIGIN")return "";
+   return Session.MmoParcels.FirstOrDefault(parcel=>string.Equals(parcel.ParcelId,_selectedDeedId,StringComparison.Ordinal))?.RegionId?.Trim()??"";
+  }
+ }
+
+ string SelectedDeedZoneId
+ {
+  get
+  {
+   if(string.IsNullOrWhiteSpace(SelectedDeedRegionId)||string.IsNullOrWhiteSpace(_selectedDeedName))return "";
+   var value=_selectedDeedName.Trim().ToLowerInvariant();
+   var chars=value.Select(ch=>char.IsLetterOrDigit(ch)?ch:'-').ToArray();
+   var slug=new string(chars);
+   while(slug.Contains("--",StringComparison.Ordinal))slug=slug.Replace("--","-",StringComparison.Ordinal);
+   slug=slug.Trim('-');
+   if(slug.StartsWith("the-",StringComparison.Ordinal))slug=slug[4..];
+   return slug;
+  }
+ }
+
  void SetSelectedDeed(ControllerWorldOption option)
  {
   _selectedDeedId=option.Id;
@@ -803,7 +827,11 @@
    var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
    var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
    var access=Session.HasWorldBuilderEditAuthority?"edit":"view";
-   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&embedded-controller=1&renderer=20260928-universal-viewer-1";
+   var deedId=Uri.EscapeDataString(_selectedDeedId??"");
+   var deedName=Uri.EscapeDataString(_selectedDeedName??"");
+   var deedRegionId=Uri.EscapeDataString(SelectedDeedRegionId);
+   var deedZone=Uri.EscapeDataString(SelectedDeedZoneId);
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20260929-deed-context-1";
   }
  }
  bool IsPathDrivenStage=>!IsDeedContextNode&&_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;

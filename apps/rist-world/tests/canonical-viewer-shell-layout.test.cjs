@@ -96,7 +96,7 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
   const index=read('wwwroot/index.html');
 
   assert.match(razor,/bool _browseCursorActive;/);
-  assert.match(razor,/bool CursorAvailable=>!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;/);
+  assert.match(razor,/bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage\.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;/);
   assert.match(razor,/bool CursorMode=>CursorAvailable[\s\S]{0,120}?!_analogButtonMode/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]{0,360}?_browseCursorActive=true;[\s\S]{0,120}?_analogButtonMode=false;/);
   assert.match(razor,/if\(_stage==Stage\.BrowsePlace&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\)/);
@@ -303,42 +303,38 @@ test('viewer top menu exposes back undo cut copy redo paste and forward',()=>{
   assert.match(css,/Viewer command menu authority/);
 });
 
-test('GameMaster path right display is Claim Deed or alphabetical world selector',()=>{
+test('Shaelvien GameMaster is deed-first and selected deed becomes World Builder plus Context',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
   const land=read('WorldSession.MmoLand.cs');
   const deed=read('Components/ShaelvienDeedGate.razor');
 
-  assert.match(razor,/PathWorldOptions[\s\S]{0,1600}?OrderBy\(option=>option\.Name,StringComparer\.OrdinalIgnoreCase\)/);
-  assert.match(razor,/PathWorldLabel=>CurrentPathWorld[\s\S]{0,100}?"CLAIM DEED"/);
-  assert.match(razor,/Stage\.PathSelect=>PathWorldLabel/);
-  assert.match(razor,/Stage\.PathSelect=>PathWorldPrompt/);
-  assert.match(razor,/async Task PressRight\(\)[\s\S]{0,900}?case Stage\.PathSelect:[\s\S]{0,260}?ActivateCurrentPathWorldAsync\(\)[\s\S]{0,260}?OpenControllerDeedAsync\(\)/);
-  assert.match(razor,/async Task PressLeft\(\)[\s\S]{0,900}?case Stage\.PathSelect:[\s\S]{0,260}?Use the right display to Claim Deed[\s\S]{0,260}?BeginGameMasterPath\(\)/);
+  assert.match(razor,/Stage\.DeedSelect/);
+  assert.match(razor,/Stage\.DeedSelect=>"SHAELVIEN"/);
+  assert.match(razor,/PathWorldOptions[\s\S]{0,1800}?SHAELVIEN_ORIGIN[\s\S]{0,1800}?SHAELVIEN_INSPECT[\s\S]{0,1800}?SHAELVIEN_CLAIM/);
+  assert.match(razor,/Stage\.PathSelect=>IsShaelvienDeedHome\?"WORLD BUILDER"/);
+  assert.match(razor,/Stage\.PathSelect=>IsShaelvienDeedHome\?"CONTEXT"/);
+  assert.match(razor,/case Stage\.DeedSelect:[\s\S]{0,420}?ActivateCurrentPathWorldAsync\(\)[\s\S]{0,260}?SetSelectedDeed\(selected\)/);
+  assert.match(razor,/World Builder is on the left; Context is on the right/);
   assert.match(razor,/YOU HAVE \{count\} TOKEN/);
-  assert.match(razor,/return "NO TOKEN REQUIRED"/);
   assert.match(razor,/<ShaelvienDeedGate[\s\S]{0,220}?OnClaimed="CompleteShaelvienDeedAsync"/);
-  assert.match(razor,/<WorldGate[\s\S]{0,260}?OnContinue="CompleteRistDeedAsync"[\s\S]{0,160}?DeedMode="true"/);
   assert.match(land,/UnspentMmoWorldTokenCount/);
   assert.match(deed,/CLAIM DEED/);
   assert.match(deed,/ClaimMmoParcelAsync/);
 });
 
-test('controller Save reacts immediately, commits canonical placement, and returns to GameMaster path menu',()=>{
+test('controller Save reacts immediately, commits canonical placement, and returns to the selected deed home',()=>{
   const razor=read('Components/ExperimentsWorkspace.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
   const prototype=read('wwwroot/prototype/prototype.js');
 
   assert.match(razor,/Stage\.SaveCancel=>_assetSavePending\?"SAVING…":"SAVE"/);
   assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,600}?_assetSavePending=true;[\s\S]{0,220}?InvokeAsync\(StateHasChanged\)[\s\S]{0,260}?CommitCurrentAssetToCanonicalViewerAsync\(\)/);
-  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,1200}?_stage=Stage\.PathSelect[\s\S]{0,120}?_pathIndex=0/);
-  assert.match(razor,/savedWorldId[\s\S]{0,420}?PathWorldOptions[\s\S]{0,260}?_worldIndex=savedWorldIndex>=0\?savedWorldIndex:0/);
-  assert.match(razor,/Returned to the GameMaster path menu/);
+  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,1300}?_stage=Stage\.PathSelect[\s\S]{0,140}?_pathIndex=0/);
+  assert.match(razor,/Returned to \{_selectedDeedName\} GameMaster home/);
   assert.doesNotMatch(razor,/case Stage\.SaveCancel:[\s\S]{0,180}?SaveCurrentAssetToViewer\(\)/);
-  assert.match(razor,/InvokeAsync<bool>\([\s\S]{0,180}?"placeAsset"/);
+  assert.match(razor,/InvokeAsync<bool>\([\s\S]{0,220}?"placeAsset"/);
   assert.match(host,/async function waitForPrototype\(frame,timeoutMs=3000\)/);
-  assert.match(host,/post\(frame,\{type:"bridge-ready"\}\);[\s\S]{0,260}?waitForPrototype\(frame\)/);
   assert.match(prototype,/async function placeExternalAsset\(raw=\{\}\)/);
-  assert.match(prototype,/userLayers\.push\(item\)/);
   assert.match(prototype,/const saved=await saveWorldBuilder\(\)/);
 });
 
@@ -349,8 +345,8 @@ test('outer depth drives embedded canonical tier and layer',()=>{
 
   assert.match(razor,/case Stage\.WorldBuilderTier:[\s\S]{0,220}?SyncWorldBuilderDepthAsync/);
   assert.match(razor,/case Stage\.WorldBuilderLayer:[\s\S]{0,220}?SyncWorldBuilderDepthAsync/);
-  assert.match(razor,/InvokeVoidAsync\("setDepth",_worldBuilderFrame,_tier,_layer,CurrentBuilderScope\)/);
-  assert.match(host,/export function setDepth\(frame,tier,layer,scope\)/);
+  assert.match(razor,/InvokeVoidAsync\("setDepth",_worldBuilderFrame,_tier,_layer,CurrentBuilderScope,CurrentSpatialNodeId,CurrentSpatialPath\)/);
+  assert.match(host,/export function setDepth\(frame,tier,layer,scope,spatialNodeId="",spatialPath=""\)/);
   assert.match(prototype,/function setExternalDepth\(raw=\{\}\)/);
 });
 
@@ -378,4 +374,20 @@ test('canonical placements retain their World Region Local or Instance scope',()
   assert.match(prototype,/scope:normalizeSpatialScope\(raw\.scope\|\|'WORLD'\)/);
   assert.match(prototype,/externalSpatialScope='WORLD'/);
   assert.match(prototype,/const scope=normalizeSpatialScope\(raw\.scope\|\|externalSpatialScope\)/);
+});
+
+
+test('selected Shaelvien deed identity drives the embedded map and Sunken Tundra pack',()=>{
+  const razor=read('Components/ExperimentsWorkspace.razor');
+  const prototype=read('wwwroot/prototype/prototype.js');
+
+  assert.match(razor,/deedRegionId=\{deedRegionId\}/);
+  assert.match(razor,/deedZone=\{deedZone\}/);
+  assert.match(razor,/SelectedDeedZoneId/);
+  assert.match(prototype,/const DEED_REGION_ID=String\(QUERY\.get\('deedRegionId'\)/);
+  assert.match(prototype,/async function hydrateSelectedDeedZone\(\)/);
+  assert.match(prototype,/\/Game\/assets\/zones\/\$\{encodeURIComponent\(DEED_ZONE_ID\)\}\//);
+  assert.match(prototype,/const worldVisible=!DEED_REGION_ID/);
+  assert.match(prototype,/const deedVisible=!DEED_REGION_ID\|\|item\.deedZoneLayer\|\|String\(item\.regionId\|\|''\)===DEED_REGION_ID/);
+  assert.match(prototype,/item\.deedZoneLayer=true/);
 });

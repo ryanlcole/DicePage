@@ -9,6 +9,10 @@ const REGION_FLOW=String(QUERY.get('regionFlow')||'').toLowerCase();
 const REQUESTED_REGION_ID=String(QUERY.get('regionId')||'');
 const WORLD_ID=QUERY.get('worldId')||'';
 const WORLD_NAME=QUERY.get('worldName')||'';
+const DEED_ID=String(QUERY.get('deedId')||'');
+const DEED_NAME=String(QUERY.get('deedName')||'');
+const DEED_REGION_ID=String(QUERY.get('deedRegionId')||'');
+const DEED_ZONE_ID=String(QUERY.get('deedZone')||'').trim().toLowerCase();
 const WORLD_SEED=QUERY.get('seed')||(LIVE_WORLDBUILDER?'empty':'geonaph');
 const IS_GEONAPH_SEED=WORLD_SEED==='geonaph';
 const DISPLAY_WORLD_NAME=WORLD_NAME||'Shaelvien';
@@ -276,6 +280,9 @@ function postWorldBuilderHostMessage(type,payload={}){
   if(REGION_DEFINER||window.parent===window)return false;
   try{window.parent.postMessage({source:'shaelvien-worldbuilder',type,...payload},location.origin);return true}catch{return false}
 }
+function authoringRegionId(){
+  return REGION_DEFINER?activeRegionMapId():DEED_REGION_ID;
+}
 function normalizeSpatialScope(value){
   const raw=String(value||'WORLD').toUpperCase();
   if(raw.includes('REGION'))return'REGION';
@@ -362,6 +369,7 @@ async function applyDatabaseWorldBuilderState(envelope){
   if(!canonical.loaded)return;
   viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier||'sea').key;
   viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
+  await hydrateSelectedDeedZone();
   selectedImage=null;publishWorldBuilderSelectionContext();
   updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
   localWorldBuilderRestoreComplete=true;
@@ -396,6 +404,7 @@ async function handleWorldBuilderHostMessage(event){
   if(data.type==='world-source-missing'){
     worldSourceHostReady=true;
     worldSourceDatabaseMissing=true;
+    await hydrateSelectedDeedZone();
     void bootstrapWorldSourceDatabase();
     return;
   }
@@ -693,6 +702,72 @@ async function attachRestoredLayer(raw,options={}){
   }
   return item;
 }
+async function hydrateSelectedDeedZone(){
+  if(REGION_DEFINER||!DEED_REGION_ID||!DEED_ZONE_ID)return 0;
+
+  for(let index=userLayers.length-1;index>=0;index--){
+    const item=userLayers[index];
+    if(!item?.deedZoneLayer)continue;
+    stopSpriteMotion(item);
+    item.node?.remove();
+    userLayers.splice(index,1);
+  }
+
+  try{
+    const root=`/Game/assets/zones/${encodeURIComponent(DEED_ZONE_ID)}/`;
+    const response=await fetch(root+'manifest.json',{cache:'no-cache'});
+    if(!response.ok){
+      stage.dataset.deedZonePack='database-only';
+      return 0;
+    }
+    const manifest=await response.json();
+    if(manifest?.worldId&&String(manifest.worldId)!==String(WORLD_ID||''))throw new Error('Deed zone world identity mismatch');
+
+    const tier=clamp(Math.trunc(Number(manifest?.tier)||0),0,TIERS.length-1);
+    const layers=(Array.isArray(manifest?.layers)?manifest.layers:[])
+      .filter(layer=>layer&&layer.file)
+      .sort((a,b)=>(Number(a.layer)||0)-(Number(b.layer)||0));
+    let loaded=0;
+    for(const layer of layers){
+      const index=clamp(Math.trunc(Number(layer.layer)||0),0,9);
+      const item=await attachRestoredLayer({
+        id:`deed-zone:${DEED_ZONE_ID}:${index}`,
+        regionId:DEED_REGION_ID,
+        scope:'WORLD',
+        name:String(layer.name||`Layer ${index}`),
+        kind:'image',
+        placementRole:'world-map',
+        fullWorld:true,
+        originalSrc:root+String(layer.file),
+        transparentSrc:root+String(layer.file),
+        transparent:layer.opaque!==true,
+        x:0,y:0,tier,layer:index,size:1,rotation:0,opacity:1,committed:true
+      },{sourceLocked:true,canonicalSource:true});
+      if(item){
+        item.deedZoneLayer=true;
+        item.deedZoneId=DEED_ZONE_ID;
+        loaded++;
+      }
+    }
+
+    if(loaded){
+      viewerTier=tierByIndex(tier).key;
+      viewerLayer=clamp(Math.trunc(Number(manifest?.surfaceLayer)??0),0,9);
+      world.dataset.emptyWorld='false';
+      stage.dataset.deedZonePack=DEED_ZONE_ID;
+      stage.dataset.deedRegionId=DEED_REGION_ID;
+      loading.hidden=true;
+      updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();
+      announce(`${DEED_NAME||manifest?.displayName||'Selected deed'} map loaded.`);
+    }
+    return loaded;
+  }catch(error){
+    stage.dataset.deedZonePack='error';
+    announce(`${DEED_NAME||'Selected deed'} map pack could not load; showing its saved database layers only.`);
+    return 0;
+  }
+}
+
 async function restoreSavedWorldBuilder(){
   if(restoreSaveStarted)return;restoreSaveStarted=true;
   try{
@@ -704,10 +779,12 @@ async function restoreSavedWorldBuilder(){
       userLayers.splice(0,userLayers.length);
       world.querySelectorAll('.user-image-placement').forEach(node=>node.remove());
       const state=await readSavedWorldBuilder(WORLD_SOURCE_SAVE_KEY);
-      if(!state||state.format!=='RIST_WORLDBUILDER_PROTOTYPE'||String(state.worldId||'')!==String(WORLD_ID||''))return;
-      for(const raw of Array.isArray(state.userLayers)?state.userLayers:[])await attachRestoredLayer(raw);
-      viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier).key;
-      viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
+      if(state&&state.format==='RIST_WORLDBUILDER_PROTOTYPE'&&String(state.worldId||'')===String(WORLD_ID||'')){
+        for(const raw of Array.isArray(state.userLayers)?state.userLayers:[])await attachRestoredLayer(raw);
+        viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier).key;
+        viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
+      }
+      await hydrateSelectedDeedZone();
     }
     selectedImage=null;publishWorldBuilderSelectionContext();updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
     announce(REGION_DEFINER
@@ -1225,7 +1302,7 @@ function placeLabel(text){
   text=String(text||'').trim().slice(0,120);if(!text){announce('Type label text first.');return null}
   const rawPoint=viewerCenterPosition(),point=snapAssetPoint(rawPoint.x,rawPoint.y),address=placementAddress(currentTierIndex(),1);
   const item={
-    id:`label:${crypto.randomUUID?.()||Date.now()}`,scope:normalizeSpatialScope(externalSpatialScope),kind:'label',name:text,text,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
+    id:`label:${crypto.randomUUID?.()||Date.now()}`,scope:normalizeSpatialScope(externalSpatialScope),kind:'label',name:text,text,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:authoringRegionId(),
     x:point.x,y:point.y,tier:address.tier,layer:address.layer,rotation:0,opacity:1,committed:false,renderOpacity:1,
     fontSize:48,bold:false,italic:false,color:LABEL_COLORS[0],textAlign:'center',letterSpacing:0,plate:false,
     offsetX:0,offsetY:0,parallaxX:0,parallaxY:0,node:null
@@ -1392,7 +1469,7 @@ async function placeUploadedImage(file){
   const requestedPoint={x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1)};
   const placementPoint=placementRole==='world-map'?{x:.5,y:.5}:snapAssetPoint(requestedPoint.x,requestedPoint.y);
   const item={
-    id:crypto.randomUUID?.()||String(Date.now()),scope:normalizeSpatialScope(externalSpatialScope),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
+    id:crypto.randomUUID?.()||String(Date.now()),scope:normalizeSpatialScope(externalSpatialScope),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:authoringRegionId(),
     placementRole,fullWorld:placementRole==='world-map',
     originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
     x:placementPoint.x,y:placementPoint.y,tier,layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
@@ -1440,7 +1517,7 @@ function applyParallax(){
   ];
   for(const entry of builtins){
     const sourceVisible=!REGION_DEFINER||(entry.tier<=currentRegionTierIndex()&&regionSourceLayerVisible(entry.tier,entry.layer));
-    const worldVisible=spatialScope==='WORLD'||(spatialScope==='REGION'&&!regionEnhanceActive);
+    const worldVisible=!DEED_REGION_ID&&(spatialScope==='WORLD'||(spatialScope==='REGION'&&!regionEnhanceActive));
     entry.node.style.opacity=worldVisible&&layerReady[entry.key]&&sourceVisible?String(clamp(Number(entry.alpha)||0,0,1)):'0';
     const depth=entry.sceneZ/10;
     const panStrength=depth*.055;
@@ -1459,12 +1536,14 @@ function applyParallax(){
     const lineage=String(externalSpatialPath||'').split('/').filter(Boolean);
     const nodeId=String(item.spatialNodeId||'');
     const nodeVisible=!nodeId||lineage.includes(nodeId)||nodeId===String(externalSpatialNodeId||'');
+    const deedVisible=!DEED_REGION_ID||item.deedZoneLayer||String(item.regionId||'')===DEED_REGION_ID;
+    const zoneLayerVisible=!item.deedZoneLayer||item.layer<=viewerLayer;
     const scopeVisible=(itemScope===spatialScope&&nodeVisible)
       ||(itemScope==='WORLD'&&spatialScope!=='WORLD')
       ||(spatialScope==='REGION'&&!regionEnhanceActive&&itemScope==='WORLD');
-    const visible=REGION_DEFINER
+    const visible=deedVisible&&zoneLayerVisible&&(REGION_DEFINER
       ? (item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
-      : (!item.committed||scopeVisible)&&(viewerTier==='all'||!item.committed||item.tier===tierByKey(viewerTier).index);
+      : (!item.committed||scopeVisible)&&(viewerTier==='all'||!item.committed||item.tier===tierByKey(viewerTier).index));
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
@@ -2797,7 +2876,7 @@ function placePersonalImage(asset){
   if(!asset?.url)return;
   const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=snapAssetPoint(rawPoint.x,rawPoint.y),address=placementAddress(currentTierIndex(),1);
   const item={
-    id:`private-image:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,personalAssetKey:asset.key,name:asset.name,kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
+    id:`private-image:${crypto.randomUUID?.()||Date.now()}`,assetId:`private:${asset.key}`,personalAssetKey:asset.key,name:asset.name,kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:authoringRegionId(),
     placementRole,fullWorld:placementRole==='world-map',
     originalSrc:asset.url,transparentSrc:asset.url,transparent:false,x:placementRole==='world-map'?.5:point.x,y:placementRole==='world-map'?.5:point.y,tier:placementRole==='world-map'?0:address.tier,layer:placementRole==='world-map'?0:address.layer,
     size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
@@ -2906,7 +2985,7 @@ function placeLibraryTile(asset){
   if(!asset?.image)return;
   const placementRole=currentAssetPlacementRole(),rawPoint=viewerCenterPosition(),point=snapAssetPoint(rawPoint.x,rawPoint.y),address=placementAddress(currentTierIndex(),1),item={
     id:`library:${asset.id}:${crypto.randomUUID?.()||Date.now()}`,
-    scope:normalizeSpatialScope(externalSpatialScope),assetId:asset.id,name:asset.name,libraryTile:true,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
+    scope:normalizeSpatialScope(externalSpatialScope),assetId:asset.id,name:asset.name,libraryTile:true,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:authoringRegionId(),
     placementRole,fullWorld:placementRole==='world-map',
     originalSrc:asset.image,transparentSrc:asset.image,transparent:false,
     x:placementRole==='world-map'?.5:point.x,y:placementRole==='world-map'?.5:point.y,tier:placementRole==='world-map'?0:address.tier,layer:placementRole==='world-map'?0:address.layer,
@@ -2975,7 +3054,7 @@ async function placeSpriteDefinition(definition){
   announce(`Preparing frame 1 of ${definition.name||'sprite'} for placement.`);
   const firstFrame=await extractSpriteFrame(definition.sheetSrc,extractOptions,0);
   const item={
-    id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:REGION_DEFINER?activeRegionMapId():'',
+    id:definition.id||crypto.randomUUID?.()||String(Date.now()),assetId:definition.assetId||null,name:definition.name||'Sprite',kind:'sprite',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:authoringRegionId(),
     spriteSheetSrc:definition.sheetSrc,spriteColumns:definition.columns,spriteRows:definition.rows,spriteFrameCount:Math.max(1,Number(definition.frameCount)||1),spriteFps:Math.max(1,Number(definition.fps)||6),
     spriteSourceWidth:definition.sourceWidth||null,spriteSourceHeight:definition.sourceHeight||null,spriteCropX:definition.cropX||0,spriteCropY:definition.cropY||0,
     spriteCropWidth:definition.cropWidth||null,spriteCropHeight:definition.cropHeight||null,spriteWhiteTransparent:definition.whiteTransparent!==false,
@@ -3504,7 +3583,7 @@ async function placeExternalAsset(raw={}){
     spatialPath:String(raw.spatialPath||externalSpatialPath||''),
     assetId:String(raw.assetId||raw.key||'')||null,personalAssetKey:null,
     name:String(raw.name||'Placed asset'),kind:String(raw.kind||'image').toLowerCase()==='sprite'?'sprite':'image',
-    libraryTile:false,sourceLocked:false,regionOverlay:false,regionId:'',
+    libraryTile:false,sourceLocked:false,regionOverlay:false,regionId:authoringRegionId(),
     placementRole:'layer',fullWorld:false,originalSrc:src,transparentSrc:src,transparent:true,
     x:point.x,y:point.y,tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
     layer:Math.max(0,Math.trunc(Number(raw.layer)||0)),size:clamp(Number(raw.scale)||1,.05,20),
@@ -3526,6 +3605,7 @@ async function placeExternalAsset(raw={}){
 
 window.ShaelvienPrototype=Object.freeze({
   world:Object.freeze({id:WORLD_ID,name:DISPLAY_WORLD_NAME,continent:CONTINENT_NAME,seed:WORLD_SEED,surfacePixels:SURFACE_WORLD_PIXELS,surfacePolicy:SURFACE_POLICY}),
+  deed:Object.freeze({id:DEED_ID,name:DEED_NAME,regionId:DEED_REGION_ID,zoneId:DEED_ZONE_ID}),
   getUpscaleState:()=>({enabled:upscaleEnabled,mode:stage.dataset.upscale||'original'}),
   save:saveWorldBuilder,
   placeExternalAsset,
