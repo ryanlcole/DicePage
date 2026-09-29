@@ -1058,6 +1058,52 @@ def query_world_prefix(world_id, prefix):
     return result.get("Items", [])
 
 
+def geonaph_visible_region_ids(user_id):
+    developer = is_platform_developer(user_id)
+    visible = set()
+    for item in query_world_prefix(GEONAPH_WORLD_ID, "PARCEL#"):
+        parcel_id = str(item.get("parcelId") or "")
+        region_id = str(item.get("regionId") or "")
+        if not region_id:
+            continue
+        visibility = str(item.get("visibility") or "Restricted")
+        owner = str(item.get("ownerUserId") or "") == user_id
+        permission = "Owner" if owner else parcel_permission(GEONAPH_WORLD_ID, parcel_id, user_id)
+        if developer or owner or visibility == "Public" or permission in ("View", "Edit", "Manage"):
+            visible.add(region_id)
+    return visible
+
+
+def filtered_geonaph_source_state(state, user_id):
+    if not isinstance(state, dict) or is_platform_developer(user_id):
+        return state
+    allowed_regions = geonaph_visible_region_ids(user_id)
+    filtered = dict(state)
+
+    layers = state.get("userLayers")
+    if isinstance(layers, list):
+        filtered["userLayers"] = [
+            layer
+            for layer in layers
+            if not isinstance(layer, dict)
+            or not str(layer.get("regionId") or "").strip()
+            or str(layer.get("regionId") or "").strip() in allowed_regions
+        ]
+
+    contexts = state.get("assetContexts")
+    if isinstance(contexts, dict):
+        filtered["assetContexts"] = {
+            key: value
+            for key, value in contexts.items()
+            if isinstance(value, dict)
+            and str(value.get("regionId") or "").strip() in allowed_regions
+        }
+
+    # Inspection history is developer evidence, not Explore content.
+    filtered.pop("inspectionAudit", None)
+    return filtered
+
+
 def manager_user_ids(world_id):
     ids = set()
     if owner_user_id:
@@ -2586,11 +2632,14 @@ def handler(event, context):
                     "updatedAtUtc": "",
                 },
             )
+        source_state = item.get("state")
+        if is_geonaph(world_id):
+            source_state = filtered_geonaph_source_state(source_state, user_id)
         return response(
             200,
             {
                 "worldId": world_id,
-                "state": item.get("state"),
+                "state": source_state,
                 "updatedAtUtc": str(item.get("updatedAtUtc") or ""),
             },
         )
