@@ -351,6 +351,8 @@ test('developer Inspect shares the MMO map and requires one reason per committed
   assert.match(razor,/currentState\.TryGetProperty\("inspectionAudit",out var currentAudit\)/);
   assert.match(razor,/root\["inspectionAudit"\]=JsonNode\.Parse\(currentAudit\.GetRawText\(\)\)/);
   assert.match(razor,/ConsumeInspectionReason\(\)/);
+  assert.match(razor,/ReturnToInspectMapAsync\(\)[\s\S]{0,220}?ReturnToShaelvienDeedSelector\(\)/);
+  assert.match(razor,/void ReturnToShaelvienDeedSelector\(\)[\s\S]{0,320}?_stage=Stage\.DeedSelect/);
   assert.match(razor,/RecordInspectionAuditAsync\(\$"CREATE \{CurrentBuilderScope\}",inspectionReason\)/);
   assert.match(razor,/var access=_exploreReadOnlyMode[\s\S]{0,180}?_inspectionEditMode&&Session\.TrustedPlatformOwner/);
 });
