@@ -13,6 +13,8 @@ def test_mmo_map_flattens_only_tier_zero_top_surface_per_region():
     assert 'var topByRegion = new Dictionary<string, MmoSurfaceLayer>' in component
     assert 'layer.Layer > current.Layer' in component
     assert '_mmoSurfaceLayers.AddRange(topByRegion.Values' in component
+    assert 'MmoWorldBuilderPlacementWidthFraction = 0.12' in component
+    assert 'var normalizedWidth = layer.Size * MmoWorldBuilderPlacementWidthFraction;' in component
 
 
 def test_mmo_map_includes_claimed_zones_and_all_open_flat_side_frontier_cells():
