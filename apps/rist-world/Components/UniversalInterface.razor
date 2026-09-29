@@ -562,6 +562,7 @@
    {
     var userId=Auth.Profile?.UserId?.Trim()??"";
     var platformOwner=Session.TrustedPlatformOwner;
+    var platformDeveloper=Session.TrustedPlatformDeveloper;
     var mmoOptions=Session.MmoParcels
      .Where(parcel=>
       string.Equals(parcel.OwnerUserId,userId,StringComparison.Ordinal)
@@ -587,6 +588,9 @@
       "SHAELVIEN_ORIGIN",
       null,
       null));
+    }
+    if(platformDeveloper)
+    {
      mmoOptions.Add(new ControllerWorldOption(
       "__inspect__",
       "Inspect",
@@ -866,7 +870,7 @@
    var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
    var access=_exploreReadOnlyMode
     ?"view"
-    :_inspectionEditMode&&Session.TrustedPlatformOwner
+    :_inspectionEditMode&&Session.TrustedPlatformDeveloper
      ?"edit"
      :Session.HasWorldBuilderEditAuthority?"edit":"view";
    var deedId=Uri.EscapeDataString(_selectedDeedId??"");
