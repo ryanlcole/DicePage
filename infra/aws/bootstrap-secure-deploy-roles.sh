@@ -124,7 +124,7 @@ cat >/tmp/relic-github-ci-policy.json <<JSON
     {
       "Sid":"CloudFormationControlPlane",
       "Effect":"Allow",
-      "Action":["cloudformation:CreateStack","cloudformation:UpdateStack","cloudformation:DeleteStack","cloudformation:CreateChangeSet","cloudformation:ExecuteChangeSet","cloudformation:DeleteChangeSet","cloudformation:DescribeChangeSet","cloudformation:DescribeStacks","cloudformation:DescribeStackEvents","cloudformation:DescribeStackResources","cloudformation:DescribeStackResource","cloudformation:GetTemplate","cloudformation:GetTemplateSummary","cloudformation:ValidateTemplate"],
+      "Action":["cloudformation:CreateStack","cloudformation:UpdateStack","cloudformation:DeleteStack","cloudformation:ContinueUpdateRollback","cloudformation:CreateChangeSet","cloudformation:ExecuteChangeSet","cloudformation:DeleteChangeSet","cloudformation:DescribeChangeSet","cloudformation:DescribeStacks","cloudformation:DescribeStackEvents","cloudformation:DescribeStackResources","cloudformation:DescribeStackResource","cloudformation:GetTemplate","cloudformation:GetTemplateSummary","cloudformation:ValidateTemplate"],
       "Resource":"*"
     },
     {
