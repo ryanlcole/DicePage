@@ -361,7 +361,7 @@ test('zoom hands representation from World to Region Local and Instance',()=>{
   assert.match(prototype,/if\(ratio>=SPATIAL_SCOPE_THRESHOLDS\.INSTANCE\)return'INSTANCE'/);
   assert.match(prototype,/if\(ratio>=SPATIAL_SCOPE_THRESHOLDS\.LOCAL\)return'LOCAL'/);
   assert.match(prototype,/if\(ratio>=SPATIAL_SCOPE_THRESHOLDS\.REGION\)return'REGION'/);
-  assert.match(prototype,/worldVisible=spatialScope==='WORLD'\|\|\(spatialScope==='REGION'&&!regionEnhanceActive\)/);
+  assert.match(prototype,/worldVisible=!DEED_REGION_ID&&\(spatialScope==='WORLD'\|\|\(spatialScope==='REGION'&&!regionEnhanceActive\)\)/);
   assert.match(prototype,/const itemScope=normalizeSpatialScope/);
   assert.match(prototype,/itemScope===spatialScope/);
   assert.match(prototype,/spatialScope!=='WORLD'[\s\S]{0,180}?rotateX\(15deg\)/);
