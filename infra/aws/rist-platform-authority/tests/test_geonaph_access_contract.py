@@ -82,6 +82,22 @@ class GeonaphAccessContractTests(unittest.TestCase):
         self.assertIn('path == "/world/parcels/claim"', self.source)
         self.assertIn("transact_write_items(", self.source)
 
+    def test_explore_visibility_and_inspect_edits_are_server_authoritative(self):
+        self.assertIn('PARCEL_VISIBILITIES = {"Public", "Restricted"}', self.source)
+        self.assertIn('"visibility": str(item.get("visibility") or "Restricted")', self.source)
+        self.assertIn('parcel.get("visibility") == "Public"', self.source)
+        self.assertIn('path == "/world/parcels/inspect-edit"', self.source)
+        self.assertIn('"Platform developer inspection authority required"', self.source)
+        self.assertIn('"Every inspection edit requires a reason"', self.source)
+        self.assertIn('"parcel.inspect.edit"', self.source)
+        self.assertIn('{"reason": reason, "before": before, "after": after}', self.source)
+
+    def test_canonical_inspection_world_saves_require_reason(self):
+        self.assertIn('inspection_edit = bool(req.get("inspectionEdit"))', self.source)
+        self.assertIn('inspection_reason = str(req.get("inspectionReason") or "").strip()', self.source)
+        self.assertIn('"inspectionEdit": inspection_edit', self.source)
+        self.assertIn('"inspectionReason": inspection_reason if inspection_edit else ""', self.source)
+
     def test_mmo_parcel_ownership_is_immutable_but_permissions_can_be_handed_off(self):
         self.assertIn('path == "/world/parcels/delegate"', self.source)
         self.assertIn('PARCEL_DELEGATION_PERMISSIONS = {"View", "Edit", "Manage", "None"}', self.source)
