@@ -3,20 +3,27 @@
 @if(Open)
 {
  <section class="shaelvien-deed-backdrop" role="presentation" @onclick="CloseAsync">
-  <div class="shaelvien-deed-card" role="dialog" aria-modal="true" aria-label="Claim a Shaelvien deed" @onclick:stopPropagation="true">
+  <div class="shaelvien-deed-card" role="dialog" aria-modal="true" aria-label="@(InspectOnly?"Inspect Shaelvien realms":"Claim a Shaelvien deed")" @onclick:stopPropagation="true">
    <header>
-    <span><small>SHAELVIEN PROPERTY</small><strong>CLAIM DEED</strong></span>
-    <button type="button" @onclick="CloseAsync" aria-label="Close Claim Deed">×</button>
+    <span><small>SHAELVIEN PROPERTY</small><strong>@(InspectOnly?"INSPECT REALMS":"CLAIM DEED")</strong></span>
+    <button type="button" @onclick="CloseAsync" aria-label="@(InspectOnly?"Close Inspect":"Close Claim Deed")">×</button>
    </header>
 
-   <p class="shaelvien-deed-token" role="status">@TokenSummary</p>
-   <p class="shaelvien-deed-rule">Choose one available property space sharing a flat side with Endemar or the existing claimed frontier. Corner-only contact is not claimable. A Shaelvien claim spends one Shaelvien Token and permanently binds that deed to the account.</p>
+   @if(!InspectOnly)
+   {
+    <p class="shaelvien-deed-token" role="status">@TokenSummary</p>
+    <p class="shaelvien-deed-rule">Choose one available property space sharing a flat side with Endemar or the existing claimed frontier. Corner-only contact is not claimable. A Shaelvien claim spends one Shaelvien Token and permanently binds that deed to the account.</p>
+   }
+   else
+   {
+    <p class="shaelvien-deed-rule">Owner inspection is read-only. Select Endemar or any claimed realm to review its canonical identity, owner, region binding, coordinates, and build limits.</p>
+   }
 
    @if(_loading)
    {
     <p class="shaelvien-deed-status">Loading deed authority…</p>
    }
-   else if(!Session.HasUnspentMmoWorldToken)
+   else if(!InspectOnly&&!Session.HasUnspentMmoWorldToken)
    {
     <p class="shaelvien-deed-status">No unspent Shaelvien Token is available.</p>
    }
@@ -26,11 +33,10 @@
      <div class="shaelvien-deed-map" style="@($"--deed-cols:{VisibleColumnCount}")" role="grid" aria-label="Available Shaelvien deed spaces">
       @foreach(var cell in VisibleClaimCells)
       {
-       var claimable=Session.IsMmoParcelClaimable(cell);
        <button type="button"
                role="gridcell"
                class="@CellClass(cell)"
-               disabled="@(!claimable||_busy)"
+               disabled="@(!CellSelectable(cell)||_busy)"
                aria-label="@CellLabel(cell)"
                title="@CellLabel(cell)"
                @onclick="()=>SelectCell(cell)">@CellText(cell)</button>
@@ -49,10 +55,28 @@
     {
      <section class="shaelvien-deed-selection">
       <strong>PROPERTY @CellCoordinate(_selectedCell)</strong>
-      <span>@WorldSession.MmoParcelPixels×@WorldSession.MmoParcelPixels pixels · @WorldSession.MmoParcelMaxHeight layers high</span>
-      <label for="deed-world-name">WORLD NAME</label>
-      <input id="deed-world-name" maxlength="80" autocomplete="off" @bind="_worldName" @bind:event="oninput" placeholder="Name this world" />
-      <button type="button" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName))" @onclick="ClaimAsync">@(_busy?"CLAIMING…":"SPEND 1 TOKEN · CLAIM DEED")</button>
+      @if(InspectOnly)
+      {
+       @if(_selectedCell==WorldSession.EndemarOriginCell)
+       {
+        <span>Endemar · canonical Shaelvien origin · coordinate 0,0</span>
+       }
+       else if(SelectedParcel is not null)
+       {
+        <span>WORLD · @SelectedParcel.DisplayName</span>
+        <span>OWNER · @SelectedParcel.OwnerUserId</span>
+        <span>REGION AUTHORITY · @SelectedParcel.RegionId</span>
+        <span>DEED · @SelectedParcel.ParcelId</span>
+        <span>@SelectedParcel.PixelWidth×@SelectedParcel.PixelHeight pixels · @SelectedParcel.MaxHeight layers high</span>
+       }
+      }
+      else
+      {
+       <span>@WorldSession.MmoParcelPixels×@WorldSession.MmoParcelPixels pixels · @WorldSession.MmoParcelMaxHeight layers high</span>
+       <label for="deed-world-name">WORLD NAME</label>
+       <input id="deed-world-name" maxlength="80" autocomplete="off" @bind="_worldName" @bind:event="oninput" placeholder="Name this world" />
+       <button type="button" disabled="@(_busy||string.IsNullOrWhiteSpace(_worldName))" @onclick="ClaimAsync">@(_busy?"CLAIMING…":"SPEND 1 TOKEN · CLAIM DEED")</button>
+      }
      </section>
     }
    }
@@ -84,6 +108,7 @@
 
 @code{
  [Parameter] public bool Open{get;set;}
+ [Parameter] public bool InspectOnly{get;set;}
  [Parameter] public EventCallback OnClose{get;set;}
  [Parameter] public EventCallback<AwsAuthorityClient.MmoParcel> OnClaimed{get;set;}
 
@@ -94,6 +119,8 @@
  int _selectedCell=-1;
  string _worldName="";
  string _status="";
+
+ AwsAuthorityClient.MmoParcel? SelectedParcel=>_selectedCell<0?null:Session.MmoParcels.FirstOrDefault(x=>x.CellIndex==_selectedCell);
 
  string TokenSummary
  {
@@ -174,9 +201,16 @@
   await InvokeAsync(StateHasChanged);
  }
 
+ bool CellSelectable(int cell)
+ {
+  if(InspectOnly)
+   return cell==WorldSession.EndemarOriginCell||Session.IsMmoParcelClaimed(cell);
+  return Session.IsMmoParcelClaimable(cell);
+ }
+
  void SelectCell(int cell)
  {
-  if(!Session.IsMmoParcelClaimable(cell))return;
+  if(!CellSelectable(cell))return;
   _selectedCell=cell;
   _status="";
  }
@@ -206,26 +240,42 @@
 
  string CellClass(int cell)
  {
-  if(cell==WorldSession.EndemarOriginCell)return "endemar";
+  var selected=cell==_selectedCell?" selected":"";
+  if(cell==WorldSession.EndemarOriginCell)return "endemar"+selected;
   var parcel=Session.MmoParcels.FirstOrDefault(x=>x.CellIndex==cell);
-  if(parcel is not null)return Session.IsMmoParcelOwnedByCurrentUser(cell)?"owned":"claimed";
-  if(Session.IsMmoParcelClaimable(cell))return cell==_selectedCell?"open selected":"open";
+  if(parcel is not null)return (Session.IsMmoParcelOwnedByCurrentUser(cell)?"owned":"claimed")+selected;
+  if(Session.IsMmoParcelClaimable(cell))return "open"+selected;
   return "claimed";
  }
 
  string CellText(int cell)
  {
   if(cell==WorldSession.EndemarOriginCell)return "END";
-  if(Session.IsMmoParcelOwnedByCurrentUser(cell))return "YOURS";
-  if(Session.IsMmoParcelClaimed(cell))return "TAKEN";
+  var parcel=Session.MmoParcels.FirstOrDefault(x=>x.CellIndex==cell);
+  if(parcel is not null)
+  {
+   var name=(parcel.DisplayName??"").Trim();
+   if(name.Length==0)return CellCoordinate(cell);
+   return name.Length<=8?name.ToUpperInvariant():name[..8].ToUpperInvariant();
+  }
   return CellCoordinate(cell);
  }
 
  string CellLabel(int cell)
  {
   if(cell==WorldSession.EndemarOriginCell)return "Endemar, Shaelvien origin; not claimable";
-  if(Session.IsMmoParcelOwnedByCurrentUser(cell))return $"Your claimed Shaelvien property at {CellCoordinate(cell)}";
-  if(Session.IsMmoParcelClaimed(cell))return $"Claimed Shaelvien property {CellCoordinate(cell)}; unavailable";
+  if(Session.IsMmoParcelOwnedByCurrentUser(cell))
+  {
+   var parcel=Session.MmoParcels.FirstOrDefault(x=>x.CellIndex==cell);
+   return $"Your claimed Shaelvien property {parcel?.DisplayName} at {CellCoordinate(cell)}";
+  }
+  if(Session.IsMmoParcelClaimed(cell))
+  {
+   var parcel=Session.MmoParcels.FirstOrDefault(x=>x.CellIndex==cell);
+   return InspectOnly
+    ?$"Inspect {parcel?.DisplayName} at {CellCoordinate(cell)}"
+    :$"Claimed Shaelvien property {parcel?.DisplayName} at {CellCoordinate(cell)}; unavailable";
+  }
   if(Session.IsMmoParcelClaimable(cell))return $"Available Shaelvien deed {CellCoordinate(cell)}";
   return $"Shaelvien property {CellCoordinate(cell)}; not yet connected to the claim frontier";
  }
@@ -234,6 +284,8 @@
  {
   var column=cell%WorldSession.MmoParcelGridColumns;
   var row=cell/WorldSession.MmoParcelGridColumns;
-  return $"{column},{row}";
+  var x=column-WorldSession.EndemarOriginColumn;
+  var y=WorldSession.EndemarOriginRow-row;
+  return $"{x},{y}";
  }
 }
