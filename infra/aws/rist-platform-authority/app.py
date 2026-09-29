@@ -53,6 +53,7 @@ ENDEMAR_ORIGIN_COLUMN = 15
 ENDEMAR_ORIGIN_ROW = 15
 GENESIS_WORLD_TOKEN_SK = "WORLD_TOKEN#GENESIS"
 PARCEL_DELEGATION_PERMISSIONS = {"View", "Edit", "Manage", "None"}
+PARCEL_VISIBILITIES = {"Public", "Restricted"}
 
 # Commerce is deliberately authority-first. Paid providers may fulfill these
 # records later, but a browser can never manufacture a subscription, access
@@ -568,6 +569,7 @@ def public_parcel(item):
         "maxHeight": int(item.get("maxHeight") or MMO_PARCEL_MAX_HEIGHT),
         "bindingHash": str(item.get("bindingHash") or ""),
         "claimedAtUtc": str(item.get("claimedAtUtc") or ""),
+        "visibility": str(item.get("visibility") or "Restricted"),
     }
 
 
@@ -2006,10 +2008,13 @@ def handler(event, context):
         for parcel in parcels:
             if parcel["ownerUserId"] == user_id:
                 parcel["effectivePermission"] = "Owner"
+            elif can_manage(world_id, user_id):
+                parcel["effectivePermission"] = "Manage"
             else:
-                parcel["effectivePermission"] = parcel_permission(
-                    world_id, parcel["parcelId"], user_id
-                )
+                permission = parcel_permission(world_id, parcel["parcelId"], user_id)
+                if permission == "None" and parcel.get("visibility") == "Public":
+                    permission = "View"
+                parcel["effectivePermission"] = permission
         parcels.sort(key=lambda item: (item["row"], item["column"]))
         return response(200, parcels)
 
@@ -2141,6 +2146,7 @@ def handler(event, context):
             "worldHalfHash": hashlib.sha256(world_half.encode()).hexdigest(),
             "bindingHash": binding_hash,
             "claimedAtUtc": stamp,
+            "visibility": "Restricted",
         }
         region_state = {
             "regionId": region_id,
@@ -2378,6 +2384,83 @@ def handler(event, context):
             },
         )
         return response(200, public_parcel(parcel_item))
+
+    if method == "POST" and path == "/world/parcels/inspect-edit":
+        req = body(event)
+        world_id = safe_id(req.get("worldId"), "worldId")
+        parcel_id = safe_id(req.get("parcelId"), "parcelId")
+        if not is_geonaph(world_id) or not can_manage(world_id, user_id):
+            return response(403, {"error": "Platform developer inspection authority required"})
+
+        reason = str(req.get("reason") or "").strip()
+        if len(reason) < 3:
+            return response(400, {"error": "Every inspection edit requires a reason"})
+        if len(reason) > 500:
+            return response(400, {"error": "Inspection edit reason is limited to 500 characters"})
+
+        parcel_key_value = parcel_key(world_id, parcel_id)
+        parcel = world.get_item(Key=parcel_key_value, ConsistentRead=True).get("Item")
+        if not parcel:
+            return response(404, {"error": "Shaelvien parcel not found"})
+
+        before = {
+            "displayName": str(parcel.get("displayName") or ""),
+            "visibility": str(parcel.get("visibility") or "Restricted"),
+        }
+        changed = False
+
+        if "displayName" in req:
+            display_name = str(req.get("displayName") or "").strip()
+            if not display_name:
+                return response(400, {"error": "Zone name cannot be empty"})
+            if len(display_name) > 80:
+                return response(400, {"error": "Zone name is limited to 80 characters"})
+            if display_name != before["displayName"]:
+                parcel["displayName"] = display_name
+                changed = True
+
+        if "visibility" in req:
+            visibility = str(req.get("visibility") or "").strip().title()
+            if visibility not in PARCEL_VISIBILITIES:
+                return response(400, {"error": "Zone visibility must be Public or Restricted"})
+            if visibility != before["visibility"]:
+                parcel["visibility"] = visibility
+                changed = True
+
+        if not changed:
+            return response(400, {"error": "Inspection edit did not change the zone"})
+
+        stamp = utc_stamp()
+        parcel["inspectedAtUtc"] = stamp
+        parcel["inspectedByUserId"] = user_id
+        world.put_item(Item=parcel)
+
+        region_id = str(parcel.get("regionId") or "")
+        if region_id and parcel.get("displayName") != before["displayName"]:
+            region_key_value = region_key(world_id, region_id)
+            region_item = world.get_item(Key=region_key_value, ConsistentRead=True).get("Item")
+            if region_item:
+                region_state = dict(region_item.get("state") or {})
+                region_state["name"] = str(parcel.get("displayName") or "")
+                region_state["updatedAtUtc"] = stamp
+                region_item["state"] = dynamo_safe(region_state)
+                region_item["updatedAt"] = int(time.time())
+                world.put_item(Item=region_item)
+
+        after = {
+            "displayName": str(parcel.get("displayName") or ""),
+            "visibility": str(parcel.get("visibility") or "Restricted"),
+        }
+        audit_write(
+            world_id,
+            user_id,
+            "parcel.inspect.edit",
+            parcel_id,
+            {"reason": reason, "before": before, "after": after},
+        )
+        result = public_parcel(parcel)
+        result["effectivePermission"] = "Manage"
+        return response(200, result)
 
     if method == "POST" and path == "/world/parcels/delegate":
         req = body(event)
