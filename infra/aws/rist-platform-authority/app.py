@@ -2126,7 +2126,7 @@ def handler(event, context):
             (
                 item
                 for item in query_world_prefix(world_id, "PARCEL#")
-                if int(item.get("cellIndex") or -1) == cell_index
+                if int(item.get("cellIndex", -1)) == cell_index
             ),
             None,
         )
@@ -2178,7 +2178,9 @@ def handler(event, context):
             {
                 "ok": True,
                 "status": "Pending",
-                "parcelId": parcel_id,
+                # Keep restricted parcel identity server-side. The selected cell
+                # is sufficient for the requesting client.
+                "parcelId": "",
                 "cellIndex": cell_index,
             },
         )
