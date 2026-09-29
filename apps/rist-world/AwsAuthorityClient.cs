@@ -98,6 +98,17 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
     public async Task<MmoParcel?> ClaimMmoParcelAsync(string worldId, int cellIndex, string displayName, string tokenId = "")
         => await SendAsync<MmoParcel>(HttpMethod.Post, "/world/parcels/claim", new { worldId, cellIndex, displayName, tokenId });
 
+    public async Task<MmoParcel?> InspectEditMmoParcelAsync(
+        string worldId,
+        string parcelId,
+        string displayName,
+        string visibility,
+        string reason)
+        => await SendAsync<MmoParcel>(
+            HttpMethod.Post,
+            "/world/parcels/inspect-edit",
+            new { worldId, parcelId, displayName, visibility, reason });
+
     public async Task<ParcelDelegationUpdate?> DelegateMmoParcelAsync(string worldId, string parcelId, string userId, string permission)
         => await SendAsync<ParcelDelegationUpdate>(HttpMethod.Post, "/world/parcels/delegate",
             new { worldId, parcelId, userId, permission });
@@ -263,7 +274,8 @@ public sealed class AwsAuthorityClient(HttpClient http, DiscordAuthClient auth)
         int MaxHeight,
         string BindingHash = "",
         string ClaimedAtUtc = "",
-        string EffectivePermission = "None");
+        string EffectivePermission = "None",
+        string Visibility = "Restricted");
 
     public sealed record ParcelDelegation(
         string ParcelId,
