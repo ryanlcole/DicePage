@@ -1013,9 +1013,7 @@ def mmo_parcel_claimable(cell_index, parcels):
     frontier = occupied | {(ENDEMAR_ORIGIN_COLUMN, ENDEMAR_ORIGIN_ROW)}
     return any(
         (column + dx, row + dy) in frontier
-        for dx in (-1, 0, 1)
-        for dy in (-1, 0, 1)
-        if dx or dy
+        for dx, dy in ((0, -1), (1, 0), (0, 1), (-1, 0))
     )
 
 
