@@ -539,7 +539,7 @@
    if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
    {
     var userId=Auth.Profile?.UserId?.Trim()??"";
-    var options=Session.MmoParcels
+    var mmoOptions=Session.MmoParcels
      .Where(parcel=>
       string.Equals(parcel.OwnerUserId,userId,StringComparison.Ordinal)
       ||(!Auth.IsOwnerDiscordAccount&&Session.CanAccessMmoParcel(parcel)))
@@ -555,13 +555,13 @@
 
     if(Auth.IsOwnerDiscordAccount)
     {
-     options.Insert(0,new ControllerWorldOption(
+     mmoOptions.Insert(0,new ControllerWorldOption(
       "__endemar__",
       WorldSession.EndemarStartingPointDisplayName,
       "SHAELVIEN_ORIGIN",
       null,
       null));
-     options.Add(new ControllerWorldOption(
+     mmoOptions.Add(new ControllerWorldOption(
       "__inspect__",
       "Inspect",
       "SHAELVIEN_INSPECT",
@@ -569,13 +569,13 @@
       null));
     }
 
-    options.Add(new ControllerWorldOption(
+    mmoOptions.Add(new ControllerWorldOption(
      "__claim__",
      "Claim Deed",
      "SHAELVIEN_CLAIM",
      null,
      null));
-    return options;
+    return mmoOptions;
    }
 
    var options=Worlds
