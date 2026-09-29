@@ -362,6 +362,23 @@ test('developer Inspect shares the MMO map and requires one reason per committed
   assert.match(razor,/var access=_exploreReadOnlyMode[\s\S]{0,180}?_inspectionEditMode&&Session\.TrustedPlatformOwner/);
 });
 
+test('Explore exposes open public and restricted MMO zones while Inspect can audit visibility edits',()=>{
+  const deed=read('Components/ShaelvienDeedGate.razor');
+  const session=read('WorldSession.MmoLand.cs');
+  const client=read('AwsAuthorityClient.cs');
+
+  assert.match(deed,/OPEN/);
+  assert.match(deed,/Public · viewable/);
+  assert.match(deed,/Restricted · name only/);
+  assert.match(deed,/Restricted Shaelvien zone .* name visible only/);
+  assert.match(deed,/ApplyInspectionZoneEditAsync/);
+  assert.match(deed,/APPLY ZONE EDIT/);
+  assert.match(deed,/EDIT WORLD WITH REASON/);
+  assert.match(session,/InspectEditMmoParcelAsync/);
+  assert.match(client,/\/world\/parcels\/inspect-edit/);
+  assert.match(client,/string Visibility = "Restricted"/);
+});
+
 test('controller Save reacts immediately, commits canonical placement, and stays on the same Art method',()=>{
   const razor=read('Components/UniversalInterface.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
