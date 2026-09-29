@@ -401,7 +401,7 @@ Resources:
     DependsOn: SunkenTundraSeedInvokePermission
     Properties:
       ServiceToken: !GetAtt SunkenTundraSeedFunction.Arn
-      Revision: sunken-tundra-v3
+      Revision: sunken-tundra-v4
       WorldId: shaelvien-geonaph-alpha-001
       SurfaceTier: 0
       SurfaceLayer: 6
@@ -494,6 +494,24 @@ Resources:
       SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RealtimeApi}/*
 
 Outputs:
+  SunkenTundraColumn:
+    Value: !GetAtt SunkenTundraSeed.column
+  SunkenTundraRow:
+    Value: !GetAtt SunkenTundraSeed.row
+  SunkenTundraCanonicalNorthOfEndemar:
+    Value: !GetAtt SunkenTundraSeed.canonicalNorthOfEndemar
+  SunkenTundraVisibility:
+    Value: !GetAtt SunkenTundraSeed.visibility
+  WestfordeFound:
+    Value: !GetAtt SunkenTundraSeed.westfordeFound
+  WestfordeColumn:
+    Value: !GetAtt SunkenTundraSeed.westfordeColumn
+  WestfordeRow:
+    Value: !GetAtt SunkenTundraSeed.westfordeRow
+  WestfordeWestOfEndemar:
+    Value: !GetAtt SunkenTundraSeed.westfordeWestOfEndemar
+  WestfordeVisibility:
+    Value: !GetAtt SunkenTundraSeed.westfordeVisibility
   AuthorityApiBaseUrl:
     Value: !Sub https://${AuthorityApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
   RealtimeWebSocketUrl:
