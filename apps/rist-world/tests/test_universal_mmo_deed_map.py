@@ -39,7 +39,7 @@ def test_universal_mmo_map_has_requested_deed_actions_and_left_rail():
     assert '"PURCHASE TOKEN AND CLAIM DEED"' in mmo
     assert '"ROLEPLAY"' in mmo
     assert '"REQUEST DEED FROM GM"' in mmo
-    assert '"BID"' in mmo
+    assert '"BID (CURRENT BID' in mmo
     assert '"MANAGE"' in mmo
     assert 'return $"USE 1/{count} TOKEN' in mmo
     assert 'return $"CURRENT BID {bid.ToString(' in mmo
