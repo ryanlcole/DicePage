@@ -401,7 +401,7 @@ Resources:
     DependsOn: SunkenTundraSeedInvokePermission
     Properties:
       ServiceToken: !GetAtt SunkenTundraSeedFunction.Arn
-      Revision: sunken-tundra-v4
+      Revision: sunken-tundra-v5
       WorldId: shaelvien-geonaph-alpha-001
       SurfaceTier: 0
       SurfaceLayer: 6
@@ -512,6 +512,14 @@ Outputs:
     Value: !GetAtt SunkenTundraSeed.westfordeWestOfEndemar
   WestfordeVisibility:
     Value: !GetAtt SunkenTundraSeed.westfordeVisibility
+  WestfordeStatus:
+    Value: !GetAtt SunkenTundraSeed.westfordeStatus
+  WestfordeHasOwner:
+    Value: !GetAtt SunkenTundraSeed.westfordeHasOwner
+  WestfordeHasBinding:
+    Value: !GetAtt SunkenTundraSeed.westfordeHasBinding
+  WestfordeParcelIdMatchesCoordinate:
+    Value: !GetAtt SunkenTundraSeed.westfordeParcelIdMatchesCoordinate
   AuthorityApiBaseUrl:
     Value: !Sub https://${AuthorityApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
   RealtimeWebSocketUrl:
