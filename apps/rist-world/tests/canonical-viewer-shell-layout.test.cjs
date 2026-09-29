@@ -315,11 +315,11 @@ test('Shaelvien GameMaster uses Explore for discovery and Claim Deed as an in-ma
   assert.match(razor,/Stage\.PathSelect=>IsShaelvienDeedHome\?"CONTEXT"/);
   assert.match(razor,/case Stage\.DeedSelect:[\s\S]{0,420}?ActivateCurrentPathWorldAsync\(\)[\s\S]{0,260}?SetSelectedDeed\(selected\)/);
   assert.match(razor,/World Builder is on the left; Context is on the right/);
-  assert.match(razor,/EXPLORE MMO · \{count\} TOKEN/);
+  assert.match(razor,/Explore · MMO map · \{Session\.UnspentMmoWorldTokenCount\} Shaelvien token/);
   assert.match(razor,/<ShaelvienDeedGate[\s\S]{0,280}?OnClaimed="CompleteShaelvienDeedAsync"[\s\S]{0,180}?OnViewRequested="OpenExploredZoneAsync"/);
   assert.match(land,/UnspentMmoWorldTokenCount/);
   assert.match(deed,/EXPLORE/);
-  assert.match(deed,/PUBLIC \/ VIEWABLE/);
+  assert.match(deed,/Public \/ viewable/i);
   assert.match(deed,/RESTRICTED · name visible; world contents hidden/);
   assert.match(deed,/SPEND 1 TOKEN · CLAIM DEED/);
   assert.match(deed,/ClaimMmoParcelAsync/);
@@ -345,7 +345,10 @@ test('developer Inspect shares the MMO map and requires one reason per committed
   assert.match(deed,/InspectOnly\?"INSPECT":"EXPLORE"/);
   assert.match(deed,/Every committed inspection edit requires a written reason/);
   assert.match(deed,/OnInspectionEditRequested/);
-  assert.match(deed,/EDIT WITH REASON/);
+  assert.match(deed,/SAVE ZONE EDIT/);
+  assert.match(deed,/OPEN WORLD EDITOR WITH REASON/);
+  assert.match(deed,/InspectionReasonMissing/);
+  assert.match(deed,/InspectionZoneChanged/);
   assert.match(razor,/_inspectionEditMode/);
   assert.match(razor,/REASON FOR NEXT EDIT/);
   assert.match(razor,/RequireInspectionReason\(\)/);
