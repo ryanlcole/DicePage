@@ -315,7 +315,7 @@ test('Shaelvien GameMaster uses Explore for discovery and Claim Deed as an in-ma
   assert.match(razor,/Stage\.PathSelect=>IsShaelvienDeedHome\?"CONTEXT"/);
   assert.match(razor,/case Stage\.DeedSelect:[\s\S]{0,420}?ActivateCurrentPathWorldAsync\(\)[\s\S]{0,260}?SetSelectedDeed\(selected\)/);
   assert.match(razor,/World Builder is on the left; Context is on the right/);
-  assert.match(razor,/YOU HAVE \{count\} TOKEN/);
+  assert.match(razor,/EXPLORE MMO · \{count\} TOKEN/);
   assert.match(razor,/<ShaelvienDeedGate[\s\S]{0,280}?OnClaimed="CompleteShaelvienDeedAsync"[\s\S]{0,180}?OnViewRequested="OpenExploredZoneAsync"/);
   assert.match(land,/UnspentMmoWorldTokenCount/);
   assert.match(deed,/EXPLORE/);
