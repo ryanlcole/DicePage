@@ -14,7 +14,7 @@ from boto3.dynamodb.conditions import Key
 WORLD_ID = "shaelvien-geonaph-alpha-001"
 WORLD_PK = f"WORLD#{WORLD_ID}"
 ZONE_NAME = "The Sunken Tundra"
-ZONE_MARKER = "sunken-tundra-v3"
+ZONE_MARKER = "sunken-tundra-v4"
 GRID_COLUMNS = 30
 GRID_ROWS = 30
 PARCEL_PIXELS = 2048
@@ -77,6 +77,38 @@ def query_world_prefix(table, prefix: str) -> list[dict]:
         )
         items.extend(result.get("Items") or [])
     return items
+
+
+
+def westforde_summary(table) -> dict:
+    parcel = next(
+        (
+            item
+            for item in query_world_prefix(table, "PARCEL#")
+            if normalized_name(item.get("displayName")) == "westforde"
+        ),
+        None,
+    )
+    if parcel is None:
+        return {
+            "westfordeFound": False,
+            "westfordeColumn": -1,
+            "westfordeRow": -1,
+            "westfordeWestOfEndemar": False,
+            "westfordeVisibility": "",
+        }
+
+    column = int(parcel.get("column") or 0)
+    row = int(parcel.get("row") or 0)
+    return {
+        "westfordeFound": True,
+        "westfordeColumn": column,
+        "westfordeRow": row,
+        "westfordeWestOfEndemar": (
+            column == ENDEMAR_COLUMN - 1 and row == ENDEMAR_ROW
+        ),
+        "westfordeVisibility": str(parcel.get("visibility") or "Restricted"),
+    }
 
 
 def _region_item(table, region_id: str) -> dict:
@@ -289,6 +321,7 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         if isinstance(source_state.get("userLayers"), list)
         else []
     )
+    topology = westforde_summary(table)
 
     if markers.get(ZONE_MARKER):
         seeded = [
@@ -304,6 +337,7 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
                 "alreadySeeded": True,
                 "regionId": region_id,
                 "layerCount": len(seeded),
+                **topology,
             }
 
     parcel, region_item, created_canonical_parcel = choose_target(
@@ -393,22 +427,7 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         ),
         "visibility": str(parcel.get("visibility") or "Restricted"),
         "createdCanonicalParcel": created_canonical_parcel,
-        "westforde": next(
-            (
-                {
-                    "column": int(item.get("column") or 0),
-                    "row": int(item.get("row") or 0),
-                    "westOfEndemar": (
-                        int(item.get("column") or 0) == ENDEMAR_COLUMN - 1
-                        and int(item.get("row") or 0) == ENDEMAR_ROW
-                    ),
-                    "visibility": str(item.get("visibility") or "Restricted"),
-                }
-                for item in query_world_prefix(table, "PARCEL#")
-                if normalized_name(item.get("displayName")) == "westforde"
-            ),
-            None,
-        ),
+        **topology,
     }
 
 
