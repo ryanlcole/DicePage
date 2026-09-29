@@ -299,6 +299,21 @@ public sealed partial class WorldSession
         return claimed;
     }
 
+    public async Task<bool> RequestMmoDeedAsync(int cellIndex)
+    {
+        if (!IsLoggedIn) throw new InvalidOperationException("Log in before requesting a Shaelvien deed.");
+        if (!IsGeonaphWorld) throw new InvalidOperationException("Deed requests belong to Shaelvien.");
+
+        var parcel = _mmoParcels.FirstOrDefault(item => item.CellIndex == cellIndex);
+        if (parcel is null) throw new InvalidOperationException("Select a claimed Shaelvien zone first.");
+        if (IsMmoParcelOwnedByCurrentUser(parcel)) throw new InvalidOperationException("You already own this deed.");
+
+        var authority = new AwsAuthorityClient(http, auth);
+        await authority.InitializeAsync();
+        var result = await authority.RequestMmoDeedAsync(WorldId, cellIndex);
+        return result?.Ok == true;
+    }
+
     public async Task<AwsAuthorityClient.MmoParcel?> InspectEditMmoParcelAsync(
         string parcelId,
         string displayName,
