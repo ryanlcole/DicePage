@@ -9,6 +9,7 @@ on:
       - 'infra/aws/rist-platform.yml'
       - 'infra/aws/rist-platform-authority/**'
       - 'infra/aws/rist-platform-zone-seed/**'
+      - 'infra/aws/rist-platform-recovery.yml'
       - 'infra/aws/bootstrap-secure-deploy-roles.sh'
       - '.github/workflows/deploy-rist-platform.yml'
 
@@ -118,7 +119,112 @@ jobs:
           echo "OWNER_USER_ID=$OWNER_USER_ID" >> "$GITHUB_ENV"
           echo "Resolved authenticated platform-owner authority."
 
-      - name: Recover or wait for platform stack
+      - name: Ensure narrow platform rollback recovery role
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws cloudformation deploy \
+            --template-file infra/aws/rist-platform-recovery.yml \
+            --stack-name rist-platform-recovery \
+            --region "$AWS_REGION" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+          RECOVERY_ROLE_ARN=$(aws cloudformation describe-stacks \
+            --stack-name rist-platform-recovery \
+            --query "Stacks[0].Outputs[?OutputKey=='RecoveryRoleArn'].OutputValue | [0]" \
+            --output text)
+          test -n "$RECOVERY_ROLE_ARN"
+          test "$RECOVERY_ROLE_ARN" != "None"
+          echo "RECOVERY_ROLE_ARN=$RECOVERY_ROLE_ARN" >> "$GITHUB_ENV"
+          echo "Narrow rollback recovery role is ready."
+
+      - name: Check whether platform rollback recovery is needed
+        id: platform-recovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          NEED_RECOVERY=false
+          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            STACK_STATUS=$(aws cloudformation describe-stacks \
+              --stack-name "$STACK_NAME" \
+              --query 'Stacks[0].StackStatus' \
+              --output text)
+            if [[ "$STACK_STATUS" == "UPDATE_ROLLBACK_FAILED" ]]; then
+              NEED_RECOVERY=true
+            fi
+          fi
+          echo "needed=$NEED_RECOVERY" >> "$GITHUB_OUTPUT"
+
+      - name: Assume narrow rollback recovery role
+        if: steps.platform-recovery.outputs.needed == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.RECOVERY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Recover blocked platform rollback
+        if: steps.platform-recovery.outputs.needed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$STACK_NAME is UPDATE_ROLLBACK_FAILED; attempting the normal rollback first."
+          aws cloudformation continue-update-rollback --stack-name "$STACK_NAME"
+
+          for attempt in $(seq 1 60); do
+            STACK_STATUS=$(aws cloudformation describe-stacks \
+              --stack-name "$STACK_NAME" \
+              --query 'Stacks[0].StackStatus' \
+              --output text)
+            case "$STACK_STATUS" in
+              *_IN_PROGRESS)
+                echo "$STACK_NAME rollback is $STACK_STATUS ($attempt/60)..."
+                sleep 5
+                ;;
+              *)
+                break
+                ;;
+            esac
+          done
+
+          if [[ "$STACK_STATUS" == "UPDATE_ROLLBACK_FAILED" ]]; then
+            echo "Normal rollback failed again. Checking whether SunkenTundraSeed is the current blocker..."
+            RECENT_FAILURES=$(aws cloudformation describe-stack-events \
+              --stack-name "$STACK_NAME" \
+              --max-items 25 \
+              --query "StackEvents[?ResourceStatus=='UPDATE_FAILED'].[LogicalResourceId,ResourceStatusReason]" \
+              --output text 2>/dev/null || true)
+            printf '%s\n' "$RECENT_FAILURES"
+            if printf '%s\n' "$RECENT_FAILURES" | grep -q '^SunkenTundraSeed[[:space:]]'; then
+              echo "Skipping only SunkenTundraSeed so its KMS permission correction can deploy."
+              aws cloudformation continue-update-rollback \
+                --stack-name "$STACK_NAME" \
+                --resources-to-skip SunkenTundraSeed
+              aws cloudformation wait stack-update-rollback-complete --stack-name "$STACK_NAME"
+              STACK_STATUS=$(aws cloudformation describe-stacks \
+                --stack-name "$STACK_NAME" \
+                --query 'Stacks[0].StackStatus' \
+                --output text)
+            else
+              echo "Rollback is blocked by an unrelated resource; refusing to skip it."
+              exit 1
+            fi
+          fi
+
+          if [[ "$STACK_STATUS" != "UPDATE_ROLLBACK_COMPLETE" ]]; then
+            echo "$STACK_NAME did not recover cleanly; final status is $STACK_STATUS."
+            exit 1
+          fi
+          echo "$STACK_NAME recovered to $STACK_STATUS."
+
+      - name: Restore standard deployment role
+        if: always() && steps.platform-recovery.outputs.needed == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Wait for stable platform stack
         shell: bash
         run: |
           set -euo pipefail
@@ -145,58 +251,8 @@ jobs:
             fi
 
             if [[ "$STACK_STATUS" == "UPDATE_ROLLBACK_FAILED" ]]; then
-              echo "$STACK_NAME is UPDATE_ROLLBACK_FAILED; continuing rollback before deployment..."
-
-              # First ask CloudFormation to resume normally. The API can accept
-              # this request and only discover the same custom-resource failure
-              # later, so do not treat command acceptance as recovery success.
-              aws cloudformation continue-update-rollback --stack-name "$STACK_NAME"
-
-              for attempt in $(seq 1 60); do
-                STACK_STATUS=$(aws cloudformation describe-stacks \
-                  --stack-name "$STACK_NAME" \
-                  --query 'Stacks[0].StackStatus' \
-                  --output text)
-                case "$STACK_STATUS" in
-                  *_IN_PROGRESS)
-                    echo "$STACK_NAME rollback is $STACK_STATUS ($attempt/60)..."
-                    sleep 5
-                    ;;
-                  *)
-                    break
-                    ;;
-                esac
-              done
-
-              if [[ "$STACK_STATUS" == "UPDATE_ROLLBACK_FAILED" ]]; then
-                echo "Normal rollback failed again. Checking whether the known SunkenTundraSeed custom resource is the current blocker..."
-                RECENT_FAILURES=$(aws cloudformation describe-stack-events \
-                  --stack-name "$STACK_NAME" \
-                  --max-items 25 \
-                  --query "StackEvents[?ResourceStatus=='UPDATE_FAILED'].[LogicalResourceId,ResourceStatusReason]" \
-                  --output text 2>/dev/null || true)
-                printf '%s\n' "$RECENT_FAILURES"
-                if printf '%s\n' "$RECENT_FAILURES" | grep -q '^SunkenTundraSeed[[:space:]]'; then
-                  echo "SunkenTundraSeed is a recent rollback failure; skipping only that custom resource so its IAM/KMS fix can deploy."
-                  aws cloudformation continue-update-rollback \
-                    --stack-name "$STACK_NAME" \
-                    --resources-to-skip SunkenTundraSeed
-                  aws cloudformation wait stack-update-rollback-complete --stack-name "$STACK_NAME"
-                  STACK_STATUS=$(aws cloudformation describe-stacks \
-                    --stack-name "$STACK_NAME" \
-                    --query 'Stacks[0].StackStatus' \
-                    --output text)
-                else
-                  echo "Rollback is blocked by something other than the known SunkenTundraSeed migration; refusing to skip unrelated resources."
-                  exit 1
-                fi
-              fi
-
-              if [[ "$STACK_STATUS" != "UPDATE_ROLLBACK_COMPLETE" ]]; then
-                echo "$STACK_NAME did not recover cleanly; final status is $STACK_STATUS."
-                exit 1
-              fi
-              echo "$STACK_NAME recovered to $STACK_STATUS."
+              echo "$STACK_NAME is still UPDATE_ROLLBACK_FAILED after the dedicated recovery pass."
+              exit 1
             elif [[ "$STACK_STATUS" == "ROLLBACK_FAILED" ]]; then
               echo "$STACK_NAME is ROLLBACK_FAILED; deleting failed stack before clean redeploy..."
               aws cloudformation delete-stack --stack-name "$STACK_NAME"
