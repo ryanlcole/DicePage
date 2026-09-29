@@ -57,6 +57,9 @@
        @if(_selectedCell==WorldSession.EndemarOriginCell)
        {
         <span>Endemar · canonical Shaelvien origin · coordinate (0,0)</span>
+        <label for="inspection-reason">REASON FOR NEXT INSPECTION EDIT</label>
+        <textarea id="inspection-reason" maxlength="500" @bind="_inspectionReason" @bind:event="oninput" placeholder="Required before editing Endemar"></textarea>
+        <button type="button" disabled="@(_busy||InspectionReasonMissing)" @onclick="BeginInspectionEditAsync">OPEN WORLD EDITOR WITH REASON</button>
        }
        else if(SelectedParcel is not null)
        {
@@ -65,10 +68,24 @@
         <span>REGION AUTHORITY · @SelectedParcel.RegionId</span>
         <span>DEED · @SelectedParcel.ParcelId</span>
         <span>@SelectedParcel.PixelWidth×@SelectedParcel.PixelHeight pixels · @SelectedParcel.MaxHeight layers high</span>
+
+        <label for="inspection-zone-name">ZONE NAME</label>
+        <input id="inspection-zone-name" maxlength="80" autocomplete="off" @bind="_inspectionZoneName" @bind:event="oninput" />
+
+        <label for="inspection-zone-visibility">ZONE VISIBILITY</label>
+        <select id="inspection-zone-visibility" @bind="_inspectionVisibility">
+         <option value="Public">PUBLIC</option>
+         <option value="Restricted">RESTRICTED</option>
+        </select>
+
+        <label for="inspection-reason">REASON FOR NEXT INSPECTION EDIT</label>
+        <textarea id="inspection-reason" maxlength="500" @bind="_inspectionReason" @bind:event="oninput" placeholder="Required for each committed edit"></textarea>
+
+        <div class="shaelvien-inspection-actions">
+         <button type="button" disabled="@(_busy||InspectionReasonMissing||!InspectionZoneChanged)" @onclick="SaveInspectionZoneEditAsync">@(_busy?"SAVING…":"SAVE ZONE EDIT")</button>
+         <button type="button" disabled="@(_busy||InspectionReasonMissing)" @onclick="BeginInspectionEditAsync">OPEN WORLD EDITOR WITH REASON</button>
+        </div>
        }
-       <label for="inspection-reason">REASON FOR THIS INSPECTION EDIT</label>
-       <textarea id="inspection-reason" maxlength="500" @bind="_inspectionReason" @bind:event="oninput" placeholder="Required before entering edit mode"></textarea>
-       <button type="button" disabled="@(_busy||string.IsNullOrWhiteSpace(_inspectionReason))" @onclick="BeginInspectionEditAsync">EDIT WITH REASON</button>
       }
       else if(_selectedCell==WorldSession.EndemarOriginCell)
       {
@@ -128,7 +145,7 @@
  .shaelvien-deed-map button{width:48px;height:48px;padding:0;border:1px solid #3f5660;border-radius:6px;background:#101a20;color:#91a4ad;font-size:7px;font-weight:900;touch-action:manipulation}
  .shaelvien-deed-map button.endemar{border-color:#e2b84d;background:#4b340d;color:#ffe5a0}.shaelvien-deed-map button.open{border-color:#58b6dc;background:#0a2a38;color:#c9f1ff}.shaelvien-deed-map button.open.selected{outline:2px solid #ffe08a;outline-offset:1px}.shaelvien-deed-map button.claimed{opacity:.38}.shaelvien-deed-map button.public{border-color:#59a6c8;background:#0d2733;color:#d5f4ff}.shaelvien-deed-map button.restricted{border-color:#665c68;background:#16131a;color:#c8bdca}.shaelvien-deed-map button.owned{border-color:#7ba84d;background:#172511;color:#dcf2b8}
  .shaelvien-deed-legend{display:flex;flex-wrap:wrap;gap:10px;color:#93a6ae;font-size:8px;font-weight:800}.shaelvien-deed-legend span{display:flex;align-items:center;gap:4px}.shaelvien-deed-legend i{width:9px;height:9px;border:1px solid #53656d;border-radius:2px}.shaelvien-deed-legend i.endemar{background:#4b340d;border-color:#e2b84d}.shaelvien-deed-legend i.open{background:#0a2a38;border-color:#58b6dc}.shaelvien-deed-legend i.public{background:#0d2733;border-color:#59a6c8}.shaelvien-deed-legend i.restricted{background:#16131a;border-color:#665c68}.shaelvien-deed-legend i.owned{background:#172511;border-color:#7ba84d}
- .shaelvien-deed-selection{display:grid;gap:7px;padding:11px;border:1px solid #6f5a30;border-radius:9px;background:#101711}.shaelvien-deed-selection strong{color:#efd78f;font-size:12px}.shaelvien-deed-selection span{color:#95a6ad;font-size:9px}.shaelvien-deed-selection label{color:#7fabbf;font-size:8px;font-weight:900;letter-spacing:.12em}.shaelvien-deed-selection input,.shaelvien-deed-selection textarea{box-sizing:border-box;width:100%;min-height:40px;border:1px solid #526873;border-radius:7px;background:#071015;color:#efe6d0;padding:9px 10px;font-size:13px}.shaelvien-deed-selection textarea{min-height:76px;resize:vertical}.shaelvien-deed-selection button{min-height:44px;border:1px solid #a68037;border-radius:8px;background:#281f0c;color:#f6dc8b;font-size:9px;font-weight:900;letter-spacing:.06em}.shaelvien-deed-selection button:disabled{opacity:.4}
+ .shaelvien-deed-selection{display:grid;gap:7px;padding:11px;border:1px solid #6f5a30;border-radius:9px;background:#101711}.shaelvien-deed-selection strong{color:#efd78f;font-size:12px}.shaelvien-deed-selection span{color:#95a6ad;font-size:9px}.shaelvien-deed-selection label{color:#7fabbf;font-size:8px;font-weight:900;letter-spacing:.12em}.shaelvien-deed-selection input,.shaelvien-deed-selection textarea,.shaelvien-deed-selection select{box-sizing:border-box;width:100%;min-height:40px;border:1px solid #526873;border-radius:7px;background:#071015;color:#efe6d0;padding:9px 10px;font-size:13px}.shaelvien-deed-selection textarea{min-height:76px;resize:vertical}.shaelvien-inspection-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.shaelvien-deed-selection button{min-height:44px;border:1px solid #a68037;border-radius:8px;background:#281f0c;color:#f6dc8b;font-size:9px;font-weight:900;letter-spacing:.06em}.shaelvien-deed-selection button:disabled{opacity:.4}
  @@media(max-width:600px){.shaelvien-deed-backdrop{padding:7px}.shaelvien-deed-card{width:100%;max-height:95dvh;padding:10px}.shaelvien-deed-card>header{top:-10px;margin:-10px -10px 0;padding:9px 10px}.shaelvien-deed-map button{width:42px;height:42px}}
 </style>
 
@@ -147,15 +164,26 @@
  int _selectedCell=-1;
  string _worldName="";
  string _inspectionReason="";
+ string _inspectionZoneName="";
+ string _inspectionVisibility="Restricted";
  string _status="";
 
  AwsAuthorityClient.MmoParcel? SelectedParcel=>_selectedCell<0?null:Session.MmoParcels.FirstOrDefault(x=>x.CellIndex==_selectedCell);
- bool CanViewSelectedParcel=>SelectedParcel is not null&&Session.CanAccessMmoParcel(SelectedParcel);
+ bool IsSelectedParcelPublic=>SelectedParcel is not null
+  &&string.Equals(SelectedParcel.Visibility,"Public",StringComparison.OrdinalIgnoreCase);
+ bool CanViewSelectedParcel=>SelectedParcel is not null
+  &&(IsSelectedParcelPublic||Session.CanAccessMmoParcel(SelectedParcel));
  string SelectedParcelVisibilityLabel=>SelectedParcel is null
   ?""
-  :string.Equals(SelectedParcel.EffectivePermission,"View",StringComparison.OrdinalIgnoreCase)
-   ?"PUBLIC / VIEWABLE"
-   :"AUTHORIZED";
+  :IsSelectedParcelPublic
+   ?"PUBLIC ZONE"
+   :Session.CanAccessMmoParcel(SelectedParcel)
+    ?"RESTRICTED · AUTHORIZED ACCESS"
+    :"RESTRICTED";
+ bool InspectionReasonMissing=>string.IsNullOrWhiteSpace(_inspectionReason)||_inspectionReason.Trim().Length<3;
+ bool InspectionZoneChanged=>SelectedParcel is not null
+  &&(!string.Equals((_inspectionZoneName??"").Trim(),SelectedParcel.DisplayName?.Trim(),StringComparison.Ordinal)
+     ||!string.Equals((_inspectionVisibility??"").Trim(),SelectedParcel.Visibility?.Trim(),StringComparison.OrdinalIgnoreCase));
 
  string TokenSummary
  {
@@ -216,6 +244,8 @@
    _selectedCell=-1;
    _worldName="";
    _inspectionReason="";
+   _inspectionZoneName="";
+   _inspectionVisibility="Restricted";
    _status="";
    _loading=true;
    _loadRequested=true;
@@ -250,6 +280,11 @@
   if(!CellSelectable(cell))return;
   _selectedCell=cell;
   _inspectionReason="";
+  var parcel=SelectedParcel;
+  _inspectionZoneName=parcel?.DisplayName?.Trim()??"";
+  _inspectionVisibility=string.Equals(parcel?.Visibility,"Public",StringComparison.OrdinalIgnoreCase)
+   ?"Public"
+   :"Restricted";
   _status="";
  }
 
@@ -258,6 +293,38 @@
   if(_busy||_selectedCell<0)return;
   if(_selectedCell!=WorldSession.EndemarOriginCell&&!CanViewSelectedParcel)return;
   await OnViewRequested.InvokeAsync(new MapViewRequest(_selectedCell,SelectedParcel));
+ }
+
+ async Task SaveInspectionZoneEditAsync()
+ {
+  if(_busy||!InspectOnly||SelectedParcel is null||InspectionReasonMissing||!InspectionZoneChanged)return;
+  _busy=true;
+  _status="Saving audited inspection edit…";
+  try
+  {
+   var updated=await Session.InspectEditMmoParcelAsync(
+    SelectedParcel.ParcelId,
+    _inspectionZoneName,
+    _inspectionVisibility,
+    _inspectionReason);
+   if(updated is null)
+   {
+    _status="Inspection edit was not accepted.";
+    return;
+   }
+   _inspectionZoneName=updated.DisplayName;
+   _inspectionVisibility=string.Equals(updated.Visibility,"Public",StringComparison.OrdinalIgnoreCase)?"Public":"Restricted";
+   _inspectionReason="";
+   _status=$"{updated.DisplayName} updated. Reason recorded in the authority audit trail.";
+  }
+  catch(Exception ex)
+  {
+   _status="Inspection edit failed: "+ex.Message;
+  }
+  finally
+  {
+   _busy=false;
+  }
  }
 
  async Task BeginInspectionEditAsync()
@@ -299,7 +366,7 @@
   if(parcel is not null)
   {
    if(Session.IsMmoParcelOwnedByCurrentUser(cell))return "owned"+selected;
-   if(Session.CanAccessMmoParcel(parcel))return "public"+selected;
+   if(string.Equals(parcel.Visibility,"Public",StringComparison.OrdinalIgnoreCase))return "public"+selected;
    return "restricted"+selected;
   }
   if(Session.IsMmoParcelOpen(cell))return "open"+selected;
@@ -330,9 +397,12 @@
   if(Session.IsMmoParcelClaimed(cell))
   {
    var parcel=Session.MmoParcels.FirstOrDefault(x=>x.CellIndex==cell);
-   return InspectOnly
-    ?$"Inspect {parcel?.DisplayName} at {CellCoordinate(cell)}"
-    :$"Claimed Shaelvien property {parcel?.DisplayName} at {CellCoordinate(cell)}; unavailable";
+   if(InspectOnly)return $"Inspect {parcel?.DisplayName} at {CellCoordinate(cell)}";
+   if(parcel is not null&&string.Equals(parcel.Visibility,"Public",StringComparison.OrdinalIgnoreCase))
+    return $"Public Shaelvien zone {parcel.DisplayName} at {CellCoordinate(cell)}";
+   if(parcel is not null&&Session.CanAccessMmoParcel(parcel))
+    return $"Restricted Shaelvien zone {parcel.DisplayName} at {CellCoordinate(cell)}; authorized for this account";
+   return $"Restricted Shaelvien zone {parcel?.DisplayName} at {CellCoordinate(cell)}; name only";
   }
   if(Session.IsMmoParcelClaimable(cell))return $"Available Shaelvien deed {CellCoordinate(cell)}";
   return $"Shaelvien property {CellCoordinate(cell)}; not yet connected to the claim frontier";
