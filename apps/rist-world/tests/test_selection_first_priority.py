@@ -4,7 +4,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_local_request_selects_region_then_local_before_editor():
-    component = (ROOT / "Components/ExperimentsWorkspace.razor").read_text(encoding="utf-8")
+    component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
     assert "RequestedBuilderChainIndex" in component
     assert "_requestedBuilderChainIndex=requested" in component
     assert "BeginBuilderScope(_builderChainIndex+1,true);" in component
@@ -12,7 +12,7 @@ def test_local_request_selects_region_then_local_before_editor():
 
 
 def test_instance_request_selects_region_local_instance_in_order():
-    component = (ROOT / "Components/ExperimentsWorkspace.razor").read_text(encoding="utf-8")
+    component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
     assert 'BuilderChain=["WORLD","REGION","LOCAL","INSTANCE"]' in component
     assert "requested>=2&&Session.ActiveSpatialRegion is null" in component
     assert "requested>=3&&Session.ActiveLocal is null" in component
@@ -29,7 +29,7 @@ def test_same_parent_reselection_preserves_deeper_selection():
 
 
 def test_edit_readout_shows_full_chain_and_explicit_edit_depth():
-    component = (ROOT / "Components/ExperimentsWorkspace.razor").read_text(encoding="utf-8")
+    component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
     assert "CurrentEditContextPath" in component
     assert "EDIT DEPTH:" in component
     assert 'Stage.WorldBuilderTier=>$"{CurrentEditContextPath} → TIER"' in component
