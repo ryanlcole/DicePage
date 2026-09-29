@@ -32,8 +32,11 @@ def test_region_local_instance_are_selection_first():
     assert "Select a Region before editing its Tier or Layer." in component
     assert "Select a Local inside the active Region before editing its Tier or Layer." in component
     assert "Select an Instance inside the active Local before editing its Tier or Layer." in component
-    assert "if(index>=2&&Session.ActiveSpatialRegion is null)index=1;" in component
-    assert "if(index>=3&&Session.ActiveLocal is null)index=2;" in component
+    assert "VIEW DEPTH != EDIT DEPTH" in component
+    assert "if(requested>=2&&Session.ActiveSpatialRegion is null)current=1;" in component
+    assert "else if(requested>=3&&Session.ActiveLocal is null)current=2;" in component
+    assert "_requestedBuilderChainIndex>_builderChainIndex" in component
+    assert "BeginBuilderScope(_builderChainIndex+1,true);" in component
     assert "CreateSpatialNodeAsync" in regions
     assert 'kind is not ("REGION" or "LOCAL" or "INSTANCE")' in regions
     assert "List<WorldSpatialNode>? SpatialNodes = null" in regions

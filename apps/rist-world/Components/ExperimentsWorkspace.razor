@@ -441,6 +441,7 @@
  int _assetKindIndex;
  int _assetSourceIndex;
  int _builderChainIndex;
+ int _requestedBuilderChainIndex;
  int _spatialSelectIndex;
  int _tier;
  int _layer;
@@ -791,6 +792,17 @@
    if(Session.ActiveLocal is not null)labels.Add(Session.ActiveLocal.Name);
    if(Session.ActiveInstance is not null)labels.Add(Session.ActiveInstance.Name);
    return string.Join(" → ",labels);
+  }
+ }
+
+ string CurrentEditContextPath
+ {
+  get
+  {
+   var path=CurrentSpatialBreadcrumb;
+   if(string.IsNullOrWhiteSpace(path))
+    path=!string.IsNullOrWhiteSpace(_selectedDeedName)?_selectedDeedName:"SHAELVIEN";
+   return $"{path} · EDIT DEPTH: {CurrentBuilderScope}";
   }
  }
  bool HasWorldBuilderSelection=>!string.IsNullOrWhiteSpace(_worldBuilderSelectionId);
@@ -1217,20 +1229,20 @@
   Stage.SpatialSelect=>string.IsNullOrWhiteSpace(CurrentSpatialBreadcrumb)?$"GAMEMASTER → {CurrentBuilderScope}":$"{CurrentSpatialBreadcrumb} → SELECT {CurrentBuilderScope}",
   Stage.SoftwareHub=>"GAMEMASTER → SOFTWARE",
   Stage.ControlSettings=>"GAMEMASTER → CONTROLS",
-  Stage.WorldBuilderTier=>$"{CurrentBuilderScope} → TIER",
-  Stage.WorldBuilderLayer=>$"{CurrentBuilderScope} → LAYER",
-  Stage.ArtMethod=>$"{CurrentBuilderScope} → A/V METHOD",
-  Stage.ArtPhase=>$"{CurrentBuilderScope} → {CurrentArtMethod} → {CurrentArtPhase}",
-  Stage.ArtWork=>$"{CurrentBuilderScope} → {CurrentArtMethod} → {CurrentArtPhase} → WORKBENCH",
+  Stage.WorldBuilderTier=>$"{CurrentEditContextPath} → TIER",
+  Stage.WorldBuilderLayer=>$"{CurrentEditContextPath} → LAYER",
+  Stage.ArtMethod=>$"{CurrentEditContextPath} → A/V METHOD",
+  Stage.ArtPhase=>$"{CurrentEditContextPath} → {CurrentArtMethod} → {CurrentArtPhase}",
+  Stage.ArtWork=>$"{CurrentEditContextPath} → {CurrentArtMethod} → {CurrentArtPhase} → WORKBENCH",
   Stage.KnowledgeNode=>$"{CurrentGameMasterPath} → {_activeKnowledgeNode}",
-  Stage.AssetKind=>$"{CurrentBuilderScope} → {_assetKind} SOURCE",
-  Stage.AssetMode=>$"{CurrentBuilderScope} → {_assetKind}",
-  Stage.BrowsePlace=>$"{_assetKind} → {_assetSource}",
-  Stage.Scale=>$"{_assetKind} → SCALE",
-  Stage.Rotate=>$"{_assetKind} → ROTATE",
-  Stage.Move=>$"{_assetKind} → MOVE",
-  Stage.SaveCancel=>$"{_assetKind} → SAVE",
-  Stage.FullMapReview=>$"{CurrentBuilderScope} → FULL MAP",
+  Stage.AssetKind=>$"{CurrentEditContextPath} → {_assetKind} SOURCE",
+  Stage.AssetMode=>$"{CurrentEditContextPath} → {_assetKind}",
+  Stage.BrowsePlace=>$"{CurrentEditContextPath} → {_assetKind} → {_assetSource}",
+  Stage.Scale=>$"{CurrentEditContextPath} → {_assetKind} → SCALE",
+  Stage.Rotate=>$"{CurrentEditContextPath} → {_assetKind} → ROTATE",
+  Stage.Move=>$"{CurrentEditContextPath} → {_assetKind} → MOVE",
+  Stage.SaveCancel=>$"{CurrentEditContextPath} → {_assetKind} → SAVE",
+  Stage.FullMapReview=>$"{CurrentEditContextPath} → FULL MAP",
   _=>""
  };
 
@@ -2128,16 +2140,18 @@
   _message=$"{CurrentScope} is registered in the GameMaster flowchart.";
  }
 
- void BeginBuilderScope(int index)
+ void BeginBuilderScope(int index,bool preserveRequestedDepth=false)
  {
-  index=Math.Clamp(index,0,BuilderChain.Length-1);
+  var requested=Math.Clamp(index,0,BuilderChain.Length-1);
+  if(!preserveRequestedDepth)_requestedBuilderChainIndex=requested;
 
-  // Selection-first hierarchy: a Local cannot be edited until a Region is
-  // selected, and an Instance cannot be edited until its Local is selected.
-  if(index>=2&&Session.ActiveSpatialRegion is null)index=1;
-  if(index>=3&&Session.ActiveLocal is null)index=2;
+  // VIEW DEPTH != EDIT DEPTH. The requested editor stays locked until every
+  // parent object has been explicitly selected.
+  var current=requested;
+  if(requested>=2&&Session.ActiveSpatialRegion is null)current=1;
+  else if(requested>=3&&Session.ActiveLocal is null)current=2;
 
-  _builderChainIndex=index;
+  _builderChainIndex=current;
   _assetScope=CurrentBuilderScope;
   _tier=0;
   _layer=0;
@@ -2246,9 +2260,19 @@
    if(node is null)return;
    _spatialSelectIndex=CurrentSpatialOptions.ToList().FindIndex(item=>string.Equals(item.NodeId,node.NodeId,StringComparison.Ordinal));
    if(_spatialSelectIndex<0)_spatialSelectIndex=0;
+
+   if(_requestedBuilderChainIndex>_builderChainIndex)
+   {
+    var completedScope=CurrentBuilderScope;
+    var completedName=node.Name;
+    BeginBuilderScope(_builderChainIndex+1,true);
+    _message=$"{completedScope} selected: {completedName}. Now select {CurrentBuilderScope}. Editing remains locked until the requested {_requestedBuilderChainIndex switch { 2=>"Local", 3=>"Instance", _=>CurrentBuilderScope }} object is selected.";
+    return;
+   }
+
    _stage=Stage.WorldBuilderTier;
    await SyncWorldBuilderDepthAsync();
-   _message=$"{CurrentBuilderScope} selected: {node.Name}. Choose Tier, then Layer.";
+   _message=$"{CurrentBuilderScope} selected: {node.Name}. Editing is unlocked. Choose Tier, then Layer.";
   }
   catch(Exception ex)
   {
@@ -2570,6 +2594,7 @@
   int AssetKindIndex,
   int AssetSourceIndex,
   int BuilderChainIndex,
+  int RequestedBuilderChainIndex,
   int Tier,
   int Layer,
   double AssetScale,
@@ -2836,7 +2861,7 @@
 
  ViewerNavState CaptureViewerNavState()=>new(
   _stage,_worldIndex,_settingIndex,_scopeIndex,_softwareIndex,_pathIndex,_pathMenuIndex,
-  _artMethodIndex,_artPhaseIndex,_artToolIndex,_assetKindIndex,_assetSourceIndex,_builderChainIndex,
+  _artMethodIndex,_artPhaseIndex,_artToolIndex,_assetKindIndex,_assetSourceIndex,_builderChainIndex,_requestedBuilderChainIndex,
   _tier,_layer,_assetScale,_assetRotation,_assetX,_assetY,_assetKind,_assetScope,_activeKnowledgeNode,
   _selectedDeedId,_selectedDeedName,_selectedDeedKind,
   _browseCursorActive,_analogButtonMode,_assetSource,_assetMode,_selectedAssetKey);
@@ -2856,6 +2881,7 @@
   _assetKindIndex=state.AssetKindIndex;
   _assetSourceIndex=state.AssetSourceIndex;
   _builderChainIndex=state.BuilderChainIndex;
+  _requestedBuilderChainIndex=state.RequestedBuilderChainIndex;
   _tier=state.Tier;
   _layer=state.Layer;
   _assetScale=state.AssetScale;

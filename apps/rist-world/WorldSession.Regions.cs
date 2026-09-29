@@ -148,9 +148,13 @@ public sealed partial class WorldSession
             string.Equals(x.NodeId, nodeId, StringComparison.Ordinal)
             && string.Equals(x.Kind, "REGION", StringComparison.OrdinalIgnoreCase));
         if (node is null) return;
+        var changed = !string.Equals(_activeSpatialRegionId, node.NodeId, StringComparison.Ordinal);
         _activeSpatialRegionId = node.NodeId;
-        _activeLocalId = "";
-        _activeInstanceId = "";
+        if (changed)
+        {
+            _activeLocalId = "";
+            _activeInstanceId = "";
+        }
         Notify();
     }
 
@@ -162,8 +166,9 @@ public sealed partial class WorldSession
             && string.Equals(x.Kind, "LOCAL", StringComparison.OrdinalIgnoreCase)
             && string.Equals(x.ParentNodeId, ActiveSpatialRegion.NodeId, StringComparison.Ordinal));
         if (node is null) return;
+        var changed = !string.Equals(_activeLocalId, node.NodeId, StringComparison.Ordinal);
         _activeLocalId = node.NodeId;
-        _activeInstanceId = "";
+        if (changed) _activeInstanceId = "";
         Notify();
     }
 
