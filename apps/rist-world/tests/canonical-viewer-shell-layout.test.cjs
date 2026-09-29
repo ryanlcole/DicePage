@@ -334,6 +334,8 @@ test('Explore shows geometrically open zones even without a token',()=>{
   assert.match(deed,/Session\.IsMmoParcelOpen\(_selectedCell\)/);
   assert.match(deed,/return Session\.IsMmoParcelOpen\(cell\)/);
   assert.match(deed,/No unspent Shaelvien Token is available\. You can continue exploring\./);
+  assert.match(deed,/Session\.IsMmoParcelOpen\(cell\)\)return Session\.IsMmoParcelClaimable\(cell\)/);
+  assert.match(deed,/Open Shaelvien zone \{CellCoordinate\(cell\)\}; explore now, token required to claim/);
 });
 
 test('developer Inspect shares the MMO map and requires one reason per committed edit',()=>{
