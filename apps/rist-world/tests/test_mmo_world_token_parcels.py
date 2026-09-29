@@ -122,8 +122,8 @@ def test_explore_visibility_and_inspect_edits_are_server_authoritative():
     assert "InspectEditMmoParcelAsync" in client
     assert '"/world/parcels/inspect-edit"' in client
     assert "InspectEditMmoParcelAsync" in session
-    assert "APPLY ZONE EDIT" in gate
-    assert "EDIT WORLD WITH REASON" in gate
+    assert "SAVE ZONE EDIT" in gate
+    assert "OPEN WORLD EDITOR WITH REASON" in gate
     assert "name only" in gate
 
 
