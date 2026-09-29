@@ -48,7 +48,7 @@ public partial class UniversalInterface
 
             result.AddRange(
                 Session.MmoParcels
-                    .Where(Session.IsMmoParcelOwnedByCurrentUser)
+                    .Where(parcel => Session.IsMmoParcelOwnedByCurrentUser(parcel.CellIndex))
                     .OrderBy(parcel => parcel.DisplayName, StringComparer.OrdinalIgnoreCase)
                     .ThenBy(parcel => parcel.CellIndex)
                     .Select(parcel => new MmoLeftChoice(
@@ -72,7 +72,7 @@ public partial class UniversalInterface
 
     bool MmoSelectedIsEndemar => _mmoSelectedCell == WorldSession.EndemarOriginCell;
     bool MmoSelectedIsOpen => !MmoSelectedIsEndemar && MmoSelectedParcel is null && Session.IsMmoParcelOpen(_mmoSelectedCell);
-    bool MmoSelectedIsOwned => MmoSelectedParcel is not null && Session.IsMmoParcelOwnedByCurrentUser(MmoSelectedParcel.CellIndex);
+    bool MmoSelectedIsOwned => MmoSelectedParcel is { } parcel && Session.IsMmoParcelOwnedByCurrentUser(parcel.CellIndex);
     bool MmoSelectedIsRefunded => string.Equals(MmoSelectedParcel?.Status, "Refunded", StringComparison.OrdinalIgnoreCase);
 
     string MmoSelectedName =>
@@ -126,6 +126,9 @@ public partial class UniversalInterface
     }
 
     string MmoMapModeLabel => _mmoInspectMode ? "DEVELOPER INSPECT" : "MMO DEED MAP";
+    string MmoTokenBadge => _mmoInspectMode
+        ? "CLAIM DISABLED"
+        : $"{Session.UnspentMmoWorldTokenCount} TOKEN{(Session.UnspentMmoWorldTokenCount == 1 ? "" : "S")}";
 
     int MmoViewMinColumn => _mmoMapCells.Count == 0
         ? Math.Max(0, WorldSession.EndemarOriginColumn - 2)
