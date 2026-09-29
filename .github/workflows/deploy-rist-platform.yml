@@ -200,11 +200,21 @@ jobs:
               aws cloudformation continue-update-rollback \
                 --stack-name "$STACK_NAME" \
                 --resources-to-skip SunkenTundraSeed
-              aws cloudformation wait stack-update-rollback-complete --stack-name "$STACK_NAME"
-              STACK_STATUS=$(aws cloudformation describe-stacks \
-                --stack-name "$STACK_NAME" \
-                --query 'Stacks[0].StackStatus' \
-                --output text)
+              for skip_attempt in $(seq 1 60); do
+                STACK_STATUS=$(aws cloudformation describe-stacks \
+                  --stack-name "$STACK_NAME" \
+                  --query 'Stacks[0].StackStatus' \
+                  --output text)
+                case "$STACK_STATUS" in
+                  *_IN_PROGRESS)
+                    echo "$STACK_NAME skip-assisted rollback is $STACK_STATUS ($skip_attempt/60)..."
+                    sleep 5
+                    ;;
+                  *)
+                    break
+                    ;;
+                esac
+              done
             else
               echo "Rollback is blocked by an unrelated resource; refusing to skip it."
               exit 1
