@@ -52,6 +52,7 @@
     <div class="mmo-inline-map-stage" style="@MmoMapStageStyle">
      @foreach(var cell in _mmoMapCells)
      {
+      var cellSurface = MmoCellSurfaceSrc(cell);
       <button type="button"
               class="@MmoCellClass(cell)"
               style="@MmoCellStyle(cell)"
