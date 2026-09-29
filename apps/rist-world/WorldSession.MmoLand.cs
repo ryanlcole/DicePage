@@ -299,6 +299,39 @@ public sealed partial class WorldSession
         return claimed;
     }
 
+    public async Task<AwsAuthorityClient.MmoParcel?> InspectEditMmoParcelAsync(
+        string parcelId,
+        string displayName,
+        string visibility,
+        string reason)
+    {
+        if (!IsLoggedIn || !IsGeonaphWorld || !TrustedPlatformOwner) return null;
+        parcelId = (parcelId ?? "").Trim();
+        displayName = (displayName ?? "").Trim();
+        visibility = (visibility ?? "").Trim();
+        reason = (reason ?? "").Trim();
+        if (parcelId.Length == 0 || displayName.Length == 0 || reason.Length < 3) return null;
+
+        var authority = new AwsAuthorityClient(http, auth);
+        await authority.InitializeAsync();
+        var updated = await authority.InspectEditMmoParcelAsync(
+            WorldId,
+            parcelId,
+            displayName,
+            visibility,
+            reason);
+        if (updated is null) return null;
+
+        var index = _mmoParcels.FindIndex(parcel =>
+            string.Equals(parcel.ParcelId, updated.ParcelId, StringComparison.Ordinal));
+        if (index >= 0) _mmoParcels[index] = updated;
+        else _mmoParcels.Add(updated);
+
+        _mmoLandStatus = $"Inspection edit saved for {updated.DisplayName}. Reason recorded in the authority audit trail.";
+        Notify();
+        return updated;
+    }
+
     public async Task<bool> DelegateMmoParcelAsync(string parcelId, string userId, string permission)
     {
         parcelId = (parcelId ?? "").Trim();
