@@ -184,7 +184,11 @@ public sealed partial class WorldSession
         Notify();
     }
 
-    public async Task<WorldSpatialNode> CreateSpatialNodeAsync(string kind, string name)
+    public async Task<WorldSpatialNode> CreateSpatialNodeAsync(
+        string kind,
+        string name,
+        bool inspectionEdit = false,
+        string inspectionReason = "")
     {
         var authorityRegion = ActiveRegion
             ?? throw new InvalidOperationException("Select a Shaelvien world before creating a spatial depth.");
@@ -240,7 +244,7 @@ public sealed partial class WorldSession
                 break;
         }
 
-        await SaveRegionsAsync();
+        await SaveRegionsAsync(inspectionEdit, inspectionReason);
         Notify();
         return node;
     }
@@ -382,7 +386,9 @@ public sealed partial class WorldSession
         await SaveRegionsAsync();
     }
 
-    public async Task SaveRegionsAsync()
+    public async Task SaveRegionsAsync(
+        bool inspectionEdit = false,
+        string inspectionReason = "")
     {
         if (!HasActiveWorld) return;
         var editableRegions = HasTrustedWorldBuilderAuthority
@@ -401,7 +407,11 @@ public sealed partial class WorldSession
                 throw new InvalidOperationException("Region database authority is unavailable.");
 
             foreach (var region in editableRegions)
-                await authority.SaveRegionAsync(WorldId, region);
+                await authority.SaveRegionAsync(
+                    WorldId,
+                    region,
+                    inspectionEdit,
+                    inspectionReason);
 
             // Only a world GM/owner writes the complete recovery catalog. A
             // claimant can mutate only the database-backed region they own.
