@@ -72,3 +72,13 @@ def test_endemar_relative_coordinates_put_north_above_and_west_left():
     assert 'var y = WorldSession.EndemarOriginRow - row;' in component
     assert 'var left = (column - MmoViewMinColumn)' in component
     assert 'var top = (row - MmoViewMinRow)' in component
+
+
+def test_sunken_tundra_seed_is_public_and_prefers_canonical_north_cell():
+    seed = text("../../infra/aws/rist-platform-zone-seed/app.py")
+    template = text("../../infra/aws/rist-platform.yml")
+    assert 'ZONE_MARKER = "sunken-tundra-v2"' in seed
+    assert 'parcel["visibility"] = "Public"' in seed
+    assert 'int(pair[0].get("column") or 0) == 15' in seed
+    assert 'int(pair[0].get("row") or 0) == 14' in seed
+    assert 'Revision: sunken-tundra-v2' in template
