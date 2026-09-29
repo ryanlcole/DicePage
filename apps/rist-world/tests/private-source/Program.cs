@@ -79,7 +79,7 @@ namespace RistWorld
         public int Reads { get; private set; }
         public int Writes { get; private set; }
         public Task<WorldSource?> GetWorldSourceAsync(string worldId) { Reads++; return Task.FromResult<WorldSource?>(null); }
-        public Task<WorldSource?> SaveWorldSourceAsync(string worldId, JsonElement state) { Writes++; return Task.FromResult<WorldSource?>(null); }
+        public Task<WorldSource?> SaveWorldSourceAsync(string worldId, JsonElement state, bool inspectionEdit = false, string inspectionReason = "") { Writes++; return Task.FromResult<WorldSource?>(null); }
         public Task<WorldSource?> SaveWorldRegionMapAsync(string worldId, string regionId, JsonElement layers) => throw new NotSupportedException();
     }
 }
