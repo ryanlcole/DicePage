@@ -14,7 +14,7 @@ from boto3.dynamodb.conditions import Key
 WORLD_ID = "shaelvien-geonaph-alpha-001"
 WORLD_PK = f"WORLD#{WORLD_ID}"
 ZONE_NAME = "The Sunken Tundra"
-ZONE_MARKER = "sunken-tundra-v1"
+ZONE_MARKER = "sunken-tundra-v2"
 GRID_COLUMNS = 30
 GRID_ROWS = 30
 PLACEMENT_WIDTH_FRACTION = Decimal("0.12")
@@ -106,6 +106,18 @@ def choose_target(table, owner_user_id: str, world_layers: list):
         raise RuntimeError(
             "No empty owner parcel is available. Refusing to overwrite authored Shaelvien content."
         )
+
+    # Canonical MMO topology places The Sunken Tundra directly north of
+    # Endemar when that already-owned deed cell is available. Existing named
+    # Sunken Tundra identity is never moved silently; claim geometry remains law.
+    canonical = [
+        pair
+        for pair in pool
+        if int(pair[0].get("column") or 0) == 15
+        and int(pair[0].get("row") or 0) == 14
+    ]
+    if canonical:
+        pool = canonical
 
     pool.sort(
         key=lambda pair: (
@@ -206,6 +218,10 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
     source_state["savedAt"] = utc_stamp()
 
     parcel["displayName"] = ZONE_NAME
+    # The Sunken Tundra is a canonical Shaelvien Roleplay zone. Its Tier 0
+    # surface must be visible on the shared MMO deed map even though user-owned
+    # deed names such as Westforde may remain Restricted/name-only.
+    parcel["visibility"] = "Public"
 
     region_state = dict(region_item.get("state") or {})
     region_state["name"] = ZONE_NAME
@@ -251,6 +267,11 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         "surfaceTier": 0,
         "surfaceLayer": 6,
         "connectedToEndemarByClaimLattice": True,
+        "canonicalNorthOfEndemar": (
+            int(parcel.get("column") or 0) == 15
+            and int(parcel.get("row") or 0) == 14
+        ),
+        "visibility": str(parcel.get("visibility") or "Restricted"),
     }
 
 
