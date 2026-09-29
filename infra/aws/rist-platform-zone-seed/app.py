@@ -92,48 +92,58 @@ def _canonical_region(parcel: dict, existing: dict | None = None) -> dict:
     existing = dict(existing or {})
     state = dict(existing.get("state") or {})
     stamp = utc_stamp()
+    parcel_id = str(parcel.get("parcelId") or CANONICAL_PARCEL_ID)
+    region_id = str(parcel.get("regionId") or ("region-" + parcel_id))
+    column = int(parcel.get("column") or 0)
+    row = int(parcel.get("row") or 0)
+    cell_index = int(parcel.get("cellIndex") or (row * GRID_COLUMNS + column))
+    owner = str(parcel.get("ownerUserId") or "")
+    pixel_width = int(parcel.get("pixelWidth") or PARCEL_PIXELS)
+    pixel_height = int(parcel.get("pixelHeight") or PARCEL_PIXELS)
+    max_height = int(parcel.get("maxHeight") or PARCEL_MAX_HEIGHT)
+
     state.update(
         {
-            "regionId": CANONICAL_REGION_ID,
+            "regionId": region_id,
             "worldId": WORLD_ID,
             "name": ZONE_NAME,
-            "minColumn": CANONICAL_COLUMN,
-            "minRow": CANONICAL_ROW,
-            "maxColumn": CANONICAL_COLUMN,
-            "maxRow": CANONICAL_ROW,
-            "selectedCells": [CANONICAL_CELL],
+            "minColumn": column,
+            "minRow": row,
+            "maxColumn": column,
+            "maxRow": row,
+            "selectedCells": [cell_index],
             "sourceTiles": list(state.get("sourceTiles") or []),
             "overlayTiles": list(state.get("overlayTiles") or []),
-            "createdAtUtc": str(state.get("createdAtUtc") or stamp),
+            "createdAtUtc": str(
+                state.get("createdAtUtc") or parcel.get("claimedAtUtc") or stamp
+            ),
             "updatedAtUtc": stamp,
             "tierIndex": 0,
-            "sourceLayerOffsets": list(range(PARCEL_MAX_HEIGHT)),
+            "sourceLayerOffsets": list(range(max_height)),
             "gridShape": str(state.get("gridShape") or "square"),
-            # Canonical Shaelvien zones are world truth, not a token-bound
-            # personal deed. Platform-owner authority manages them separately.
-            "ownerUserId": "",
-            "parcelId": CANONICAL_PARCEL_ID,
-            "parcelPixelWidth": PARCEL_PIXELS,
-            "parcelPixelHeight": PARCEL_PIXELS,
-            "maxHeight": PARCEL_MAX_HEIGHT,
+            "ownerUserId": owner,
+            "parcelId": parcel_id,
+            "parcelPixelWidth": pixel_width,
+            "parcelPixelHeight": pixel_height,
+            "maxHeight": max_height,
             "parentNodeId": "world:" + WORLD_ID,
             "coordinateSpace": "world-normalized-v1",
-            "canonicalMinX": Decimal(CANONICAL_COLUMN) / Decimal(GRID_COLUMNS),
-            "canonicalMinY": Decimal(CANONICAL_ROW) / Decimal(GRID_ROWS),
-            "canonicalMaxX": Decimal(CANONICAL_COLUMN + 1) / Decimal(GRID_COLUMNS),
-            "canonicalMaxY": Decimal(CANONICAL_ROW + 1) / Decimal(GRID_ROWS),
+            "canonicalMinX": Decimal(column) / Decimal(GRID_COLUMNS),
+            "canonicalMinY": Decimal(row) / Decimal(GRID_ROWS),
+            "canonicalMaxX": Decimal(column + 1) / Decimal(GRID_COLUMNS),
+            "canonicalMaxY": Decimal(row + 1) / Decimal(GRID_ROWS),
             "canonicalZMin": 0,
-            "canonicalZMax": PARCEL_MAX_HEIGHT,
+            "canonicalZMax": max_height,
         }
     )
     return {
         **existing,
         "pk": WORLD_PK,
-        "sk": "REGION#" + CANONICAL_REGION_ID,
+        "sk": "REGION#" + region_id,
         "worldId": WORLD_ID,
-        "regionId": CANONICAL_REGION_ID,
-        "parcelId": CANONICAL_PARCEL_ID,
-        "ownerUserId": "",
+        "regionId": region_id,
+        "parcelId": parcel_id,
+        "ownerUserId": owner,
         "state": state,
         "updatedAt": int(time.time()),
     }
