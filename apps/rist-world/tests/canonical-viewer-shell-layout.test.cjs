@@ -325,6 +325,17 @@ test('Shaelvien GameMaster uses Explore for discovery and Claim Deed as an in-ma
   assert.match(deed,/ClaimMmoParcelAsync/);
 });
 
+test('Explore shows geometrically open zones even without a token',()=>{
+  const deed=read('Components/ShaelvienDeedGate.razor');
+  const land=read('WorldSession.MmoLand.cs');
+
+  assert.match(land,/public bool IsMmoParcelOpen\(int cellIndex\)/);
+  assert.match(land,/public bool IsMmoParcelClaimable\(int cellIndex\) =>[\s\S]{0,100}?HasUnspentMmoWorldToken && IsMmoParcelOpen\(cellIndex\)/);
+  assert.match(deed,/Session\.IsMmoParcelOpen\(_selectedCell\)/);
+  assert.match(deed,/return Session\.IsMmoParcelOpen\(cell\)/);
+  assert.match(deed,/No unspent Shaelvien Token is available\. You can continue exploring\./);
+});
+
 test('developer Inspect shares the MMO map and requires one reason per committed edit',()=>{
   const razor=read('Components/UniversalInterface.razor');
   const deed=read('Components/ShaelvienDeedGate.razor');
