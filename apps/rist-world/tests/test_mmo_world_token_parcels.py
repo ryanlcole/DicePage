@@ -118,13 +118,21 @@ def test_explore_visibility_and_inspect_edits_are_server_authoritative():
     assert '"Every inspection edit requires a reason"' in backend
     assert '"parcel.inspect.edit"' in backend
     assert '"reason": reason' in backend
-    assert 'parcel.get("visibility") == "Public"' in backend
+    assert 'visibility == "Public"' in backend
     assert "InspectEditMmoParcelAsync" in client
     assert '"/world/parcels/inspect-edit"' in client
     assert "InspectEditMmoParcelAsync" in session
     assert "SAVE ZONE EDIT" in gate
     assert "OPEN WORLD EDITOR WITH REASON" in gate
     assert "name only" in gate
+    assert 'PLATFORM_DEVELOPER_ENTITLEMENT = "access.developer"' in backend
+    assert "def is_platform_developer(user_id):" in backend
+    assert "def public_parcel(item, name_only=False):" in backend
+    assert '"ownerUserId": ""' in backend
+    assert '"regionId": ""' in backend
+    authority = text("apps/rist-world/WorldSession.WorldAuthority.cs")
+    assert "TrustedPlatformDeveloper" in authority
+    assert '"access.developer"' in authority
 
 
 def test_inspection_reason_follows_world_region_and_region_map_writes():
