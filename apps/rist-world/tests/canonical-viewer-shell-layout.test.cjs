@@ -322,20 +322,38 @@ test('Shaelvien GameMaster is deed-first and selected deed becomes World Builder
   assert.match(deed,/ClaimMmoParcelAsync/);
 });
 
-test('controller Save reacts immediately, commits canonical placement, and returns to the selected deed home',()=>{
+test('controller Save reacts immediately, commits canonical placement, and stays on the same Art method',()=>{
   const razor=read('Components/UniversalInterface.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
   const prototype=read('wwwroot/prototype/prototype.js');
 
   assert.match(razor,/Stage\.SaveCancel=>_assetSavePending\?"SAVING…":"SAVE"/);
   assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,600}?_assetSavePending=true;[\s\S]{0,220}?InvokeAsync\(StateHasChanged\)[\s\S]{0,260}?CommitCurrentAssetToCanonicalViewerAsync\(\)/);
-  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,1300}?_stage=Stage\.PathSelect[\s\S]{0,140}?_pathIndex=0/);
-  assert.match(razor,/Returned to \{_selectedDeedName\} GameMaster home/);
+  assert.match(razor,/case Stage\.SaveCancel:[\s\S]{0,1300}?_stage=Stage\.ArtMethod/);
+  assert.match(razor,/\{CurrentArtMethod\} remains selected/);
   assert.doesNotMatch(razor,/case Stage\.SaveCancel:[\s\S]{0,180}?SaveCurrentAssetToViewer\(\)/);
   assert.match(razor,/InvokeAsync<bool>\([\s\S]{0,220}?"placeAsset"/);
   assert.match(host,/async function waitForPrototype\(frame,timeoutMs=3000\)/);
   assert.match(prototype,/async function placeExternalAsset\(raw=\{\}\)/);
   assert.match(prototype,/const saved=await saveWorldBuilder\(\)/);
+});
+
+test('Back follows semantic flowchart reverse from Art to Layer to Tier',()=>{
+  const razor=read('Components/UniversalInterface.razor');
+  assert.match(razor,/case Stage\.ArtMethod:[\s\S]{0,180}?_stage=Stage\.WorldBuilderLayer/);
+  assert.match(razor,/case Stage\.WorldBuilderLayer:[\s\S]{0,180}?_stage=Stage\.WorldBuilderTier/);
+  assert.match(razor,/case Stage\.WorldBuilderTier:[\s\S]{0,320}?Stage\.PathSelect/);
+});
+
+test('selected deed region identity is captured and Endemar uses trusted platform authority',()=>{
+  const razor=read('Components/UniversalInterface.razor');
+  assert.match(razor,/string _selectedDeedRegionId=""/);
+  assert.match(razor,/_selectedDeedRegionId=option\.Parcel\?\.RegionId\?\.Trim\(\)\?\?""/);
+  assert.match(razor,/SelectedDeedRegionId[\s\S]{0,180}?_selectedDeedRegionId/);
+  assert.doesNotMatch(razor,/SelectedDeedRegionId[\s\S]{0,260}?Session\.MmoParcels\.FirstOrDefault/);
+  assert.match(razor,/var platformOwner=Session\.TrustedPlatformOwner/);
+  assert.match(razor,/if\(platformOwner\)[\s\S]{0,600}?SHAELVIEN_ORIGIN/);
+  assert.match(razor,/await Session\.RefreshTrustedWorldAuthorityAsync\(\);[\s\S]{0,160}?await Session\.RefreshMmoLandAsync\(\)/);
 });
 
 test('outer depth drives embedded canonical tier and layer',()=>{
