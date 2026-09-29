@@ -2847,7 +2847,10 @@
    if(_inspectionEditMode)AppendInspectionAudit(root,"SAVE ASSET CONTEXT",inspectionReason);
 
    using var document=JsonDocument.Parse(root.ToJsonString());
-   await Session.SaveWorldBuilderSourceAsync(document.RootElement.Clone());
+   await Session.SaveWorldBuilderSourceAsync(
+    document.RootElement.Clone(),
+    _inspectionEditMode,
+    inspectionReason);
    if(_inspectionEditMode)ConsumeInspectionReason();
 
    if(identity==AssetContextIdentity)
@@ -3106,7 +3109,10 @@
    throw;
   }
 
-  var source=await Session.SaveWorldBuilderSourceAsync(mergedState);
+  var source=await Session.SaveWorldBuilderSourceAsync(
+   mergedState,
+   _inspectionEditMode,
+   inspectionReason);
   if(source is not null&&_inspectionEditMode)
   {
    ConsumeInspectionReason();
@@ -3537,7 +3543,10 @@
   if(root["worldId"] is null)root["worldId"]=Session.WorldId;
   AppendInspectionAudit(root,action,reason);
   using var document=JsonDocument.Parse(root.ToJsonString());
-  await Session.SaveWorldBuilderSourceAsync(document.RootElement.Clone());
+  await Session.SaveWorldBuilderSourceAsync(
+   document.RootElement.Clone(),
+   inspectionEdit:true,
+   inspectionReason:reason);
  }
 
  async Task CompleteShaelvienDeedAsync(AwsAuthorityClient.MmoParcel parcel)
