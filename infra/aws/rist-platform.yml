@@ -397,7 +397,7 @@ Resources:
     DependsOn: SunkenTundraSeedInvokePermission
     Properties:
       ServiceToken: !GetAtt SunkenTundraSeedFunction.Arn
-      Revision: sunken-tundra-v1
+      Revision: sunken-tundra-v2
       WorldId: shaelvien-geonaph-alpha-001
       SurfaceTier: 0
       SurfaceLayer: 6
