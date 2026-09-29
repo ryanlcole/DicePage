@@ -37,7 +37,11 @@ public sealed partial class WorldSession
         return authority is null ? null : await authority.GetWorldSourceAsync(worldId);
     }
 
-    public async Task<AwsAuthorityClient.WorldSource?> SaveRegionMapLayersAsync(string regionId, JsonElement userLayers)
+    public async Task<AwsAuthorityClient.WorldSource?> SaveRegionMapLayersAsync(
+        string regionId,
+        JsonElement userLayers,
+        bool inspectionEdit = false,
+        string inspectionReason = "")
     {
         if (!HasActiveWorld)
             throw new InvalidOperationException("Choose a world before saving map changes.");
@@ -53,7 +57,12 @@ public sealed partial class WorldSession
         if (authority is null)
             throw new InvalidOperationException("World map database authority is unavailable.");
 
-        return await authority.SaveWorldRegionMapAsync(WorldId, region.RegionId, userLayers);
+        return await authority.SaveWorldRegionMapAsync(
+            WorldId,
+            region.RegionId,
+            userLayers,
+            inspectionEdit,
+            inspectionReason);
     }
 
     public async Task<AwsAuthorityClient.WorldSource?> SaveWorldBuilderSourceAsync(
