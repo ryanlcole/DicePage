@@ -473,6 +473,7 @@
  string _selectedDeedId="";
  string _selectedDeedName="";
  string _selectedDeedKind="";
+ string _selectedDeedRegionId="";
  string _contextLoadedIdentity="";
  string _contextName="";
  string _contextLore="";
@@ -539,10 +540,11 @@
    if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
    {
     var userId=Auth.Profile?.UserId?.Trim()??"";
+    var platformOwner=Session.TrustedPlatformOwner;
     var mmoOptions=Session.MmoParcels
      .Where(parcel=>
       string.Equals(parcel.OwnerUserId,userId,StringComparison.Ordinal)
-      ||(!Auth.IsOwnerDiscordAccount&&Session.CanAccessMmoParcel(parcel)))
+      ||(!platformOwner&&Session.CanAccessMmoParcel(parcel)))
      .Select(parcel=>new ControllerWorldOption(
       parcel.ParcelId,
       parcel.DisplayName,
@@ -553,7 +555,7 @@
      .ThenBy(option=>option.Id,StringComparer.Ordinal)
      .ToList();
 
-    if(Auth.IsOwnerDiscordAccount)
+    if(platformOwner)
     {
      mmoOptions.Insert(0,new ControllerWorldOption(
       "__endemar__",
@@ -624,13 +626,9 @@
  string CurrentContextSelection=>ContextPath[Math.Clamp(_pathMenuIndex,0,ContextPath.Length-1)];
 
  string SelectedDeedRegionId
- {
-  get
-  {
-   if(string.IsNullOrWhiteSpace(_selectedDeedId)||_selectedDeedKind=="SHAELVIEN_ORIGIN")return "";
-   return Session.MmoParcels.FirstOrDefault(parcel=>string.Equals(parcel.ParcelId,_selectedDeedId,StringComparison.Ordinal))?.RegionId?.Trim()??"";
-  }
- }
+  =>string.IsNullOrWhiteSpace(_selectedDeedId)||_selectedDeedKind=="SHAELVIEN_ORIGIN"
+    ?""
+    :_selectedDeedRegionId;
 
  string SelectedDeedZoneId
  {
@@ -652,6 +650,7 @@
   _selectedDeedId=option.Id;
   _selectedDeedName=option.Name?.Trim()??"";
   _selectedDeedKind=option.Environment;
+  _selectedDeedRegionId=option.Parcel?.RegionId?.Trim()??"";
   _pathIndex=0;
   _pathMenuIndex=0;
   _scopeIndex=0;
@@ -1583,10 +1582,8 @@
      }
 
      ResetAssetTransform();
-     SetPathMenuToNext(savedScope);
-     _stage=Stage.PathSelect;
-     _pathIndex=0;
-     _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. Returned to {_selectedDeedName} GameMaster home.";
+     _stage=Stage.ArtMethod;
+     _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. {CurrentArtMethod} remains selected.";
      await InvokeAsync(StateHasChanged);
      break;
     }
@@ -1849,6 +1846,7 @@
     _selectedDeedId="";
     _selectedDeedName="";
     _selectedDeedKind="";
+    _selectedDeedRegionId="";
     _stage=string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
      ?Stage.DeedSelect
      :Stage.PathSelect;
@@ -2607,6 +2605,7 @@
   string SelectedDeedId,
   string SelectedDeedName,
   string SelectedDeedKind,
+  string SelectedDeedRegionId,
   bool BrowseCursorActive,
   bool AnalogButtonMode,
   string AssetSource,
@@ -2863,7 +2862,7 @@
   _stage,_worldIndex,_settingIndex,_scopeIndex,_softwareIndex,_pathIndex,_pathMenuIndex,
   _artMethodIndex,_artPhaseIndex,_artToolIndex,_assetKindIndex,_assetSourceIndex,_builderChainIndex,_requestedBuilderChainIndex,
   _tier,_layer,_assetScale,_assetRotation,_assetX,_assetY,_assetKind,_assetScope,_activeKnowledgeNode,
-  _selectedDeedId,_selectedDeedName,_selectedDeedKind,
+  _selectedDeedId,_selectedDeedName,_selectedDeedKind,_selectedDeedRegionId,
   _browseCursorActive,_analogButtonMode,_assetSource,_assetMode,_selectedAssetKey);
 
  async Task RestoreViewerNavStateAsync(ViewerNavState state)
@@ -2894,6 +2893,7 @@
   _selectedDeedId=state.SelectedDeedId;
   _selectedDeedName=state.SelectedDeedName;
   _selectedDeedKind=state.SelectedDeedKind;
+  _selectedDeedRegionId=state.SelectedDeedRegionId;
   _browseCursorActive=state.BrowseCursorActive;
   _analogButtonMode=state.AnalogButtonMode;
   _assetSource=state.AssetSource;
@@ -3204,6 +3204,7 @@
       &&(!Session.HasActiveWorld||!string.Equals(Session.WorldId,mmo.WorldId,StringComparison.Ordinal)))
     await Session.LoadWorldAsync(mmo);
 
+   await Session.RefreshTrustedWorldAuthorityAsync();
    await Session.RefreshMmoLandAsync();
    await Session.LoadRegionsAsync();
   }
@@ -3324,6 +3325,7 @@
    _selectedDeedId=parcel.ParcelId;
    _selectedDeedName=parcel.DisplayName;
    _selectedDeedKind="SHAELVIEN";
+   _selectedDeedRegionId=parcel.RegionId?.Trim()??"";
   }
   _stage=Stage.PathSelect;
   _pathIndex=0;
