@@ -359,7 +359,7 @@ test('developer Inspect shares the MMO map and requires one reason per committed
   assert.match(razor,/ReturnToInspectMapAsync\(\)[\s\S]{0,220}?ReturnToShaelvienDeedSelector\(\)/);
   assert.match(razor,/void ReturnToShaelvienDeedSelector\(\)[\s\S]{0,320}?_stage=Stage\.DeedSelect/);
   assert.match(razor,/RecordInspectionAuditAsync\(\$"CREATE \{CurrentBuilderScope\}",inspectionReason\)/);
-  assert.match(razor,/var access=_exploreReadOnlyMode[\s\S]{0,180}?_inspectionEditMode&&Session\.TrustedPlatformOwner/);
+  assert.match(razor,/var access=_exploreReadOnlyMode[\s\S]{0,180}?_inspectionEditMode&&Session\.TrustedPlatformDeveloper/);
 });
 
 test('Explore exposes open public and restricted MMO zones while Inspect can audit visibility edits',()=>{
@@ -377,6 +377,11 @@ test('Explore exposes open public and restricted MMO zones while Inspect can aud
   assert.match(session,/InspectEditMmoParcelAsync/);
   assert.match(client,/\/world\/parcels\/inspect-edit/);
   assert.match(client,/string Visibility = "Restricted"/);
+  const authority=read('WorldSession.WorldAuthority.cs');
+  assert.match(authority,/public bool TrustedPlatformDeveloper => _trustedPlatformDeveloper/);
+  assert.match(authority,/access\.developer/);
+  assert.match(razor,/var platformDeveloper=Session\.TrustedPlatformDeveloper/);
+  assert.match(razor,/if\(platformDeveloper\)[\s\S]{0,260}?"Inspect"[\s\S]{0,120}?"SHAELVIEN_INSPECT"/);
 });
 
 test('controller Save reacts immediately, commits canonical placement, and stays on the same Art method',()=>{
