@@ -133,6 +133,11 @@ def test_explore_visibility_and_inspect_edits_are_server_authoritative():
     authority = text("apps/rist-world/WorldSession.WorldAuthority.cs")
     assert "TrustedPlatformDeveloper" in authority
     assert '"access.developer"' in authority
+    assert "def geonaph_visible_region_ids(user_id):" in backend
+    assert "def filtered_geonaph_source_state(state, user_id):" in backend
+    assert 'filtered.pop("inspectionAudit", None)' in backend
+    assert 'source_state = filtered_geonaph_source_state(source_state, user_id)' in backend
+    assert "allowed_regions = geonaph_visible_region_ids(user_id)" in backend
 
 
 def test_inspection_reason_follows_world_region_and_region_map_writes():
