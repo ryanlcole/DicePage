@@ -12,7 +12,8 @@ The GameMaster world selector is account-scoped.
 - Normal GameMaster: realms owned by the account plus explicitly delegated realms, then **Explore**.
 - **Explore** is the entry to the shared MMO map. It shows geometrically open frontier zones even when the account has no token, allows entry into public or otherwise view-authorized zones, and exposes only the names of restricted claimed zones.
 - **Claim Deed** is an action inside Explore after an open zone is selected. It remains available after an account already owns a realm when the account has an unspent token.
-- **Inspect** is developer/admin access to the same MMO map. It may edit canonical world state without transferring realm ownership, but every committed inspection edit requires a written reason.
+- **Inspect** is developer/admin access to the same MMO map. It requires server-verified developer authority; the platform owner is always a developer, and other developer accounts may be granted the `access.developer` entitlement without receiving ordinary realm ownership or blanket GameMaster authority. Inspect may edit canonical world state without transferring realm ownership, but every committed inspection edit requires a written reason.
+- Restricted-zone discovery is authority-enforced: ordinary Explore receives only the zone name and map-position metadata unless the account has explicit access; the owner and server-verified developers may inspect the full canonical metadata.
 - Inspection reasons are append-only audit evidence. A later map save must preserve earlier inspection-audit entries rather than replacing them.
 
 The currently selected realm establishes the root world context for everything below it.
