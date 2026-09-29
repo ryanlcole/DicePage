@@ -146,7 +146,18 @@ jobs:
 
             if [[ "$STACK_STATUS" == "UPDATE_ROLLBACK_FAILED" ]]; then
               echo "$STACK_NAME is UPDATE_ROLLBACK_FAILED; continuing rollback before deployment..."
-              aws cloudformation continue-update-rollback --stack-name "$STACK_NAME"
+              FAILED_IDS=$(aws cloudformation describe-stack-events \
+                --stack-name "$STACK_NAME" \
+                --query "StackEvents[?ResourceStatus=='UPDATE_FAILED'].LogicalResourceId" \
+                --output text 2>/dev/null || true)
+              if [[ " $FAILED_IDS " == *" SunkenTundraSeed "* ]]; then
+                echo "SunkenTundraSeed blocked rollback; skipping that custom resource only so its IAM fix can deploy."
+                aws cloudformation continue-update-rollback \
+                  --stack-name "$STACK_NAME" \
+                  --resources-to-skip SunkenTundraSeed
+              else
+                aws cloudformation continue-update-rollback --stack-name "$STACK_NAME"
+              fi
               aws cloudformation wait stack-update-rollback-complete --stack-name "$STACK_NAME"
               STACK_STATUS=$(aws cloudformation describe-stacks                 --stack-name "$STACK_NAME"                 --query 'Stacks[0].StackStatus'                 --output text)
               echo "$STACK_NAME recovered to $STACK_STATUS."
