@@ -109,6 +109,8 @@ CONTEXT
 CAMPAIGN
 ```
 
+Navigation is semantic, not browser-history based. Forward depth is `TIER → LAYER → ART`; Back reverses that flow as `ART → LAYER → TIER → parent spatial selection`. Saving an Art placement commits the representation but remains on the same Art method so the GameMaster can continue working without being ejected to the deed/start screen.
+
 Art begins from reusable source classes rather than hard-wiring one editor:
 
 ```
