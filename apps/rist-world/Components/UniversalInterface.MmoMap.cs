@@ -535,20 +535,87 @@ public partial class UniversalInterface
 
     void OpenMmoManage()
     {
-        var parcel = MmoSelectedParcel;
-        if (parcel is null)
+        if (!_mmoInspectMode || !Session.TrustedPlatformDeveloper)
         {
-            _message = MmoSelectedIsEndemar
-                ? "Endemar is the canonical Shaelvien origin, not a claimable parcel record."
-                : "Select a claimed zone to manage.";
+            _message = "Developer Inspect authority is required.";
             return;
         }
 
-        _mmoManageName = parcel.DisplayName;
-        _mmoManageVisibility = string.Equals(parcel.Visibility, "Public", StringComparison.OrdinalIgnoreCase) ? "Public" : "Restricted";
+        var parcel = MmoSelectedParcel;
+        if (!MmoSelectedIsEndemar && parcel is null)
+        {
+            _message = "Select Endemar or a claimed zone to manage.";
+            return;
+        }
+
+        _mmoManageName = MmoSelectedIsEndemar
+            ? WorldSession.EndemarStartingPointDisplayName
+            : parcel!.DisplayName;
+        _mmoManageVisibility = MmoSelectedIsEndemar
+            ? "Public"
+            : string.Equals(parcel!.Visibility, "Public", StringComparison.OrdinalIgnoreCase) ? "Public" : "Restricted";
         _mmoManageReason = "";
         _mmoManageOpen = true;
-        _message = $"Manage {parcel.DisplayName}. Every committed Inspect change requires a reason.";
+        _message = MmoSelectedIsEndemar
+            ? "Manage Endemar. Enter a reason, then open World Builder for audited structural editing."
+            : $"Manage {parcel!.DisplayName}. Every committed Inspect change requires a reason.";
+    }
+
+    async Task OpenMmoInspectEditorAsync()
+    {
+        if (!_mmoInspectMode || !Session.TrustedPlatformDeveloper)
+        {
+            _message = "Developer Inspect authority is required.";
+            return;
+        }
+
+        var reason = (_mmoManageReason ?? "").Trim();
+        if (reason.Length < 3)
+        {
+            _message = "Enter a reason before opening the Inspect World Builder.";
+            return;
+        }
+
+        await Session.LoadRegionsAsync();
+
+        ControllerWorldOption selected;
+        if (MmoSelectedIsEndemar)
+        {
+            selected = new ControllerWorldOption(
+                "__endemar__",
+                WorldSession.EndemarStartingPointDisplayName,
+                "SHAELVIEN_ORIGIN",
+                null,
+                null);
+            Session.SetActiveRegion("");
+        }
+        else if (MmoSelectedParcel is { } parcel)
+        {
+            selected = new ControllerWorldOption(
+                parcel.ParcelId,
+                parcel.DisplayName,
+                "SHAELVIEN",
+                null,
+                parcel);
+            if (!string.IsNullOrWhiteSpace(parcel.RegionId))
+                Session.SetActiveRegion(parcel.RegionId);
+        }
+        else
+        {
+            _message = "Select Endemar or a claimed zone to inspect.";
+            return;
+        }
+
+        SetSelectedDeed(selected);
+        _exploreReadOnlyMode = false;
+        _inspectionEditMode = true;
+        _inspectionEditReason = reason.Length > 500 ? reason[..500] : reason;
+        _mmoManageOpen = false;
+        _stage = Stage.PathSelect;
+        _pathIndex = 0;
+        _pathMenuIndex = 0;
+        _message = $"Inspect edit · {_selectedDeedName}. World Builder is on the left; Context is on the right. Every committed edit requires an audit reason.";
+        await InvokeAsync(StateHasChanged);
     }
 
     void CloseMmoManage()
