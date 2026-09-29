@@ -10,6 +10,8 @@ on:
       - 'infra/aws/rist_external_ai_handler.py'
       - 'infra/aws/rist_external_ai_gateway.py'
       - 'infra/aws/rist_relic_mcp.py'
+      - 'infra/aws/relic_context_translator.py'
+      - 'infra/aws/test_relic_context_translator.py'
       - 'infra/aws/relic_mcp_auth.py'
       - 'infra/aws/relic_mcp_store.py'
       - 'infra/aws/relic_mcp_protocol.py'
@@ -68,10 +70,12 @@ jobs:
           python -m py_compile infra/aws/rist_external_ai_handler.py
           python -m py_compile infra/aws/rist_external_ai_gateway.py
           python -m py_compile infra/aws/rist_relic_mcp.py
+          python -m py_compile infra/aws/relic_context_translator.py
           python -m py_compile infra/aws/relic_mcp_protocol.py
           python -m py_compile infra/aws/relic_mcp_store.py
           python -m py_compile infra/aws/relic_mcp_auth.py
           python infra/aws/test_rist_relic_mcp.py
+          python infra/aws/test_relic_context_translator.py
           python infra/aws/test_relic_mcp_auth.py
           python -m py_compile infra/aws/rist_eios_context.py
           python -m py_compile infra/aws/rist_eios_domain_knowledge.py
