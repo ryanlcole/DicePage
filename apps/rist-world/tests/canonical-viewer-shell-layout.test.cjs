@@ -303,23 +303,45 @@ test('viewer top menu exposes back undo cut copy redo paste and forward',()=>{
   assert.match(css,/Viewer command menu authority/);
 });
 
-test('Shaelvien GameMaster is deed-first and selected deed becomes World Builder plus Context',()=>{
+test('Shaelvien GameMaster uses Explore for discovery and Claim Deed as an in-map action',()=>{
   const razor=read('Components/UniversalInterface.razor');
   const land=read('WorldSession.MmoLand.cs');
   const deed=read('Components/ShaelvienDeedGate.razor');
 
   assert.match(razor,/Stage\.DeedSelect/);
   assert.match(razor,/Stage\.DeedSelect=>"SHAELVIEN"/);
-  assert.match(razor,/PathWorldOptions[\s\S]{0,1800}?SHAELVIEN_ORIGIN[\s\S]{0,1800}?SHAELVIEN_INSPECT[\s\S]{0,1800}?SHAELVIEN_CLAIM/);
+  assert.match(razor,/PathWorldOptions[\s\S]{0,1800}?SHAELVIEN_ORIGIN[\s\S]{0,1800}?SHAELVIEN_INSPECT[\s\S]{0,1800}?"Explore"[\s\S]{0,220}?SHAELVIEN_CLAIM/);
   assert.match(razor,/Stage\.PathSelect=>IsShaelvienDeedHome\?"WORLD BUILDER"/);
   assert.match(razor,/Stage\.PathSelect=>IsShaelvienDeedHome\?"CONTEXT"/);
   assert.match(razor,/case Stage\.DeedSelect:[\s\S]{0,420}?ActivateCurrentPathWorldAsync\(\)[\s\S]{0,260}?SetSelectedDeed\(selected\)/);
   assert.match(razor,/World Builder is on the left; Context is on the right/);
   assert.match(razor,/YOU HAVE \{count\} TOKEN/);
-  assert.match(razor,/<ShaelvienDeedGate[\s\S]{0,220}?OnClaimed="CompleteShaelvienDeedAsync"/);
+  assert.match(razor,/<ShaelvienDeedGate[\s\S]{0,280}?OnClaimed="CompleteShaelvienDeedAsync"[\s\S]{0,180}?OnViewRequested="OpenExploredZoneAsync"/);
   assert.match(land,/UnspentMmoWorldTokenCount/);
-  assert.match(deed,/CLAIM DEED/);
+  assert.match(deed,/EXPLORE/);
+  assert.match(deed,/PUBLIC \/ VIEWABLE/);
+  assert.match(deed,/RESTRICTED · name visible; world contents hidden/);
+  assert.match(deed,/SPEND 1 TOKEN · CLAIM DEED/);
   assert.match(deed,/ClaimMmoParcelAsync/);
+});
+
+test('developer Inspect shares the MMO map and requires one reason per committed edit',()=>{
+  const razor=read('Components/UniversalInterface.razor');
+  const deed=read('Components/ShaelvienDeedGate.razor');
+
+  assert.match(deed,/InspectOnly\?"INSPECT":"EXPLORE"/);
+  assert.match(deed,/Every committed inspection edit requires a written reason/);
+  assert.match(deed,/OnInspectionEditRequested/);
+  assert.match(deed,/EDIT WITH REASON/);
+  assert.match(razor,/_inspectionEditMode/);
+  assert.match(razor,/REASON FOR NEXT EDIT/);
+  assert.match(razor,/RequireInspectionReason\(\)/);
+  assert.match(razor,/AppendInspectionAudit\(root,"SAVE WORLD REPRESENTATION",inspectionReason\)/);
+  assert.match(razor,/currentState\.TryGetProperty\("inspectionAudit",out var currentAudit\)/);
+  assert.match(razor,/root\["inspectionAudit"\]=JsonNode\.Parse\(currentAudit\.GetRawText\(\)\)/);
+  assert.match(razor,/ConsumeInspectionReason\(\)/);
+  assert.match(razor,/RecordInspectionAuditAsync\(\$"CREATE \{CurrentBuilderScope\}",inspectionReason\)/);
+  assert.match(razor,/var access=_exploreReadOnlyMode[\s\S]{0,180}?_inspectionEditMode&&Session\.TrustedPlatformOwner/);
 });
 
 test('controller Save reacts immediately, commits canonical placement, and stays on the same Art method',()=>{
