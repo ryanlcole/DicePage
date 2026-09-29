@@ -177,3 +177,55 @@ def test_shaelvien_is_the_mmo_world_and_endemar_is_the_starting_point():
     assert 'public const string ShaelvienDisplayName = "Shaelvien";' in identity
     assert 'public const string EndemarStartingPointDisplayName = "Endemar";' in identity
     assert "public const string GeonaphDisplayName = ShaelvienDisplayName;" in identity
+
+
+def test_explore_visibility_and_developer_inspection_are_authoritative():
+    backend = text("infra/aws/rist-platform-authority/app.py")
+    client = text("apps/rist-world/AwsAuthorityClient.cs")
+    session = text("apps/rist-world/WorldSession.MmoLand.cs")
+    gate = text("apps/rist-world/Components/ShaelvienDeedGate.razor")
+
+    assert 'PARCEL_VISIBILITIES = {"Public", "Restricted"}' in backend
+    assert '"visibility": str(item.get("visibility") or "Restricted")' in backend
+    assert '"visibility": "Restricted"' in backend
+    assert 'parcel.get("visibility") == "Public"' in backend
+    assert 'path == "/world/parcels/inspect-edit"' in backend
+    assert '"Every inspection edit requires a reason"' in backend
+    assert '"parcel.inspect.edit"' in backend
+    assert '{"reason": reason, "before": before, "after": after}' in backend
+
+    assert "InspectEditMmoParcelAsync" in client
+    assert 'string Visibility = "Restricted"' in client
+    assert "InspectEditMmoParcelAsync" in session
+    assert "TrustedPlatformOwner" in session
+
+    assert "EXPLORE" in gate
+    assert "RESTRICTED · name visible; world contents hidden." in gate
+    assert "SAVE ZONE EDIT" in gate
+    assert "OPEN WORLD EDITOR WITH REASON" in gate
+    assert "InspectionReasonMissing" in gate
+    assert "InspectionZoneChanged" in gate
+
+
+def test_inspection_world_saves_require_and_audit_reason_at_authority_layer():
+    backend = text("infra/aws/rist-platform-authority/app.py")
+    client = text("apps/rist-world/AwsAuthorityClient.cs")
+    source = text("apps/rist-world/WorldSession.WorldBuilderSource.cs")
+    interface = text("apps/rist-world/Components/UniversalInterface.razor")
+
+    world_source_block = backend[backend.index('path == "/world/source"'):backend.index('path == "/world/source/region"')]
+    assert 'inspection_edit = bool(req.get("inspectionEdit"))' in world_source_block
+    assert 'inspection_reason = str(req.get("inspectionReason") or "").strip()' in world_source_block
+    assert 'if inspection_edit:' in world_source_block
+    assert '"Every inspection edit requires a reason"' in world_source_block
+    assert '"inspectionEdit": inspection_edit' in world_source_block
+    assert '"inspectionReason": inspection_reason if inspection_edit else ""' in world_source_block
+
+    assert "bool inspectionEdit = false" in client
+    assert "string inspectionReason = """ in client
+    assert "bool inspectionEdit = false" in source
+    assert "string inspectionReason = """ in source
+    assert "inspectionEdit:true" in interface
+    assert "inspectionReason:reason" in interface
+    assert "_inspectionEditMode," in interface
+    assert "inspectionReason);" in interface
