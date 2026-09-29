@@ -16,7 +16,7 @@ def test_shaelvien_deeds_expand_only_across_flat_sides():
 
 
 def test_gamemaster_root_matches_worldbuilder_context_contract():
-    component = (ROOT / "Components/ExperimentsWorkspace.razor").read_text(encoding="utf-8")
+    component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
 
     assert 'GameMasterPaths=["WORLD BUILDER","CONTEXT"]' in component
     assert 'Scopes=["WORLD","REGION","LOCAL","INSTANCE","CAMPAIGN"]' in component
@@ -25,7 +25,7 @@ def test_gamemaster_root_matches_worldbuilder_context_contract():
 
 
 def test_region_local_instance_are_selection_first():
-    component = (ROOT / "Components/ExperimentsWorkspace.razor").read_text(encoding="utf-8")
+    component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
     regions = (ROOT / "WorldSession.Regions.cs").read_text(encoding="utf-8")
 
     assert "SpatialSelect" in component
@@ -43,7 +43,7 @@ def test_region_local_instance_are_selection_first():
 
 
 def test_selected_spatial_identity_is_persisted_with_assets():
-    component = (ROOT / "Components/ExperimentsWorkspace.razor").read_text(encoding="utf-8")
+    component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
     bridge = (ROOT / "wwwroot/worldbuilder-source-host.js").read_text(encoding="utf-8")
     prototype = (ROOT / "wwwroot/prototype/prototype.js").read_text(encoding="utf-8")
 
@@ -56,7 +56,7 @@ def test_selected_spatial_identity_is_persisted_with_assets():
 
 
 def test_owner_inspect_and_account_world_list_are_separate_from_claiming():
-    component = (ROOT / "Components/ExperimentsWorkspace.razor").read_text(encoding="utf-8")
+    component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
     gate = (ROOT / "Components/ShaelvienDeedGate.razor").read_text(encoding="utf-8")
 
     assert '"__inspect__"' in component
