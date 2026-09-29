@@ -84,3 +84,19 @@ def test_sunken_tundra_seed_is_public_and_prefers_canonical_north_cell():
     assert 'int(pair[0].get("column") or 0) == 15' in seed
     assert 'int(pair[0].get("row") or 0) == 14' in seed
     assert 'Revision: sunken-tundra-v2' in template
+
+
+def test_mmo_roleplay_action_hands_canonical_zone_to_player_workspace():
+    component = text("Components/UniversalInterface.MmoMap.cs")
+    interface = text("Components/UniversalInterface.razor")
+    authenticated = text("Components/AuthenticatedWorld.razor")
+    shell = text("Components/PublicAlphaShell.razor")
+
+    assert 'EventCallback<string> OnRoleplay' in interface
+    assert 'if (OnRoleplay.HasDelegate)' in component
+    assert 'await OnRoleplay.InvokeAsync(MmoSelectedName);' in component
+    assert 'OnRoleplay="EnterUniversalRoleplayAsync"' in authenticated
+    assert 'EnterRoleplayOnFirstRender="_universalRoleplayPending"' in authenticated
+    assert '[Parameter] public bool EnterRoleplayOnFirstRender' in shell
+    assert 'if(EnterRoleplayOnFirstRender&&Session.IsGeonaphWorld)' in shell
+    assert 'OpenRoleplay();' in shell
