@@ -493,13 +493,13 @@
  string _message="Slide the left display vertically and the right display horizontally. The analog snaps those displays one page at a time; when neither display has multiple choices it becomes the viewer cursor.";
 
  static readonly string[] Settings=["GRAPHICS","LANGUAGE","ACCESSIBILITY","CONTROLS","AUDIO","DISPLAY","NETWORK","ACCOUNT","HELP"];
- static readonly string[] Scopes=["WORLD BUILDER","REGION DEFINER","LOCAL","INSTANCE","TABLETOP","SOFTWARE"];
+ static readonly string[] Scopes=["WORLD","REGION","LOCAL","INSTANCE","CAMPAIGN"];
  static readonly string[] SoftwareCapabilities=["IMAGE EDITOR","STREAM / RECORD","NOTES / DATABASE","AUDIO","BROWSER","COMMUNICATION","AUTOMATION"];
  static readonly string[] AnalogPlacements=["LEFT","CENTER","RIGHT"];
  static readonly string[] AssetKinds=["IMAGE","SPRITE"];
  static readonly string[] ImageSources=["GAME IMAGES","MY IMAGES","UPLOAD"];
  static readonly string[] SpriteSources=["GAME SPRITES","MY SPRITES","UPLOAD"];
- static readonly string[] GameMasterPaths=["WORLD BUILDER","CAMPAIGN BUILDER","ADVANCED"];
+ static readonly string[] GameMasterPaths=["WORLD BUILDER","CONTEXT"];
  static readonly string[] ArtMethods=["DRAW","CAD","IMAGES","SPRITE","AUDIO","VIDEO"];
  static readonly string[] DrawPhases=["PENCIL","COLOR","EFFECTS"];
  static readonly string[] CadPhases=["SKETCH","GEOMETRY","MATERIAL","EFFECTS"];
@@ -516,11 +516,10 @@
  static readonly string[] VideoImportTools=["CAMERA","FILE"];
  static readonly string[] VideoEditTools=["TRIM","LAYER","SPEED"];
  static readonly string[] VideoEffectTools=["LIGHT","FILTER","OVERLAY"];
- static readonly string[] WorldBuilderPath=["WORLD","REGION","LOCAL","INSTANCE","LORE","HISTORY","COSMOLOGY","CALENDAR","CULTURES","FACTIONS","ECONOMY","TECHNOLOGY","MAGIC / POWERS","CREATURES","NPCS","RELATIONSHIPS","SECRETS","THREATS","FRONTS / CLOCKS","ENCOUNTERS","QUESTS","CAMPAIGN","SESSION"];
- static readonly string[] CampaignBuilderPath=["LOCAL","INSTANCE","LOCAL HISTORY","NPCS","RELATIONSHIPS","SECRETS","CLUES","ENCOUNTERS","QUESTS","SCENES","DOWNTIME","REGION","REGIONAL HISTORY","FACTIONS","FRONTS / CLOCKS","ECONOMY","WORLD","WORLD LORE","CAMPAIGN","SESSION"];
- static readonly string[] AdvancedPath=["WORLD","REGION","LOCAL","INSTANCE","ROOM / SCENE","OBJECT","CONTAINER","CONTENTS","COSMOLOGY","CALENDAR","ERAS","HISTORY","EVENTS","LORE","RUMORS","SECRETS","CLUES","LANGUAGES","RELIGIONS","CULTURES","FACTIONS","ORGANIZATIONS","ECONOMY","POLITICS","TECHNOLOGY","MAGIC / POWERS","CREATURES","NPCS","RELATIONSHIPS","THREATS","FRONTS / CLOCKS","ENCOUNTERS","COMBAT","SOCIAL","EXPLORATION","INVESTIGATION","CHASE","PUZZLE","HAZARD","DOWNTIME","TRAVEL","CRAFTING","MASS CONFLICT","QUESTS","MISSIONS","ARCS","CAMPAIGN","SESSION","RULES","CHARACTERS","EQUIPMENT","REWARDS"];
+ static readonly string[] WorldBuilderPath=["WORLD","REGION","LOCAL","INSTANCE","CAMPAIGN"];
+ static readonly string[] ContextPath=["HISTORY","LORE","TRUTH"];
  static readonly string[] BuilderChain=["WORLD","REGION","LOCAL","INSTANCE"];
- static readonly string[] BuilderSuiteNames=["WORLD BUILDER","REGION DEFINER","LOCAL","INSTANCE"];
+ static readonly string[] BuilderSuiteNames=["WORLD","REGION","LOCAL","INSTANCE"];
 
  IReadOnlyList<ControllerWorldOption> PathWorldOptions
  {
@@ -627,12 +626,7 @@
  string NextSoftware=>SoftwareCapabilities[(_softwareIndex+1)%SoftwareCapabilities.Length];
 
  string CurrentGameMasterPath=>GameMasterPaths[Math.Clamp(_pathIndex,0,GameMasterPaths.Length-1)];
- string[] CurrentGuidedPath=>CurrentGameMasterPath switch
- {
-  "CAMPAIGN BUILDER"=>CampaignBuilderPath,
-  "ADVANCED"=>AdvancedPath,
-  _=>WorldBuilderPath
- };
+ string[] CurrentGuidedPath=>CurrentGameMasterPath=="CONTEXT"?ContextPath:WorldBuilderPath;
  string[] CurrentPathMenu=>CurrentGuidedPath.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
  string CurrentPathTarget=>CurrentPathMenu[Math.Clamp(_pathMenuIndex,0,CurrentPathMenu.Length-1)];
  string CurrentArtMethod=>ArtMethods[Math.Clamp(_artMethodIndex,0,ArtMethods.Length-1)];
@@ -917,7 +911,7 @@
  {
   Stage.Environment=>"Shared Shaelvien MMO environment.",
   Stage.Role=>"Player-facing role.",
-  Stage.PathSelect=>"Choose World Builder, Campaign Builder, or Advanced. This selects the controller's guided route.",
+  Stage.PathSelect=>"Choose World Builder or Context. World Builder controls representation; Context carries History, Lore, and Truth.",
   Stage.GameMasterScope=>"Y cycles GameMaster applications and capability groups.",
   Stage.SpatialSelect=>SpatialOptionIsNew
    ?$"Create a new {CurrentBuilderScope.ToLowerInvariant()} inside the selected parent. Editing depth stays locked until the object is selected."
@@ -1675,18 +1669,19 @@
  void BeginGameMasterPath()
  {
   _pathHistory.Clear();
-  var startNode=CurrentGameMasterPath=="CAMPAIGN BUILDER"?"LOCAL":"WORLD";
-  var builderIndex=BuilderIndexForNode(startNode);
-  if(builderIndex<0)builderIndex=0;
-
-  BeginBuilderScope(builderIndex);
-  SetPathMenuToNext(startNode);
-  _message=CurrentGameMasterPath switch
+  if(CurrentGameMasterPath=="CONTEXT")
   {
-   "CAMPAIGN BUILDER"=>"Campaign Builder starts local and builds outward. Choose Tier, Layer, then an A/V method; the right rail carries history, NPCs, encounters, region, world, lore, and the rest of the campaign path.",
-   "ADVANCED"=>"Advanced exposes the complete path graph on the right rail so you can jump anywhere. The left rail remains the current A/V or creation method.",
-   _=>"World Builder starts outside and works inward: World → Region → Local → Instance, then lore, history, NPCs, encounters, quests, campaign, and session."
-  };
+   _activeKnowledgeNode=ContextPath[0];
+   _pathMenuIndex=0;
+   _stage=Stage.KnowledgeNode;
+   SetPathMenuToNext(_activeKnowledgeNode);
+   _message="Context is separate from representation: History → Lore → Truth. Choose a context node without changing the selected world depth.";
+   return;
+  }
+
+  _stage=Stage.GameMasterScope;
+  _scopeIndex=0;
+  _message="World Builder is selection-first: World → Region → Local → Instance → Campaign. Region, Local, and Instance must be selected before Tier or Layer editing unlocks.";
  }
 
  void SelectArtMethod()
@@ -1879,21 +1874,18 @@
   if(builderIndex>=0)
   {
    BeginBuilderScope(builderIndex);
-   _message=$"{CurrentBuilderSuite}. The controller guides Tier → Layer → Asset → Save, then returns to the GameMaster Suite choices.";
    return;
   }
 
-  switch(CurrentScope)
+  if(CurrentScope=="CAMPAIGN")
   {
-   case "SOFTWARE":
-    _stage=Stage.SoftwareHub;
-    _softwareIndex=0;
-    _message="Software capability adapters. RIST controls stay consistent while engines remain replaceable.";
-    break;
-   default:
-    _message=$"{CurrentScope} is registered in the GameMaster flowchart; its beginner Shaeps are not wired in this experiment yet.";
-    break;
+   _activeKnowledgeNode="CAMPAIGN";
+   _stage=Stage.KnowledgeNode;
+   _message="Campaign context opened for the currently selected world hierarchy.";
+   return;
   }
+
+  _message=$"{CurrentScope} is registered in the GameMaster flowchart.";
  }
 
  void BeginBuilderScope(int index)
