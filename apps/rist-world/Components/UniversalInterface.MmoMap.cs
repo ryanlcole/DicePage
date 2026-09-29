@@ -72,7 +72,7 @@ public partial class UniversalInterface
 
     bool MmoSelectedIsEndemar => _mmoSelectedCell == WorldSession.EndemarOriginCell;
     bool MmoSelectedIsOpen => !MmoSelectedIsEndemar && MmoSelectedParcel is null && Session.IsMmoParcelOpen(_mmoSelectedCell);
-    bool MmoSelectedIsOwned => MmoSelectedParcel is not null && Session.IsMmoParcelOwnedByCurrentUser(MmoSelectedParcel);
+    bool MmoSelectedIsOwned => MmoSelectedParcel is not null && Session.IsMmoParcelOwnedByCurrentUser(MmoSelectedParcel.CellIndex);
     bool MmoSelectedIsRefunded => string.Equals(MmoSelectedParcel?.Status, "Refunded", StringComparison.OrdinalIgnoreCase);
 
     string MmoSelectedName =>
