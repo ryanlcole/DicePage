@@ -192,7 +192,7 @@ public sealed partial class WorldSession
     {
         var authorityRegion = ActiveRegion
             ?? throw new InvalidOperationException("Select a Shaelvien world before creating a spatial depth.");
-        if (!CanEditRegion(authorityRegion))
+        if (!CanEditRegion(authorityRegion) && !(inspectionEdit && TrustedPlatformDeveloper))
             throw new UnauthorizedAccessException("Edit authority is required to create this spatial depth.");
 
         kind = (kind ?? "").Trim().ToUpperInvariant();
@@ -391,9 +391,13 @@ public sealed partial class WorldSession
         string inspectionReason = "")
     {
         if (!HasActiveWorld) return;
-        var editableRegions = HasTrustedWorldBuilderAuthority
-            ? _regions.ToList()
-            : _regions.Where(CanEditRegion).ToList();
+        var editableRegions = inspectionEdit && TrustedPlatformDeveloper
+            ? _regions.Where(region =>
+                ActiveRegion is not null
+                && string.Equals(region.RegionId, ActiveRegion.RegionId, StringComparison.Ordinal)).ToList()
+            : HasTrustedWorldBuilderAuthority
+                ? _regions.ToList()
+                : _regions.Where(CanEditRegion).ToList();
         if (editableRegions.Count == 0)
             throw new UnauthorizedAccessException("Region edit authority is required to save regions.");
 
