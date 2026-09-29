@@ -384,6 +384,10 @@ Resources:
           ASSET_BASE_URL: !Sub '${FrontendOrigin}/Game/assets/zones/sunken-tundra'
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref WorldStateTable }
+        - Statement:
+            - Effect: Allow
+              Action: [kms:Decrypt, kms:Encrypt, kms:GenerateDataKey, kms:DescribeKey]
+              Resource: !GetAtt UserDataKey.Arn
 
   SunkenTundraSeedInvokePermission:
     Type: AWS::Lambda::Permission
