@@ -991,7 +991,7 @@
  int RightDisplayOptionCount=>_stage switch
  {
   Stage.DeedSelect=>Math.Max(1,PathWorldCount),
-  Stage.MmoMap=>1,
+  Stage.MmoMap=>MmoRightOptionCount,
   Stage.ContextSelect=>ContextPath.Length,
   _=>IsBuilderStage
    ?1
@@ -3779,7 +3779,8 @@
      else ApplyY(direction);
      break;
     case "right-slider":
-     if(_stage!=Stage.MmoMap)ApplyX(direction);
+     if(_stage==Stage.MmoMap)CycleMmoRightOption(direction);
+     else ApplyX(direction);
      break;
     case "select":
      if(_stage==Stage.BrowsePlace&&CursorMode)await ActivateBrowseCursorTargetAsync();
