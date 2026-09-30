@@ -84,6 +84,6 @@ test('sandbox Roleplayer path is connected and universal assets share one cache 
   const end=auth.indexOf('async Task ReturnToStartAsync',start);
   assert.ok(start>=0&&end>start);
   assert.doesNotMatch(auth.slice(start,end),/if\(!Session\.IsGeonaphWorld\)return;/);
-  assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-1/);
-  assert.match(index,/universal-interface-input\.js\?v=20260930-semantic-controls-1/);
+  assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-2/);
+  assert.match(index,/universal-interface-input\.js\?v=20260930-semantic-controls-2/);
 });
