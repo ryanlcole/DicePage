@@ -95,3 +95,30 @@ test('sandbox Roleplayer path is connected and universal assets share one cache 
   assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-2/);
   assert.match(index,/universal-interface-input\.js\?v=20260930-semantic-controls-2/);
 });
+
+
+test('Shaelvien skips the redundant Roleplayer or GameMaster chooser and opens the deed map',()=>{
+  const razor=read('Components/UniversalInterface.razor');
+
+  const pressLeftStart=razor.indexOf('async Task PressLeft()');
+  const pressLeftEnd=razor.indexOf('case Stage.Role:',pressLeftStart);
+  assert.ok(pressLeftStart>=0&&pressLeftEnd>pressLeftStart);
+  const shaelvienEntry=razor.slice(pressLeftStart,pressLeftEnd);
+
+  assert.match(shaelvienEntry,/_selectedEnvironment="SHAELVIEN"/);
+  assert.match(shaelvienEntry,/await EnterMmoMapAsync\(inspect:false\)/);
+  assert.doesNotMatch(shaelvienEntry,/_stage=Stage\.Role/);
+
+  const backStart=razor.indexOf('case Stage.MmoMap:',razor.indexOf('void GoBack()'));
+  const backEnd=razor.indexOf('case Stage.HistoryCampaign:',backStart);
+  assert.ok(backStart>=0&&backEnd>backStart);
+  assert.match(razor.slice(backStart,backEnd),/_stage=Stage\.Environment/);
+});
+
+test('deed map itself exposes play and edit choices without a preselected role',()=>{
+  const map=read('Components/UniversalInterface.MmoMap.cs');
+
+  assert.match(map,/if \(MmoCanGameMasterSelected\)[\s\S]{0,120}?EDIT[\s\S]{0,120}?ROLEPLAY/);
+  assert.match(map,/if \(MmoSelectedIsCanonicalGeanaph\)[\s\S]{0,220}?EnterGeonaphHistoryCampaign\(\)/);
+  assert.doesNotMatch(map,/if \(_mmoRoleplayerMode && MmoSelectedIsCanonicalGeanaph\)/);
+});
