@@ -45,7 +45,7 @@ test('universal analog stick press acts as the primary Select control',()=>{
   assert.match(razor,/data-analog-select="true"/);
   assert.match(
     razor,
-    /case "select":[\s\S]{0,260}?if\(_stage==Stage\.BrowsePlace&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\);[\s\S]{0,220}?Stage\.MmoMap[\s\S]{0,140}?else await PressLeft\(\);/
+    /case "select":[\s\S]{0,320}?if\(\(_stage==Stage\.BrowsePlace\|\|_stage==Stage\.MmoMap\)&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\);[\s\S]{0,220}?Stage\.MmoMap[\s\S]{0,140}?else await PressLeft\(\);/
   );
   assert.match(input,/const ANALOG_SELECT_RADIUS = 0\.46;/);
   assert.match(input,/const ANALOG_SELECT_MOVE_PX = 10;/);
@@ -97,9 +97,9 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
 
   assert.match(razor,/bool _browseCursorActive;/);
   assert.match(razor,/bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage\.MmoMap&&_stage!=Stage\.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;/);
-  assert.match(razor,/bool CursorMode=>CursorAvailable[\s\S]{0,120}?!_analogButtonMode/);
+  assert.match(razor,/bool CursorMode=>_stage==Stage\.MmoMap[\s\S]{0,100}?MmoAnalogCursorMode[\s\S]{0,160}?CursorAvailable[\s\S]{0,120}?!_analogButtonMode/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]{0,360}?_browseCursorActive=true;[\s\S]{0,120}?_analogButtonMode=false;/);
-  assert.match(razor,/if\(_stage==Stage\.BrowsePlace&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\)/);
+  assert.match(razor,/if\(\(_stage==Stage\.BrowsePlace\|\|_stage==Stage\.MmoMap\)&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\)/);
   assert.match(input,/function activateCursorTarget\(\)/);
   assert.match(input,/document\.elementFromPoint/);
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
@@ -179,7 +179,7 @@ test('analog center tap selects the asset currently under the cursor',()=>{
   assert.match(input,/document\.elementFromPoint/);
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
-  assert.match(razor,/case "select":[\s\S]{0,260}?Stage\.BrowsePlace&&CursorMode[\s\S]{0,120}?ActivateBrowseCursorTargetAsync/);
+  assert.match(razor,/case "select":[\s\S]{0,320}?Stage\.BrowsePlace\|\|_stage==Stage\.MmoMap[\s\S]{0,140}?CursorMode[\s\S]{0,120}?ActivateBrowseCursorTargetAsync/);
 });
 
 
