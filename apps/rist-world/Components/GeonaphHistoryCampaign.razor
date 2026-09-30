@@ -19,7 +19,7 @@
     <span>@DepthSubtitle</span>
    </div>
    <div class="gh-badges">
-    <b>FACT-FIRST</b><b>SHARED EXPERIENCE</b><b>SHAELVIEN OWNED</b>
+    <b>FACT-FIRST</b><b>SHARED EXPERIENCE</b><b>EDUCATIONAL · NON-GRAPHIC</b>
    </div>
   </header>
 
@@ -53,14 +53,14 @@
     <article class="gh-main">
      <header><small>@DepthBadge</small><h2>@DepthTitle</h2><p>@DepthSummary</p></header>
      <section>
-      <h3>HISTORY</h3>
+      <h3>FACT / EVIDENCE</h3>
       @foreach(var fact in DepthFacts)
       {
        <p class="gh-entry"><b>@fact.Classification</b><span>@fact.Text</span></p>
       }
      </section>
      <section>
-      <h3>LORE / PLAYABLE INTERPRETATION</h3>
+      <h3>RECONSTRUCTION / FICTION</h3>
       @foreach(var lore in DepthLore)
       {
        <p class="gh-entry"><b>@lore.Classification</b><span>@lore.Text</span></p>
@@ -92,6 +92,16 @@
       <p>The factual hierarchy is fixed for every player.</p>
      }
 
+     @if(DepthIndex>=2)
+     {
+      <section class="gh-sprite-set">
+       <h3>RECONSTRUCTION SPRITES</h3>
+       <img src="assets/geonaph/history/lomekwi3/sprites/lom3-toolmaker-actions.svg"
+            alt="Evidence-safe reconstruction sprite strip for Lomekwi 3 activities; taxonomic identity unresolved" />
+       <small>RECONSTRUCTION · TAXONOMIC IDENTITY UNRESOLVED · NO UNSUPPORTED EQUIPMENT</small>
+      </section>
+     }
+
      <h3>SOURCES</h3>
      @foreach(var source in Sources)
      {
@@ -104,7 +114,7 @@
   <footer class="gh-footer">
    <span>ORIGINAL LANGUAGE: UNATTESTED AT THIS NODE</span>
    <span>FACT ≠ RECONSTRUCTION ≠ FICTION</span>
-   <span>EASTWARD HISTORY CORRIDOR</span>
+   <span>EDUCATIONAL · NON-GRAPHIC</span>
   </footer>
  }
 </section>
@@ -215,6 +225,7 @@
  .gh-recursion{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.gh-recursion span{padding:6px;border:1px solid #384d56;border-radius:8px;text-align:center;color:#718894;font-size:8px;font-weight:900;letter-spacing:.15em}.gh-recursion span.visited{color:#9fc1ce}.gh-recursion span.active{border-color:#e0b650;background:#27200d;color:#ffe39a}
  .gh-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(220px,.9fr);gap:8px;min-height:0}.gh-main,.gh-side,.gh-context{min-height:0;border:1px solid #6f5b2e;border-radius:12px;background:#071016e8;overflow:auto}.gh-main{padding:12px}.gh-main header h2,.gh-context h2{margin:3px 0 6px;color:#f0d38a;font:700 24px Georgia,serif}.gh-main header p{margin:0 0 10px;color:#a8bdc5;font-size:10px;line-height:1.45}.gh-main h3,.gh-side h3{margin:12px 0 6px;color:#7edcff;font-size:9px;letter-spacing:.16em}.gh-entry{display:grid;grid-template-columns:110px 1fr;gap:8px;margin:5px 0;padding:7px;border:1px solid #263d48;border-radius:7px;background:#091820}.gh-entry b{color:#f0c96b;font-size:8px;letter-spacing:.08em}.gh-entry span{font-size:10px;line-height:1.45;color:#d5dee2}
  .gh-side{padding:10px}.gh-task{display:grid;grid-template-columns:18px 1fr;gap:6px;padding:7px;margin:5px 0;border:1px solid #2e4550;border-radius:8px}.gh-task.selected{border-color:#e7b944;background:#1d1a0e}.gh-task.done{box-shadow:inset 3px 0 #4bc7a4}.gh-task>span{color:#f1d276}.gh-task b{display:block;color:#e8e0ca;font-size:9px}.gh-task small{color:#8cc6dd;font-size:7px}.gh-task p{margin:3px 0 0;color:#9eafb7;font-size:8px;line-height:1.35}.gh-side>a{display:block;margin:6px 0;color:#a9dff4;font-size:8px;line-height:1.35}.gh-lock{margin-top:8px;padding:8px;border:1px solid #8b6c2b;border-radius:7px;color:#f0d38a;font-size:8px;font-weight:900;text-align:center}
+ .gh-sprite-set{margin-top:10px;padding:8px;border:1px solid #38525e;border-radius:8px;background:#071820}.gh-sprite-set img{display:block;width:100%;max-height:88px;object-fit:contain;image-rendering:pixelated;background:#02070a;border-radius:6px}.gh-sprite-set small{display:block;margin-top:5px;color:#88baca;font-size:7px;line-height:1.35}
  .gh-context{padding:14px}.gh-context dl{display:grid;grid-template-columns:145px 1fr;gap:8px;font-size:10px}.gh-context dt{color:#86bcd0}.gh-context dd{margin:0;color:#e5dfcf}.gh-context section{margin-top:12px;padding:10px;border:1px solid #754d2d;border-radius:8px;background:#1a100a}.gh-context section b{color:#efb26d;font-size:8px}.gh-context section p{font-size:10px;line-height:1.45}.gh-context footer{margin-top:12px;color:#9eb1b8;font-size:8px}
  .gh-footer{display:flex;justify-content:space-between;gap:8px;padding:6px 8px;border-top:1px solid #5f4b27;color:#89aab7;font-size:7px;font-weight:900;letter-spacing:.07em}.gh-loading,.gh-error{display:grid;place-items:center;height:100%;color:#e8d18e}
  @@media(max-width:720px){.geonaph-history-campaign{padding:7px}.gh-header{padding:8px}.gh-header strong{font-size:18px}.gh-badges b:nth-child(n+2){display:none}.gh-grid{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}.gh-side{max-height:34vh}.gh-entry{grid-template-columns:86px 1fr}.gh-footer span:nth-child(2){display:none}.gh-context dl{grid-template-columns:110px 1fr}}

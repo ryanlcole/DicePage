@@ -13,8 +13,8 @@ from boto3.dynamodb.conditions import Key
 
 WORLD_ID = "shaelvien-geonaph-alpha-001"
 WORLD_PK = f"WORLD#{WORLD_ID}"
-ZONE_NAME = "Geanaph"
-ZONE_MARKER = "geanaph-east-v2"
+ZONE_NAME = "Geonaph"
+ZONE_MARKER = "geonaph-east-v4-history-policy"
 GRID_COLUMNS = 30
 GRID_ROWS = 30
 PARCEL_PIXELS = 2048
@@ -55,6 +55,11 @@ def utc_stamp() -> str:
 
 def normalized_name(value) -> str:
     return " ".join(str(value or "").strip().lower().split())
+
+
+def is_geonaph_name(value) -> bool:
+    # Accept the legacy display spelling while migrating one persistent identity.
+    return normalized_name(value) in {"geonaph", "geanaph"}
 
 
 def query_world_prefix(table, prefix: str) -> list[dict]:
@@ -173,8 +178,13 @@ def canonical_region(
             "frameLock": True,
             "visualLayerCount": len(VISUAL_LAYERS),
             "representationPolicy": "Representation != Semantic Truth",
+            "historyContentPolicy": {
+                "matureContent": "PROHIBITED",
+                "presentation": "neutral-educational-non-graphic",
+                "preserveDifficultFacts": True,
+            },
             "description": (
-                "Canonical Shaelvien-owned Geanaph historical corridor. "
+                "Canonical Shaelvien-owned Geonaph historical corridor. "
                 "Facts, reconstruction, and fiction remain separately labeled."
             ),
             "spatialNodes": [
@@ -183,11 +193,12 @@ def canonical_region(
                     "kind": "REGION",
                     "name": "West Turkana",
                     "parentNodeId": CANONICAL_REGION_ID,
+                    "provenance": "FACT",
                     "createdAtUtc": str(state.get("createdAtUtc") or stamp),
                     "updatedAtUtc": stamp,
                     "description": (
                         "FACT: West Turkana, Kenya. Contains the Lomekwi 3 archaeological "
-                        "site used as Geanaph's oldest installed playable history node."
+                        "site used as Geonaph's oldest installed playable history node."
                     ),
                 },
                 {
@@ -195,6 +206,7 @@ def canonical_region(
                     "kind": "LOCAL",
                     "name": "Lomekwi 3",
                     "parentNodeId": HISTORY_REGION_NODE_ID,
+                    "provenance": "FACT",
                     "createdAtUtc": str(state.get("createdAtUtc") or stamp),
                     "updatedAtUtc": stamp,
                     "description": (
@@ -208,6 +220,7 @@ def canonical_region(
                     "kind": "INSTANCE",
                     "name": "LOM3 Tool-Making Locality",
                     "parentNodeId": HISTORY_LOCAL_NODE_ID,
+                    "provenance": "FACT",
                     "createdAtUtc": str(state.get("createdAtUtc") or stamp),
                     "updatedAtUtc": stamp,
                     "description": (
@@ -284,9 +297,9 @@ def verify_existing_target(parcels: list[dict]) -> dict | None:
     if exact_cell is None:
         return None
 
-    if normalized_name(exact_cell.get("displayName")) != normalized_name(ZONE_NAME):
+    if not is_geonaph_name(exact_cell.get("displayName")):
         raise RuntimeError(
-            "The canonical Geanaph cell east of Endemar is already occupied by "
+            "The canonical Geonaph cell east of Endemar is already occupied by "
             + str(exact_cell.get("displayName") or exact_cell.get("parcelId") or "another deed")
             + "; refusing to overwrite existing world truth."
         )
@@ -315,20 +328,20 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
 
     for parcel in parcels:
         if (
-            normalized_name(parcel.get("displayName")) == normalized_name(ZONE_NAME)
+            is_geonaph_name(parcel.get("displayName"))
             and int(parcel.get("cellIndex") or -1) != CANONICAL_CELL
         ):
             raise RuntimeError(
-                "A Geanaph parcel already exists outside the canonical east-of-Endemar cell; "
+                "A Geonaph parcel already exists outside the canonical east-of-Endemar cell; "
                 "refusing to create a second identity."
             )
 
     existing_region = region_item(table, CANONICAL_REGION_ID)
     if existing_region:
         existing_name = normalized_name(region_name(existing_region))
-        if existing_name and existing_name != normalized_name(ZONE_NAME):
+        if existing_name and not is_geonaph_name(existing_name):
             raise RuntimeError(
-                "The canonical Geanaph region identity conflicts with an existing region; "
+                "The canonical Geonaph region identity conflicts with an existing region; "
                 "refusing to overwrite existing world truth."
             )
 
@@ -405,26 +418,26 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
 
     if str(verify_parcel.get("ownerUserId") or "") != owner_user_id:
         raise RuntimeError(
-            "Geanaph verification failed: parcel owner does not match the configured platform owner."
+            "Geonaph verification failed: parcel owner does not match the configured platform owner."
         )
     if int(verify_parcel.get("column") or -1) != CANONICAL_COLUMN or int(
         verify_parcel.get("row") or -1
     ) != CANONICAL_ROW:
         raise RuntimeError(
-            "Geanaph verification failed: parcel is not exactly east of Endemar."
+            "Geonaph verification failed: parcel is not exactly east of Endemar."
         )
     if len(verify_layers) != len(VISUAL_LAYERS):
         raise RuntimeError(
-            f"Geanaph verification failed: expected {len(VISUAL_LAYERS)} visual layers, "
+            f"Geonaph verification failed: expected {len(VISUAL_LAYERS)} visual layers, "
             f"found {len(verify_layers)}."
         )
     if sum(1 for item in verify_layers if bool(item.get("mmoSurface"))) != 1:
         raise RuntimeError(
-            "Geanaph verification failed: exactly one deed-map surface representation is required."
+            "Geonaph verification failed: exactly one deed-map surface representation is required."
         )
     if not all(bool(item.get("fullDeedFrame")) for item in verify_layers):
         raise RuntimeError(
-            "Geanaph verification failed: every visual layer must fill the locked deed frame."
+            "Geonaph verification failed: every visual layer must fill the locked deed frame."
         )
 
     verify_region = region_item(table, CANONICAL_REGION_ID)
@@ -439,24 +452,38 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         if isinstance(node, dict)
     }
     required_history_nodes = {
-        HISTORY_REGION_NODE_ID: ("REGION", CANONICAL_REGION_ID),
-        HISTORY_LOCAL_NODE_ID: ("LOCAL", HISTORY_REGION_NODE_ID),
-        HISTORY_INSTANCE_NODE_ID: ("INSTANCE", HISTORY_LOCAL_NODE_ID),
+        HISTORY_REGION_NODE_ID: ("REGION", CANONICAL_REGION_ID, "FACT"),
+        HISTORY_LOCAL_NODE_ID: ("LOCAL", HISTORY_REGION_NODE_ID, "FACT"),
+        HISTORY_INSTANCE_NODE_ID: ("INSTANCE", HISTORY_LOCAL_NODE_ID, "FACT"),
     }
-    for node_id, (kind, parent_id) in required_history_nodes.items():
+    for node_id, (kind, parent_id, provenance) in required_history_nodes.items():
         node = verify_nodes.get(node_id)
         if not node:
             raise RuntimeError(
-                f"Geanaph history verification failed: missing spatial node {node_id}."
+                f"Geonaph history verification failed: missing spatial node {node_id}."
             )
         if str(node.get("kind") or "").upper() != kind:
             raise RuntimeError(
-                f"Geanaph history verification failed: {node_id} has the wrong kind."
+                f"Geonaph history verification failed: {node_id} has the wrong kind."
             )
         if str(node.get("parentNodeId") or "") != parent_id:
             raise RuntimeError(
-                f"Geanaph history verification failed: {node_id} has the wrong parent."
+                f"Geonaph history verification failed: {node_id} has the wrong parent."
             )
+        if str(node.get("provenance") or "").upper() != provenance:
+            raise RuntimeError(
+                f"Geonaph history verification failed: {node_id} has invalid provenance."
+            )
+
+    history_policy = (
+        verify_region_state.get("historyContentPolicy")
+        if isinstance(verify_region_state.get("historyContentPolicy"), dict)
+        else {}
+    )
+    if str(history_policy.get("matureContent") or "").upper() != "PROHIBITED":
+        raise RuntimeError(
+            "Geonaph history verification failed: mature campaign presentation must remain prohibited."
+        )
 
     return {
         "seeded": True,
@@ -474,6 +501,9 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         "historyLocalNodeId": HISTORY_LOCAL_NODE_ID,
         "historyInstanceNodeId": HISTORY_INSTANCE_NODE_ID,
         "historyHierarchyVerified": True,
+        "historyProvenanceVerified": True,
+        "historyContentPolicyVerified": True,
+        "canonicalDisplayName": ZONE_NAME,
         "frameWidth": FRAME_WIDTH,
         "frameHeight": FRAME_HEIGHT,
         "frameLock": True,
@@ -520,7 +550,7 @@ def handler(event, context):
 
         if not owner_user_id:
             raise RuntimeError(
-                "OWNER_USER_ID is required so Geanaph uses the same platform-owner account as Endemar."
+                "OWNER_USER_ID is required so Geonaph uses the same platform-owner account as Endemar."
             )
         if not asset_base_url.startswith("https://"):
             raise RuntimeError("ASSET_BASE_URL must be an HTTPS URL.")
@@ -529,7 +559,7 @@ def handler(event, context):
         print(json.dumps(result, sort_keys=True))
         send_cloudformation_response(event, context, "SUCCESS", result)
     except Exception as exc:
-        print(f"Geanaph seed failed: {exc}")
+        print(f"Geonaph seed failed: {exc}")
         send_cloudformation_response(
             event,
             context,

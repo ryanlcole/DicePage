@@ -28,8 +28,13 @@ def test_history_campaign_starts_at_lomekwi_without_inventing_species_or_languag
     assert instance["languageContext"]["originalLanguageStatus"] == "UNATTESTED"
     assert instance["languageContext"]["transliteration"] == "NOT AVAILABLE"
     assert instance["languageContext"]["translation"] == "No historical translation exists."
-    assert data["spriteSpecification"]["status"] == "EVIDENCE_SAFE_ART_PENDING"
+    assert data["spriteSpecification"]["status"] == "EVIDENCE_SAFE_ART_V1"
+    assert data["spriteSpecification"]["provenance"] == "RECONSTRUCTION"
+    assert data["spriteSpecification"]["assetManifest"] == "data/geonaph/history/assets-v1.json"
     assert "controlled fire as a lomekwi 3 fact" in joined
+    assert data["contentProfile"]["matureContent"] == "PROHIBITED"
+    assert data["contentProfile"]["presentation"] == "NEUTRAL_EDUCATIONAL_NON_GRAPHIC"
+    assert "mature material may appear" not in joined
 
 
 def test_history_tasks_only_use_lomekwi_supported_actions_and_keep_bridge_locked():
@@ -42,10 +47,10 @@ def test_history_tasks_only_use_lomekwi_supported_actions_and_keep_bridge_locked
     assert "Reduce the core" in labels
     assert len(tasks) == 5
     assert instance["bridge"]["status"] == "LOCKED_UNTIL_NEXT_FACT_NODE_VERIFIED"
-    assert all(
-        task["classification"] in {"FACT_DERIVED_ACTION", "RECONSTRUCTION"}
-        for task in tasks
-    )
+    assert instance["classification"] == "FACT"
+    assert instance["playableReconstruction"]["classification"] == "RECONSTRUCTION"
+    assert all(task["classification"] == "RECONSTRUCTION" for task in tasks)
+    assert instance["bridge"]["classification"] == "FICTION"
 
 
 def test_history_campaign_uses_universal_controller_instead_of_leaving_it():
@@ -80,7 +85,12 @@ def test_geanaph_database_seed_contains_region_local_instance_history_hierarchy(
     assert '"kind": "LOCAL"' in seed
     assert '"kind": "INSTANCE"' in seed
     assert '"historyHierarchyVerified": True' in seed
-    assert "Revision: geanaph-east-v3-history" in template
+    assert '"historyProvenanceVerified": True' in seed
+    assert '"historyContentPolicyVerified": True' in seed
+    assert 'ZONE_NAME = "Geonaph"' in seed
+    assert "is_geonaph_name" in seed
+    assert seed.count('"provenance": "FACT"') >= 3
+    assert "Revision: geonaph-east-v4-history-policy" in template
 
 
 def test_history_context_keeps_original_translation_reconstruction_and_fiction_separate():
@@ -93,5 +103,25 @@ def test_history_context_keeps_original_translation_reconstruction_and_fiction_s
     assert "Translation" in component
     assert "FICTIONAL GAMEPLAY DIALOGUE" in component
     assert "FACT ≠ RECONSTRUCTION ≠ FICTION" in component
+    assert language["classification"] == "FACT"
     assert language["originalLanguageStatus"] == "UNATTESTED"
+    assert language["original"] == "No written or recorded language survives."
     assert language["fictionalDialogue"]["classification"] == "FICTION"
+
+
+def test_history_provenance_and_content_policy_allow_only_evidence_safe_values():
+    data = json.loads(text("apps/rist-world/wwwroot/data/geonaph/history/campaign-v1.json"))
+    instance = data["zone"]["region"]["local"]["instance"]
+    allowed = {"FACT", "RECONSTRUCTION", "FICTION"}
+
+    assert data["zone"]["classification"] in allowed
+    assert data["zone"]["region"]["classification"] in allowed
+    assert data["zone"]["region"]["local"]["classification"] in allowed
+    assert instance["classification"] in allowed
+    assert instance["playableReconstruction"]["classification"] in allowed
+    assert instance["languageContext"]["classification"] in allowed
+    assert instance["bridge"]["classification"] in allowed
+    assert all(task["classification"] in allowed for task in instance["tasks"])
+    assert all(source["classification"] == "FACT" for source in data["sources"])
+    assert data["contentProfile"]["ratingStatus"] == "NON_MATURE"
+    assert data["contentProfile"]["matureContent"] == "PROHIBITED"

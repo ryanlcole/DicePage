@@ -1,0 +1,28 @@
+{
+  "schema": "shaelvien.geonaph.history-assets.v1",
+  "campaign": "Geonaph",
+  "region": {
+    "id": "west-turkana",
+    "name": "West Turkana",
+    "classification": "FACT"
+  },
+  "local": {
+    "id": "lomekwi-3",
+    "name": "Lomekwi 3",
+    "classification": "FACT"
+  },
+  "instance": {
+    "id": "lom3-toolmaking-locality",
+    "name": "LOM3 Tool-Making Locality",
+    "classification": "FACT"
+  },
+  "spriteSets": [
+    {
+      "id": "lom3-toolmaker-actions-v1",
+      "provenance": "RECONSTRUCTION",
+      "path": "assets/geonaph/history/lomekwi3/sprites/sprite-set.json",
+      "visual": "assets/geonaph/history/lomekwi3/sprites/lom3-toolmaker-actions.svg",
+      "taxonomicIdentity": "UNRESOLVED"
+    }
+  ]
+}

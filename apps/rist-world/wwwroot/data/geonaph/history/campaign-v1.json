@@ -19,11 +19,24 @@
       "x": 2,
       "y": 0
     },
-    "boundaryRule": "Create the next eastward Shaelvien-owned zone when documented material or structural change is substantial enough that the current gameplay model no longer accurately represents the next historical arc."
+    "boundaryRule": "Create the next eastward Shaelvien-owned zone when documented material or structural change is substantial enough that the current gameplay model no longer accurately represents the next historical arc.",
+    "classification": "FICTION"
   },
   "contentProfile": {
-    "ratingStatus": "UNRATED",
-    "principle": "Do not sanitize or sensationalize documented history. Mature material may appear in later arcs when evidence requires it, with content notices and non-gratuitous presentation."
+    "ratingStatus": "NON_MATURE",
+    "matureContent": "PROHIBITED",
+    "presentation": "NEUTRAL_EDUCATIONAL_NON_GRAPHIC",
+    "principle": "Documented difficult history remains factual and is presented in neutral, educational, non-graphic language. Mature-rated presentation, graphic gore, explicit sexual material, sexual violence, graphic torture, gratuitous cruelty, explicit depictions of human remains, and shock-oriented historical presentation are prohibited.",
+    "prohibited": [
+      "Mature-rated presentation",
+      "graphic gore",
+      "explicit sexual material",
+      "sexual violence",
+      "graphic torture",
+      "gratuitous cruelty",
+      "explicit depictions of human remains",
+      "shock-oriented historical presentation"
+    ]
   },
   "provenanceLegend": {
     "FACT": "Directly supported by the cited archaeological record.",
@@ -88,7 +101,7 @@
         "instance": {
           "id": "lom3-toolmaking-locality",
           "name": "LOM3 Tool-Making Locality",
-          "classification": "FACT_ANCHOR_WITH_PLAYABLE_RECONSTRUCTION",
+          "classification": "FACT",
           "objective": "Reproduce only the documented classes of stone-working action, then preserve the uncertainty.",
           "facts": [
             "3.3 Ma age for the archaeological site.",
@@ -116,14 +129,14 @@
             {
               "id": "batter",
               "label": "Batter",
-              "classification": "FACT_DERIVED_ACTION",
+              "classification": "RECONSTRUCTION",
               "historicalBasis": "Battering activities are directly reported for LOM3.",
               "action": "Perform controlled repeated percussion and observe the resulting damage."
             },
             {
               "id": "reduce-core",
               "label": "Reduce the core",
-              "classification": "FACT_DERIVED_ACTION",
+              "classification": "RECONSTRUCTION",
               "historicalBasis": "Core reduction is directly reported for LOM3.",
               "action": "Attempt to detach material from the core without introducing later stone-tool techniques."
             },
@@ -137,26 +150,32 @@
           ],
           "languageContext": {
             "originalLanguageStatus": "UNATTESTED",
-            "original": "No written or recorded language survives from the Lomekwi 3 toolmakers.",
+            "original": "No written or recorded language survives.",
             "transliteration": "NOT AVAILABLE",
             "translation": "No historical translation exists.",
             "fictionalDialogue": {
               "classification": "FICTION",
               "label": "Gameplay rendering",
               "text": "Characters may communicate through game dialogue or gesture for continuity, but no words, grammar, names, or language family may be presented as historical."
-            }
+            },
+            "classification": "FACT"
           },
           "bridge": {
             "classification": "FICTION",
             "status": "LOCKED_UNTIL_NEXT_FACT_NODE_VERIFIED",
             "rule": "After the factual tasks resolve, fictional continuity may move the party forward in time only toward a separately verified archaeological node."
+          },
+          "playableReconstruction": {
+            "classification": "RECONSTRUCTION",
+            "rule": "Player actions reconstruct documented classes of stone-working behavior. A successful reconstruction is never promoted into a historical claim."
           }
         }
       }
-    }
+    },
+    "classification": "FICTION"
   },
   "spriteSpecification": {
-    "status": "EVIDENCE_SAFE_ART_PENDING",
+    "status": "EVIDENCE_SAFE_ART_V1",
     "subjectLabel": "Lomekwi 3 toolmakers — taxonomic identity unresolved",
     "styleTarget": "retro console RPG directional sprites",
     "allowed": [
@@ -176,7 +195,8 @@
       "controlled fire as a Lomekwi 3 fact",
       "named species presented as certain"
     ],
-    "provenance": "RECONSTRUCTION"
+    "provenance": "RECONSTRUCTION",
+    "assetManifest": "data/geonaph/history/assets-v1.json"
   },
   "sources": [
     {
@@ -184,13 +204,15 @@
       "type": "primary_research",
       "citation": "Harmand, S. et al. 3.3-million-year-old stone tools from Lomekwi 3, West Turkana, Kenya. Nature 521, 310–315 (2015).",
       "doi": "10.1038/nature14464",
-      "url": "https://www.nature.com/articles/nature14464"
+      "url": "https://www.nature.com/articles/nature14464",
+      "classification": "FACT"
     },
     {
       "id": "namorotukunan-2025",
       "type": "peer_reviewed_context",
       "citation": "Early Oldowan technology thrived during Pliocene environmental change in the Turkana Basin, Kenya. Nature Communications (2025).",
-      "url": "https://www.nature.com/articles/s41467-025-64244-x"
+      "url": "https://www.nature.com/articles/s41467-025-64244-x",
+      "classification": "FACT"
     }
   ]
 }

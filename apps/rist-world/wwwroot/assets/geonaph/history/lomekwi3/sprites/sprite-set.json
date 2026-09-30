@@ -1,0 +1,61 @@
+{
+  "schema": "shaelvien.geonaph.sprite-set.v1",
+  "id": "lom3-toolmaker-actions-v1",
+  "provenance": "RECONSTRUCTION",
+  "taxonomicIdentity": "UNRESOLVED",
+  "matureContent": "PROHIBITED",
+  "sourceIds": [
+    "harmand-2015"
+  ],
+  "sheet": "lom3-toolmaker-actions.svg",
+  "sheetWidth": 288,
+  "sheetHeight": 48,
+  "frameWidth": 48,
+  "frameHeight": 48,
+  "style": "original Shaelvien retro-console silhouette reconstruction",
+  "evidenceBoundary": "The poses teach documented classes of stone-working behavior. Body form, exact posture, sequence, participants, and social context are reconstruction and are not archaeological claims.",
+  "frames": [
+    {
+      "index": 0,
+      "x": 0,
+      "y": 0,
+      "action": "neutral-locomotion-a",
+      "classification": "RECONSTRUCTION"
+    },
+    {
+      "index": 1,
+      "x": 48,
+      "y": 0,
+      "action": "neutral-locomotion-b",
+      "classification": "RECONSTRUCTION"
+    },
+    {
+      "index": 2,
+      "x": 96,
+      "y": 0,
+      "action": "observe-stone",
+      "classification": "RECONSTRUCTION"
+    },
+    {
+      "index": 3,
+      "x": 144,
+      "y": 0,
+      "action": "carry-stone",
+      "classification": "RECONSTRUCTION"
+    },
+    {
+      "index": 4,
+      "x": 192,
+      "y": 0,
+      "action": "battering-percussion",
+      "classification": "RECONSTRUCTION"
+    },
+    {
+      "index": 5,
+      "x": 240,
+      "y": 0,
+      "action": "core-working",
+      "classification": "RECONSTRUCTION"
+    }
+  ]
+}
