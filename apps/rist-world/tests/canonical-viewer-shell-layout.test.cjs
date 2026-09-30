@@ -345,7 +345,7 @@ test('developer Inspect is a deed-map oversight action and audited edits return 
   assert.match(mmo,/Session\.TrustedPlatformDeveloper[\s\S]{0,260}?new\("ROLEPLAY", "roleplay"\), new\("INSPECT", "inspect"\)/);
   assert.match(mmo,/EnterMmoInspectSelectionAsync/);
   assert.match(mmo,/new\("MANAGE", "manage"\)/);
-  assert.match(mmo,/OPEN WORLD BUILDER/);
+  assert.match(razor,/OPEN WORLD BUILDER/);
   assert.doesNotMatch(razor,/<ShaelvienDeedGate/);
   assert.match(razor,/_inspectionEditMode/);
   assert.match(razor,/REASON FOR NEXT EDIT/);
