@@ -95,7 +95,11 @@ public sealed record LegacyArchiveManifest(
     int ImageCount,
     int HtmlCount,
     int ProgramCount,
-    List<LegacyArchiveEntry> Files);
+    List<LegacyArchiveEntry> Files)
+{
+    public string ControlContract { get; init; } = "";
+    public string ControlProfileKey { get; init; } = "";
+}
 
 public static class LegacyArchiveImport
 {
@@ -128,6 +132,34 @@ public static class LegacyArchiveImport
     static readonly JsonSerializerOptions JsonOptions=new(){WriteIndented=true};
 
     public static string ManifestKey(string worldId)=>$"worlds/{SafeSegment(worldId)}/legacy/manifest.json";
+    public static string ControlProfileKey(string worldId)=>$"worlds/{SafeSegment(worldId)}/legacy/controls.json";
+
+    public static async Task<LegacyArchiveManifest?> EnsureSemanticControlProfileAsync(string worldId,DiscordAuthClient auth)
+    {
+        if(string.IsNullOrWhiteSpace(worldId))return null;
+        var manifest=await auth.DownloadJsonAsync<LegacyArchiveManifest>(ManifestKey(worldId));
+        if(manifest is null)return null;
+
+        var profileKey=ControlProfileKey(worldId);
+        var profile=UniversalSemanticControls.CreateLegacyImportProfile(worldId);
+        await auth.UploadTextAsync(profileKey,JsonSerializer.Serialize(profile,JsonOptions),"application/json");
+
+        if(manifest.Version<3
+           ||!string.Equals(manifest.ControlContract,UniversalSemanticControls.ContractId,StringComparison.Ordinal)
+           ||!string.Equals(manifest.ControlProfileKey,profileKey,StringComparison.Ordinal))
+        {
+            manifest=manifest with
+            {
+                Version=Math.Max(3,manifest.Version),
+                ControlContract=UniversalSemanticControls.ContractId,
+                ControlProfileKey=profileKey
+            };
+            await auth.UploadTextAsync(ManifestKey(worldId),JsonSerializer.Serialize(manifest,JsonOptions),"application/json");
+        }
+
+        return manifest;
+    }
+
     public static string CapsuleRequestKey(string worldId,string entryId)=>$"worlds/{SafeSegment(worldId)}/legacy/runecore/capsules/{SafeSegment(entryId)}.json";
     public static string OriginMediaKey(string worldId,string entryId,string fileName)=>$"worlds/{SafeSegment(worldId)}/legacy/runecore/media/{SafeSegment(entryId)}/{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss}-{SafeSegment(Path.GetFileName(fileName))}";
 
@@ -299,15 +331,23 @@ public static class LegacyArchiveImport
         result=result.OrderBy(x=>x.Path,StringComparer.OrdinalIgnoreCase).ToList();
         var binderKey=$"{root}/binder.pdf";
         var navigatorKey=$"{root}/index.html";
+        var controlProfileKey=ControlProfileKey(worldId);
+        var controlProfile=UniversalSemanticControls.CreateLegacyImportProfile(worldId);
+        await auth.UploadTextAsync(controlProfileKey,JsonSerializer.Serialize(controlProfile,JsonOptions),"application/json");
+
         var manifest=new LegacyArchiveManifest(
-            "rist-legacy-archive",2,worldId,worldName,sourceName,sourceKey,binderKey,navigatorKey,
+            "rist-legacy-archive",3,worldId,worldName,sourceName,sourceKey,binderKey,navigatorKey,
             DateTimeOffset.UtcNow.ToString("O"),
             "Runecore compatibility ladder: preserve first; direct-convert when safe; origin software only through a no-network, no-host-credential, read-only-source, disposable capsule. Never auto-execute imported code.",
             inspection.FileCount,
             result.Count(x=>x.Category=="IMAGE"),
             result.Count,
             result.Count(x=>x.Category=="PROGRAM"),
-            result);
+            result)
+        {
+            ControlContract=UniversalSemanticControls.ContractId,
+            ControlProfileKey=controlProfileKey
+        };
 
         await auth.UploadTextAsync(navigatorKey,NavigatorHtml(manifest,appBaseUri),"text/html; charset=utf-8");
         await auth.UploadBytesAsync(binderKey,BinderPdf(manifest,appBaseUri),"application/pdf");
