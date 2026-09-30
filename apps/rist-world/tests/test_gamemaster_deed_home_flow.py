@@ -3,14 +3,24 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_shaelvien_gamemaster_deed_selection_is_separate_from_edit_home():
+def test_shaelvien_gamemaster_enters_permission_driven_deed_map_before_edit_home():
     component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
-    assert "DeedSelect" in component
+    mmo = (ROOT / "Components/UniversalInterface.MmoMap.cs").read_text(encoding="utf-8")
     assert "ContextSelect" in component
-    assert 'Stage.DeedSelect=>"SHAELVIEN"' in component
+    assert "await EnterMmoMapAsync(inspect:false);" in component
+    assert "_stage=Stage.DeedSelect;" not in component
+    assert "_stage = Stage.MmoMap;" in mmo
     assert 'Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER"' in component
     assert 'Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT"' in component
     assert "World Builder is on the left; Context is on the right." in component
+
+
+def test_legacy_launcher_and_deed_modal_are_unpublished_from_authenticated_runtime():
+    auth = (ROOT / "Components/AuthenticatedWorld.razor").read_text(encoding="utf-8")
+    component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
+    assert "<PublicAlphaShell" not in auth
+    assert '<TaskWorkspaceRouter Mode="@(_universalRoleplayPending?"roleplay":"world")"' in auth
+    assert "<ShaelvienDeedGate " not in component
 
 
 def test_shaelvien_context_is_history_lore_truth_without_changing_edit_depth():

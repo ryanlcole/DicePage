@@ -39,18 +39,20 @@ def test_universal_mmo_map_has_requested_deed_actions_and_left_rail():
 
     assert '"ENTER COORDINATES"' in mmo
     assert '"ENTER USER ID"' in mmo
-    assert '"CLAIM DEED"' in mmo
-    assert '"PURCHASE TOKEN AND CLAIM DEED"' in mmo
+    assert '"CLAIM"' in mmo
+    assert '"PURCHASE TOKEN AND CLAIM"' in mmo
+    assert '"EDIT"' in mmo
+    assert '"VIEW"' in mmo
     assert '"ROLEPLAY"' in mmo
-    assert '"GAMEMASTER"' in mmo
     assert '"INSPECT"' in mmo
-    assert '"REQUEST DEED FROM GM"' in mmo
+    assert '"PRIVATE"' in mmo
     assert '"BID (CURRENT BID' in mmo
     assert '"MANAGE"' in mmo
     assert "MmoRightChoices" in mmo
-    assert "Session.HasTrustedWorldBuilderAuthority" in mmo
-    assert "Session.CanEditMmoParcel(parcel)" in mmo
+    assert "MmoSelectedHasExplicitEditPermission" in mmo
+    assert "MmoSelectedIsOwned || MmoSelectedHasExplicitEditPermission" in mmo
     assert "Session.TrustedPlatformDeveloper" in mmo
+    assert '"private" => "TOUCH · ENTER CODE FROM GM"' in mmo
     assert "Stage.MmoMap=>MmoRightOptionCount" in interface
     assert "if(_stage==Stage.MmoMap)CycleMmoRightOption(direction);" in interface
     assert "MoveMmoSelection(direction,0)" in interface

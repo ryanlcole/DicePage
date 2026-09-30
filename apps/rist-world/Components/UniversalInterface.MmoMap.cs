@@ -76,22 +76,36 @@ public partial class UniversalInterface
     bool MmoSelectedIsOpen => !MmoSelectedIsEndemar && MmoSelectedParcel is null && Session.IsMmoParcelOpen(_mmoSelectedCell);
     bool MmoSelectedIsOwned => MmoSelectedParcel is { } parcel && Session.IsMmoParcelOwnedByCurrentUser(parcel.CellIndex);
     bool MmoSelectedIsRefunded => string.Equals(MmoSelectedParcel?.Status, "Refunded", StringComparison.OrdinalIgnoreCase);
-    bool MmoSelectedIsShaelvienRoleplayZone =>
-        MmoSelectedIsEndemar || IsCanonicalShaelvienRoleplayZone(MmoSelectedParcel);
+    bool MmoSelectedIsPublic =>
+        MmoSelectedIsEndemar
+        || (MmoSelectedParcel is { } parcel
+            && string.Equals(parcel.Visibility, "Public", StringComparison.OrdinalIgnoreCase));
+
+    bool MmoSelectedHasExplicitEditPermission =>
+        MmoSelectedParcel is { } parcel
+        && (string.Equals(parcel.EffectivePermission, "Edit", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(parcel.EffectivePermission, "Manage", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(parcel.EffectivePermission, "Owner", StringComparison.OrdinalIgnoreCase));
+
+    // Platform/developer authority must not make every player's deed look owned.
+    // Endemar is platform-owned; claimed deeds show EDIT only for their owner or
+    // an explicit parcel-level Edit/Manage/Owner delegation.
     bool MmoCanGameMasterSelected =>
         MmoSelectedIsEndemar
             ? Session.HasTrustedWorldBuilderAuthority
-            : MmoSelectedParcel is { } parcel && Session.CanEditMmoParcel(parcel);
+            : MmoSelectedIsOwned || MmoSelectedHasExplicitEditPermission;
+
+    bool MmoCanViewSelected =>
+        MmoSelectedIsEndemar
+        || (MmoSelectedParcel is { } parcel
+            && (MmoSelectedIsPublic
+                || string.Equals(parcel.EffectivePermission, "View", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(parcel.EffectivePermission, "Edit", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(parcel.EffectivePermission, "Manage", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(parcel.EffectivePermission, "Owner", StringComparison.OrdinalIgnoreCase)));
+
     bool MmoCanInspectSelected =>
         Session.TrustedPlatformDeveloper && (MmoSelectedIsEndemar || MmoSelectedParcel is not null);
-
-    static bool IsCanonicalShaelvienRoleplayZone(AwsAuthorityClient.MmoParcel? parcel)
-    {
-        if (parcel is null) return false;
-        var name = (parcel.DisplayName ?? "").Trim();
-        return string.Equals(name, "The Sunken Tundra", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(name, "Sunken Tundra", StringComparison.OrdinalIgnoreCase);
-    }
 
     string MmoBidLabel
     {
@@ -115,23 +129,24 @@ public partial class UniversalInterface
             if (MmoSelectedIsRefunded)
                 return [new(MmoBidLabel, "bid")];
 
-            var result = new List<MmoRightChoice>();
-            if (MmoSelectedIsShaelvienRoleplayZone)
-                result.Add(new("ROLEPLAY", "roleplay"));
-            if (MmoCanGameMasterSelected)
-                result.Add(new("GAMEMASTER", "gamemaster"));
-            if (MmoCanInspectSelected)
-                result.Add(new("INSPECT", "inspect"));
-            if (result.Count > 0)
-                return result;
-
-            if (MmoSelectedParcel is not null)
-                return [new("REQUEST DEED FROM GM", "request")];
-
             if (MmoSelectedIsOpen)
                 return Session.HasUnspentMmoWorldToken
-                    ? [new("CLAIM DEED", "claim")]
-                    : [new("PURCHASE TOKEN AND CLAIM DEED", "purchase")];
+                    ? [new("CLAIM", "claim")]
+                    : [new("PURCHASE TOKEN AND CLAIM", "purchase")];
+
+            if (MmoCanGameMasterSelected)
+                return [new("EDIT", "edit")];
+
+            // Developer Inspect is an oversight/audit capability, not deed
+            // ownership. Keep the owner's edit surface distinct.
+            if (Session.TrustedPlatformDeveloper && MmoSelectedParcel is not null)
+                return [new("ROLEPLAY", "roleplay"), new("INSPECT", "inspect")];
+
+            if (MmoCanViewSelected)
+                return [new("VIEW", "view"), new("ROLEPLAY", "roleplay")];
+
+            if (MmoSelectedParcel is not null)
+                return [new("PRIVATE", "private")];
 
             return [new("UNAVAILABLE", "unavailable")];
         }
@@ -163,10 +178,11 @@ public partial class UniversalInterface
             return CurrentMmoRightChoice.Kind switch
             {
                 "bid" => MmoBidLabel,
+                "edit" => $"TOUCH · EDIT · {MmoSelectedName.ToUpperInvariant()}",
+                "view" => $"TOUCH · VIEW · {MmoSelectedName.ToUpperInvariant()}",
                 "roleplay" => $"TOUCH · ROLEPLAY · {MmoSelectedName.ToUpperInvariant()}",
-                "gamemaster" => $"TOUCH · GAMEMASTER · {MmoSelectedName.ToUpperInvariant()}",
                 "inspect" => $"TOUCH · INSPECT · {MmoSelectedName.ToUpperInvariant()}",
-                "request" => "TOUCH · SEND REQUEST",
+                "private" => "TOUCH · ENTER CODE FROM GM",
                 "claim" => $"USE 1/{Session.UnspentMmoWorldTokenCount} TOKEN{(Session.UnspentMmoWorldTokenCount == 1 ? "" : "S")}",
                 "purchase" => "TOKEN REQUIRED",
                 _ => "NO ACTION"
@@ -497,9 +513,23 @@ public partial class UniversalInterface
             return;
         }
 
-        if (action == "gamemaster")
+        if (action == "edit")
         {
             await OpenMmoGameMasterAsync();
+            return;
+        }
+
+        if (action == "view")
+        {
+            await OpenMmoReadOnlyViewAsync();
+            return;
+        }
+
+        if (action == "private")
+        {
+            var code = (await JS.InvokeAsync<string?>("prompt", "Private deed. Enter the access code from the GameMaster:", ""))?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(code)) return;
+            _message = "Private deed code entry is ready in the interface, but the server does not yet expose a parcel-code redemption authority. No access was granted.";
             return;
         }
 
@@ -579,11 +609,61 @@ public partial class UniversalInterface
         }
     }
 
+    async Task OpenMmoReadOnlyViewAsync()
+    {
+        if (!MmoCanViewSelected)
+        {
+            _message = "View permission is required for this deed.";
+            return;
+        }
+
+        await Session.LoadRegionsAsync();
+
+        ControllerWorldOption selected;
+        if (MmoSelectedIsEndemar)
+        {
+            selected = new ControllerWorldOption(
+                "__endemar__",
+                WorldSession.EndemarStartingPointDisplayName,
+                "SHAELVIEN_ORIGIN",
+                null,
+                null);
+            Session.SetActiveRegion("");
+        }
+        else if (MmoSelectedParcel is { } parcel)
+        {
+            selected = new ControllerWorldOption(
+                parcel.ParcelId,
+                parcel.DisplayName,
+                "SHAELVIEN",
+                null,
+                parcel);
+            if (!string.IsNullOrWhiteSpace(parcel.RegionId))
+                Session.SetActiveRegion(parcel.RegionId);
+        }
+        else
+        {
+            _message = "Select Endemar or a deed you can view.";
+            return;
+        }
+
+        SetSelectedDeed(selected);
+        _exploreReadOnlyMode = true;
+        _inspectionEditMode = false;
+        _inspectionEditReason = "";
+        _mmoManageOpen = false;
+        _stage = Stage.PathSelect;
+        _pathIndex = 0;
+        _pathMenuIndex = 0;
+        _message = $"View · {_selectedDeedName}. World Builder is read-only; Context remains available.";
+        await InvokeAsync(StateHasChanged);
+    }
+
     async Task OpenMmoGameMasterAsync()
     {
         if (!MmoCanGameMasterSelected)
         {
-            _message = "GameMaster authority is required for this deed.";
+            _message = "Edit authority is required for this deed.";
             return;
         }
 
@@ -625,7 +705,7 @@ public partial class UniversalInterface
         _stage = Stage.PathSelect;
         _pathIndex = 0;
         _pathMenuIndex = 0;
-        _message = $"{_selectedDeedName} GameMaster access. World Builder is on the left; Context is on the right.";
+        _message = $"Edit · {_selectedDeedName}. World Builder is on the left; Context is on the right.";
         await InvokeAsync(StateHasChanged);
     }
 

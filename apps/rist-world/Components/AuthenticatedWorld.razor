@@ -94,7 +94,9 @@ else if (_canEnter)
   <div class="rist-authenticated-root">
    <SiteTicker Context="SHAELVIEN" OnStartMenu="OpenStartMenu" />
    <div class="rist-authenticated-body">
-    <PublicAlphaShell @ref="_alphaShell" EnterRoleplayOnFirstRender="_universalRoleplayPending" />
+    <TaskWorkspaceRouter Mode="@(_universalRoleplayPending?"roleplay":"world")"
+                         OnStartMenu="OpenStartMenu"
+                         OnHome="OpenStartMenu" />
    </div>
   </div>
  }
@@ -219,7 +221,6 @@ else
 </style>
 
 @code {
- PublicAlphaShell? _alphaShell;
  bool _ready;
  bool _canEnter;
  bool _authStarted;
@@ -249,7 +250,12 @@ else
  static readonly DateTimeOffset ExistingAdultConsentGrandfatherCutoffUtc =
   new(2026,9,20,0,25,0,TimeSpan.Zero);
 
- void OpenStartMenu()=>_alphaShell?.OpenStartMenu();
+ async Task OpenStartMenu()
+ {
+  _universalRoleplayPending=false;
+  _universalInterfaceOpen=true;
+  await InvokeAsync(StateHasChanged);
+ }
 
  static bool IsGrandfatheredAdultConsentAttempt(DiscordAuthClient.AccountProfile account)
   => account.TermsAcceptedAtUtc==DateTimeOffset.MinValue
@@ -362,6 +368,7 @@ else
   _launchWorldChosen=false;
   _launchSandboxChooserOpen=false;
   _launchLegacyChooserOpen=false;
+  _universalRoleplayPending=false;
   await InvokeAsync(StateHasChanged);
  }
 
@@ -422,14 +429,6 @@ else
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
-  if(_universalRoleplayPending&&_alphaShell is not null)
-  {
-   // PublicAlphaShell receives the one-shot parameter during its first render
-   // and opens Roleplay after its own first-render hub initialization.
-   _universalRoleplayPending=false;
-   await InvokeAsync(StateHasChanged);
-  }
-
   if(!firstRender||_authStarted)return;
   _authStarted=true;
 

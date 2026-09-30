@@ -447,16 +447,6 @@
                  OnClose="CloseLegacyGate"
                  OnContinue="ContinueLegacyIntoRistAsync" />
 
-<ShaelvienDeedGate Open="@_shaelvienDeedGateOpen"
-                   OnClose="CloseShaelvienDeedGate"
-                   OnClaimed="CompleteShaelvienDeedAsync"
-                   OnViewRequested="OpenExploredZoneAsync" />
-<ShaelvienDeedGate Open="@_shaelvienInspectGateOpen"
-                   InspectOnly="true"
-                   OnClose="CloseShaelvienInspectGate"
-                   OnClaimed="CompleteShaelvienDeedAsync"
-                   OnInspectionEditRequested="BeginInspectionEditAsync" />
-
 <WorldGate Open="@_ristDeedGateOpen"
            OnClose="CloseRistDeedGate"
            OnContinue="CompleteRistDeedAsync"
@@ -1767,15 +1757,19 @@
     break;
    case Stage.MmoMap:
     _mmoManageOpen=false;
-    _stage=Stage.DeedSelect;
-    _message="Returned to Shaelvien deeds and access.";
+    _mmoInspectMode=false;
+    _stage=Stage.Role;
+    _message="Returned to Shaelvien role selection.";
     break;
    case Stage.PathSelect:
     if(IsShaelvienDeedHome)
     {
-     _stage=Stage.DeedSelect;
-     _worldIndex=0;
-     _message="Returned to Shaelvien deeds and access.";
+     _mmoInspectMode=false;
+     _mmoLeftIndex=0;
+     _mmoRightIndex=0;
+     RefreshMmoMapCells();
+     _stage=Stage.MmoMap;
+     _message="Returned to the Shaelvien deed map.";
     }
     else
     {
@@ -1978,8 +1972,6 @@
      break;
    case Stage.Role:
     await RefreshControllerWorldDirectoryAsync();
-    if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
-     await EnsureShaelvienEnvironmentAsync();
     _pathIndex=0;
     _pathMenuIndex=0;
     _worldIndex=0;
@@ -1987,12 +1979,16 @@
     _selectedDeedName="";
     _selectedDeedKind="";
     _selectedDeedRegionId="";
-    _stage=string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
-     ?Stage.DeedSelect
-     :Stage.PathSelect;
-    _message=string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase)
-     ?"GameMaster selected. Shaelvien is on the left; choose a deed, developer Inspect, or Explore on the right."
-     :"GameMaster selected. Choose World Builder or Context and a RIST world.";
+    if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+    {
+     await EnterMmoMapAsync(inspect:false);
+     _message="GameMaster selected. Choose a deed on the map. Left is coordinates/owned-zone quick access; right is the permission-driven action.";
+    }
+    else
+    {
+     _stage=Stage.PathSelect;
+     _message="GameMaster selected. Choose World Builder or Context and a RIST world.";
+    }
     break;
    case Stage.GameMasterHub:
     if(CurrentSetting=="CONTROLS")
@@ -3594,11 +3590,14 @@
   _selectedDeedKind="";
   _selectedDeedRegionId="";
   _exploreReadOnlyMode=false;
-  _stage=Stage.DeedSelect;
+  _mmoInspectMode=false;
+  _mmoLeftIndex=0;
+  _mmoRightIndex=0;
+  RefreshMmoMapCells();
+  _stage=Stage.MmoMap;
   _pathIndex=0;
   _pathMenuIndex=0;
-  var inspectIndex=PathWorldOptions.ToList().FindIndex(option=>option.Environment=="SHAELVIEN_INSPECT");
-  _worldIndex=inspectIndex>=0?inspectIndex:0;
+  _worldIndex=0;
  }
 
  string RequireInspectionReason()
