@@ -113,7 +113,7 @@ test('World Builder shows the full Geonaph tier-layer stack while MMO stays flat
   const seed=readRepo('infra/aws/rist-platform-geanaph-seed/app.py');
 
   const visualBlock=(seed.match(/VISUAL_LAYERS = \([\s\S]*?\n\)/)||[''])[0];
-  const addresses=[...visualBlock.matchAll(/\("[^"]+",\s*"[^"]+",\s*"[^"]+",\s*(\d+),\s*(\d+),/g)]
+  const addresses=[...visualBlock.matchAll(/\("[^"]+",\s*"[^"]+",\s*(?:"[^"]+"|[A-Z_]+),\s*(\d+),\s*(\d+),/g)]
     .map(match=>[Number(match[1]),Number(match[2])]);
   assert.equal(addresses.length,9);
   assert.deepEqual([...new Set(addresses.map(address=>address[0]))],[0,1,2]);
@@ -144,7 +144,7 @@ test('World Builder full stack remains independent from MMO Tier 0 optimization'
   assert.match(mmo,/var tier = JsonInt\(item, "tier", 0\);[\s\S]{0,80}?if \(tier != 0\) continue;/);
   assert.match(mmo,/JsonBool\(item, "mmoSurface", false\)/);
 
-  const tuples=[...seed.matchAll(/\("[^"]+",\s*"[^"]+",\s*"[^"]+",\s*(\d),\s*(\d),\s*-?\d+,\s*(?:True|False)\)/g)]
+  const tuples=[...seed.matchAll(/\("[^"]+",\s*"[^"]+",\s*(?:"[^"]+"|[A-Z_]+),\s*(\d),\s*(\d),\s*-?\d+,\s*(?:True|False)\)/g)]
     .map(match=>({tier:Number(match[1]),layer:Number(match[2])}));
   assert.equal(tuples.length,9);
   assert.deepEqual([...new Set(tuples.map(item=>item.tier))],[0,1,2]);
