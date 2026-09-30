@@ -1129,6 +1129,14 @@ function moveSelectedLayer(delta){
 }
 function isWorldMapItem(item){return item?.placementRole==='world-map'||item?.fullWorld===true}
 function isFullDeedFrameItem(item){return item?.placementRole==='deed-frame'||item?.fullDeedFrame===true}
+// World Builder presentation only: authored full-deed-frame layers keep their
+// canonical tier/layer identity, while displayZ gives All Parallax a visible
+// resting spread even before the user pans or tilts the device.
+function allParallaxRestOffset(item){
+  if(REGION_DEFINER||viewerTier!=='all'||!isFullDeedFrameItem(item))return{x:0,y:0};
+  const z=clamp(Number(item?.displayZ)||0,-60,60);
+  return{x:z*.24,y:-z*.34};
+}
 function storedPlacementRole(raw){
   if(raw?.placementRole==='world-map'||raw?.fullWorld===true)return'world-map';
   if(raw?.placementRole==='deed-frame'||raw?.fullDeedFrame===true)return'deed-frame';
@@ -1597,8 +1605,9 @@ function applyParallax(){
     const sceneDepth=(item.tier*10)+item.layer;
     const depth=sceneDepth/10;
     const panStrength=depth*.022,tiltStrength=depth*.48;
-    item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
-    item.parallaxY=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
+    const rest=allParallaxRestOffset(item);
+    item.parallaxX=rest.x+(((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001));
+    item.parallaxY=rest.y+(((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001));
     item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);
   }
 }

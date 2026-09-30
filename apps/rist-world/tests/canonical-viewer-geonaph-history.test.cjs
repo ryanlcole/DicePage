@@ -104,3 +104,26 @@ test('Shaelvien content policy allows Mature ratings without changing provenance
   assert.ok(policy.law.includes('Mature-rated content is allowed in Shaelvien.'));
   assert.ok(policy.law.includes('Content rating and historical provenance are separate systems.'));
 });
+
+
+test('World Builder shows the full Geonaph tier-layer stack while MMO stays flattened',()=>{
+  const prototype=read('wwwroot/prototype/prototype.js');
+  const interfaceRazor=read('Components/UniversalInterface.razor');
+  const mmo=read('Components/UniversalInterface.MmoMap.cs');
+  const seed=readRepo('infra/aws/rist-platform-geanaph-seed/app.py');
+
+  const visualBlock=(seed.match(/VISUAL_LAYERS = \([\s\S]*?\n\)/)||[''])[0];
+  const addresses=[...visualBlock.matchAll(/\("[^"]+",\s*"[^"]+",\s*"[^"]+",\s*(\d+),\s*(\d+),/g)]
+    .map(match=>[Number(match[1]),Number(match[2])]);
+  assert.equal(addresses.length,9);
+  assert.deepEqual([...new Set(addresses.map(address=>address[0]))],[0,1,2]);
+
+  assert.match(prototype,/function allParallaxRestOffset\(item\)/);
+  assert.match(prototype,/viewerTier!=='all'\|\|!isFullDeedFrameItem\(item\)/);
+  assert.match(prototype,/const rest=allParallaxRestOffset\(item\);/);
+  assert.match(prototype,/viewerTier='all';\s*viewerLayer=9;/);
+  assert.match(interfaceRazor,/entryView=\{entryView\}.*renderer=20260930-world-stack-1/);
+
+  assert.match(mmo,/if \(tier != 0\) continue;/);
+  assert.match(mmo,/JsonBool\(item, "mmoSurface", false\)/);
+});
