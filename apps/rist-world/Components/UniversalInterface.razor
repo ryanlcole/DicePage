@@ -941,7 +941,8 @@
    var deedName=Uri.EscapeDataString(_selectedDeedName??"");
    var deedRegionId=Uri.EscapeDataString(SelectedDeedRegionId);
    var deedZone=Uri.EscapeDataString(SelectedDeedZoneId);
-   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20260929-deed-context-1";
+   var deedEditParallax=access=="edit"&&!string.IsNullOrWhiteSpace(_selectedDeedName)?"1":"0";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&deedEditParallax={deedEditParallax}&renderer=20260930-deed-parallax-1";
   }
  }
  bool IsPathDrivenStage=>!IsDeedContextNode&&_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
