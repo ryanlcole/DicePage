@@ -10,6 +10,7 @@ on:
       - 'apps/rist-world/LegacyArchiveImport.cs'
       - 'apps/rist-world/Components/UniversalInterface.razor'
       - 'apps/rist-world/Components/UniversalInterface.SemanticControls.cs'
+      - 'apps/rist-world/Components/UniversalInterface.MmoMap.cs'
       - 'apps/rist-world/Components/LegacyWorldGate.razor'
       - 'apps/rist-world/Components/AuthenticatedWorld.razor'
       - 'apps/rist-world/wwwroot/universal-interface-input.js'
