@@ -330,7 +330,12 @@ public partial class UniversalInterface
 
     async Task EnterMmoMapAsync(bool inspect)
     {
+        // The deed map is the Shaelvien root, not the previously opened zone.
+        // Clearing the active recursive region prevents a prior Geanaph editor
+        // from leaking its LOCAL/INSTANCE context into a fresh GameMaster map.
+        Session.SetActiveRegion("");
         await EnsureShaelvienEnvironmentAsync();
+        Session.SetActiveRegion("");
         _mmoInspectMode = inspect && Session.TrustedPlatformDeveloper;
         _mmoLeftIndex = 0;
         _mmoRightIndex = 0;

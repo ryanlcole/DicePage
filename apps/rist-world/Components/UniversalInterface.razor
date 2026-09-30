@@ -927,6 +927,13 @@
  {
   get
   {
+   // The prototype viewer can decode many full-frame parallax PNGs. Keep it
+   // completely inert while the universal controller is on navigation/menu
+   // stages so an old Geanaph editor cannot consume mobile memory or send stale
+   // host messages behind the MMO deed map.
+   if(_stage is Stage.Environment or Stage.Role or Stage.DeedSelect or Stage.MmoMap or Stage.ContextSelect)
+    return "about:blank";
+
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
    var seed=Session.IsGeonaphWorld?"geonaph":"empty";
@@ -3200,6 +3207,13 @@
  [JSInvokable]
  public async Task RequestHomeFromPrototypeAsync()
  {
+  // A prototype that is being torn down can finish an old HOME event after the
+  // player has already returned to the deed map. Navigation stages own their
+  // own HOME/BACK behavior; a background child must never eject the player to
+  // the authenticated Press Start screen.
+  if(_stage is Stage.Environment or Stage.Role or Stage.DeedSelect or Stage.MmoMap or Stage.ContextSelect)
+   return;
+
   if(OnExit.HasDelegate)await OnExit.InvokeAsync();
  }
 

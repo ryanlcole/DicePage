@@ -113,3 +113,15 @@ def test_inline_inspect_manage_can_open_selection_first_worldbuilder():
     assert "_stage = Stage.PathSelect;" in mmo
     assert "Every committed edit requires an audit reason." in mmo
     assert "await EnterMmoMapAsync(inspect:true);" in interface
+
+
+def test_gamemaster_deed_map_isolates_stale_geanaph_viewer_state():
+    interface = text("apps/rist-world/Components/UniversalInterface.razor")
+    mmo = text("apps/rist-world/Components/UniversalInterface.MmoMap.cs")
+
+    assert 'if(_stage is Stage.Environment or Stage.Role or Stage.DeedSelect or Stage.MmoMap or Stage.ContextSelect)' in interface
+    assert 'return "about:blank";' in interface
+    assert "public async Task RequestHomeFromPrototypeAsync()" in interface
+    assert "background child must never eject the player" in interface
+    assert 'Session.SetActiveRegion("");' in mmo
+    assert "previously opened zone" in mmo
