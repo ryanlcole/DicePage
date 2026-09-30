@@ -498,6 +498,12 @@
 
   window.ristUniversalInput = Object.freeze({
     activateCursorTarget,
+    dispatchSemantic(actionId, direction = 0) {
+      if (!dotnet || !actionId) return false;
+      void dotnet.invokeMethodAsync("ReceiveSemanticAction", String(actionId), Number(direction) || 0)
+        .catch(() => {});
+      return true;
+    },
     openFilePicker(id) {
       const input = document.getElementById(String(id || ""));
       if (!(input instanceof HTMLInputElement) || input.type !== "file") return false;
