@@ -387,7 +387,7 @@
    <button type="button"
            class="control-display-button control-display-left @(_stage==Stage.Environment?"environment-choice-button":"") @(_universalStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
            data-semantic-action="@CurrentLeftSemanticId"
-           @onclick="PressLeft"
+           @onclick="()=>DispatchSemanticActionAsync(CurrentLeftSemanticId)"
            disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
            aria-disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
            aria-label="@(_stage==Stage.Environment&&!_universalStartRevealed?"Dark dragon":$"Left display button: {LeftDisplayValue}")">
@@ -454,7 +454,7 @@
    <button type="button"
            class="control-display-button control-display-right @(_stage==Stage.Environment?"environment-choice-button":"") @(_universalStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
            data-semantic-action="@CurrentRightSemanticId"
-           @onclick="PressRight"
+           @onclick="()=>DispatchSemanticActionAsync(CurrentRightSemanticId)"
            disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
            aria-disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
            aria-label="@(_stage==Stage.Environment&&!_universalStartRevealed?"Light dragon":$"Right display button: {RightDisplayValue}")">
@@ -3259,7 +3259,7 @@
  {
   if(e.Key=="Escape")
   {
-   if(OnExit.HasDelegate)await OnExit.InvokeAsync();
+   await DispatchSemanticActionAsync(UniversalSemanticControls.Action.Back);
    return;
   }
 
@@ -3267,20 +3267,20 @@
   {
    case "ArrowLeft":
    case "a":
-   case "A": StepX(-1); break;
+   case "A": await DispatchSemanticActionAsync(UniversalSemanticControls.Action.NavigateX,-1); break;
    case "ArrowRight":
    case "d":
-   case "D": StepX(1); break;
+   case "D": await DispatchSemanticActionAsync(UniversalSemanticControls.Action.NavigateX,1); break;
    case "ArrowUp":
    case "w":
-   case "W": StepY(1); break;
+   case "W": await DispatchSemanticActionAsync(UniversalSemanticControls.Action.NavigateY,1); break;
    case "ArrowDown":
    case "s":
-   case "S": StepY(-1); break;
+   case "S": await DispatchSemanticActionAsync(UniversalSemanticControls.Action.NavigateY,-1); break;
    case "q":
-   case "Q": await PressLeft(); break;
+   case "Q": await DispatchSemanticActionAsync(CurrentLeftSemanticId); break;
    case "e":
-   case "E": await PressRight(); break;
+   case "E": await DispatchSemanticActionAsync(CurrentRightSemanticId); break;
   }
  }
 
@@ -3903,26 +3903,7 @@
  {
   return InvokeAsync(async () =>
   {
-   switch(control)
-   {
-    case "x": StepX(direction); break;
-    case "y": StepY(direction); break;
-    case "left-slider":
-     if(_stage==Stage.MmoMap)CycleMmoLeftOption(direction);
-     else ApplyY(direction);
-     break;
-    case "right-slider":
-     if(_stage==Stage.MmoMap)CycleMmoRightOption(direction);
-     else ApplyX(direction);
-     break;
-    case "select":
-     if((_stage==Stage.BrowsePlace||_stage==Stage.MmoMap)&&CursorMode)await ActivateBrowseCursorTargetAsync();
-     else if(_stage is Stage.DeedSelect or Stage.ContextSelect or Stage.MmoMap)await PressRight();
-     else await PressLeft();
-     break;
-    case "left": await PressLeft(); break;
-    case "right": await PressRight(); break;
-   }
+   await ReceiveSemanticHardwareInputAsync(control,direction);
    StateHasChanged();
   });
  }
