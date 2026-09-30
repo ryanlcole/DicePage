@@ -33,6 +33,7 @@ def test_universal_mmo_map_flattens_tier_zero_and_keeps_frontier_selectable():
 
 
 def test_universal_mmo_map_has_requested_deed_actions_and_left_rail():
+    interface = text("apps/rist-world/Components/UniversalInterface.razor")
     mmo = text("apps/rist-world/Components/UniversalInterface.MmoMap.cs")
     input_js = text("apps/rist-world/wwwroot/universal-interface-input.js")
 
@@ -41,10 +42,18 @@ def test_universal_mmo_map_has_requested_deed_actions_and_left_rail():
     assert '"CLAIM DEED"' in mmo
     assert '"PURCHASE TOKEN AND CLAIM DEED"' in mmo
     assert '"ROLEPLAY"' in mmo
+    assert '"GAMEMASTER"' in mmo
+    assert '"INSPECT"' in mmo
     assert '"REQUEST DEED FROM GM"' in mmo
     assert '"BID (CURRENT BID' in mmo
     assert '"MANAGE"' in mmo
-    assert 'return $"USE 1/{count} TOKEN' in mmo
+    assert "MmoRightChoices" in mmo
+    assert "Session.HasTrustedWorldBuilderAuthority" in mmo
+    assert "Session.CanEditMmoParcel(parcel)" in mmo
+    assert "Session.TrustedPlatformDeveloper" in mmo
+    assert "Stage.MmoMap=>MmoRightOptionCount" in interface
+    assert "if(_stage==Stage.MmoMap)CycleMmoRightOption(direction);" in interface
+    assert "MoveMmoSelection(direction,0)" in interface
     assert 'return $"BID (CURRENT BID {bid.ToString(' in mmo
     assert '"left-slider"' in input_js
     assert '"right-slider"' in input_js
