@@ -79,3 +79,15 @@ test('first evidence-safe sprite package is reconstruction-only and taxonomicall
   assert.equal(assets.spriteSets[0].provenance,'RECONSTRUCTION');
   assert.doesNotMatch(svg,/clothing|metal|spear|fire|species/i);
 });
+
+
+test('registered Pangea sprites retain asset bucket authority without frontend mirror dependence',()=>{
+  const workflow=readRepo('.github/workflows/sync-rist-assets-aws.yml');
+  assert.match(workflow,/Verify registered Pangea sprite authority/);
+  assert.match(workflow,/authority[\s\S]{0,160}?lives in the asset bucket/);
+  assert.match(workflow,/aws s3api head-object --bucket "\$ASSET_BUCKET" --key "\$target_key"/);
+  assert.doesNotMatch(
+    workflow,
+    /FRONTEND_BUCKET[\s\S]{0,700}?sprites\/pangea\/registered|sprites\/pangea\/registered[\s\S]{0,700}?FRONTEND_BUCKET/
+  );
+});
