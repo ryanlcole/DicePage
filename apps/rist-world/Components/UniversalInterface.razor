@@ -932,11 +932,13 @@
    var seed=Session.IsGeonaphWorld?"geonaph":"empty";
    var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
    var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
+   var originEdit=string.Equals(_selectedDeedKind,"SHAELVIEN_ORIGIN",StringComparison.Ordinal)
+    &&(Session.IsServerVerifiedPlatformOwner||Session.TrustedPlatformOwner||Session.HasTrustedWorldBuilderAuthority);
    var access=_exploreReadOnlyMode
     ?"view"
     :_inspectionEditMode&&Session.TrustedPlatformDeveloper
      ?"edit"
-     :Session.HasWorldBuilderEditAuthority?"edit":"view";
+     :originEdit||Session.HasWorldBuilderEditAuthority?"edit":"view";
    var deedId=Uri.EscapeDataString(_selectedDeedId??"");
    var deedName=Uri.EscapeDataString(_selectedDeedName??"");
    var deedRegionId=Uri.EscapeDataString(SelectedDeedRegionId);
