@@ -179,8 +179,9 @@ def canonical_region(
             "visualLayerCount": len(VISUAL_LAYERS),
             "representationPolicy": "Representation != Semantic Truth",
             "historyContentPolicy": {
-                "matureContent": "PROHIBITED",
-                "presentation": "neutral-educational-non-graphic",
+                "matureContent": "ALLOWED",
+                "presentation": "historical-context",
+                "provenanceIndependent": True,
                 "preserveDifficultFacts": True,
             },
             "description": (
@@ -480,9 +481,13 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         if isinstance(verify_region_state.get("historyContentPolicy"), dict)
         else {}
     )
-    if str(history_policy.get("matureContent") or "").upper() != "PROHIBITED":
+    if str(history_policy.get("matureContent") or "").upper() != "ALLOWED":
         raise RuntimeError(
-            "Geonaph history verification failed: mature campaign presentation must remain prohibited."
+            "Geonaph history verification failed: Shaelvien Mature content policy was not preserved."
+        )
+    if not bool(history_policy.get("provenanceIndependent")):
+        raise RuntimeError(
+            "Geonaph history verification failed: content rating must remain independent of provenance."
         )
 
     return {
@@ -503,6 +508,8 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         "historyHierarchyVerified": True,
         "historyProvenanceVerified": True,
         "historyContentPolicyVerified": True,
+        "matureContentAllowed": True,
+        "provenanceIndependentOfRating": True,
         "canonicalDisplayName": ZONE_NAME,
         "frameWidth": FRAME_WIDTH,
         "frameHeight": FRAME_HEIGHT,

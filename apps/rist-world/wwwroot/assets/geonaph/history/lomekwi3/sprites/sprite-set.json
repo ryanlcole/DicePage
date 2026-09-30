@@ -3,7 +3,7 @@
   "id": "lom3-toolmaker-actions-v1",
   "provenance": "RECONSTRUCTION",
   "taxonomicIdentity": "UNRESOLVED",
-  "matureContent": "PROHIBITED",
+  "matureContent": "ALLOWED",
   "sourceIds": [
     "harmand-2015"
   ],
@@ -57,5 +57,6 @@
       "action": "core-working",
       "classification": "RECONSTRUCTION"
     }
-  ]
+  ],
+  "contentRule": "Shaelvien permits Mature-rated content. This reconstruction sheet remains evidence-bounded; content rating does not alter archaeological provenance."
 }

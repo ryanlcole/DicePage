@@ -1,0 +1,16 @@
+{
+  "schema": "shaelvien.content-policy.v1",
+  "world": "Shaelvien",
+  "contentRating": {
+    "default": "UNRATED",
+    "matureContent": "ALLOWED",
+    "scope": "CAMPAIGN_ASSET_OR_REALM",
+    "provenanceIndependent": true
+  },
+  "law": [
+    "Mature-rated content is allowed in Shaelvien.",
+    "Content rating and historical provenance are separate systems.",
+    "A rating never promotes FICTION or RECONSTRUCTION into FACT.",
+    "A lower rating must not silently rewrite source truth."
+  ]
+}

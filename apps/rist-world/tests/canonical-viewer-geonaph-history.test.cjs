@@ -17,15 +17,16 @@ test('GameMaster deed map remains isolated from stale Geonaph prototype state',(
   assert.match(mmo,/The deed map is the Shaelvien root, not the previously opened zone/);
 });
 
-test('Geonaph history forbids mature presentation and restricts historical provenance',()=>{
+test('Geonaph allows Mature presentation while keeping historical provenance independent',()=>{
   const data=JSON.parse(read('wwwroot/data/geonaph/history/campaign-v1.json'));
   const instance=data.zone.region.local.instance;
   const allowed=new Set(['FACT','RECONSTRUCTION','FICTION']);
   assert.equal(data.world,'Geonaph');
-  assert.equal(data.contentProfile.ratingStatus,'NON_MATURE');
-  assert.equal(data.contentProfile.matureContent,'PROHIBITED');
-  assert.equal(data.contentProfile.presentation,'NEUTRAL_EDUCATIONAL_NON_GRAPHIC');
-  assert.doesNotMatch(data.contentProfile.principle,/may appear/i);
+  assert.equal(data.contentProfile.ratingStatus,'UNRATED');
+  assert.equal(data.contentProfile.matureContent,'ALLOWED');
+  assert.equal(data.contentProfile.presentation,'HISTORICAL_CONTEXT');
+  assert.equal(data.contentProfile.provenanceIndependent,true);
+  assert.match(data.contentProfile.principle,/Mature-rated presentation is allowed in Shaelvien/i);
   for(const value of [
     data.zone.classification,data.zone.region.classification,data.zone.region.local.classification,
     instance.classification,instance.playableReconstruction.classification,
@@ -56,10 +57,12 @@ test('database seed migrates canonical display name and verifies provenance plus
   assert.match(seed,/ZONE_NAME = "Geonaph"/);
   assert.match(seed,/return normalized_name\(value\) in \{"geonaph", "geanaph"\}/);
   assert.ok((seed.match(/"provenance": "FACT"/g)||[]).length>=3);
-  assert.match(seed,/"matureContent": "PROHIBITED"/);
+  assert.match(seed,/"matureContent": "ALLOWED"/);
+  assert.match(seed,/"provenanceIndependent": True/);
   assert.match(seed,/"historyProvenanceVerified": True/);
   assert.match(seed,/"historyContentPolicyVerified": True/);
-  assert.match(template,/Revision: geonaph-east-v4-history-policy/);
+  assert.match(seed,/"matureContentAllowed": True/);
+  assert.match(template,/Revision: geonaph-east-v5-rating-provenance/);
 });
 
 test('first evidence-safe sprite package is reconstruction-only and taxonomically unresolved',()=>{
@@ -68,7 +71,7 @@ test('first evidence-safe sprite package is reconstruction-only and taxonomicall
   const svg=read('wwwroot/assets/geonaph/history/lomekwi3/sprites/lom3-toolmaker-actions.svg');
   assert.equal(manifest.provenance,'RECONSTRUCTION');
   assert.equal(manifest.taxonomicIdentity,'UNRESOLVED');
-  assert.equal(manifest.matureContent,'PROHIBITED');
+  assert.equal(manifest.matureContent,'ALLOWED');
   assert.deepEqual(manifest.frames.map(frame=>frame.action),[
     'neutral-locomotion-a','neutral-locomotion-b','observe-stone',
     'carry-stone','battering-percussion','core-working'
@@ -90,4 +93,14 @@ test('registered Pangea sprites retain asset bucket authority without frontend m
     workflow,
     /FRONTEND_BUCKET[\s\S]{0,700}?sprites\/pangea\/registered|sprites\/pangea\/registered[\s\S]{0,700}?FRONTEND_BUCKET/
   );
+});
+
+
+test('Shaelvien content policy allows Mature ratings without changing provenance',()=>{
+  const policy=JSON.parse(read('wwwroot/data/shaelvien/content-policy.json'));
+  assert.equal(policy.world,'Shaelvien');
+  assert.equal(policy.contentRating.matureContent,'ALLOWED');
+  assert.equal(policy.contentRating.provenanceIndependent,true);
+  assert.ok(policy.law.includes('Mature-rated content is allowed in Shaelvien.'));
+  assert.ok(policy.law.includes('Content rating and historical provenance are separate systems.'));
 });

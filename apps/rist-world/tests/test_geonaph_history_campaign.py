@@ -32,9 +32,9 @@ def test_history_campaign_starts_at_lomekwi_without_inventing_species_or_languag
     assert data["spriteSpecification"]["provenance"] == "RECONSTRUCTION"
     assert data["spriteSpecification"]["assetManifest"] == "data/geonaph/history/assets-v1.json"
     assert "controlled fire as a lomekwi 3 fact" in joined
-    assert data["contentProfile"]["matureContent"] == "PROHIBITED"
-    assert data["contentProfile"]["presentation"] == "NEUTRAL_EDUCATIONAL_NON_GRAPHIC"
-    assert "mature material may appear" not in joined
+    assert data["contentProfile"]["matureContent"] == "ALLOWED"
+    assert data["contentProfile"]["presentation"] == "HISTORICAL_CONTEXT"
+    assert data["contentProfile"]["provenanceIndependent"] is True
 
 
 def test_history_tasks_only_use_lomekwi_supported_actions_and_keep_bridge_locked():
@@ -90,7 +90,9 @@ def test_geanaph_database_seed_contains_region_local_instance_history_hierarchy(
     assert 'ZONE_NAME = "Geonaph"' in seed
     assert "is_geonaph_name" in seed
     assert seed.count('"provenance": "FACT"') >= 3
-    assert "Revision: geonaph-east-v4-history-policy" in template
+    assert '"matureContentAllowed": True' in seed
+    assert '"provenanceIndependentOfRating": True' in seed
+    assert "Revision: geonaph-east-v5-rating-provenance" in template
 
 
 def test_history_context_keeps_original_translation_reconstruction_and_fiction_separate():
@@ -123,5 +125,6 @@ def test_history_provenance_and_content_policy_allow_only_evidence_safe_values()
     assert instance["bridge"]["classification"] in allowed
     assert all(task["classification"] in allowed for task in instance["tasks"])
     assert all(source["classification"] == "FACT" for source in data["sources"])
-    assert data["contentProfile"]["ratingStatus"] == "NON_MATURE"
-    assert data["contentProfile"]["matureContent"] == "PROHIBITED"
+    assert data["contentProfile"]["ratingStatus"] == "UNRATED"
+    assert data["contentProfile"]["matureContent"] == "ALLOWED"
+    assert data["contentProfile"]["provenanceIndependent"] is True

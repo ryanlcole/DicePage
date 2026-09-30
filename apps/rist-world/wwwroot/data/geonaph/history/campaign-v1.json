@@ -23,20 +23,12 @@
     "classification": "FICTION"
   },
   "contentProfile": {
-    "ratingStatus": "NON_MATURE",
-    "matureContent": "PROHIBITED",
-    "presentation": "NEUTRAL_EDUCATIONAL_NON_GRAPHIC",
-    "principle": "Documented difficult history remains factual and is presented in neutral, educational, non-graphic language. Mature-rated presentation, graphic gore, explicit sexual material, sexual violence, graphic torture, gratuitous cruelty, explicit depictions of human remains, and shock-oriented historical presentation are prohibited.",
-    "prohibited": [
-      "Mature-rated presentation",
-      "graphic gore",
-      "explicit sexual material",
-      "sexual violence",
-      "graphic torture",
-      "gratuitous cruelty",
-      "explicit depictions of human remains",
-      "shock-oriented historical presentation"
-    ]
+    "ratingStatus": "UNRATED",
+    "matureContent": "ALLOWED",
+    "presentation": "HISTORICAL_CONTEXT",
+    "provenanceIndependent": true,
+    "principle": "Mature-rated presentation is allowed in Shaelvien. Content rating does not change historical provenance: FACT still requires cited evidence, RECONSTRUCTION remains bounded interpretation, and FICTION remains connective narrative.",
+    "historicalIntegrityRule": "Do not invent, suppress, or relabel historical claims merely to force a particular content rating."
   },
   "provenanceLegend": {
     "FACT": "Directly supported by the cited archaeological record.",
