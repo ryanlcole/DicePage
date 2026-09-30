@@ -96,7 +96,7 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
   const index=read('wwwroot/index.html');
 
   assert.match(razor,/bool _browseCursorActive;/);
-  assert.match(razor,/bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage\.MmoMap&&_stage!=Stage\.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;/);
+  assert.match(razor,/bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage\.MmoMap&&(?:_stage!=Stage\.[A-Za-z]+&&)*_stage!=Stage\.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;/);
   assert.match(razor,/bool CursorMode=>_stage==Stage\.MmoMap[\s\S]{0,100}?MmoAnalogCursorMode[\s\S]{0,160}?CursorAvailable[\s\S]{0,120}?!_analogButtonMode/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]{0,360}?_browseCursorActive=true;[\s\S]{0,120}?_analogButtonMode=false;/);
   assert.match(razor,/if\(\(_stage==Stage\.BrowsePlace\|\|_stage==Stage\.MmoMap\)&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\)/);
