@@ -9,6 +9,10 @@ Parameters:
   FrontendOrigin:
     Type: String
     Default: https://ryanlcole.github.io
+  AssetCdnOrigin:
+    Type: String
+    Default: https://d2d6rnm6fnsp89.cloudfront.net
+    Description: Public asset CDN origin used by canonical Shaelvien zone seeds
   OwnerUserId:
     Type: String
     Default: ''
@@ -406,6 +410,44 @@ Resources:
       SurfaceTier: 0
       SurfaceLayer: 6
 
+  GeanaphSeedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.handler
+      CodeUri: rist-platform-geanaph-seed/
+      Timeout: 30
+      Environment:
+        Variables:
+          WORLD_TABLE: !Ref WorldStateTable
+          OWNER_USER_ID: !Ref OwnerUserId
+          ASSET_BASE_URL: !Sub '${AssetCdnOrigin}/zones/geanaph/v1/truth'
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref WorldStateTable }
+        - Statement:
+            - Effect: Allow
+              Action: [kms:Decrypt, kms:Encrypt, kms:GenerateDataKey, kms:DescribeKey]
+              Resource: !GetAtt UserDataKey.Arn
+
+  GeanaphSeedInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GeanaphSeedFunction
+      Action: lambda:InvokeFunction
+      Principal: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ReLiC-CloudFormation-Execution
+
+  GeanaphSeed:
+    Type: Custom::GeanaphSeed
+    DependsOn:
+      - GeanaphSeedInvokePermission
+      - SunkenTundraSeed
+    Properties:
+      ServiceToken: !GetAtt GeanaphSeedFunction.Arn
+      Revision: geanaph-east-v1
+      WorldId: shaelvien-geonaph-alpha-001
+      RelativeX: 1
+      RelativeY: 0
+      TruthManifest: !Sub '${AssetCdnOrigin}/zones/geanaph/v1/truth/geanaph_truth_manifest.json'
+
   RealtimeConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -494,6 +536,18 @@ Resources:
       SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RealtimeApi}/*
 
 Outputs:
+  GeanaphColumn:
+    Value: !GetAtt GeanaphSeed.column
+  GeanaphRow:
+    Value: !GetAtt GeanaphSeed.row
+  GeanaphEastOfEndemar:
+    Value: !GetAtt GeanaphSeed.eastOfEndemar
+  GeanaphOwnerMatchesPlatformOwner:
+    Value: !GetAtt GeanaphSeed.ownerMatchesPlatformOwner
+  GeanaphLayerCount:
+    Value: !GetAtt GeanaphSeed.layerCount
+  GeanaphTruthManifestUrl:
+    Value: !GetAtt GeanaphSeed.truthManifestUrl
   SunkenTundraColumn:
     Value: !GetAtt SunkenTundraSeed.column
   SunkenTundraRow:
