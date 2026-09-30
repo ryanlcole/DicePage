@@ -303,26 +303,26 @@ test('viewer top menu exposes back undo cut copy redo paste and forward',()=>{
   assert.match(css,/Viewer command menu authority/);
 });
 
-test('Shaelvien GameMaster uses Explore for discovery and Claim Deed as an in-map action',()=>{
+test('Shaelvien GameMaster opens the permission-driven deed map without the legacy Shaelvien selector',()=>{
   const razor=read('Components/UniversalInterface.razor');
+  const mmo=read('Components/UniversalInterface.MmoMap.cs');
   const land=read('WorldSession.MmoLand.cs');
-  const deed=read('Components/ShaelvienDeedGate.razor');
 
-  assert.match(razor,/Stage\.DeedSelect/);
-  assert.match(razor,/Stage\.DeedSelect=>"SHAELVIEN"/);
-  assert.match(razor,/PathWorldOptions[\s\S]{0,1800}?SHAELVIEN_ORIGIN[\s\S]{0,1800}?SHAELVIEN_INSPECT[\s\S]{0,1800}?"Explore"[\s\S]{0,220}?SHAELVIEN_CLAIM/);
+  assert.match(razor,/case Stage\.Role:[\s\S]{0,900}?EnterMmoMapAsync\(inspect:false\)/);
+  assert.doesNotMatch(razor,/_stage=Stage\.DeedSelect;/);
+  assert.doesNotMatch(razor,/<ShaelvienDeedGate/);
   assert.match(razor,/Stage\.PathSelect=>IsShaelvienDeedHome\?"WORLD BUILDER"/);
   assert.match(razor,/Stage\.PathSelect=>IsShaelvienDeedHome\?"CONTEXT"/);
-  assert.match(razor,/case Stage\.DeedSelect:[\s\S]{0,420}?ActivateCurrentPathWorldAsync\(\)[\s\S]{0,260}?SetSelectedDeed\(selected\)/);
   assert.match(razor,/World Builder is on the left; Context is on the right/);
-  assert.match(razor,/EnterMmoMapAsync\(inspect:false\)/);
-  assert.match(razor,/<ShaelvienDeedGate[\s\S]{0,280}?OnClaimed="CompleteShaelvienDeedAsync"[\s\S]{0,180}?OnViewRequested="OpenExploredZoneAsync"/);
+  assert.match(mmo,/"ENTER COORDINATES"/);
+  assert.match(mmo,/Session\.IsMmoParcelOwnedByCurrentUser/);
+  assert.match(mmo,/new\("EDIT", "edit"\)/);
+  assert.match(mmo,/new\("VIEW", "view"\)/);
+  assert.match(mmo,/new\("ROLEPLAY", "roleplay"\), new\("INSPECT", "inspect"\)/);
+  assert.match(mmo,/new\("PRIVATE", "private"\)/);
+  assert.match(mmo,/new\("CLAIM", "claim"\)/);
+  assert.match(mmo,/new\("PURCHASE TOKEN AND CLAIM", "purchase"\)/);
   assert.match(land,/UnspentMmoWorldTokenCount/);
-  assert.match(deed,/EXPLORE/);
-  assert.match(deed,/Public \/ viewable/i);
-  assert.match(deed,/RESTRICTED · name visible; world contents hidden/);
-  assert.match(deed,/SPEND 1 TOKEN · CLAIM DEED/);
-  assert.match(deed,/ClaimMmoParcelAsync/);
 });
 
 test('Explore shows geometrically open zones even without a token',()=>{
@@ -338,17 +338,15 @@ test('Explore shows geometrically open zones even without a token',()=>{
   assert.match(deed,/Open Shaelvien zone \{CellCoordinate\(cell\)\}; explore now, token required to claim/);
 });
 
-test('developer Inspect shares the MMO map and requires one reason per committed edit',()=>{
+test('developer Inspect is a deed-map oversight action and audited edits return to the MMO map',()=>{
   const razor=read('Components/UniversalInterface.razor');
-  const deed=read('Components/ShaelvienDeedGate.razor');
+  const mmo=read('Components/UniversalInterface.MmoMap.cs');
 
-  assert.match(deed,/InspectOnly\?"INSPECT":"EXPLORE"/);
-  assert.match(deed,/Every committed inspection edit requires a written reason/);
-  assert.match(deed,/OnInspectionEditRequested/);
-  assert.match(deed,/SAVE ZONE EDIT/);
-  assert.match(deed,/OPEN WORLD EDITOR WITH REASON/);
-  assert.match(deed,/InspectionReasonMissing/);
-  assert.match(deed,/InspectionZoneChanged/);
+  assert.match(mmo,/Session\.TrustedPlatformDeveloper[\s\S]{0,260}?new\("ROLEPLAY", "roleplay"\), new\("INSPECT", "inspect"\)/);
+  assert.match(mmo,/EnterMmoInspectSelectionAsync/);
+  assert.match(mmo,/new\("MANAGE", "manage"\)/);
+  assert.match(mmo,/OPEN WORLD BUILDER/);
+  assert.doesNotMatch(razor,/<ShaelvienDeedGate/);
   assert.match(razor,/_inspectionEditMode/);
   assert.match(razor,/REASON FOR NEXT EDIT/);
   assert.match(razor,/RequireInspectionReason\(\)/);
@@ -356,8 +354,8 @@ test('developer Inspect shares the MMO map and requires one reason per committed
   assert.match(razor,/currentState\.TryGetProperty\("inspectionAudit",out var currentAudit\)/);
   assert.match(razor,/root\["inspectionAudit"\]=JsonNode\.Parse\(currentAudit\.GetRawText\(\)\)/);
   assert.match(razor,/ConsumeInspectionReason\(\)/);
-  assert.match(razor,/ReturnToInspectMapAsync\(\)[\s\S]{0,220}?ReturnToShaelvienDeedSelector\(\)/);
-  assert.match(razor,/void ReturnToShaelvienDeedSelector\(\)[\s\S]{0,320}?_stage=Stage\.DeedSelect/);
+  assert.match(razor,/ReturnToInspectMapAsync\(\)[\s\S]{0,220}?EnterMmoMapAsync\(inspect:true\)/);
+  assert.match(razor,/void ReturnToShaelvienDeedSelector\(\)[\s\S]{0,360}?_stage=Stage\.MmoMap/);
   assert.match(razor,/RecordInspectionAuditAsync\(\$"CREATE \{CurrentBuilderScope\}",inspectionReason\)/);
   assert.match(razor,/var access=_exploreReadOnlyMode[\s\S]{0,180}?_inspectionEditMode&&Session\.TrustedPlatformDeveloper/);
 });
