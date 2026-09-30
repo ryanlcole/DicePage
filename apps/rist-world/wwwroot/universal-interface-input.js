@@ -498,6 +498,16 @@
 
   window.ristUniversalInput = Object.freeze({
     activateCursorTarget,
+    openFilePicker(id) {
+      const input = document.getElementById(String(id || ""));
+      if (!(input instanceof HTMLInputElement) || input.type !== "file") return false;
+      try {
+        input.click();
+        return true;
+      } catch {
+        return false;
+      }
+    },
     start(dotnetReference, analogElement, leftSliderElement, rightSliderElement) {
       dotnet = dotnetReference;
       previousButtons = [];
