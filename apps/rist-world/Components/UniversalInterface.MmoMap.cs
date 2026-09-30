@@ -34,7 +34,8 @@ public partial class UniversalInterface
         double Y,
         double Size,
         double Rotation,
-        double Opacity);
+        double Opacity,
+        bool MmoSurface);
 
     IReadOnlyList<MmoLeftChoice> MmoLeftChoices
     {
@@ -377,9 +378,12 @@ public partial class UniversalInterface
                     JsonDouble(item, "y", .5),
                     Math.Max(.001, JsonDouble(item, "size", 1)),
                     JsonDouble(item, "rotation", 0),
-                    JsonDouble(item, "opacity", 1));
+                    JsonDouble(item, "opacity", 1),
+                    JsonBool(item, "mmoSurface", false));
 
-                if (!topByRegion.TryGetValue(regionId, out var current) || layer.Layer > current.Layer)
+                if (!topByRegion.TryGetValue(regionId, out var current)
+                    || (layer.MmoSurface && !current.MmoSurface)
+                    || (layer.MmoSurface == current.MmoSurface && layer.Layer > current.Layer))
                     topByRegion[regionId] = layer;
             }
 
@@ -410,6 +414,14 @@ public partial class UniversalInterface
         if (!item.TryGetProperty(name, out var value)) return fallback;
         if (value.ValueKind == JsonValueKind.Number && value.TryGetDouble(out var result)) return result;
         if (value.ValueKind == JsonValueKind.String && double.TryParse(value.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return result;
+        return fallback;
+    }
+
+    static bool JsonBool(JsonElement item, string name, bool fallback)
+    {
+        if (!item.TryGetProperty(name, out var value)) return fallback;
+        if (value.ValueKind is JsonValueKind.True or JsonValueKind.False) return value.GetBoolean();
+        if (value.ValueKind == JsonValueKind.String && bool.TryParse(value.GetString(), out var result)) return result;
         return fallback;
     }
 
