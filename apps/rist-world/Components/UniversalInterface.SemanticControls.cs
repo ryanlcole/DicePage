@@ -235,6 +235,11 @@ public partial class UniversalInterface
                 await SelectSemanticAsync();
                 return;
             case UniversalSemanticControls.Action.Back:
+                if (_stage == Stage.Environment)
+                {
+                    if (OnExit.HasDelegate) await OnExit.InvokeAsync();
+                    return;
+                }
                 GoBack();
                 return;
             case UniversalSemanticControls.Action.Secondary:
