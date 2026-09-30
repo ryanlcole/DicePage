@@ -141,8 +141,6 @@ flowchart LR
   chid_003624["chid.003624\nbody\nvariable"]
   chid_003625["chid.003625\noutput\nvariable"]
   chid_003626["chid.003626\nPath\nimport"]
-  chid_003632["chid.003632\nsubprocess\nimport"]
-  chid_003633["chid.003633\nsys\nimport"]
   chid_003634["chid.003634\nroot\nvariable"]
   chid_003635["chid.003635\ntactical\nvariable"]
   chid_003636["chid.003636\nweb\nvariable"]
@@ -171,6 +169,7 @@ flowchart LR
   chid_167610["chid.167610\ncandidate\nvariable"]
   chid_167611["chid.167611\nroot\nvariable"]
   chid_168358["chid.168358\nprobe\nvariable"]
+  chid_175198["chid.175198\nopened\nvariable"]
   chid_000013 -->|call| chid_000012
   chid_000013 -->|read| chid_000012
   chid_000014 -->|read| chid_000013
@@ -454,6 +453,8 @@ flowchart LR
   chid_003566 -->|call| chid_074530
   chid_003566 -->|read| chid_003516
   chid_003566 -->|read| chid_003568
+  chid_003566 -->|write| chid_175198
+  chid_003566 -->|read| chid_175198
   chid_003566 -->|call| chid_003549
   chid_003566 -->|read| chid_003549
   chid_003566 -->|read| chid_003569
@@ -669,5 +670,3 @@ flowchart LR
   chid_003637 -->|read| chid_003637
   chid_003640 -->|read| chid_003641
   chid_003640 -->|call| chid_107386
-  chid_003640 -->|read| chid_003632
-  chid_003640 -->|read| chid_003633
