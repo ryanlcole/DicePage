@@ -38,15 +38,16 @@ test('landscape mode prioritizes viewer visibility with a compact control deck',
 });
 
 
-test('universal analog stick press acts as the primary Select control',()=>{
+test('universal analog stick press acts as the semantic Select control',()=>{
   const razor=read('Components/UniversalInterface.razor');
+  const semantic=read('Components/UniversalInterface.SemanticControls.cs');
   const input=read('wwwroot/universal-interface-input.js');
 
   assert.match(razor,/data-analog-select="true"/);
-  assert.match(
-    razor,
-    /case "select":[\s\S]{0,320}?if\(\(_stage==Stage\.BrowsePlace\|\|_stage==Stage\.MmoMap\)&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\);[\s\S]{0,220}?Stage\.MmoMap[\s\S]{0,140}?else await PressLeft\(\);/
-  );
+  assert.match(razor,/data-semantic-action="@UniversalSemanticControls\.Action\.Select"/);
+  assert.match(razor,/ReceiveSemanticHardwareInputAsync\(control,direction\)/);
+  assert.match(semantic,/case UniversalSemanticControls\.Action\.Select:[\s\S]{0,120}?await SelectSemanticAsync\(\)/);
+  assert.match(semantic,/SelectSemanticAsync\(\)[\s\S]{0,360}?Stage\.BrowsePlace[\s\S]{0,160}?ActivateBrowseCursorTargetAsync\(\)/);
   assert.match(input,/const ANALOG_SELECT_RADIUS = 0\.46;/);
   assert.match(input,/const ANALOG_SELECT_MOVE_PX = 10;/);
   assert.match(input,/if \(shouldSelect\) invoke\("select"\);/);
@@ -72,8 +73,8 @@ test('portrait builder keeps source content in the vertical center and corner PI
     css,
     /@media\(max-width:430px\) and \(orientation:portrait\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/
   );
-  assert.match(index,/universal-interface\.css\?v=20260929-live-1/);
-  assert.match(index,/universal-interface-input\.js\?v=20260929-live-1/);
+  assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-1/);
+  assert.match(index,/universal-interface-input\.js\?v=20260930-semantic-controls-1/);
 });
 
 
@@ -105,8 +106,8 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
   assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button,\.analog-mode-button"\)/);
-  assert.match(index,/universal-interface\.css\?v=20260929-live-1/);
-  assert.match(index,/universal-interface-input\.js\?v=20260929-live-1/);
+  assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-1/);
+  assert.match(index,/universal-interface-input\.js\?v=20260930-semantic-controls-1/);
 });
 
 
@@ -162,8 +163,8 @@ test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer d
   assert.match(css,/--rist-cursor-image-pointer/);
   assert.match(css,/--rist-cursor-image-selectAlt2/);
   assert.match(index,/cursors-haptics\.js\?v=20260928-visible-cursor-assets-1/);
-  assert.match(index,/universal-interface-input\.js\?v=20260929-live-1/);
-  assert.match(index,/universal-interface\.css\?v=20260929-live-1/);
+  assert.match(index,/universal-interface-input\.js\?v=20260930-semantic-controls-1/);
+  assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-1/);
 });
 
 
@@ -276,7 +277,7 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
   assert.match(prototypeIndex,/prototype\.css\?v=20260928-canonical-spatial-1/);
   assert.match(prototypeIndex,/prototype\.js\?v=[0-9]{8}-[a-z0-9-]+/i);
   assert.match(index,/start-menu\.js\?v=20260928-grid-density-1/);
-  assert.match(index,/universal-interface\.css\?v=20260929-live-1/);
+  assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-1/);
 });
 
 
