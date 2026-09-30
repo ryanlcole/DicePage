@@ -124,16 +124,21 @@ test('LEGACY opens the GM archive importer and continues into RIST',()=>{
   assert.doesNotMatch(razor,/Opening Legacy interface…[\s\S]{0,180}?OnExit\.InvokeAsync/);
 });
 
-test('analog top button switches CURSOR and BUTTONS without changing START',()=>{
+test('analog top button exposes BUTTONS ZONES and CURSOR on the MMO deed map without changing START',()=>{
   const razor=read('Components/UniversalInterface.razor');
+  const mmo=read('Components/UniversalInterface.MmoMap.cs');
   const input=read('wwwroot/universal-interface-input.js');
   const css=read('wwwroot/css/universal-interface.css');
 
   assert.match(razor,/class="analog-mode-button"[\s\S]{0,360}?@onclick="ToggleAnalogMode"[\s\S]{0,420}?@AnalogModeLabel<\/button>/);
-  assert.match(razor,/string AnalogModeLabel=>_stage==Stage\.Environment&&_universalStartRevealed[\s\S]{0,260}?CursorMode\?"CURSOR":"BUTTONS"/);
-  assert.match(razor,/async Task ToggleAnalogMode\(\)[\s\S]*?_analogButtonMode=true;[\s\S]*?_analogButtonMode=false;/);
+  assert.match(mmo,/MmoAnalogModes = \["BUTTONS", "ZONES", "CURSOR"\]/);
+  assert.match(razor,/string AnalogModeLabel=>[\s\S]{0,240}?_stage==Stage\.MmoMap[\s\S]{0,80}?MmoAnalogMode/);
+  assert.match(razor,/async Task ToggleAnalogMode\(\)[\s\S]{0,520}?_stage==Stage\.MmoMap[\s\S]{0,120}?CycleMmoAnalogMode\(\)/);
+  assert.match(razor,/void StepY\(int direction\)[\s\S]{0,900}?MmoAnalogButtonsMode[\s\S]{0,120}?CycleMmoLeftOption\(direction\)/);
+  assert.match(razor,/void StepX\(int direction\)[\s\S]{0,900}?MmoAnalogButtonsMode[\s\S]{0,120}?CycleMmoRightOption\(direction\)/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]*?_analogButtonMode=false;[\s\S]*?Cursor active/);
   assert.match(razor,/class="analog-start-button"[\s\S]*?@onclick="HandleStartButtonAsync"/);
+  assert.match(input,/\.asset-source-explorer \.linked-asset, \.mmo-deed-cell/);
   assert.match(input,/\.analog-start-button,\.analog-mode-button/);
   assert.match(css,/Analog mode toggle authority/);
 });
@@ -315,6 +320,8 @@ test('Shaelvien GameMaster opens the permission-driven deed map without the lega
   assert.match(razor,/Stage\.PathSelect=>IsShaelvienDeedHome\?"CONTEXT"/);
   assert.match(razor,/World Builder is on the left; Context is on the right/);
   assert.match(mmo,/"ENTER COORDINATES"/);
+  assert.match(mmo,/new\("ENDEMAR", "owned", WorldSession\.EndemarOriginCell\)/);
+  assert.match(mmo,/COORDINATES \/ MY ZONES/);
   assert.match(mmo,/Session\.IsMmoParcelOwnedByCurrentUser/);
   assert.match(mmo,/new\("EDIT", "edit"\)/);
   assert.match(mmo,/new\("VIEW", "view"\)/);

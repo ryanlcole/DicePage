@@ -389,7 +389,7 @@
            @onclick="ToggleAnalogMode"
            disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
            aria-disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
-           aria-label="@(_stage==Stage.Environment&&_universalStartRevealed?"Open Legacy GM archive import":"Switch analog between cursor and button controls")">@AnalogModeLabel</button>
+           aria-label="@AnalogModeAriaLabel">@AnalogModeLabel</button>
    <span class="analog-direction analog-up" aria-hidden="true">UP</span>
    <span class="analog-direction analog-down" aria-hidden="true">DOWN</span>
    <span class="analog-direction analog-left" aria-hidden="true">LEFT</span>
@@ -999,12 +999,21 @@
  bool RightActsAsBack=>_stage==Stage.SpatialSelect||IsDeedContextNode||(_stage!=Stage.PathSelect&&_stage!=Stage.MmoMap&&!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1);
  bool IsGameMasterMenuStage=>_stage is Stage.DeedSelect or Stage.ContextSelect||IsShaelvienDeedHome;
  bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage.MmoMap&&_stage!=Stage.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
- bool CursorMode=>CursorAvailable
-  &&!_analogButtonMode
-  &&(_stage!=Stage.BrowsePlace||_browseCursorActive);
+ bool CursorMode=>_stage==Stage.MmoMap
+  ?MmoAnalogCursorMode
+  :CursorAvailable
+   &&!_analogButtonMode
+   &&(_stage!=Stage.BrowsePlace||_browseCursorActive);
  string AnalogModeLabel=>_stage==Stage.Environment&&_universalStartRevealed
   ?"LEGACY"
-  :CursorMode?"CURSOR":"BUTTONS";
+  :_stage==Stage.MmoMap
+   ?MmoAnalogMode
+   :CursorMode?"CURSOR":"BUTTONS";
+ string AnalogModeAriaLabel=>_stage==Stage.Environment&&_universalStartRevealed
+  ?"Open Legacy GM archive import"
+  :_stage==Stage.MmoMap
+   ?$"Analog mode {MmoAnalogMode}. Tap to cycle Buttons, Zones, and Cursor."
+   :"Switch analog between cursor and button controls";
 
  bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
  bool IsAssetTransformStage=>_stage is Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
@@ -1433,6 +1442,11 @@
    else _message=$"Cursor {_cursorX},{_cursorY}.";
    return;
   }
+  if(_stage==Stage.MmoMap&&MmoAnalogButtonsMode)
+  {
+   CycleMmoLeftOption(direction);
+   return;
+  }
   ApplyY(direction);
  }
 
@@ -1451,6 +1465,11 @@
     _message=$"Cursor {_cursorX},{_cursorY}. Preview position {_assetX},{_assetY}.";
    }
    else _message=$"Cursor {_cursorX},{_cursorY}.";
+   return;
+  }
+  if(_stage==Stage.MmoMap&&MmoAnalogButtonsMode)
+  {
+   CycleMmoRightOption(direction);
    return;
   }
   ApplyX(direction);
@@ -3729,6 +3748,12 @@
    return;
   }
 
+  if(_stage==Stage.MmoMap)
+  {
+   CycleMmoAnalogMode();
+   return;
+  }
+
   if(CursorMode)
   {
    _analogButtonMode=true;
@@ -3754,8 +3779,12 @@
   {
    var activated=await JS.InvokeAsync<bool>("ristUniversalInput.activateCursorTarget");
    _message=activated
-    ?"Asset action applied. First press selects; pressing the selected asset again places it."
-    :"Move the cursor over an asset thumbnail, then press the analog stick.";
+    ?_stage==Stage.MmoMap
+     ?"Zone under cursor selected."
+     :"Asset action applied. First press selects; pressing the selected asset again places it."
+    :_stage==Stage.MmoMap
+     ?"Move the cursor over a deed zone, then press the analog stick."
+     :"Move the cursor over an asset thumbnail, then press the analog stick.";
   }
   catch(JSException ex)
   {
@@ -3782,7 +3811,7 @@
      else ApplyX(direction);
      break;
     case "select":
-     if(_stage==Stage.BrowsePlace&&CursorMode)await ActivateBrowseCursorTargetAsync();
+     if((_stage==Stage.BrowsePlace||_stage==Stage.MmoMap)&&CursorMode)await ActivateBrowseCursorTargetAsync();
      else if(_stage is Stage.DeedSelect or Stage.ContextSelect or Stage.MmoMap)await PressRight();
      else await PressLeft();
      break;

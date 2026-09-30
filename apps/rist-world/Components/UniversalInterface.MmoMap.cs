@@ -8,9 +8,12 @@ public partial class UniversalInterface
     const string MmoCanonicalSurfaceUrl =
         "https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/geonaph_full_static_canonical_surface_v001.png";
 
+    static readonly string[] MmoAnalogModes = ["BUTTONS", "ZONES", "CURSOR"];
+
     int _mmoSelectedCell = WorldSession.EndemarOriginCell;
     int _mmoLeftIndex;
     int _mmoRightIndex;
+    int _mmoAnalogModeIndex = 1;
     bool _mmoInspectMode;
     bool _mmoMapBusy;
     bool _mmoManageOpen;
@@ -69,8 +72,25 @@ public partial class UniversalInterface
     string MmoLeftPrompt => _mmoInspectMode
         ? "SLIDE ↑↓ · COORDINATES / USER ID"
         : MmoLeftOptionCount > 1
-            ? "SLIDE ↑↓ · COORDINATES / OWNED ZONES"
+            ? "SLIDE ↑↓ · COORDINATES / MY ZONES"
             : "TOUCH · ENTER X,Y";
+
+    string MmoAnalogMode => MmoAnalogModes[Math.Clamp(_mmoAnalogModeIndex, 0, MmoAnalogModes.Length - 1)];
+    bool MmoAnalogButtonsMode => string.Equals(MmoAnalogMode, "BUTTONS", StringComparison.Ordinal);
+    bool MmoAnalogZonesMode => string.Equals(MmoAnalogMode, "ZONES", StringComparison.Ordinal);
+    bool MmoAnalogCursorMode => string.Equals(MmoAnalogMode, "CURSOR", StringComparison.Ordinal);
+
+    void CycleMmoAnalogMode()
+    {
+        _mmoAnalogModeIndex = Wrap(_mmoAnalogModeIndex + 1, MmoAnalogModes.Length);
+        _message = MmoAnalogMode switch
+        {
+            "BUTTONS" => "Analog mode: BUTTONS. Up/down cycles the left button; left/right cycles the right button.",
+            "ZONES" => "Analog mode: ZONES. Move the stick to move the highlighted deed one adjacent zone at a time.",
+            "CURSOR" => "Analog mode: CURSOR. Move the stick freely over the deed map; press the stick to select the zone under the cursor.",
+            _ => $"Analog mode: {MmoAnalogMode}."
+        };
+    }
 
     AwsAuthorityClient.MmoParcel? MmoSelectedParcel =>
         Session.MmoParcels.FirstOrDefault(parcel => parcel.CellIndex == _mmoSelectedCell);
@@ -313,6 +333,7 @@ public partial class UniversalInterface
         _mmoInspectMode = inspect && Session.TrustedPlatformDeveloper;
         _mmoLeftIndex = 0;
         _mmoRightIndex = 0;
+        _mmoAnalogModeIndex = 1;
         _mmoSelectedCell = WorldSession.EndemarOriginCell;
         _mmoManageOpen = false;
         _mmoManageReason = "";

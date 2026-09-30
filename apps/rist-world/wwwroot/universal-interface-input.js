@@ -105,7 +105,7 @@
     const x = rect.left;
     const y = rect.top;
     const hit = document.elementFromPoint?.(x, y);
-    return hit?.closest?.(".asset-source-explorer .linked-asset") || null;
+    return hit?.closest?.(".asset-source-explorer .linked-asset, .mmo-deed-cell") || null;
   }
 
   function updateCursorRole(reticle = currentReticle()) {
