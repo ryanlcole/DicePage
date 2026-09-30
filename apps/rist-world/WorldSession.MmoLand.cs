@@ -15,6 +15,9 @@ public sealed partial class WorldSession
     public const int EndemarOriginColumn = 15;
     public const int EndemarOriginRow = 15;
     public const int EndemarOriginCell = EndemarOriginRow * MmoParcelGridColumns + EndemarOriginColumn;
+    public const int GeanaphCanonicalColumn = EndemarOriginColumn + 1;
+    public const int GeanaphCanonicalRow = EndemarOriginRow;
+    public const int GeanaphCanonicalCell = GeanaphCanonicalRow * MmoParcelGridColumns + GeanaphCanonicalColumn;
 
     readonly List<AwsAuthorityClient.WorldToken> _mmoWorldTokens = [];
     readonly List<AwsAuthorityClient.MmoParcel> _mmoParcels = [];
@@ -48,6 +51,27 @@ public sealed partial class WorldSession
                 ? null
                 : _mmoParcels.FirstOrDefault(parcel =>
                     string.Equals(parcel.OwnerUserId, userId, StringComparison.Ordinal));
+        }
+    }
+
+    public AwsAuthorityClient.MmoParcel? CanonicalGeanaphParcel =>
+        _mmoParcels.FirstOrDefault(parcel =>
+            parcel.CellIndex == GeanaphCanonicalCell
+            && string.Equals(parcel.DisplayName, "Geanaph", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(parcel.Status, "Canonical", StringComparison.OrdinalIgnoreCase));
+
+    // The server seed binds the one canonical Geanaph parcel at (+1,0) to the
+    // configured platform-owner user. That persisted parcel is the account bridge
+    // proving the same authenticated owner may edit Endemar.
+    public bool OwnsCanonicalGeanaphZone
+    {
+        get
+        {
+            var userId = auth.Profile?.UserId?.Trim() ?? "";
+            var parcel = CanonicalGeanaphParcel;
+            return userId.Length > 0
+                && parcel is not null
+                && string.Equals(parcel.OwnerUserId, userId, StringComparison.Ordinal);
         }
     }
 

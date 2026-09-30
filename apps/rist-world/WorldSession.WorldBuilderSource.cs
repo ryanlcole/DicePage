@@ -84,6 +84,7 @@ public sealed partial class WorldSession
             throw new UnauthorizedAccessException("The active world or account changed while saving.");
         if (!HasTrustedWorldBuilderAuthority
             && !privateOwnerAtEntry
+            && !(IsGeonaphWorld && OwnsCanonicalGeanaphZone)
             && !(inspectionEdit && TrustedPlatformDeveloper))
             throw new UnauthorizedAccessException("World Builder authority is required to save the canonical world map.");
         if (state.ValueKind != JsonValueKind.Object)

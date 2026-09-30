@@ -52,7 +52,7 @@ public partial class UniversalInterface
                 return result;
             }
 
-            if (Session.IsServerVerifiedPlatformOwner)
+            if (Session.IsServerVerifiedPlatformOwner || Session.HasWorldBuilderEditAuthority)
                 result.Add(new("ENDEMAR", "owned", WorldSession.EndemarOriginCell));
 
             result.AddRange(
@@ -116,7 +116,7 @@ public partial class UniversalInterface
     // an explicit parcel-level Edit/Manage/Owner delegation.
     bool MmoCanGameMasterSelected =>
         MmoSelectedIsEndemar
-            ? Session.IsServerVerifiedPlatformOwner || Session.HasTrustedWorldBuilderAuthority
+            ? Session.IsServerVerifiedPlatformOwner || Session.HasWorldBuilderEditAuthority
             : MmoSelectedIsOwned || MmoSelectedHasExplicitEditPermission;
 
     bool MmoCanViewSelected =>

@@ -12,7 +12,10 @@ public sealed partial class WorldSession
     public bool HasLoadedSandboxOwnerAuthority =>
         IsLoggedIn && HasActiveWorld && !IsGeonaphWorld &&
         string.Equals(_activeWorldRelationship, "owner", StringComparison.OrdinalIgnoreCase);
-    public bool HasWorldBuilderEditAuthority => HasLoadedSandboxOwnerAuthority || HasTrustedWorldBuilderAuthority;
+    public bool HasWorldBuilderEditAuthority =>
+        HasLoadedSandboxOwnerAuthority
+        || HasTrustedWorldBuilderAuthority
+        || (IsGeonaphWorld && OwnsCanonicalGeanaphZone);
 
     public string WorldDirectoryKey => $"{WorldsStoragePrefix}/index.json";
     public string WorldDescriptorKey => $"{WorldStoragePrefix}/world.json";

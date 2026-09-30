@@ -19,6 +19,7 @@ const DISPLAY_WORLD_NAME=WORLD_NAME||'Shaelvien';
 const CONTINENT_NAME=IS_GEONAPH_SEED?'Jeyrusal':'';
 const SURFACE_POLICY=QUERY.get('surfacePolicy')||'included';
 const ACCESS_MODE=String(QUERY.get('access')||'edit').toLowerCase();
+const ENTRY_VIEW=String(QUERY.get('entryView')||'saved').toLowerCase();
 const CLAIM_ONLY=ACCESS_MODE==='claim';
 const READ_ONLY=ACCESS_MODE==='view';
 const MAP_AUTHORITY_SCOPED=REGION_DEFINER;
@@ -370,8 +371,13 @@ async function applyDatabaseWorldBuilderState(envelope){
   viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier||'sea').key;
   viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
   await hydrateSelectedDeedZone({preserveView:true});
+  if(ENTRY_VIEW==='all-parallax'&&!READ_ONLY&&!REGION_DEFINER){
+    viewerTier='all';
+    viewerLayer=9;
+  }
   selectedImage=null;publishWorldBuilderSelectionContext();
   updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
+  if(ENTRY_VIEW==='all-parallax'&&!READ_ONLY&&!REGION_DEFINER)fitMap();
   localWorldBuilderRestoreComplete=true;
   worldSourceDatabaseMissing=false;
   try{await writeSavedWorldBuilder(state,WORLD_SOURCE_SAVE_KEY)}catch{}
@@ -476,7 +482,11 @@ function serializableUserLayer(item){
   }
   return{
     id:item.id,regionId:String(item.regionId||''),scope:normalizeSpatialScope(item.scope||'WORLD'),spatialNodeId:String(item.spatialNodeId||''),spatialPath:String(item.spatialPath||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
-    placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
+    placementRole:storedPlacementRole(item),fullWorld:isWorldMapItem(item),fullDeedFrame:isFullDeedFrameItem(item),
+    mmoSurface:!!item.mmoSurface,representationOnly:!!item.representationOnly,provenance:String(item.provenance||''),
+    truthManifestUrl:String(item.truthManifestUrl||''),frameLock:!!item.frameLock,
+    frameWidth:Math.max(0,Math.trunc(Number(item.frameWidth)||0)),frameHeight:Math.max(0,Math.trunc(Number(item.frameHeight)||0)),
+    displayZ:Number(item.displayZ)||0,semanticRole:String(item.semanticRole||''),
     originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
     spriteSheetSrc:item.spriteSheetSrc||null,spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
@@ -679,7 +689,11 @@ async function attachRestoredLayer(raw,options={}){
   const first=isSprite?(frameSources[0]||String(raw.originalSrc||raw.spriteSheetSrc||'')):String(raw.originalSrc||'');
   const item={
     id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),scope:normalizeSpatialScope(raw.scope||'WORLD'),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
-    placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
+    placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',fullDeedFrame:storedPlacementRole(raw)==='deed-frame',
+    mmoSurface:!!raw.mmoSurface,representationOnly:!!raw.representationOnly,provenance:String(raw.provenance||''),
+    truthManifestUrl:String(raw.truthManifestUrl||''),frameLock:!!raw.frameLock,
+    frameWidth:Math.max(0,Math.trunc(Number(raw.frameWidth)||0)),frameHeight:Math.max(0,Math.trunc(Number(raw.frameHeight)||0)),
+    displayZ:Number(raw.displayZ)||0,semanticRole:String(raw.semanticRole||''),
     originalSrc:first,transparentSrc:String(raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
     spriteSheetSrc:isSprite?String(raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
     spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?Math.max(1,Number(raw.spriteFps)||6):null,
@@ -690,7 +704,7 @@ async function attachRestoredLayer(raw,options={}){
     layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
     opacity:clamp(Number(raw.opacity)||1,.01,1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
-  const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}${isSprite?' sprite-placement':''}${isWorldMapItem(item)?' full-world-placement':''}`;node.alt=item.name||(isSprite?'Placed sprite':'Placed image');node.draggable=false;item.node=node;
+  const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}${isSprite?' sprite-placement':''}${isWorldMapItem(item)?' full-world-placement':''}${isFullDeedFrameItem(item)?' full-deed-frame-placement':''}`;node.alt=item.name||(isSprite?'Placed sprite':'Placed image');node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   node.addEventListener('load',()=>{refreshUserImage(item);applyParallax();scheduleRegionEnhancement(30)},{once:true});
   userLayers.push(item);world.appendChild(node);refreshUserImage(item);
@@ -754,7 +768,10 @@ async function hydrateSelectedDeedZone(options={}){
     }
 
     if(loaded){
-      if(preserveView){
+      if(ENTRY_VIEW==='all-parallax'&&!READ_ONLY){
+        viewerTier='all';
+        viewerLayer=9;
+      }else if(preserveView){
         viewerTier=preservedTier;
         viewerLayer=preservedLayer;
       }else{
@@ -794,8 +811,13 @@ async function restoreSavedWorldBuilder(){
         viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
       }
       await hydrateSelectedDeedZone({preserveView:hasSavedState});
+      if(ENTRY_VIEW==='all-parallax'&&!READ_ONLY&&!REGION_DEFINER){
+        viewerTier='all';
+        viewerLayer=9;
+      }
     }
     selectedImage=null;publishWorldBuilderSelectionContext();updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
+    if(ENTRY_VIEW==='all-parallax'&&!READ_ONLY&&!REGION_DEFINER)fitMap();
     announce(REGION_DEFINER
       ? 'Region Definer ready. Loading the canonical world map with regional permissions.'
       : `Saved World Builder restored. ${userLayers.length} placed item${userLayers.length===1?'':'s'} loaded.`);
@@ -1106,7 +1128,12 @@ function moveSelectedLayer(delta){
   announce(`${selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
 }
 function isWorldMapItem(item){return item?.placementRole==='world-map'||item?.fullWorld===true}
-function storedPlacementRole(raw){return raw?.placementRole==='world-map'||raw?.fullWorld===true?'world-map':'layer'}
+function isFullDeedFrameItem(item){return item?.placementRole==='deed-frame'||item?.fullDeedFrame===true}
+function storedPlacementRole(raw){
+  if(raw?.placementRole==='world-map'||raw?.fullWorld===true)return'world-map';
+  if(raw?.placementRole==='deed-frame'||raw?.fullDeedFrame===true)return'deed-frame';
+  return'layer';
+}
 function customWorldMap(){return userLayers.find(isWorldMapItem)||null}
 function hasSeaLevelRepresentation(){return !!customWorldMap()||layerReady.surface||!!String(surface?.currentSrc||surface?.src||'').trim()||BASE_WORLD_ASSETS.length>0}
 function defaultNewPlacementRole(){return !REGION_DEFINER&&!hasSeaLevelRepresentation()?'world-map':'layer'}
@@ -1381,12 +1408,21 @@ function refreshUserImage(item){
   item.node.style.opacity=String(item.renderOpacity??item.opacity);
   item.node.dataset.committed=item.committed?'true':'false';
   item.node.dataset.sourceLocked=item.sourceLocked?'true':'false';
-  item.node.dataset.placementRole=isWorldMapItem(item)?'world-map':'layer';
+  item.node.dataset.placementRole=storedPlacementRole(item);
   item.node.classList.toggle('full-world-placement',isWorldMapItem(item));
+  item.node.classList.toggle('full-deed-frame-placement',isFullDeedFrameItem(item));
   if(isWorldMapItem(item)){
     item.node.style.left='0';item.node.style.top='0';item.node.style.width='100%';item.node.style.height='100%';
     item.node.style.maxWidth='none';item.node.style.maxHeight='none';item.node.style.objectFit='fill';
     item.node.style.pointerEvents='none';item.node.style.transform='none';item.node.style.transformOrigin='0 0';return;
+  }
+  if(isFullDeedFrameItem(item)){
+    const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
+    item.node.style.left='0';item.node.style.top='0';item.node.style.width='100%';item.node.style.height='100%';
+    item.node.style.maxWidth='none';item.node.style.maxHeight='none';item.node.style.objectFit='contain';
+    item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item?'none':'auto');
+    item.node.style.transformOrigin='50% 50%';
+    item.node.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`;return;
   }
   item.node.style.width='12%';item.node.style.height='auto';item.node.style.maxWidth='';item.node.style.maxHeight='';item.node.style.objectFit='';
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
@@ -1556,7 +1592,10 @@ function applyParallax(){
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
-    const depth=item.tier;
+    // Presentation parallax uses the full scene address. Semantic tier/layer
+    // identity remains unchanged in the saved world source.
+    const sceneDepth=(item.tier*10)+item.layer;
+    const depth=sceneDepth/10;
     const panStrength=depth*.022,tiltStrength=depth*.48;
     item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
     item.parallaxY=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
@@ -3565,6 +3604,16 @@ RistViewerInput.install({stage,document,
 });
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.hidden){closeTierMenu();tierToggle.focus();return}if(!viewerSettingsPanel.hidden){closeViewerSettings();return}if(!spriteUploadPanel.hidden){closeSpriteUpload();return}if(!imageUploadPanel.hidden){closeImageUpload();return}if(!keyboard.hidden)closeKeyboard()});
 
+function showAllParallax(){
+  if(REGION_DEFINER)return false;
+  viewerTier='all';
+  viewerLayer=9;
+  stage.dataset.entryView='all-parallax';
+  updateTierButton();renderTierMenu();fitMap();applyTransform();renderKeyboardKeys();
+  announce('All world layers shown in parallax. Choose a Tier when you are ready to isolate editing depth.');
+  return true;
+}
+
 function setExternalDepth(raw={}){
   externalSpatialScope=normalizeSpatialScope(raw.scope||externalSpatialScope);
   externalSpatialNodeId=String(raw.spatialNodeId||'');
@@ -3619,6 +3668,7 @@ window.ShaelvienPrototype=Object.freeze({
   save:saveWorldBuilder,
   placeExternalAsset,
   editCommand:runViewerEditCommand,
+  showAllParallax,
   setExternalDepth,
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,

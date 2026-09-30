@@ -47,6 +47,15 @@ export async function editCommand(frame,command){
   return typeof result==="string"?result:"";
 }
 
+export async function showAllParallax(frame){
+  post(frame,{type:"bridge-ready"});
+  const api=await waitForPrototype(frame);
+  if(!api)return false;
+  const fn=api.showAllParallax;
+  if(typeof fn!=="function")return false;
+  return fn()!==false;
+}
+
 export function setDepth(frame,tier,layer,scope,spatialNodeId="",spatialPath=""){
   const fn=frame?.contentWindow?.ShaelvienPrototype?.setExternalDepth;
   if(typeof fn!=="function")return false;

@@ -14,7 +14,7 @@ from boto3.dynamodb.conditions import Key
 WORLD_ID = "shaelvien-geonaph-alpha-001"
 WORLD_PK = f"WORLD#{WORLD_ID}"
 ZONE_NAME = "Geanaph"
-ZONE_MARKER = "geanaph-east-v1"
+ZONE_MARKER = "geanaph-east-v2"
 GRID_COLUMNS = 30
 GRID_ROWS = 30
 PARCEL_PIXELS = 2048
@@ -26,9 +26,24 @@ CANONICAL_ROW = ENDEMAR_ROW
 CANONICAL_CELL = CANONICAL_ROW * GRID_COLUMNS + CANONICAL_COLUMN
 CANONICAL_PARCEL_ID = f"parcel-{CANONICAL_COLUMN}-{CANONICAL_ROW}"
 CANONICAL_REGION_ID = "region-" + CANONICAL_PARCEL_ID
-PLACEMENT_WIDTH_FRACTION = Decimal("0.12")
-ZONE_SIZE = (Decimal(1) / Decimal(GRID_COLUMNS)) / PLACEMENT_WIDTH_FRACTION
+FRAME_WIDTH = 1672
+FRAME_HEIGHT = 941
 SURFACE_FILE = "fantasy_archipelago_terrain_atlas.png"
+
+# Display representations only. The independent truth manifest remains the
+# evidence/provenance authority; these generated layers never become semantic
+# truth merely because they share a locked canvas.
+VISUAL_LAYERS = (
+    ("cavern", "Cavern Network", "luminous_underground_cavern_network.png", 0, 0, -40, False),
+    ("subterranean", "Subterranean Realm", "enchanted_subterranean_realm_map.png", 0, 1, -30, False),
+    ("aquifer", "Aquifer", "luminous_underground_aquifer_world_map.png", 0, 2, -20, False),
+    ("deep-geology", "Deep Geology", "glowing_volcanic_world_map_layer.png", 0, 3, -10, False),
+    ("terrain", "Terrain Surface", SURFACE_FILE, 0, 4, 0, True),
+    ("surface-overlay", "Surface Overlay", "luminous_fantasy_archipelago_map_overlay.png", 1, 0, 10, False),
+    ("water", "Waterways", "glowing_fantasy_waterway_map.png", 1, 1, 20, False),
+    ("ruins", "Ruined Surface", "fantastical_ruined_archipelago_layer.png", 1, 2, 30, False),
+    ("celestial", "Celestial Overlay", "celestial_nebula_archipelago_map.png", 2, 0, 40, False),
+)
 
 
 def utc_stamp() -> str:
@@ -150,6 +165,10 @@ def canonical_region(
             "relativeOffsetY": 0,
             "truthManifestUrl": truth_manifest_url,
             "surfaceRepresentationUrl": surface_url,
+            "frameWidth": FRAME_WIDTH,
+            "frameHeight": FRAME_HEIGHT,
+            "frameLock": True,
+            "visualLayerCount": len(VISUAL_LAYERS),
             "representationPolicy": "Representation != Semantic Truth",
         }
     )
@@ -166,32 +185,45 @@ def canonical_region(
     }
 
 
-def surface_layer(surface_url: str, truth_manifest_url: str) -> dict:
-    x = (Decimal(CANONICAL_COLUMN) + Decimal("0.5")) / Decimal(GRID_COLUMNS)
-    y = (Decimal(CANONICAL_ROW) + Decimal("0.5")) / Decimal(GRID_ROWS)
-    return {
-        "id": f"geanaph:{CANONICAL_REGION_ID}:surface",
-        "regionId": CANONICAL_REGION_ID,
-        "assetId": "zone:geanaph:surface-representation",
-        "name": "Geanaph Surface Representation",
-        "libraryTile": False,
-        "kind": "image",
-        "originalSrc": surface_url,
-        "transparentSrc": surface_url,
-        "transparent": True,
-        "x": x,
-        "y": y,
-        "tier": 0,
-        "layer": 0,
-        "size": ZONE_SIZE,
-        "rotation": 0,
-        "opacity": 1,
-        "committed": True,
-        "mmoSurface": True,
-        "representationOnly": True,
-        "provenance": "OUTSIDER_AI",
-        "truthManifestUrl": truth_manifest_url,
-    }
+def build_visual_layers(asset_base_url: str, truth_manifest_url: str) -> list[dict]:
+    base = asset_base_url.rstrip("/")
+    layers = []
+    for semantic_role, name, filename, tier, layer, display_z, mmo_surface in VISUAL_LAYERS:
+        url = f"{base}/{filename}"
+        layers.append(
+            {
+                "id": f"geanaph:{CANONICAL_REGION_ID}:{semantic_role}",
+                "regionId": CANONICAL_REGION_ID,
+                "assetId": f"zone:geanaph:{semantic_role}",
+                "name": name,
+                "libraryTile": False,
+                "kind": "image",
+                "placementRole": "deed-frame",
+                "fullWorld": False,
+                "fullDeedFrame": True,
+                "originalSrc": url,
+                "transparentSrc": url,
+                "transparent": True,
+                "x": Decimal("0.5"),
+                "y": Decimal("0.5"),
+                "tier": tier,
+                "layer": layer,
+                "displayZ": display_z,
+                "semanticRole": semantic_role,
+                "size": 1,
+                "rotation": 0,
+                "opacity": 1,
+                "committed": True,
+                "mmoSurface": mmo_surface,
+                "representationOnly": True,
+                "provenance": "OUTSIDER_AI",
+                "truthManifestUrl": truth_manifest_url,
+                "frameLock": True,
+                "frameWidth": FRAME_WIDTH,
+                "frameHeight": FRAME_HEIGHT,
+            }
+        )
+    return layers
 
 
 def verify_existing_target(parcels: list[dict]) -> dict | None:
@@ -261,7 +293,7 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         truth_manifest_url,
         existing_region,
     )
-    layer = surface_layer(surface_url, truth_manifest_url)
+    visual_layers = build_visual_layers(asset_base_url, truth_manifest_url)
 
     source_state["userLayers"] = [
         item
@@ -273,7 +305,7 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
                 or str(item.get("id") or "").startswith("geanaph:")
             )
         )
-    ] + [layer]
+    ] + visual_layers
 
     markers[ZONE_MARKER] = {
         "regionId": CANONICAL_REGION_ID,
@@ -284,6 +316,11 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         "ownerUserId": owner_user_id,
         "truthManifestUrl": truth_manifest_url,
         "surfaceRepresentationUrl": surface_url,
+        "visualLayerCount": len(visual_layers),
+        "frameWidth": FRAME_WIDTH,
+        "frameHeight": FRAME_HEIGHT,
+        "frameLock": True,
+        "entryView": "all-parallax",
         "representationOnly": True,
     }
     source_state["migrationMarkers"] = markers
@@ -330,14 +367,23 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         raise RuntimeError(
             "Geanaph verification failed: parcel is not exactly east of Endemar."
         )
-    if len(verify_layers) != 1 or not bool(verify_layers[0].get("mmoSurface")):
+    if len(verify_layers) != len(VISUAL_LAYERS):
         raise RuntimeError(
-            "Geanaph verification failed: canonical MMO surface representation is missing."
+            f"Geanaph verification failed: expected {len(VISUAL_LAYERS)} visual layers, "
+            f"found {len(verify_layers)}."
+        )
+    if sum(1 for item in verify_layers if bool(item.get("mmoSurface"))) != 1:
+        raise RuntimeError(
+            "Geanaph verification failed: exactly one deed-map surface representation is required."
+        )
+    if not all(bool(item.get("fullDeedFrame")) for item in verify_layers):
+        raise RuntimeError(
+            "Geanaph verification failed: every visual layer must fill the locked deed frame."
         )
 
     return {
         "seeded": True,
-        "alreadySeeded": bool(markers.get(ZONE_MARKER) and existing_parcel is not None),
+        "alreadySeeded": existing_parcel is not None,
         "parcelId": CANONICAL_PARCEL_ID,
         "regionId": CANONICAL_REGION_ID,
         "column": CANONICAL_COLUMN,
@@ -346,6 +392,11 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         "ownerBoundToPlatformAccount": True,
         "ownerUserId": owner_user_id,
         "visibility": "Public",
+        "visualLayerCount": len(verify_layers),
+        "frameWidth": FRAME_WIDTH,
+        "frameHeight": FRAME_HEIGHT,
+        "frameLock": True,
+        "entryView": "all-parallax",
         "truthManifestUrl": truth_manifest_url,
         "surfaceRepresentationUrl": surface_url,
         "representationOnly": True,
@@ -357,7 +408,7 @@ def send_cloudformation_response(event, context, status: str, data: dict, reason
         "Status": status,
         "Reason": reason or f"See CloudWatch Log Stream: {context.log_stream_name}",
         "PhysicalResourceId": str(
-            event.get("PhysicalResourceId") or "geanaph-east-zone-seed-v1"
+            event.get("PhysicalResourceId") or "geanaph-east-zone-seed-v2"
         ),
         "StackId": event["StackId"],
         "RequestId": event["RequestId"],

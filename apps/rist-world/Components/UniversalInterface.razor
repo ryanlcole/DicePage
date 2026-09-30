@@ -941,7 +941,8 @@
    var deedName=Uri.EscapeDataString(_selectedDeedName??"");
    var deedRegionId=Uri.EscapeDataString(SelectedDeedRegionId);
    var deedZone=Uri.EscapeDataString(SelectedDeedZoneId);
-   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20260929-deed-context-1";
+   var entryView=access=="edit"&&!string.IsNullOrWhiteSpace(_selectedDeedName)?"all-parallax":"saved";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&entryView={entryView}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20260930-deed-parallax-1";
   }
  }
  bool IsPathDrivenStage=>!IsDeedContextNode&&_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
@@ -2323,8 +2324,8 @@
   if(CurrentBuilderScope=="WORLD")
   {
    _stage=Stage.WorldBuilderTier;
-   _message="World selected. Choose Tier, then Layer.";
-   _=SyncWorldBuilderDepthAsync();
+   _message="World selected. All world layers are shown in parallax; choose a Tier to isolate its editing depth.";
+   _=ShowAllWorldLayersAsync();
    return;
   }
 
@@ -2724,6 +2725,16 @@
    _message="Canonical placement failed. This asset was not reported as saved.";
    return false;
   }
+ }
+
+ async Task ShowAllWorldLayersAsync()
+ {
+  if(_worldBuilderSourceModule is null)return;
+  try
+  {
+   await _worldBuilderSourceModule.InvokeVoidAsync("showAllParallax",_worldBuilderFrame);
+  }
+  catch(JSException){}
  }
 
  async Task SyncWorldBuilderDepthAsync()
