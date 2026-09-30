@@ -2,11 +2,17 @@
 @inject WorldSession Session
 @inject DiscordAuthClient Auth
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 @if(Open)
 {
  <section class="legacy-gate-backdrop" role="presentation" @onclick="CloseAsync">
-  <div class="legacy-gate" role="dialog" aria-modal="true" aria-label="Legacy campaign archive" @onclick:stopPropagation="true">
+  <div class="legacy-gate" role="dialog" aria-modal="true" aria-label="Legacy campaign archive"
+       tabindex="0"
+       data-semantic-contract="@UniversalSemanticControls.ContractId"
+       @onkeydown="LegacyKeyDown"
+       @onkeydown:stopPropagation="true"
+       @onclick:stopPropagation="true">
    <header>
     <span><small>LEGACY</small><strong>BRING YOUR WORLD FORWARD</strong></span>
     <button type="button" @onclick="CloseAsync" aria-label="Close Legacy">×</button>
@@ -22,9 +28,16 @@
    {
     <div class="legacy-gate-divider"><span>YOUR LEGACY WORLDS</span></div>
     <section class="legacy-gate-worlds">
-     @foreach(var world in _legacyWorlds)
+     @for(var i=0;i<_legacyWorlds.Count;i++)
      {
-      <button type="button" disabled="@_busy" @onclick="()=>LoadAsync(world)">
+      var world=_legacyWorlds[i];
+      var controllerIndex=i;
+      <button type="button"
+              class="@LegacyChoiceClass(controllerIndex)"
+              aria-current="@(controllerIndex==_controllerIndex?"true":null)"
+              data-semantic-action="@UniversalSemanticControls.Action.Primary"
+              disabled="@_busy"
+              @onclick="()=>LoadAsync(world)">
        <span><strong>@world.DisplayName</strong><small>@world.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</small></span><b>LOAD</b>
       </button>
      }
@@ -32,17 +45,21 @@
    }
 
    <div class="legacy-gate-divider"><span>IMPORT LEGACY ZIP</span></div>
-   <label class="legacy-import @((_busy||!CanCreateWorld)?"disabled":"")">
+   <label class="legacy-import @((_busy||!CanCreateWorld)?"disabled":"") @LegacyChoiceClass(_legacyWorlds.Count)"
+          aria-current="@(_controllerIndex==_legacyWorlds.Count?"true":null)"
+          data-semantic-action="@UniversalSemanticControls.Action.LegacyImport">
     <strong>@(_busy?"WORKING…":"IMPORT ZIP")</strong>
     <small>@(CanCreateWorld?"ZIP up to 100 MB · any file type inside it is preserved privately":"An additional sandbox world slot is required before importing another Legacy world.")</small>
-    <InputFile OnChange="ImportLegacyAsync" accept=".zip,application/zip,application/x-zip-compressed" disabled="@(_busy||!CanCreateWorld)" />
+    <InputFile id="legacy-import-zip" OnChange="ImportLegacyAsync" accept=".zip,application/zip,application/x-zip-compressed" disabled="@(_busy||!CanCreateWorld)" />
    </label>
 
    <div class="legacy-gate-divider"><span>OR SELECT SEVERAL FILES</span></div>
-   <label class="legacy-import legacy-import-files @((_busy||!CanCreateWorld)?"disabled":"")">
+   <label class="legacy-import legacy-import-files @((_busy||!CanCreateWorld)?"disabled":"") @LegacyChoiceClass(_legacyWorlds.Count+1)"
+          aria-current="@(_controllerIndex==_legacyWorlds.Count+1?"true":null)"
+          data-semantic-action="@UniversalSemanticControls.Action.LegacyImport">
     <strong>@(_busy?"WORKING…":"IMPORT FILES")</strong>
     <small>@(CanCreateWorld?"Select several loose files at once · metadata + SHA-256 identify exact duplicates · differing same-name files are preserved automatically as numbered copies":"An additional sandbox world slot is required before importing another Legacy world.")</small>
-    <InputFile OnChange="ImportLegacyFilesAsync" multiple disabled="@(_busy||!CanCreateWorld)" />
+    <InputFile id="legacy-import-files" OnChange="ImportLegacyFilesAsync" multiple disabled="@(_busy||!CanCreateWorld)" />
    </label>
 
    @if(!string.IsNullOrWhiteSpace(_status))
@@ -60,7 +77,7 @@
  .legacy-gate-intro{display:grid;gap:8px;margin:14px 15px 4px;padding:14px;border:1px solid #354750;border-radius:10px;background:linear-gradient(135deg,#10180f,#0a151b)}.legacy-gate-intro strong{color:#f1d991;font-size:12px;letter-spacing:.07em}.legacy-gate-intro p{margin:0;color:#adbdc3;font-size:10px;line-height:1.55}
  .legacy-gate-divider{display:flex;align-items:center;gap:9px;padding:12px 15px 4px;color:#8ea7b2;font:900 8px/1 system-ui;letter-spacing:.11em}.legacy-gate-divider:before,.legacy-gate-divider:after{content:"";height:1px;flex:1;background:#3a4644}
  .legacy-gate-worlds{display:grid;gap:7px;padding:7px 15px}.legacy-gate-worlds button{min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 11px;border:1px solid #4c606a;border-radius:9px;background:#0d171e;color:#e8dec5;text-align:left}.legacy-gate-worlds button span{display:grid;gap:3px}.legacy-gate-worlds strong{color:#f0ddb0;font-size:12px}.legacy-gate-worlds small{color:#8399a4;font-size:8px}.legacy-gate-worlds b{color:#75bde9;font-size:9px;letter-spacing:.08em}
- .legacy-import{position:relative;display:grid;gap:6px;margin:8px 15px 15px;padding:18px;border:1px dashed #9b7a34;border-radius:10px;background:#0c171d;color:#efd58d;text-align:center;overflow:hidden}.legacy-import strong{font-size:16px;letter-spacing:.08em}.legacy-import small{color:#9eb0b7;font-size:9px;line-height:1.45}.legacy-import input{position:absolute;inset:0;width:100%;height:100%;opacity:0}.legacy-import.disabled{opacity:.42}
+ .legacy-import{position:relative;display:grid;gap:6px;margin:8px 15px 15px;padding:18px;border:1px dashed #9b7a34;border-radius:10px;background:#0c171d;color:#efd58d;text-align:center;overflow:hidden}.legacy-import strong{font-size:16px;letter-spacing:.08em}.legacy-import small{color:#9eb0b7;font-size:9px;line-height:1.45}.legacy-import input{position:absolute;inset:0;width:100%;height:100%;opacity:0}.legacy-import.disabled{opacity:.42}.legacy-gate .controller-selected{outline:2px solid #78c7ed;outline-offset:2px;border-color:#78c7ed!important;box-shadow:0 0 0 3px #78c7ed22}
  .legacy-gate-status{margin:0;padding:0 15px 16px;color:#edc47b;font-size:10px;line-height:1.45}
  @@media(max-width:560px){.legacy-gate-backdrop{padding:7px}.legacy-gate{width:100%;max-height:95dvh}.legacy-gate-intro{margin:11px 12px 3px}.legacy-gate-worlds{padding:7px 12px}.legacy-import{margin:7px 12px 13px}}
 </style>
@@ -76,15 +93,19 @@
  bool _wasOpen;
  bool _loadPending;
  bool _busy;
+ int _controllerIndex;
  string _status="";
 
  bool CanCreateWorld=>Session.CanCreateAdditionalOwnedWorld(_sandboxWorlds);
+ int LegacyChoiceCount=>Math.Max(1,_legacyWorlds.Count+2);
+ string LegacyChoiceClass(int index)=>index==_controllerIndex?"controller-selected":"";
 
  protected override void OnParametersSet()
  {
   if(Open&&!_wasOpen)
   {
    _status="";
+   _controllerIndex=0;
    _loadPending=true;
   }
   _wasOpen=Open;
@@ -117,6 +138,7 @@
    }
   }
   catch(Exception ex){_status="Legacy world list could not be loaded: "+ex.Message;}
+  _controllerIndex=Math.Clamp(_controllerIndex,0,LegacyChoiceCount-1);
  }
 
  async Task LoadAsync(AccountWorldReference world)
@@ -126,6 +148,8 @@
   try
   {
    await Session.LoadWorldAsync(world);
+   await LegacyArchiveImport.EnsureSemanticControlProfileAsync(world.WorldId,Auth);
+   _status=$"{world.DisplayName} loaded · {UniversalSemanticControls.ContractId} connected.";
    await CompleteAsync();
   }
   catch(Exception ex){_status="Legacy world load failed: "+ex.Message;}
@@ -227,8 +251,116 @@
   var manifest=await LegacyArchiveImport.ImportAsync(
    bytes,sourceName,Session.WorldId,Session.WorldDisplayName,Navigation.BaseUri,Auth,progress);
 
-  _status=$"{manifest.WorldName} is ready: {manifest.FileCount:N0} files, {manifest.ImageCount:N0} image assets, {manifest.HtmlCount:N0} HTML representations.";
+  _status=$"{manifest.WorldName} is ready: {manifest.FileCount:N0} files, {manifest.ImageCount:N0} image assets, {manifest.HtmlCount:N0} HTML representations · {manifest.ControlContract} connected.";
   await CompleteAsync();
+ }
+
+ void CycleControllerChoice(int direction)
+ {
+  direction=Math.Sign(direction);
+  if(direction==0)return;
+  _controllerIndex=(_controllerIndex+direction)%LegacyChoiceCount;
+  if(_controllerIndex<0)_controllerIndex+=LegacyChoiceCount;
+  _status=_controllerIndex<_legacyWorlds.Count
+   ?$"Legacy world: {_legacyWorlds[_controllerIndex].DisplayName}."
+   :_controllerIndex==_legacyWorlds.Count
+    ?"Legacy import: ZIP archive."
+    :"Legacy import: loose files.";
+ }
+
+ async Task<bool> OpenPickerAsync(string id)
+ {
+  if(!CanCreateWorld)
+  {
+   _status="An additional sandbox world slot is required before importing another Legacy world.";
+   return false;
+  }
+
+  try
+  {
+   var opened=await JS.InvokeAsync<bool>("ristUniversalInput.openFilePicker",id);
+   if(!opened)_status="The browser did not open the file picker. Touch or keyboard-activate the import control instead.";
+   return opened;
+  }
+  catch
+  {
+   _status="File picker activation is unavailable through this input. Touch or keyboard-activate the import control instead.";
+   return false;
+  }
+ }
+
+ async Task ActivateControllerChoiceAsync()
+ {
+  if(_busy)return;
+  if(_controllerIndex<_legacyWorlds.Count)
+  {
+   await LoadAsync(_legacyWorlds[_controllerIndex]);
+   return;
+  }
+  if(_controllerIndex==_legacyWorlds.Count)
+  {
+   await OpenPickerAsync("legacy-import-zip");
+   return;
+  }
+  await OpenPickerAsync("legacy-import-files");
+ }
+
+ public async Task ReceiveControlAsync(string control,int direction)
+ {
+  if(!Open)return;
+  control=(control??"").Trim().ToLowerInvariant();
+  switch(control)
+  {
+   case "x":
+   case "y":
+   case "left-slider":
+   case "right-slider":
+    CycleControllerChoice(direction);
+    break;
+   case "select":
+   case "right":
+    await ActivateControllerChoiceAsync();
+    break;
+   case "left":
+   case "back":
+    await CloseAsync();
+    break;
+  }
+  await InvokeAsync(StateHasChanged);
+ }
+
+ async Task LegacyKeyDown(KeyboardEventArgs e)
+ {
+  switch(e.Key)
+  {
+   case "ArrowUp":
+   case "ArrowLeft":
+   case "w":
+   case "W":
+   case "a":
+   case "A":
+    CycleControllerChoice(-1);
+    break;
+   case "ArrowDown":
+   case "ArrowRight":
+   case "s":
+   case "S":
+   case "d":
+   case "D":
+    CycleControllerChoice(1);
+    break;
+   case "Enter":
+   case " ":
+   case "e":
+   case "E":
+    await ActivateControllerChoiceAsync();
+    break;
+   case "Escape":
+   case "q":
+   case "Q":
+    await CloseAsync();
+    break;
+  }
  }
 
  async Task CompleteAsync()
