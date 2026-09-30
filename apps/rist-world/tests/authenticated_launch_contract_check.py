@@ -78,7 +78,8 @@ def main() -> None:
     require(authenticated, 'OnClose="CloseLaunchSandboxChooser"', "sandbox chooser cancel must return to Shaelvien-or-RIST choice")
     require(authenticated, "directory.Worlds.Where(WorldSession.IsMmoWorldReference)", "Shaelvien launch state must identify MMO worlds separately")
     forbid(authenticated, "_launchSandboxWorlds", "top-level environment screen must not duplicate sandbox-world navigation")
-    require(authenticated, '<PublicAlphaShell @ref="_alphaShell" EnterRoleplayOnFirstRender="_universalRoleplayPending" />', "landing shell must render after an environment is selected and accept the one-shot MMO Roleplay handoff")
+    forbid(authenticated, "<PublicAlphaShell", "legacy launcher hub must remain unpublished from the authenticated runtime")
+    require(authenticated, '<TaskWorkspaceRouter Mode="@(_universalRoleplayPending?"roleplay":"world")"', "authenticated workspace handoff must route directly without rendering the legacy launcher hub")
     require(authenticated, "_launchWorldChosen=true;", "successful environment selection must unlock landing")
     require(rist, "pressStart:async", "base runtime must own Press Start activation")
     require(rist, "ristDeviceCapabilities", "Press Start must use the device capability authority")
@@ -192,7 +193,7 @@ def main() -> None:
     require(discord, 'string AuthProvider = "discord"', "account client must model provider identity")
     require(discord, "long SessionExpiresAt = 0", "account client must model provider expiry")
 
-    print("Authenticated launch contract verified: provider session -> Press Start -> live universal interface; legacy landing retained only as rollback compatibility.")
+    print("Authenticated launch contract verified: provider session -> Press Start -> live universal interface; legacy launcher hub is archived and unpublished.")
 
 
 if __name__ == "__main__":
