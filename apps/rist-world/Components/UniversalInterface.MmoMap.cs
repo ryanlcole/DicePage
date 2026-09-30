@@ -10,6 +10,7 @@ public partial class UniversalInterface
 
     int _mmoSelectedCell = WorldSession.EndemarOriginCell;
     int _mmoLeftIndex;
+    int _mmoRightIndex;
     bool _mmoInspectMode;
     bool _mmoMapBusy;
     bool _mmoManageOpen;
@@ -20,6 +21,7 @@ public partial class UniversalInterface
     readonly List<MmoSurfaceLayer> _mmoSurfaceLayers = [];
 
     sealed record MmoLeftChoice(string Label, string Kind, int? CellIndex = null);
+    sealed record MmoRightChoice(string Label, string Kind);
     sealed record MmoSurfaceLayer(
         string RegionId,
         string Name,
@@ -76,6 +78,12 @@ public partial class UniversalInterface
     bool MmoSelectedIsRefunded => string.Equals(MmoSelectedParcel?.Status, "Refunded", StringComparison.OrdinalIgnoreCase);
     bool MmoSelectedIsShaelvienRoleplayZone =>
         MmoSelectedIsEndemar || IsCanonicalShaelvienRoleplayZone(MmoSelectedParcel);
+    bool MmoCanGameMasterSelected =>
+        MmoSelectedIsEndemar
+            ? Session.HasTrustedWorldBuilderAuthority
+            : MmoSelectedParcel is { } parcel && Session.CanEditMmoParcel(parcel);
+    bool MmoCanInspectSelected =>
+        Session.TrustedPlatformDeveloper && (MmoSelectedIsEndemar || MmoSelectedParcel is not null);
 
     static bool IsCanonicalShaelvienRoleplayZone(AwsAuthorityClient.MmoParcel? parcel)
     {
@@ -97,6 +105,42 @@ public partial class UniversalInterface
         }
     }
 
+    IReadOnlyList<MmoRightChoice> MmoRightChoices
+    {
+        get
+        {
+            if (_mmoInspectMode)
+                return [new("MANAGE", "manage")];
+
+            if (MmoSelectedIsRefunded)
+                return [new(MmoBidLabel, "bid")];
+
+            var result = new List<MmoRightChoice>();
+            if (MmoSelectedIsShaelvienRoleplayZone)
+                result.Add(new("ROLEPLAY", "roleplay"));
+            if (MmoCanGameMasterSelected)
+                result.Add(new("GAMEMASTER", "gamemaster"));
+            if (MmoCanInspectSelected)
+                result.Add(new("INSPECT", "inspect"));
+            if (result.Count > 0)
+                return result;
+
+            if (MmoSelectedParcel is not null)
+                return [new("REQUEST DEED FROM GM", "request")];
+
+            if (MmoSelectedIsOpen)
+                return Session.HasUnspentMmoWorldToken
+                    ? [new("CLAIM DEED", "claim")]
+                    : [new("PURCHASE TOKEN AND CLAIM DEED", "purchase")];
+
+            return [new("UNAVAILABLE", "unavailable")];
+        }
+    }
+
+    int MmoRightOptionCount => Math.Max(1, MmoRightChoices.Count);
+    MmoRightChoice CurrentMmoRightChoice =>
+        MmoRightChoices[Math.Clamp(_mmoRightIndex, 0, MmoRightChoices.Count - 1)];
+
     string MmoSelectedName =>
         MmoSelectedIsEndemar
             ? WorldSession.EndemarStartingPointDisplayName
@@ -106,37 +150,27 @@ public partial class UniversalInterface
                     ? $"Available deed {MmoCoordinate(_mmoSelectedCell)}"
                     : MmoCoordinate(_mmoSelectedCell);
 
-    string MmoRightValue
-    {
-        get
-        {
-            if (_mmoInspectMode) return "MANAGE";
-            if (MmoSelectedIsRefunded) return MmoBidLabel;
-            if (MmoSelectedIsShaelvienRoleplayZone) return "ROLEPLAY";
-            if (MmoSelectedParcel is not null)
-                return MmoSelectedIsOwned ? "MANAGE" : "REQUEST DEED FROM GM";
-            if (MmoSelectedIsOpen)
-                return Session.HasUnspentMmoWorldToken ? "CLAIM DEED" : "PURCHASE TOKEN AND CLAIM DEED";
-            return "UNAVAILABLE";
-        }
-    }
+    string MmoRightValue => CurrentMmoRightChoice.Label;
 
     string MmoRightPrompt
     {
         get
         {
             if (_mmoInspectMode) return $"TOUCH · {MmoSelectedName.ToUpperInvariant()}";
-            if (MmoSelectedIsRefunded) return MmoBidLabel;
-            if (MmoSelectedIsShaelvienRoleplayZone) return $"TOUCH · ROLEPLAY · {MmoSelectedName.ToUpperInvariant()}";
-            if (MmoSelectedParcel is not null)
-                return MmoSelectedIsOwned ? "TOUCH · MANAGE DEED" : "TOUCH · SEND REQUEST";
-            if (MmoSelectedIsOpen && Session.HasUnspentMmoWorldToken)
+            if (MmoRightOptionCount > 1)
+                return $"SLIDE ↔ · {string.Join(" / ", MmoRightChoices.Select(choice => choice.Label))}";
+
+            return CurrentMmoRightChoice.Kind switch
             {
-                var count = Session.UnspentMmoWorldTokenCount;
-                return $"USE 1/{count} TOKEN{(count == 1 ? "" : "S")}";
-            }
-            if (MmoSelectedIsOpen) return "TOKEN REQUIRED";
-            return "NO ACTION";
+                "bid" => MmoBidLabel,
+                "roleplay" => $"TOUCH · ROLEPLAY · {MmoSelectedName.ToUpperInvariant()}",
+                "gamemaster" => $"TOUCH · GAMEMASTER · {MmoSelectedName.ToUpperInvariant()}",
+                "inspect" => $"TOUCH · INSPECT · {MmoSelectedName.ToUpperInvariant()}",
+                "request" => "TOUCH · SEND REQUEST",
+                "claim" => $"USE 1/{Session.UnspentMmoWorldTokenCount} TOKEN{(Session.UnspentMmoWorldTokenCount == 1 ? "" : "S")}",
+                "purchase" => "TOKEN REQUIRED",
+                _ => "NO ACTION"
+            };
         }
     }
 
@@ -259,6 +293,7 @@ public partial class UniversalInterface
         await EnsureShaelvienEnvironmentAsync();
         _mmoInspectMode = inspect && Session.TrustedPlatformDeveloper;
         _mmoLeftIndex = 0;
+        _mmoRightIndex = 0;
         _mmoSelectedCell = WorldSession.EndemarOriginCell;
         _mmoManageOpen = false;
         _mmoManageReason = "";
@@ -342,6 +377,7 @@ public partial class UniversalInterface
     {
         if (!_mmoMapCells.Contains(cellIndex)) return;
         _mmoSelectedCell = cellIndex;
+        _mmoRightIndex = 0;
         _mmoManageOpen = false;
         _message = $"{MmoSelectedName} {MmoCoordinate(cellIndex)} selected.";
     }
@@ -379,6 +415,14 @@ public partial class UniversalInterface
         if (choices.Count <= 1) return;
         _mmoLeftIndex = Wrap(_mmoLeftIndex + Math.Sign(direction), choices.Count);
         _message = $"Left action: {MmoLeftValue}.";
+    }
+
+    void CycleMmoRightOption(int direction)
+    {
+        var choices = MmoRightChoices;
+        if (choices.Count <= 1) return;
+        _mmoRightIndex = Wrap(_mmoRightIndex + Math.Sign(direction), choices.Count);
+        _message = $"Access: {MmoRightValue}.";
     }
 
     async Task PressMmoLeftAsync()
@@ -439,19 +483,33 @@ public partial class UniversalInterface
 
     async Task PressMmoRightAsync()
     {
-        if (_mmoInspectMode)
+        var action = CurrentMmoRightChoice.Kind;
+
+        if (action == "manage")
         {
             OpenMmoManage();
             return;
         }
 
-        if (MmoSelectedIsRefunded)
+        if (action == "inspect")
+        {
+            await EnterMmoInspectSelectionAsync();
+            return;
+        }
+
+        if (action == "gamemaster")
+        {
+            await OpenMmoGameMasterAsync();
+            return;
+        }
+
+        if (action == "bid")
         {
             _message = "This deed is marked Refunded. The current bid is shown on the right; bid submission is not enabled until server-side auction settlement is implemented.";
             return;
         }
 
-        if (MmoSelectedIsShaelvienRoleplayZone)
+        if (action == "roleplay")
         {
             if (MmoSelectedParcel is { RegionId.Length: > 0 } roleplayParcel)
                 Session.SetActiveRegion(roleplayParcel.RegionId);
@@ -468,21 +526,8 @@ public partial class UniversalInterface
             return;
         }
 
-        if (MmoSelectedParcel is { } parcel)
+        if (action == "request" && MmoSelectedParcel is { } parcel)
         {
-            if (MmoSelectedIsOwned)
-            {
-                var selected = PathWorldOptions.FirstOrDefault(option => string.Equals(option.Id, parcel.ParcelId, StringComparison.Ordinal));
-                if (selected is not null)
-                {
-                    SetSelectedDeed(selected);
-                    if (!string.IsNullOrWhiteSpace(parcel.RegionId)) Session.SetActiveRegion(parcel.RegionId);
-                    _stage = Stage.PathSelect;
-                    _message = $"{parcel.DisplayName} selected. World Builder is on the left; Context is on the right.";
-                }
-                return;
-            }
-
             _mmoMapBusy = true;
             try
             {
@@ -502,13 +547,14 @@ public partial class UniversalInterface
             return;
         }
 
-        if (!MmoSelectedIsOpen) return;
-
-        if (!Session.HasUnspentMmoWorldToken)
+        if (action == "purchase")
         {
             _message = "Purchase Token and Claim Deed is reserved in the interface, but paid Shaelvien Token checkout is not implemented yet. No purchase was attempted.";
             return;
         }
+
+        if (action != "claim" || !MmoSelectedIsOpen)
+            return;
 
         var suggested = $"Shaelvien {MmoCoordinate(_mmoSelectedCell)}";
         var name = (await JS.InvokeAsync<string?>("prompt", "Name this deed before claiming it:", suggested))?.Trim() ?? "";
@@ -531,6 +577,71 @@ public partial class UniversalInterface
         {
             _mmoMapBusy = false;
         }
+    }
+
+    async Task OpenMmoGameMasterAsync()
+    {
+        if (!MmoCanGameMasterSelected)
+        {
+            _message = "GameMaster authority is required for this deed.";
+            return;
+        }
+
+        await Session.LoadRegionsAsync();
+
+        ControllerWorldOption selected;
+        if (MmoSelectedIsEndemar)
+        {
+            selected = new ControllerWorldOption(
+                "__endemar__",
+                WorldSession.EndemarStartingPointDisplayName,
+                "SHAELVIEN_ORIGIN",
+                null,
+                null);
+            Session.SetActiveRegion("");
+        }
+        else if (MmoSelectedParcel is { } parcel)
+        {
+            selected = new ControllerWorldOption(
+                parcel.ParcelId,
+                parcel.DisplayName,
+                "SHAELVIEN",
+                null,
+                parcel);
+            if (!string.IsNullOrWhiteSpace(parcel.RegionId))
+                Session.SetActiveRegion(parcel.RegionId);
+        }
+        else
+        {
+            _message = "Select Endemar or a deed you can edit.";
+            return;
+        }
+
+        SetSelectedDeed(selected);
+        _exploreReadOnlyMode = false;
+        _inspectionEditMode = false;
+        _inspectionEditReason = "";
+        _mmoManageOpen = false;
+        _stage = Stage.PathSelect;
+        _pathIndex = 0;
+        _pathMenuIndex = 0;
+        _message = $"{_selectedDeedName} GameMaster access. World Builder is on the left; Context is on the right.";
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task EnterMmoInspectSelectionAsync()
+    {
+        if (!MmoCanInspectSelected)
+        {
+            _message = "Developer Inspect authority is required.";
+            return;
+        }
+
+        _mmoInspectMode = true;
+        _mmoRightIndex = 0;
+        _mmoManageOpen = false;
+        _message = $"Inspect · {MmoSelectedName}. Claiming is disabled; use Manage for audited changes.";
+        await InvokeAsync(StateHasChanged);
     }
 
     void OpenMmoManage()
