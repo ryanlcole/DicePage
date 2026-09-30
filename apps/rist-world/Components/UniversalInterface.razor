@@ -8,8 +8,12 @@
 @inject WorldSession Session
 @inject DiscordAuthClient Auth
 
-<section class="universal-shell"
+<section class="universal-shell @SemanticControlClass"
          tabindex="0"
+         data-semantic-contract="@SemanticContractId"
+         data-semantic-context="@CurrentSemanticContextId"
+         data-semantic-experience="@SemanticExperience"
+         data-semantic-skin="@SemanticControlSkin"
          @ref="_shell"
          @onkeydown="HandleKeyDown"
          data-spatial-scope="@CurrentBuilderScope"
@@ -331,6 +335,30 @@
    </nav>
   }
 
+  @if(ShowQuickDeck)
+  {
+   <nav class="semantic-quick-deck" aria-label="Semantic Quick Deck">
+    @foreach(var action in SemanticQuickDeck)
+    {
+     <button type="button" data-semantic-action="@action.Id" title="@action.Detail" @onclick="()=>ActivateSemanticDeckActionAsync(action.Id)">@action.Label</button>
+    }
+   </nav>
+  }
+
+  @if(ShowRadialDeck)
+  {
+   <nav class="semantic-radial-deck" aria-label="Semantic radial controls">
+    @foreach(var action in SemanticRadialDeck)
+    {
+     <button type="button" data-semantic-action="@action.Id" title="@action.Detail" @onclick="()=>ActivateSemanticDeckActionAsync(action.Id)">@action.Label</button>
+    }
+   </nav>
+  }
+
+  <span class="semantic-control-announcer" aria-live="polite">
+   @SemanticContractId · @CurrentSemanticContextId · left @LeftDisplayValue · primary @RightDisplayValue
+  </span>
+
   <div class="viewer-status" role="status" aria-live="polite">
    <strong>@ViewerTitle</strong>
    <span>@_message</span>
@@ -358,6 +386,7 @@
    }
    <button type="button"
            class="control-display-button control-display-left @(_stage==Stage.Environment?"environment-choice-button":"") @(_universalStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
+           data-semantic-action="@CurrentLeftSemanticId"
            @onclick="PressLeft"
            disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
            aria-disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
@@ -391,6 +420,7 @@
        role="button"
        tabindex="0"
        data-analog-select="true"
+       data-semantic-action="@UniversalSemanticControls.Action.Select"
        aria-label="Universal analog control. Move the stick to navigate button choices or the viewer cursor. Press the centered stick to select the current primary action.">
    <button type="button"
            class="analog-mode-button"
@@ -423,6 +453,7 @@
    }
    <button type="button"
            class="control-display-button control-display-right @(_stage==Stage.Environment?"environment-choice-button":"") @(_universalStartFlashing&&_stage==Stage.Environment?"environment-head-flash":"")"
+           data-semantic-action="@CurrentRightSemanticId"
            @onclick="PressRight"
            disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
            aria-disabled="@(_stage==Stage.Environment&&!_universalStartRevealed)"
@@ -452,7 +483,8 @@
   </div>
  </section></section>
 
-<LegacyWorldGate Open="@_legacyGateOpen"
+<LegacyWorldGate @ref="_legacyGate"
+                 Open="@_legacyGateOpen"
                  OnClose="CloseLegacyGate"
                  OnContinue="ContinueLegacyIntoRistAsync" />
 
@@ -986,7 +1018,7 @@
   Stage.GameMasterScope=>Scopes.Length,
   Stage.SpatialSelect=>SpatialOptionCount,
   Stage.SoftwareHub=>SoftwareCapabilities.Length,
-  Stage.ControlSettings=>AnalogPlacements.Length,
+  Stage.ControlSettings=>SemanticSettingFields.Length,
   Stage.WorldBuilderTier=>10,
   Stage.WorldBuilderLayer=>100,
   Stage.ArtMethod=>ArtMethods.Length,
@@ -1011,6 +1043,7 @@
     {
      Stage.PathSelect=>IsShaelvienDeedHome?1:Math.Max(1,PathWorldCount),
      Stage.GameMasterHub=>Settings.Length,
+     Stage.ControlSettings=>SemanticCurrentValueCount,
      Stage.Rotate=>72,
      _=>1
     }
@@ -1090,7 +1123,7 @@
   Stage.ContextSelect=>"NAVIGATION",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
   Stage.SpatialSelect=>$"SELECT {CurrentBuilderScope}",
-  Stage.ControlSettings=>"CONTROLS",
+  Stage.ControlSettings=>SemanticSettingField,
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"DEPTH",
   Stage.ArtMethod=>"A/V METHOD",
   Stage.ArtPhase=>CurrentArtMethod,
@@ -1116,7 +1149,7 @@
   Stage.ContextSelect=>"BACK",
   Stage.GameMasterScope=>CurrentScope,
   Stage.SpatialSelect=>CurrentSpatialSelectionLabel,
-  Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
+  Stage.ControlSettings=>"BACK",
   Stage.WorldBuilderTier=>$"TIER {_tier}",
   Stage.WorldBuilderLayer=>$"LAYER {_layer}",
   Stage.ArtMethod=>CurrentArtMethod,
@@ -1167,7 +1200,7 @@
   Stage.ContextSelect=>CurrentContextSelection,
   Stage.GameMasterScope=>"BACK",
   Stage.SpatialSelect=>"BACK",
-  Stage.ControlSettings=>"BACK",
+  Stage.ControlSettings=>"SAVE",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>CurrentPathTarget,
   Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>CurrentPathTarget,
   Stage.AssetMode=>"ADD",
@@ -1264,7 +1297,7 @@
   Stage.GameMasterHub=>CurrentWorld,
   Stage.SpatialSelect=>CurrentSpatialSelectionLabel,
   Stage.SoftwareHub=>CurrentSoftware,
-  Stage.ControlSettings=>$"ANALOG {CurrentAnalogPlacementDraft}",
+  Stage.ControlSettings=>"BACK",
   Stage.ArtMethod=>CurrentArtMethod,
   Stage.ArtPhase=>$"START {CurrentArtPhase}",
   Stage.ArtWork=>$"SAVE {CurrentArtPhase}",
@@ -1292,7 +1325,7 @@
     Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldLabel,
     Stage.ContextSelect=>CurrentContextSelection,
     Stage.GameMasterHub=>CurrentSetting,
-    Stage.ControlSettings=>"BACK",
+    Stage.ControlSettings=>SemanticSettingValue,
     Stage.Rotate=>$"{_assetRotation}°",
     _=>RightLabel
    };
@@ -1307,7 +1340,7 @@
   Stage.GameMasterHub=>"TOUCH · SELECT WORLD",
   Stage.SpatialSelect=>SpatialOptionIsNew?$"TOUCH · CREATE {CurrentBuilderScope}":"TOUCH · SELECT",
   Stage.SoftwareHub=>"TOUCH · SELECT TOOL",
-  Stage.ControlSettings=>"TOUCH · SAVE",
+  Stage.ControlSettings=>"SLIDE ↑↓ · TOUCH BACK",
   Stage.ArtMethod=>"SLIDE ↑↓ · TOUCH METHOD",
   Stage.ArtPhase=>"TOUCH · OPEN WORKBENCH",
   Stage.ArtWork=>"TOUCH · SAVE PASS",
@@ -1335,7 +1368,7 @@
     Stage.ContextSelect=>"SLIDE ↔ · TOUCH OPEN",
     Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
     Stage.SoftwareHub=>"TOUCH · BACK",
-    Stage.ControlSettings=>"TOUCH · CANCEL",
+    Stage.ControlSettings=>"SLIDE ↔ · TOUCH SAVE",
     Stage.BrowsePlace=>"TOUCH · BACK",
     Stage.Rotate=>"SLIDE ↔ · TOUCH SET",
     _=>"TOUCH · ACTIVATE"
@@ -1354,7 +1387,7 @@
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
   Stage.SpatialSelect=>$"{CurrentBuilderScope} · SELECT BEFORE EDIT",
   Stage.SoftwareHub=>"SOFTWARE CAPABILITY ADAPTERS",
-  Stage.ControlSettings=>"CONTROLS · ANALOG PLACEMENT",
+  Stage.ControlSettings=>$"CONTROLS · {SemanticSettingField}",
   Stage.WorldBuilderTier=>$"{CurrentBuilderSuite} · TIER",
   Stage.WorldBuilderLayer=>$"{CurrentBuilderSuite} · LAYER",
   Stage.ArtMethod=>$"{CurrentBuilderSuite} · SELECT ART METHOD",
@@ -1450,6 +1483,7 @@
     }
    }
    catch{}
+   await LoadSemanticControlPreferencesAsync();
    await _shell.FocusAsync();
    await InvokeAsync(StateHasChanged);
   }
@@ -1556,8 +1590,7 @@
     _message=$"Capability adapter: {CurrentSoftware}.";
     break;
    case Stage.ControlSettings:
-    _analogPlacementDraft=Wrap(_analogPlacementDraft+direction,AnalogPlacements.Length);
-    _message=$"Analog placement: {CurrentAnalogPlacementDraft}.";
+    CycleSemanticSettingField(direction);
     break;
    case Stage.ArtMethod:
     _artMethodIndex=Wrap(_artMethodIndex+direction,ArtMethods.Length);
@@ -1638,6 +1671,9 @@
     _settingIndex=Wrap(_settingIndex+direction,Settings.Length);
     _message=$"Option: {CurrentSetting}.";
     break;
+   case Stage.ControlSettings:
+    CycleSemanticSettingValue(direction);
+    break;
    case Stage.Rotate:
     _assetRotation=NormalizeDegrees(_assetRotation+(direction*5));
     _message=$"Preview rotation {_assetRotation}°.";
@@ -1675,7 +1711,7 @@
      _message="Roleplayer selected. Choose a Shaelvien zone. Canonical Geonaph opens the shared history campaign.";
     }
     else
-     _message="Roleplayer is reserved for the player-facing branch of this live interface.";
+     await OpenRoleplayerFromUniversalAsync();
     break;
    case Stage.DeedSelect:
     _message="Shaelvien selected. Use the right display to choose a deed, developer Inspect, or Explore.";
@@ -1720,10 +1756,7 @@
     _message=$"{CurrentSoftware} selected. Adapter contract placeholder only; no third-party UI or copied design is embedded.";
     break;
    case Stage.ControlSettings:
-    _analogPlacement=CurrentAnalogPlacementDraft.ToLowerInvariant();
-    _=PersistAnalogPlacementAsync();
-    _stage=Stage.GameMasterHub;
-    _message=$"Analog placement saved: {CurrentAnalogPlacementDraft}.";
+    GoBack();
     break;
    case Stage.ArtMethod:
     SelectArtMethod();
@@ -2071,18 +2104,14 @@
    case Stage.GameMasterHub:
     if(CurrentSetting=="CONTROLS")
     {
-     _analogPlacementDraft=Array.IndexOf(AnalogPlacements,_analogPlacement.ToUpperInvariant());
-     if(_analogPlacementDraft<0)_analogPlacementDraft=1;
+     InitializeSemanticControlDrafts();
      _stage=Stage.ControlSettings;
-     _message="Controls. Move the analog up or down to choose LEFT, CENTER, or RIGHT placement. Center is the default.";
+     _message=$"Controls · {SemanticSettingField}: {SemanticSettingValue}. Y changes setting; X changes value; left goes back; right saves.";
     }
     else _message=$"{CurrentSetting} selected. Settings will use the same contextual-control pattern.";
     break;
    case Stage.ControlSettings:
-    _analogPlacementDraft=Array.IndexOf(AnalogPlacements,_analogPlacement.ToUpperInvariant());
-    if(_analogPlacementDraft<0)_analogPlacementDraft=1;
-    _stage=Stage.GameMasterHub;
-    _message="Analog placement unchanged.";
+    await SaveSemanticControlSettingsAsync();
     break;
    case Stage.GameMasterScope:
     _stage=Stage.GameMasterHub;
