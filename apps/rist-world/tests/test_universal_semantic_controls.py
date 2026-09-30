@@ -120,5 +120,5 @@ def test_roleplayer_branch_no_longer_dead_ends_for_sandbox():
 def test_semantic_assets_are_cache_busted_together():
     index = text("apps/rist-world/wwwroot/index.html")
 
-    assert "universal-interface.css?v=20260930-semantic-controls-1" in index
-    assert "universal-interface-input.js?v=20260930-semantic-controls-1" in index
+    assert "universal-interface.css?v=20260930-semantic-controls-2" in index
+    assert "universal-interface-input.js?v=20260930-semantic-controls-2" in index
