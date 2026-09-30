@@ -1,0 +1,97 @@
+from pathlib import Path
+import json
+
+ROOT = Path(__file__).resolve().parents[1]
+REPO = ROOT.parents[1]
+
+
+def text(path):
+    return (REPO / path).read_text(encoding="utf-8")
+
+
+def test_history_campaign_starts_at_lomekwi_without_inventing_species_or_language():
+    data = json.loads(text("apps/rist-world/wwwroot/data/geonaph/history/campaign-v1.json"))
+    region = data["zone"]["region"]
+    local = region["local"]
+    instance = local["instance"]
+    joined = json.dumps(data).lower()
+
+    assert data["canonicalExperience"]["sharedForAllPlayers"] is True
+    assert data["canonicalExperience"]["factualMilestonesFixed"] is True
+    assert data["canonicalExperience"]["factualOrderFixed"] is True
+    assert data["corridor"]["owner"] == "Shaelvien"
+    assert data["corridor"]["direction"] == "east"
+    assert region["name"] == "West Turkana"
+    assert local["name"] == "Lomekwi 3"
+    assert "3.3" in local["chronology"]
+    assert "taxonomic identity of the toolmakers is not established" in joined
+    assert instance["languageContext"]["originalLanguageStatus"] == "UNATTESTED"
+    assert instance["languageContext"]["transliteration"] == "NOT AVAILABLE"
+    assert instance["languageContext"]["translation"] == "No historical translation exists."
+    assert data["spriteSpecification"]["status"] == "EVIDENCE_SAFE_ART_PENDING"
+    assert "controlled fire as a lomekwi 3 fact" in joined
+
+
+def test_history_tasks_only_use_lomekwi_supported_actions_and_keep_bridge_locked():
+    data = json.loads(text("apps/rist-world/wwwroot/data/geonaph/history/campaign-v1.json"))
+    instance = data["zone"]["region"]["local"]["instance"]
+    tasks = instance["tasks"]
+    labels = [task["label"] for task in tasks]
+
+    assert "Batter" in labels
+    assert "Reduce the core" in labels
+    assert len(tasks) == 5
+    assert instance["bridge"]["status"] == "LOCKED_UNTIL_NEXT_FACT_NODE_VERIFIED"
+    assert all(
+        task["classification"] in {"FACT_DERIVED_ACTION", "RECONSTRUCTION"}
+        for task in tasks
+    )
+
+
+def test_history_campaign_uses_universal_controller_instead_of_leaving_it():
+    interface = text("apps/rist-world/Components/UniversalInterface.razor")
+    mmo = text("apps/rist-world/Components/UniversalInterface.MmoMap.cs")
+    history = text("apps/rist-world/Components/UniversalInterface.HistoryCampaign.cs")
+
+    assert "Stage.HistoryCampaign" in interface
+    assert "<GeonaphHistoryCampaign" in interface
+    assert "Stage.HistoryCampaign=>\"Y · RECURSION\"" in interface
+    assert "Stage.HistoryCampaign=>\"X · TASKS\"" in interface
+    assert "_mmoRoleplayerMode" in mmo
+    assert "MmoSelectedIsCanonicalGeanaph" in mmo
+    assert "EnterGeonaphHistoryCampaign();" in mmo
+    assert "void HistoryApplyX" in history
+    assert "void HistoryApplyY" in history
+    assert "void HistoryPressLeft" in history
+    assert "void HistoryPressRight" in history
+
+
+def test_geanaph_database_seed_contains_region_local_instance_history_hierarchy():
+    seed = text("infra/aws/rist-platform-geanaph-seed/app.py")
+    template = text("infra/aws/rist-platform.yml")
+
+    assert 'HISTORY_REGION_NODE_ID = "region-west-turkana"' in seed
+    assert 'HISTORY_LOCAL_NODE_ID = "local-lomekwi-3"' in seed
+    assert 'HISTORY_INSTANCE_NODE_ID = "instance-lom3-toolmaking-locality"' in seed
+    assert '"name": "West Turkana"' in seed
+    assert '"name": "Lomekwi 3"' in seed
+    assert '"name": "LOM3 Tool-Making Locality"' in seed
+    assert '"kind": "REGION"' in seed
+    assert '"kind": "LOCAL"' in seed
+    assert '"kind": "INSTANCE"' in seed
+    assert '"historyHierarchyVerified": True' in seed
+    assert "Revision: geanaph-east-v3-history" in template
+
+
+def test_history_context_keeps_original_translation_reconstruction_and_fiction_separate():
+    component = text("apps/rist-world/Components/GeonaphHistoryCampaign.razor")
+    data = json.loads(text("apps/rist-world/wwwroot/data/geonaph/history/campaign-v1.json"))
+    language = data["zone"]["region"]["local"]["instance"]["languageContext"]
+
+    assert "Original language" in component
+    assert "Transliteration" in component
+    assert "Translation" in component
+    assert "FICTIONAL GAMEPLAY DIALOGUE" in component
+    assert "FACT ≠ RECONSTRUCTION ≠ FICTION" in component
+    assert language["originalLanguageStatus"] == "UNATTESTED"
+    assert language["fictionalDialogue"]["classification"] == "FICTION"

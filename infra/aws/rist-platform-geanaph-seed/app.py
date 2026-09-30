@@ -29,6 +29,9 @@ CANONICAL_REGION_ID = "region-" + CANONICAL_PARCEL_ID
 FRAME_WIDTH = 1672
 FRAME_HEIGHT = 941
 SURFACE_FILE = "fantasy_archipelago_terrain_atlas.png"
+HISTORY_REGION_NODE_ID = "region-west-turkana"
+HISTORY_LOCAL_NODE_ID = "local-lomekwi-3"
+HISTORY_INSTANCE_NODE_ID = "instance-lom3-toolmaking-locality"
 
 # Display representations only. The independent truth manifest remains the
 # evidence/provenance authority; these generated layers never become semantic
@@ -170,6 +173,49 @@ def canonical_region(
             "frameLock": True,
             "visualLayerCount": len(VISUAL_LAYERS),
             "representationPolicy": "Representation != Semantic Truth",
+            "description": (
+                "Canonical Shaelvien-owned Geanaph historical corridor. "
+                "Facts, reconstruction, and fiction remain separately labeled."
+            ),
+            "spatialNodes": [
+                {
+                    "nodeId": HISTORY_REGION_NODE_ID,
+                    "kind": "REGION",
+                    "name": "West Turkana",
+                    "parentNodeId": CANONICAL_REGION_ID,
+                    "createdAtUtc": str(state.get("createdAtUtc") or stamp),
+                    "updatedAtUtc": stamp,
+                    "description": (
+                        "FACT: West Turkana, Kenya. Contains the Lomekwi 3 archaeological "
+                        "site used as Geanaph's oldest installed playable history node."
+                    ),
+                },
+                {
+                    "nodeId": HISTORY_LOCAL_NODE_ID,
+                    "kind": "LOCAL",
+                    "name": "Lomekwi 3",
+                    "parentNodeId": HISTORY_REGION_NODE_ID,
+                    "createdAtUtc": str(state.get("createdAtUtc") or stamp),
+                    "updatedAtUtc": stamp,
+                    "description": (
+                        "FACT: approximately 3.3 Ma; in situ stone artefacts, core reduction "
+                        "and battering in a wooded palaeoenvironment. Toolmaker taxonomic "
+                        "identity remains unresolved."
+                    ),
+                },
+                {
+                    "nodeId": HISTORY_INSTANCE_NODE_ID,
+                    "kind": "INSTANCE",
+                    "name": "LOM3 Tool-Making Locality",
+                    "parentNodeId": HISTORY_LOCAL_NODE_ID,
+                    "createdAtUtc": str(state.get("createdAtUtc") or stamp),
+                    "updatedAtUtc": stamp,
+                    "description": (
+                        "PLAYABLE FACT ANCHOR: reproduce only evidence-grounded classes of "
+                        "stone-working action. Successful gameplay never becomes new history."
+                    ),
+                },
+            ],
         }
     )
     return {
@@ -381,6 +427,37 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
             "Geanaph verification failed: every visual layer must fill the locked deed frame."
         )
 
+    verify_region = region_item(table, CANONICAL_REGION_ID)
+    verify_region_state = (
+        verify_region.get("state")
+        if isinstance(verify_region.get("state"), dict)
+        else {}
+    )
+    verify_nodes = {
+        str(node.get("nodeId") or ""): node
+        for node in (verify_region_state.get("spatialNodes") or [])
+        if isinstance(node, dict)
+    }
+    required_history_nodes = {
+        HISTORY_REGION_NODE_ID: ("REGION", CANONICAL_REGION_ID),
+        HISTORY_LOCAL_NODE_ID: ("LOCAL", HISTORY_REGION_NODE_ID),
+        HISTORY_INSTANCE_NODE_ID: ("INSTANCE", HISTORY_LOCAL_NODE_ID),
+    }
+    for node_id, (kind, parent_id) in required_history_nodes.items():
+        node = verify_nodes.get(node_id)
+        if not node:
+            raise RuntimeError(
+                f"Geanaph history verification failed: missing spatial node {node_id}."
+            )
+        if str(node.get("kind") or "").upper() != kind:
+            raise RuntimeError(
+                f"Geanaph history verification failed: {node_id} has the wrong kind."
+            )
+        if str(node.get("parentNodeId") or "") != parent_id:
+            raise RuntimeError(
+                f"Geanaph history verification failed: {node_id} has the wrong parent."
+            )
+
     return {
         "seeded": True,
         "alreadySeeded": existing_parcel is not None,
@@ -393,6 +470,10 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         "ownerUserId": owner_user_id,
         "visibility": "Public",
         "visualLayerCount": len(verify_layers),
+        "historyRegionNodeId": HISTORY_REGION_NODE_ID,
+        "historyLocalNodeId": HISTORY_LOCAL_NODE_ID,
+        "historyInstanceNodeId": HISTORY_INSTANCE_NODE_ID,
+        "historyHierarchyVerified": True,
         "frameWidth": FRAME_WIDTH,
         "frameHeight": FRAME_HEIGHT,
         "frameLock": True,

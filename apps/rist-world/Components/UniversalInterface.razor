@@ -109,6 +109,15 @@
    </section>
   }
 
+  @if(_stage==Stage.HistoryCampaign)
+  {
+   <GeonaphHistoryCampaign
+       DepthIndex="@_historyDepthIndex"
+       TaskIndex="@_historyTaskIndex"
+       ContextOpen="@_historyContextOpen"
+       CompletedTasks="@_historyCompletedTasks" />
+  }
+
   @if(_inspectionEditMode)
   {
    <section class="inspection-edit-audit" aria-label="Developer inspection edit audit">
@@ -478,6 +487,7 @@
   Role,
   DeedSelect,
   MmoMap,
+  HistoryCampaign,
   PathSelect,
   ContextSelect,
   GameMasterHub,
@@ -931,7 +941,7 @@
    // completely inert while the universal controller is on navigation/menu
    // stages so an old Geanaph editor cannot consume mobile memory or send stale
    // host messages behind the MMO deed map.
-   if(_stage is Stage.Environment or Stage.Role or Stage.DeedSelect or Stage.MmoMap or Stage.ContextSelect)
+   if(_stage is Stage.Environment or Stage.Role or Stage.DeedSelect or Stage.MmoMap or Stage.HistoryCampaign or Stage.ContextSelect)
     return "about:blank";
 
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
@@ -969,6 +979,7 @@
  {
   Stage.DeedSelect=>1,
   Stage.MmoMap=>MmoLeftOptionCount,
+  Stage.HistoryCampaign=>1,
   Stage.PathSelect=>IsShaelvienDeedHome?1:GameMasterPaths.Length,
   Stage.ContextSelect=>1,
   Stage.GameMasterHub=>WorldChoices.Length,
@@ -990,6 +1001,7 @@
  {
   Stage.DeedSelect=>Math.Max(1,PathWorldCount),
   Stage.MmoMap=>MmoRightOptionCount,
+  Stage.HistoryCampaign=>1,
   Stage.ContextSelect=>ContextPath.Length,
   _=>IsBuilderStage
    ?1
@@ -1006,7 +1018,7 @@
 
  bool RightActsAsBack=>_stage==Stage.SpatialSelect||IsDeedContextNode||(_stage!=Stage.PathSelect&&_stage!=Stage.MmoMap&&!IsPathDrivenStage&&LeftDisplayOptionCount>1&&RightDisplayOptionCount<=1);
  bool IsGameMasterMenuStage=>_stage is Stage.DeedSelect or Stage.ContextSelect||IsShaelvienDeedHome;
- bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage.MmoMap&&_stage!=Stage.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
+ bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage.MmoMap&&_stage!=Stage.HistoryCampaign&&_stage!=Stage.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;
  bool CursorMode=>_stage==Stage.MmoMap
   ?MmoAnalogCursorMode
   :CursorAvailable
@@ -1036,6 +1048,7 @@
  {
   Stage.DeedSelect=>"Y · ROOT",
   Stage.MmoMap=>"Y · MAP",
+  Stage.HistoryCampaign=>"Y · RECURSION",
   Stage.PathSelect=>IsShaelvienDeedHome?"Y · BUILD":"Y · PATHS",
   Stage.ContextSelect=>"Y · BACK",
   Stage.GameMasterHub=>"Y · WORLDS",
@@ -1057,6 +1070,7 @@
   {
    Stage.DeedSelect=>"X · DEEDS",
    Stage.MmoMap=>"X · MAP",
+   Stage.HistoryCampaign=>"X · TASKS",
    Stage.PathSelect when IsShaelvienDeedHome=>"X · CONTEXT",
    Stage.ContextSelect=>"X · CONTEXT",
    Stage.GameMasterHub=>"X · OPTIONS",
@@ -1071,6 +1085,7 @@
   Stage.Role=>_selectedEnvironment,
   Stage.DeedSelect=>"GAMEMASTER",
   Stage.MmoMap=>"MMO NAVIGATION",
+  Stage.HistoryCampaign=>"HISTORY",
   Stage.PathSelect=>IsShaelvienDeedHome?"BUILD":"GAMEMASTER PATH",
   Stage.ContextSelect=>"NAVIGATION",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
@@ -1096,6 +1111,7 @@
   Stage.Role=>"ROLEPLAYER",
   Stage.DeedSelect=>"SHAELVIEN",
   Stage.MmoMap=>MmoLeftValue,
+  Stage.HistoryCampaign=>HistoryAtInstance?HistoryTaskLabel:"DESCEND",
   Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
   Stage.ContextSelect=>"BACK",
   Stage.GameMasterScope=>CurrentScope,
@@ -1124,6 +1140,7 @@
   Stage.Role=>_selectedEnvironment,
   Stage.DeedSelect=>"DEED / ACCESS",
   Stage.MmoMap=>_mmoInspectMode?"INSPECT / DEED":"DEED / ACCESS",
+  Stage.HistoryCampaign=>"CONTEXT",
   Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldEyebrow,
   Stage.ContextSelect=>"CONTEXT",
   Stage.GameMasterScope=>"NAVIGATION",
@@ -1145,6 +1162,7 @@
   Stage.Role=>"GAMEMASTER",
   Stage.DeedSelect=>PathWorldLabel,
   Stage.MmoMap=>MmoRightValue,
+  Stage.HistoryCampaign=>_historyContextOpen?"CLOSE CONTEXT":"CONTEXT",
   Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldLabel,
   Stage.ContextSelect=>CurrentContextSelection,
   Stage.GameMasterScope=>"BACK",
@@ -1165,6 +1183,9 @@
   Stage.Environment=>"Shared Shaelvien MMO environment.",
   Stage.Role=>"Player-facing role.",
   Stage.DeedSelect=>"Shaelvien is the GameMaster root. Choose an owned/delegated deed, developer Inspect, or Explore on the right.",
+  Stage.HistoryCampaign=>HistoryAtInstance
+   ?$"Aid the selected evidence-grounded task: {HistoryTaskLabel}. Completing gameplay never promotes a reconstruction into fact."
+   :$"Descend through the fixed historical hierarchy from {HistoryDepthLabel}.",
   Stage.PathSelect=>IsShaelvienDeedHome
    ?$"World Builder edits {_selectedDeedName}. Region, Local, and Instance remain selection-first."
    :"Choose World Builder or Context.",
@@ -1196,6 +1217,7 @@
   Stage.Environment=>"Private/universal RIST environment.",
   Stage.Role=>"Enter the GameMaster selector.",
   Stage.DeedSelect=>PathWorldPrompt,
+  Stage.HistoryCampaign=>"Context shows provenance plus original language, transliteration, and translation when they actually survive.",
   Stage.PathSelect=>IsShaelvienDeedHome
    ?"Open Context for the selected deed."
    :HasPathWorlds
@@ -1236,6 +1258,7 @@
  {
   Stage.DeedSelect=>"SHAELVIEN",
   Stage.MmoMap=>MmoLeftValue,
+  Stage.HistoryCampaign=>HistoryAtInstance?HistoryTaskLabel:HistoryDepthLabel,
   Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
   Stage.ContextSelect=>"BACK",
   Stage.GameMasterHub=>CurrentWorld,
@@ -1265,6 +1288,7 @@
    {
     Stage.DeedSelect=>PathWorldLabel,
     Stage.MmoMap=>MmoRightValue,
+    Stage.HistoryCampaign=>_historyContextOpen?"CLOSE CONTEXT":"CONTEXT",
     Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldLabel,
     Stage.ContextSelect=>CurrentContextSelection,
     Stage.GameMasterHub=>CurrentSetting,
@@ -1277,6 +1301,7 @@
  {
   Stage.DeedSelect=>"TOUCH · SHAELVIEN",
   Stage.MmoMap=>MmoLeftPrompt,
+  Stage.HistoryCampaign=>HistoryAtInstance?"SLIDE ↔ · TOUCH AID":"TOUCH · DESCEND",
   Stage.PathSelect=>IsShaelvienDeedHome?"TOUCH · BUILD":"SLIDE ↑↓ · TOUCH PATH",
   Stage.ContextSelect=>"TOUCH · BACK",
   Stage.GameMasterHub=>"TOUCH · SELECT WORLD",
@@ -1305,6 +1330,7 @@
    {
     Stage.DeedSelect=>PathWorldPrompt,
     Stage.MmoMap=>MmoRightPrompt,
+    Stage.HistoryCampaign=>_historyContextOpen?"TOUCH · CLOSE":"TOUCH · OPEN",
     Stage.PathSelect=>IsShaelvienDeedHome?"TOUCH · OPEN":PathWorldPrompt,
     Stage.ContextSelect=>"SLIDE ↔ · TOUCH OPEN",
     Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
@@ -1320,7 +1346,8 @@
   Stage.Environment=>"RIST UNIVERSAL VIEWER",
   Stage.Role=>_selectedEnvironment,
   Stage.DeedSelect=>"GAMEMASTER · SHAELVIEN",
-  Stage.MmoMap=>_mmoInspectMode?"SHAELVIEN · INSPECT · TIER 0":"SHAELVIEN · MMO MAP · TIER 0",
+  Stage.MmoMap=>_mmoInspectMode?"SHAELVIEN · INSPECT · TIER 0":_mmoRoleplayerMode?"SHAELVIEN · ROLEPLAYER ZONES":"SHAELVIEN · MMO MAP · TIER 0",
+  Stage.HistoryCampaign=>$"GEONAPH · HISTORY · {HistoryDepthLabel}",
   Stage.PathSelect=>IsShaelvienDeedHome?$"GAMEMASTER · {_selectedDeedName.ToUpperInvariant()}":"GAMEMASTER · CHOOSE PATH",
   Stage.ContextSelect=>$"CONTEXT · {_selectedDeedName.ToUpperInvariant()}",
   Stage.GameMasterHub=>"GAMEMASTER · WORLD SELECTOR",
@@ -1497,6 +1524,9 @@
    case Stage.MmoMap:
     MoveMmoSelection(0,-direction);
     break;
+   case Stage.HistoryCampaign:
+    HistoryApplyY(direction);
+    break;
    case Stage.PathSelect:
     if(IsShaelvienDeedHome)
      _message="World Builder is on the left and Context is on the right.";
@@ -1587,6 +1617,9 @@
    case Stage.MmoMap:
     MoveMmoSelection(direction,0);
     break;
+   case Stage.HistoryCampaign:
+    HistoryApplyX(direction);
+    break;
    case Stage.PathSelect:
     if(IsShaelvienDeedHome)
      _message="Context is the fixed right-side action for the selected deed.";
@@ -1635,13 +1668,23 @@
      _message="Shaelvien selected. Choose Roleplayer or GameMaster.";
      break;
    case Stage.Role:
-    _message="Roleplayer is reserved for the player-facing branch of this live interface.";
+    if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
+    {
+     _mmoRoleplayerMode=true;
+     await EnterMmoMapAsync(inspect:false);
+     _message="Roleplayer selected. Choose a Shaelvien zone. Canonical Geonaph opens the shared history campaign.";
+    }
+    else
+     _message="Roleplayer is reserved for the player-facing branch of this live interface.";
     break;
    case Stage.DeedSelect:
     _message="Shaelvien selected. Use the right display to choose a deed, developer Inspect, or Explore.";
     break;
    case Stage.MmoMap:
     await PressMmoLeftAsync();
+    break;
+   case Stage.HistoryCampaign:
+    HistoryPressLeft();
     break;
    case Stage.PathSelect:
     if(IsShaelvienDeedHome)
@@ -1785,8 +1828,12 @@
    case Stage.MmoMap:
     _mmoManageOpen=false;
     _mmoInspectMode=false;
+    _mmoRoleplayerMode=false;
     _stage=Stage.Role;
     _message="Returned to Shaelvien role selection.";
+    break;
+   case Stage.HistoryCampaign:
+    HistoryGoBack();
     break;
    case Stage.PathSelect:
     if(IsShaelvienDeedHome)
@@ -1951,6 +1998,9 @@
    case Stage.MmoMap:
     await PressMmoRightAsync();
     break;
+   case Stage.HistoryCampaign:
+    HistoryPressRight();
+    break;
    case Stage.DeedSelect:
     {
      var selected=CurrentPathWorld;
@@ -2008,6 +2058,7 @@
     _selectedDeedRegionId="";
     if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
     {
+     _mmoRoleplayerMode=false;
      await EnterMmoMapAsync(inspect:false);
      _message="GameMaster selected. Choose a deed on the map. Left is coordinates/owned-zone quick access; right is the permission-driven action.";
     }
@@ -3211,7 +3262,7 @@
   // player has already returned to the deed map. Navigation stages own their
   // own HOME/BACK behavior; a background child must never eject the player to
   // the authenticated Press Start screen.
-  if(_stage is Stage.Environment or Stage.Role or Stage.DeedSelect or Stage.MmoMap or Stage.ContextSelect)
+  if(_stage is Stage.Environment or Stage.Role or Stage.DeedSelect or Stage.MmoMap or Stage.HistoryCampaign or Stage.ContextSelect)
    return;
 
   if(OnExit.HasDelegate)await OnExit.InvokeAsync();

@@ -15,6 +15,7 @@ public partial class UniversalInterface
     int _mmoRightIndex;
     int _mmoAnalogModeIndex = 1;
     bool _mmoInspectMode;
+    bool _mmoRoleplayerMode;
     bool _mmoMapBusy;
     bool _mmoManageOpen;
     string _mmoManageName = "";
@@ -97,6 +98,11 @@ public partial class UniversalInterface
         Session.MmoParcels.FirstOrDefault(parcel => parcel.CellIndex == _mmoSelectedCell);
 
     bool MmoSelectedIsEndemar => _mmoSelectedCell == WorldSession.EndemarOriginCell;
+    bool MmoSelectedIsCanonicalGeanaph =>
+        MmoSelectedParcel is { } geanaph
+        && geanaph.CellIndex == WorldSession.GeanaphCanonicalCell
+        && string.Equals(geanaph.DisplayName, "Geanaph", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(geanaph.Status, "Canonical", StringComparison.OrdinalIgnoreCase);
     bool MmoSelectedIsOpen => !MmoSelectedIsEndemar && MmoSelectedParcel is null && Session.IsMmoParcelOpen(_mmoSelectedCell);
     bool MmoSelectedIsOwned => MmoSelectedParcel is { } parcel && Session.IsMmoParcelOwnedByCurrentUser(parcel.CellIndex);
     bool MmoSelectedIsRefunded => string.Equals(MmoSelectedParcel?.Status, "Refunded", StringComparison.OrdinalIgnoreCase);
@@ -149,6 +155,16 @@ public partial class UniversalInterface
         {
             if (_mmoInspectMode)
                 return [new("MANAGE", "manage")];
+
+            if (_mmoRoleplayerMode)
+            {
+                if (MmoCanViewSelected)
+                    return [new("ROLEPLAY", "roleplay")];
+
+                return MmoSelectedParcel is not null
+                    ? [new("PRIVATE", "private")]
+                    : [new("UNAVAILABLE", "unavailable")];
+            }
 
             if (MmoSelectedIsRefunded)
                 return [new(MmoBidLabel, "bid")];
@@ -214,10 +230,16 @@ public partial class UniversalInterface
         }
     }
 
-    string MmoMapModeLabel => _mmoInspectMode ? "DEVELOPER INSPECT" : "MMO DEED MAP";
+    string MmoMapModeLabel => _mmoInspectMode
+        ? "DEVELOPER INSPECT"
+        : _mmoRoleplayerMode
+            ? "ROLEPLAYER ZONE MAP"
+            : "MMO DEED MAP";
     string MmoTokenBadge => _mmoInspectMode
         ? "CLAIM DISABLED"
-        : $"{Session.UnspentMmoWorldTokenCount} TOKEN{(Session.UnspentMmoWorldTokenCount == 1 ? "" : "S")}";
+        : _mmoRoleplayerMode
+            ? "HISTORY PATH"
+            : $"{Session.UnspentMmoWorldTokenCount} TOKEN{(Session.UnspentMmoWorldTokenCount == 1 ? "" : "S")}";
 
     // The MMO map is the currently-created Shaelvien footprint, not a crop of
     // Endemar. Claimed deeds plus their open flat-side frontier define the
@@ -587,6 +609,14 @@ public partial class UniversalInterface
 
         if (action == "roleplay")
         {
+            if (_mmoRoleplayerMode && MmoSelectedIsCanonicalGeanaph)
+            {
+                if (MmoSelectedParcel is { RegionId.Length: > 0 } canonicalGeanaph)
+                    Session.SetActiveRegion(canonicalGeanaph.RegionId);
+                EnterGeonaphHistoryCampaign();
+                return;
+            }
+
             if (MmoSelectedParcel is { RegionId.Length: > 0 } roleplayParcel)
                 Session.SetActiveRegion(roleplayParcel.RegionId);
             else

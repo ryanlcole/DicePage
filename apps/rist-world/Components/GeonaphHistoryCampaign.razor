@@ -1,0 +1,221 @@
+@using System.Text.Json
+@inject HttpClient Http
+
+<section class="geonaph-history-campaign" aria-label="Geonaph historical campaign">
+ @if(_loading)
+ {
+  <div class="gh-loading">Loading canonical history…</div>
+ }
+ else if(!string.IsNullOrWhiteSpace(_error))
+ {
+  <div class="gh-error" role="alert">@_error</div>
+ }
+ else if(_root is not null)
+ {
+  <header class="gh-header">
+   <div>
+    <small>GEONAPH · CANONICAL HISTORY</small>
+    <strong>@DepthTitle</strong>
+    <span>@DepthSubtitle</span>
+   </div>
+   <div class="gh-badges">
+    <b>FACT-FIRST</b><b>SHARED EXPERIENCE</b><b>SHAELVIEN OWNED</b>
+   </div>
+  </header>
+
+  <nav class="gh-recursion" aria-label="Recursive history depth">
+   @for(var i=0;i<DepthNames.Length;i++)
+   {
+    <span class="@(i==DepthIndex?"active":i<DepthIndex?"visited":"")">@DepthNames[i]</span>
+   }
+  </nav>
+
+  @if(ContextOpen)
+  {
+   <article class="gh-context">
+    <header><small>CONTEXT</small><h2>Language & provenance</h2></header>
+    <dl>
+     <dt>Original language</dt><dd>@Language("originalLanguageStatus")</dd>
+     <dt>Original</dt><dd>@Language("original")</dd>
+     <dt>Transliteration</dt><dd>@Language("transliteration")</dd>
+     <dt>Translation</dt><dd>@Language("translation")</dd>
+    </dl>
+    <section>
+     <b>FICTIONAL GAMEPLAY DIALOGUE</b>
+     <p>@FictionalDialogue</p>
+    </section>
+    <footer>Unknown remains unknown. Fiction may connect facts but cannot become evidence.</footer>
+   </article>
+  }
+  else
+  {
+   <div class="gh-grid">
+    <article class="gh-main">
+     <header><small>@DepthBadge</small><h2>@DepthTitle</h2><p>@DepthSummary</p></header>
+     <section>
+      <h3>HISTORY</h3>
+      @foreach(var fact in DepthFacts)
+      {
+       <p class="gh-entry"><b>@fact.Classification</b><span>@fact.Text</span></p>
+      }
+     </section>
+     <section>
+      <h3>LORE / PLAYABLE INTERPRETATION</h3>
+      @foreach(var lore in DepthLore)
+      {
+       <p class="gh-entry"><b>@lore.Classification</b><span>@lore.Text</span></p>
+      }
+     </section>
+    </article>
+
+    <aside class="gh-side">
+     @if(DepthIndex>=2)
+     {
+      <h3>TASKS</h3>
+      @for(var i=0;i<Tasks.Count;i++)
+      {
+       var task=Tasks[i];
+       <div class="gh-task @(i==TaskIndex?"selected":"") @(CompletedTasks.Contains(i)?"done":"")">
+        <span>@(CompletedTasks.Contains(i)?"✓":"○")</span>
+        <div><b>@task.Label</b><small>@task.Classification</small><p>@task.Action</p></div>
+       </div>
+      }
+      @if(CompletedTasks.Count>=Tasks.Count)
+      {
+       <div class="gh-lock">NEXT EASTWARD ARC LOCKED · VERIFY NEXT FACT NODE</div>
+      }
+     }
+     else
+     {
+      <h3>RECURSION</h3>
+      <p>Use the left control to descend from @DepthNames[DepthIndex] to @DepthNames[Math.Min(2,DepthIndex+1)].</p>
+      <p>The factual hierarchy is fixed for every player.</p>
+     }
+
+     <h3>SOURCES</h3>
+     @foreach(var source in Sources)
+     {
+      <a href="@source.Url" target="_blank" rel="noopener">@source.Citation</a>
+     }
+    </aside>
+   </div>
+  }
+
+  <footer class="gh-footer">
+   <span>ORIGINAL LANGUAGE: UNATTESTED AT THIS NODE</span>
+   <span>FACT ≠ RECONSTRUCTION ≠ FICTION</span>
+   <span>EASTWARD HISTORY CORRIDOR</span>
+  </footer>
+ }
+</section>
+
+@code {
+ [Parameter] public int DepthIndex { get; set; }
+ [Parameter] public int TaskIndex { get; set; }
+ [Parameter] public bool ContextOpen { get; set; }
+ [Parameter] public IReadOnlyCollection<int> CompletedTasks { get; set; } = Array.Empty<int>();
+
+ static readonly string[] DepthNames=["REGION","LOCAL","INSTANCE"];
+ bool _loading=true;
+ string _error="";
+ JsonDocument? _doc;
+ JsonElement? _root;
+
+ sealed record Entry(string Classification,string Text);
+ sealed record TaskEntry(string Label,string Classification,string Action);
+ sealed record SourceEntry(string Citation,string Url);
+
+ protected override async Task OnInitializedAsync()
+ {
+  try
+  {
+   var json=await Http.GetStringAsync("data/geonaph/history/campaign-v1.json");
+   _doc=JsonDocument.Parse(json);
+   _root=_doc.RootElement.Clone();
+  }
+  catch(Exception ex){_error="History campaign data could not be loaded: "+ex.Message;}
+  finally{_loading=false;}
+ }
+
+ JsonElement Zone=>_root!.Value.GetProperty("zone");
+ JsonElement Region=>Zone.GetProperty("region");
+ JsonElement Local=>Region.GetProperty("local");
+ JsonElement Instance=>Local.GetProperty("instance");
+ JsonElement Current=>DepthIndex<=0?Region:DepthIndex==1?Local:Instance;
+
+ string DepthBadge=>DepthNames[Math.Clamp(DepthIndex,0,2)];
+ string DepthTitle=>Current.TryGetProperty("name",out var n)?n.GetString()??DepthBadge:DepthBadge;
+ string DepthSubtitle=>DepthIndex switch
+ {
+  0=>"West Turkana · Kenya · factual region anchor",
+  1=>"Lomekwi 3 · approximately 3.3 Ma",
+  _=>"LOM3 · earliest installed playable fact node"
+ };
+ string DepthSummary=>DepthIndex switch
+ {
+  0=>"The campaign begins in the real West Turkana archaeological record. No fictional civilization is inserted before the evidence.",
+  1=>"Lomekwi 3 preserves a distinctive early stone-working assemblage in a wooded palaeoenvironment.",
+  _=>Instance.GetProperty("objective").GetString()??""
+ };
+
+ IEnumerable<Entry> DepthFacts
+ {
+  get
+  {
+   if(DepthIndex>=2)
+   {
+    foreach(var item in Instance.GetProperty("facts").EnumerateArray())
+     yield return new Entry("FACT",item.GetString()??"");
+    yield break;
+   }
+   if(!Current.TryGetProperty("history",out var entries))yield break;
+   foreach(var item in entries.EnumerateArray())
+    yield return new Entry(item.GetProperty("classification").GetString()??"FACT",item.GetProperty("text").GetString()??"");
+  }
+ }
+
+ IEnumerable<Entry> DepthLore
+ {
+  get
+  {
+   if(DepthIndex>=2)
+   {
+    var bridge=Instance.GetProperty("bridge");
+    yield return new Entry(bridge.GetProperty("classification").GetString()??"FICTION",bridge.GetProperty("rule").GetString()??"");
+    yield break;
+   }
+   if(!Current.TryGetProperty("lore",out var entries))yield break;
+   foreach(var item in entries.EnumerateArray())
+    yield return new Entry(item.GetProperty("classification").GetString()??"FICTION",item.GetProperty("text").GetString()??"");
+  }
+ }
+
+ IReadOnlyList<TaskEntry> Tasks=>Instance.GetProperty("tasks").EnumerateArray()
+  .Select(item=>new TaskEntry(
+   item.GetProperty("label").GetString()??"",
+   item.GetProperty("classification").GetString()??"",
+   item.GetProperty("action").GetString()??""))
+  .ToList();
+
+ IReadOnlyList<SourceEntry> Sources=>_root!.Value.GetProperty("sources").EnumerateArray()
+  .Select(item=>new SourceEntry(item.GetProperty("citation").GetString()??"",item.GetProperty("url").GetString()??""))
+  .ToList();
+
+ string Language(string key)
+ {
+  var language=Instance.GetProperty("languageContext");
+  return language.TryGetProperty(key,out var value)?value.GetString()??"": "";
+ }
+ string FictionalDialogue=>Instance.GetProperty("languageContext").GetProperty("fictionalDialogue").GetProperty("text").GetString()??"";
+}
+
+<style>
+ .geonaph-history-campaign{position:absolute;z-index:120;inset:0;box-sizing:border-box;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:8px;padding:12px;background:radial-gradient(circle at 50% 25%,#153847,#061117 70%);color:#e9e5d9;overflow:hidden;font-family:Inter,system-ui,sans-serif}
+ .gh-header{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #9f7b32;border-radius:12px;background:#071117e8}.gh-header>div:first-child{display:grid;gap:2px}.gh-header small{color:#82d8ff;font-size:9px;font-weight:900;letter-spacing:.18em}.gh-header strong{color:#f1d890;font:700 22px/1 Georgia,serif}.gh-header span{color:#9fb4bd;font-size:9px}.gh-badges{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end}.gh-badges b{padding:5px 7px;border:1px solid #4d6671;border-radius:999px;color:#cceaf6;font-size:7px;letter-spacing:.08em}
+ .gh-recursion{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.gh-recursion span{padding:6px;border:1px solid #384d56;border-radius:8px;text-align:center;color:#718894;font-size:8px;font-weight:900;letter-spacing:.15em}.gh-recursion span.visited{color:#9fc1ce}.gh-recursion span.active{border-color:#e0b650;background:#27200d;color:#ffe39a}
+ .gh-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(220px,.9fr);gap:8px;min-height:0}.gh-main,.gh-side,.gh-context{min-height:0;border:1px solid #6f5b2e;border-radius:12px;background:#071016e8;overflow:auto}.gh-main{padding:12px}.gh-main header h2,.gh-context h2{margin:3px 0 6px;color:#f0d38a;font:700 24px Georgia,serif}.gh-main header p{margin:0 0 10px;color:#a8bdc5;font-size:10px;line-height:1.45}.gh-main h3,.gh-side h3{margin:12px 0 6px;color:#7edcff;font-size:9px;letter-spacing:.16em}.gh-entry{display:grid;grid-template-columns:110px 1fr;gap:8px;margin:5px 0;padding:7px;border:1px solid #263d48;border-radius:7px;background:#091820}.gh-entry b{color:#f0c96b;font-size:8px;letter-spacing:.08em}.gh-entry span{font-size:10px;line-height:1.45;color:#d5dee2}
+ .gh-side{padding:10px}.gh-task{display:grid;grid-template-columns:18px 1fr;gap:6px;padding:7px;margin:5px 0;border:1px solid #2e4550;border-radius:8px}.gh-task.selected{border-color:#e7b944;background:#1d1a0e}.gh-task.done{box-shadow:inset 3px 0 #4bc7a4}.gh-task>span{color:#f1d276}.gh-task b{display:block;color:#e8e0ca;font-size:9px}.gh-task small{color:#8cc6dd;font-size:7px}.gh-task p{margin:3px 0 0;color:#9eafb7;font-size:8px;line-height:1.35}.gh-side>a{display:block;margin:6px 0;color:#a9dff4;font-size:8px;line-height:1.35}.gh-lock{margin-top:8px;padding:8px;border:1px solid #8b6c2b;border-radius:7px;color:#f0d38a;font-size:8px;font-weight:900;text-align:center}
+ .gh-context{padding:14px}.gh-context dl{display:grid;grid-template-columns:145px 1fr;gap:8px;font-size:10px}.gh-context dt{color:#86bcd0}.gh-context dd{margin:0;color:#e5dfcf}.gh-context section{margin-top:12px;padding:10px;border:1px solid #754d2d;border-radius:8px;background:#1a100a}.gh-context section b{color:#efb26d;font-size:8px}.gh-context section p{font-size:10px;line-height:1.45}.gh-context footer{margin-top:12px;color:#9eb1b8;font-size:8px}
+ .gh-footer{display:flex;justify-content:space-between;gap:8px;padding:6px 8px;border-top:1px solid #5f4b27;color:#89aab7;font-size:7px;font-weight:900;letter-spacing:.07em}.gh-loading,.gh-error{display:grid;place-items:center;height:100%;color:#e8d18e}
+ @@media(max-width:720px){.geonaph-history-campaign{padding:7px}.gh-header{padding:8px}.gh-header strong{font-size:18px}.gh-badges b:nth-child(n+2){display:none}.gh-grid{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}.gh-side{max-height:34vh}.gh-entry{grid-template-columns:86px 1fr}.gh-footer span:nth-child(2){display:none}.gh-context dl{grid-template-columns:110px 1fr}}
+</style>

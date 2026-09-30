@@ -1,0 +1,196 @@
+{
+  "schema": "shaelvien.geonaph.history-campaign.v1",
+  "world": "Geonaph",
+  "canonicalExperience": {
+    "sharedForAllPlayers": true,
+    "factualMilestonesFixed": true,
+    "factualOrderFixed": true,
+    "fictionMayVary": true,
+    "factsMayNotBeRewrittenByPlayers": true
+  },
+  "corridor": {
+    "owner": "Shaelvien",
+    "direction": "east",
+    "currentZoneOffset": {
+      "x": 1,
+      "y": 0
+    },
+    "nextZoneOffset": {
+      "x": 2,
+      "y": 0
+    },
+    "boundaryRule": "Create the next eastward Shaelvien-owned zone when documented material or structural change is substantial enough that the current gameplay model no longer accurately represents the next historical arc."
+  },
+  "contentProfile": {
+    "ratingStatus": "UNRATED",
+    "principle": "Do not sanitize or sensationalize documented history. Mature material may appear in later arcs when evidence requires it, with content notices and non-gratuitous presentation."
+  },
+  "provenanceLegend": {
+    "FACT": "Directly supported by the cited archaeological record.",
+    "RECONSTRUCTION": "A bounded playable interpretation required to turn evidence into an action; not itself a discovered fact.",
+    "FICTION": "Narrative connective tissue only. It may not contradict or masquerade as evidence."
+  },
+  "zone": {
+    "id": "geonaph-history-zone-001",
+    "title": "Deep Origins",
+    "displayCoordinate": "(+1,0) east of Endemar",
+    "status": "CANONICAL_SHAELVIEN_OWNED",
+    "arcStart": "3.3 Ma",
+    "arcEnd": "OPEN_UNTIL_NEXT_VERIFIED_STRUCTURAL_BREAK",
+    "region": {
+      "id": "west-turkana",
+      "name": "West Turkana",
+      "modernReference": "Kenya",
+      "classification": "FACT",
+      "history": [
+        {
+          "classification": "FACT",
+          "text": "Lomekwi 3 is a 3.3-million-year-old archaeological site in West Turkana, Kenya, with in situ stone artefacts in a wooded palaeoenvironment."
+        },
+        {
+          "classification": "FACT",
+          "text": "The assemblage shows battering activities and core reduction, indicating developing knowledge of stone fracture properties."
+        },
+        {
+          "classification": "FACT",
+          "text": "The taxonomic identity of the toolmakers is not established by the site. The campaign must not assign them to Homo or another species as a fact."
+        }
+      ],
+      "lore": [
+        {
+          "classification": "FICTION",
+          "text": "The player's journey supplies unnamed companions, immediate choices, and continuity between evidence points. These relationships are fictional and may never be presented as archaeological discovery."
+        }
+      ],
+      "local": {
+        "id": "lomekwi-3",
+        "name": "Lomekwi 3",
+        "alternateId": "LOM3",
+        "classification": "FACT",
+        "chronology": "approximately 3.3 million years ago",
+        "environment": "Wooded palaeoenvironment",
+        "history": [
+          {
+            "classification": "FACT",
+            "text": "Stone artefacts were recovered in situ and from the surface at LOM3."
+          },
+          {
+            "classification": "FACT",
+            "text": "The published assemblage includes unusually large cores, relatively few flaking surfaces, and extensive battering/percussive evidence."
+          }
+        ],
+        "lore": [
+          {
+            "classification": "RECONSTRUCTION",
+            "text": "Gameplay places the player beside a working stone surface so the documented actions can be performed. The exact sequence, participants, motives, and social setting are not preserved."
+          }
+        ],
+        "instance": {
+          "id": "lom3-toolmaking-locality",
+          "name": "LOM3 Tool-Making Locality",
+          "classification": "FACT_ANCHOR_WITH_PLAYABLE_RECONSTRUCTION",
+          "objective": "Reproduce only the documented classes of stone-working action, then preserve the uncertainty.",
+          "facts": [
+            "3.3 Ma age for the archaeological site.",
+            "In situ stone artefacts.",
+            "Core reduction.",
+            "Battering/percussive activity.",
+            "Wooded palaeoenvironment.",
+            "Toolmaker taxonomic identity unresolved."
+          ],
+          "tasks": [
+            {
+              "id": "read-stone",
+              "label": "Read the stone",
+              "classification": "RECONSTRUCTION",
+              "historicalBasis": "The published interpretation describes developing understanding of stone fracture properties.",
+              "action": "Compare candidate stone surfaces and predict which impact is most likely to fracture."
+            },
+            {
+              "id": "stabilize-core",
+              "label": "Stabilize the core",
+              "classification": "RECONSTRUCTION",
+              "historicalBasis": "The assemblage includes large cores and percussive/battering activities.",
+              "action": "Choose a stable support/orientation for a large core before impact."
+            },
+            {
+              "id": "batter",
+              "label": "Batter",
+              "classification": "FACT_DERIVED_ACTION",
+              "historicalBasis": "Battering activities are directly reported for LOM3.",
+              "action": "Perform controlled repeated percussion and observe the resulting damage."
+            },
+            {
+              "id": "reduce-core",
+              "label": "Reduce the core",
+              "classification": "FACT_DERIVED_ACTION",
+              "historicalBasis": "Core reduction is directly reported for LOM3.",
+              "action": "Attempt to detach material from the core without introducing later stone-tool techniques."
+            },
+            {
+              "id": "record-result",
+              "label": "Record the result",
+              "classification": "RECONSTRUCTION",
+              "historicalBasis": "Modern recording is a game mechanic used to teach the evidence and uncertainty.",
+              "action": "Compare the result to the factual evidence summary; do not promote the player's successful method into historical fact."
+            }
+          ],
+          "languageContext": {
+            "originalLanguageStatus": "UNATTESTED",
+            "original": "No written or recorded language survives from the Lomekwi 3 toolmakers.",
+            "transliteration": "NOT AVAILABLE",
+            "translation": "No historical translation exists.",
+            "fictionalDialogue": {
+              "classification": "FICTION",
+              "label": "Gameplay rendering",
+              "text": "Characters may communicate through game dialogue or gesture for continuity, but no words, grammar, names, or language family may be presented as historical."
+            }
+          },
+          "bridge": {
+            "classification": "FICTION",
+            "status": "LOCKED_UNTIL_NEXT_FACT_NODE_VERIFIED",
+            "rule": "After the factual tasks resolve, fictional continuity may move the party forward in time only toward a separately verified archaeological node."
+          }
+        }
+      }
+    }
+  },
+  "spriteSpecification": {
+    "status": "EVIDENCE_SAFE_ART_PENDING",
+    "subjectLabel": "Lomekwi 3 toolmakers — taxonomic identity unresolved",
+    "styleTarget": "retro console RPG directional sprites",
+    "allowed": [
+      "hominin reconstruction silhouettes",
+      "stone interaction",
+      "battering/core-reduction poses",
+      "neutral locomotion",
+      "environmental reaction"
+    ],
+    "forbiddenWithoutEvidence": [
+      "tailored clothing",
+      "metal",
+      "pottery",
+      "agriculture",
+      "bows",
+      "spears as factual equipment",
+      "controlled fire as a Lomekwi 3 fact",
+      "named species presented as certain"
+    ],
+    "provenance": "RECONSTRUCTION"
+  },
+  "sources": [
+    {
+      "id": "harmand-2015",
+      "type": "primary_research",
+      "citation": "Harmand, S. et al. 3.3-million-year-old stone tools from Lomekwi 3, West Turkana, Kenya. Nature 521, 310–315 (2015).",
+      "doi": "10.1038/nature14464",
+      "url": "https://www.nature.com/articles/nature14464"
+    },
+    {
+      "id": "namorotukunan-2025",
+      "type": "peer_reviewed_context",
+      "citation": "Early Oldowan technology thrived during Pliocene environmental change in the Turkana Basin, Kenya. Nature Communications (2025).",
+      "url": "https://www.nature.com/articles/s41467-025-64244-x"
+    }
+  ]
+}
