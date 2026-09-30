@@ -175,7 +175,7 @@ public partial class UniversalInterface
                     : [new("PURCHASE TOKEN AND CLAIM", "purchase")];
 
             if (MmoCanGameMasterSelected)
-                return [new("EDIT", "edit")];
+                return [new("EDIT", "edit"), new("ROLEPLAY", "roleplay")];
 
             // Developer Inspect is an oversight/audit capability, not deed
             // ownership. Keep the owner's edit surface distinct.
@@ -609,7 +609,7 @@ public partial class UniversalInterface
 
         if (action == "roleplay")
         {
-            if (_mmoRoleplayerMode && MmoSelectedIsCanonicalGeanaph)
+            if (MmoSelectedIsCanonicalGeanaph)
             {
                 if (MmoSelectedParcel is { RegionId.Length: > 0 } canonicalGeanaph)
                     Session.SetActiveRegion(canonicalGeanaph.RegionId);
