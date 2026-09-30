@@ -34,7 +34,8 @@ public partial class UniversalInterface
         double Y,
         double Size,
         double Rotation,
-        double Opacity);
+        double Opacity,
+        bool MmoSurface);
 
     IReadOnlyList<MmoLeftChoice> MmoLeftChoices
     {
@@ -377,9 +378,16 @@ public partial class UniversalInterface
                     JsonDouble(item, "y", .5),
                     Math.Max(.001, JsonDouble(item, "size", 1)),
                     JsonDouble(item, "rotation", 0),
-                    JsonDouble(item, "opacity", 1));
+                    JsonDouble(item, "opacity", 1),
+                    JsonBool(item, "mmoSurface", false));
 
-                if (!topByRegion.TryGetValue(regionId, out var current) || layer.Layer > current.Layer)
+                // An authored deed-map representation may be explicitly selected
+                // without changing the semantic Z order of the region's real layers.
+                // If no explicit MMO surface exists, preserve the historical
+                // top-layer fallback.
+                if (!topByRegion.TryGetValue(regionId, out var current)
+                    || (layer.MmoSurface && !current.MmoSurface)
+                    || (layer.MmoSurface == current.MmoSurface && layer.Layer > current.Layer))
                     topByRegion[regionId] = layer;
             }
 
@@ -396,6 +404,15 @@ public partial class UniversalInterface
         item.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
             ? value.GetString()?.Trim() ?? ""
             : "";
+
+    static bool JsonBool(JsonElement item, string name, bool fallback)
+    {
+        if (!item.TryGetProperty(name, out var value)) return fallback;
+        if (value.ValueKind == JsonValueKind.True) return true;
+        if (value.ValueKind == JsonValueKind.False) return false;
+        if (value.ValueKind == JsonValueKind.String && bool.TryParse(value.GetString(), out var result)) return result;
+        return fallback;
+    }
 
     static int JsonInt(JsonElement item, string name, int fallback)
     {

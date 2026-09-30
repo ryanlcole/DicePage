@@ -1503,10 +1503,18 @@
 .single-analog-deck button.control-display-button>strong.display-text-sm{
  font-size:clamp(10px,2.75vw,13px)!important;
  letter-spacing:.015em!important;
+ white-space:normal!important;
+ overflow:visible!important;
+ line-height:1.02!important;
+ text-align:center!important;
 }
 .single-analog-deck button.control-display-button>strong.display-text-xs{
  font-size:clamp(8px,2.35vw,11px)!important;
  letter-spacing:0!important;
+ white-space:normal!important;
+ overflow:visible!important;
+ line-height:1.02!important;
+ text-align:center!important;
 }
 .single-analog-deck .display-slider-left .cue-up{top:4px!important}
 .single-analog-deck .display-slider-left .cue-down{bottom:4px!important}

@@ -9,6 +9,10 @@ Parameters:
   FrontendOrigin:
     Type: String
     Default: https://ryanlcole.github.io
+  AssetOrigin:
+    Type: String
+    Default: https://d2d6rnm6fnsp89.cloudfront.net
+    Description: Public CDN origin for canonical Shaelvien visual representations
   OwnerUserId:
     Type: String
     Default: ''
@@ -406,6 +410,44 @@ Resources:
       SurfaceTier: 0
       SurfaceLayer: 6
 
+  GeanaphSeedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.handler
+      CodeUri: rist-platform-geanaph-seed/
+      Timeout: 30
+      Environment:
+        Variables:
+          WORLD_TABLE: !Ref WorldStateTable
+          OWNER_USER_ID: !Ref OwnerUserId
+          ASSET_BASE_URL: !Sub '${AssetOrigin}/zones/geanaph/v1'
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref WorldStateTable }
+        - Statement:
+            - Effect: Allow
+              Action: [kms:Decrypt, kms:Encrypt, kms:GenerateDataKey, kms:DescribeKey]
+              Resource: !GetAtt UserDataKey.Arn
+
+  GeanaphSeedInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GeanaphSeedFunction
+      Action: lambda:InvokeFunction
+      Principal: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ReLiC-CloudFormation-Execution
+
+  GeanaphSeed:
+    Type: Custom::GeanaphSeed
+    DependsOn:
+      - GeanaphSeedInvokePermission
+      - SunkenTundraSeed
+    Properties:
+      ServiceToken: !GetAtt GeanaphSeedFunction.Arn
+      Revision: geanaph-east-v1
+      WorldId: shaelvien-geonaph-alpha-001
+      RelativeTo: Endemar
+      RelativeX: 1
+      RelativeY: 0
+
   RealtimeConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -520,6 +562,16 @@ Outputs:
     Value: !GetAtt SunkenTundraSeed.westfordeHasBinding
   WestfordeParcelIdMatchesCoordinate:
     Value: !GetAtt SunkenTundraSeed.westfordeParcelIdMatchesCoordinate
+  GeanaphColumn:
+    Value: !GetAtt GeanaphSeed.column
+  GeanaphRow:
+    Value: !GetAtt GeanaphSeed.row
+  GeanaphCanonicalEastOfEndemar:
+    Value: !GetAtt GeanaphSeed.canonicalEastOfEndemar
+  GeanaphOwnerBoundToPlatformAccount:
+    Value: !GetAtt GeanaphSeed.ownerBoundToPlatformAccount
+  GeanaphTruthManifestUrl:
+    Value: !GetAtt GeanaphSeed.truthManifestUrl
   AuthorityApiBaseUrl:
     Value: !Sub https://${AuthorityApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
   RealtimeWebSocketUrl:
