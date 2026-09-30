@@ -48,6 +48,9 @@ public partial class UniversalInterface
                 return result;
             }
 
+            if (Session.IsServerVerifiedPlatformOwner)
+                result.Add(new("ENDEMAR", "owned", WorldSession.EndemarOriginCell));
+
             result.AddRange(
                 Session.MmoParcels
                     .Where(parcel => Session.IsMmoParcelOwnedByCurrentUser(parcel.CellIndex))
