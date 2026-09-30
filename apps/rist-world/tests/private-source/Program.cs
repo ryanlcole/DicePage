@@ -43,6 +43,11 @@ namespace RistWorld
         public bool HasActiveWorld => WorldId.Length > 0;
         public string WorldId { get; set; } = "private-test";
         public string WorldOwnerAccountId { get; set; } = "account-1";
+        // Keep this narrow fixture synchronized with the production partial's
+        // canonical Shaelvien ownership gate. The private-source test must compile
+        // the exact save policy without importing unrelated MMO/session code.
+        public bool IsGeonaphWorld => string.Equals(WorldId, GeonaphWorldId, StringComparison.Ordinal);
+        public bool OwnsCanonicalGeanaphZone { get; set; }
         public bool HasTrustedWorldBuilderAuthority { get; set; } = true;
         public bool TrustedPlatformDeveloper { get; set; } = false;
         private bool _trustedPrivateWorldOwner;
