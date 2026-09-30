@@ -115,7 +115,7 @@ public partial class UniversalInterface
     // an explicit parcel-level Edit/Manage/Owner delegation.
     bool MmoCanGameMasterSelected =>
         MmoSelectedIsEndemar
-            ? Session.HasTrustedWorldBuilderAuthority
+            ? Session.IsServerVerifiedPlatformOwner || Session.HasTrustedWorldBuilderAuthority
             : MmoSelectedIsOwned || MmoSelectedHasExplicitEditPermission;
 
     bool MmoCanViewSelected =>
