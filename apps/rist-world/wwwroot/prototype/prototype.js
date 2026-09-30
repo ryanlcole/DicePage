@@ -371,6 +371,7 @@ async function applyDatabaseWorldBuilderState(envelope){
   viewerTier=state.viewerTier==='all'?'all':tierByKey(state.viewerTier||'sea').key;
   viewerLayer=clamp(Math.trunc(Number(state.viewerLayer)||0),0,9);
   await hydrateSelectedDeedZone({preserveView:true});
+  applyDeedEditEntryView();
   selectedImage=null;publishWorldBuilderSelectionContext();
   updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
   localWorldBuilderRestoreComplete=true;
@@ -856,6 +857,7 @@ async function restoreSavedWorldBuilder(){
       }
       await hydrateSelectedDeedZone({preserveView:hasSavedState});
     }
+    applyDeedEditEntryView();
     selectedImage=null;publishWorldBuilderSelectionContext();updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();scheduleRegionEnhancement(50);
     announce(REGION_DEFINER
       ? 'Region Definer ready. Loading the canonical world map with regional permissions.'
@@ -1167,6 +1169,9 @@ function moveSelectedLayer(delta){
   announce(`${selectedImage.kind==='label'?'Label':selectedImage.kind==='sprite'?'Sprite':'Image'} moved to Tier ${pos.tier}, ${pos.tierLabel}, Layer ${pos.layer}.`);
 }
 function isWorldMapItem(item){return item?.placementRole==='world-map'||item?.fullWorld===true}
+function isDeedLocalFullItem(item){
+  return !!DEED_REGION_ID&&!!item?.deedLocalFull&&String(item?.regionId||'')===DEED_REGION_ID;
+}
 function storedPlacementRole(raw){return raw?.placementRole==='world-map'||raw?.fullWorld===true?'world-map':'layer'}
 function customWorldMap(){return userLayers.find(isWorldMapItem)||null}
 function hasSeaLevelRepresentation(){return !!customWorldMap()||layerReady.surface||!!String(surface?.currentSrc||surface?.src||'').trim()||BASE_WORLD_ASSETS.length>0}
@@ -1444,10 +1449,17 @@ function refreshUserImage(item){
   item.node.dataset.sourceLocked=item.sourceLocked?'true':'false';
   item.node.dataset.placementRole=isWorldMapItem(item)?'world-map':'layer';
   item.node.classList.toggle('full-world-placement',isWorldMapItem(item));
-  if(isWorldMapItem(item)){
+  if(isWorldMapItem(item)||isDeedLocalFullItem(item)){
     item.node.style.left='0';item.node.style.top='0';item.node.style.width='100%';item.node.style.height='100%';
-    item.node.style.maxWidth='none';item.node.style.maxHeight='none';item.node.style.objectFit='fill';
-    item.node.style.pointerEvents='none';item.node.style.transform='none';item.node.style.transformOrigin='0 0';return;
+    item.node.style.maxWidth='none';item.node.style.maxHeight='none';
+    item.node.style.objectFit=isDeedLocalFullItem(item)?'contain':'fill';
+    item.node.style.pointerEvents='none';
+    const px=isDeedLocalFullItem(item)?Number(item.parallaxX)||0:0;
+    const py=isDeedLocalFullItem(item)?Number(item.parallaxY)||0:0;
+    item.node.style.transform=isDeedLocalFullItem(item)
+      ?`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`
+      :'none';
+    item.node.style.transformOrigin='50% 50%';return;
   }
   item.node.style.width='12%';item.node.style.height='auto';item.node.style.maxWidth='';item.node.style.maxHeight='';item.node.style.objectFit='';
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
@@ -1504,7 +1516,7 @@ function removeSelectedImage(){
   if(selectedImage.sourceLocked){announce('This map content is outside your Region Definer edit permission.');return}
   const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;publishWorldBuilderSelectionContext();updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
 function beginImageDrag(event,item){
-  if(READ_ONLY||item?.sourceLocked||isWorldMapItem(item))return;
+  if(READ_ONLY||item?.sourceLocked||isWorldMapItem(item)||isDeedLocalFullItem(item))return;
   if(event.pointerType==='mouse'&&event.button!==0)return;
   if(item?.committed&&selectedImage!==item)return;
   event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
@@ -1617,7 +1629,7 @@ function applyParallax(){
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
-    const depth=item.tier;
+    const depth=item.tier+(item.layer/10);
     const panStrength=depth*.022,tiltStrength=depth*.48;
     item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
     item.parallaxY=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
