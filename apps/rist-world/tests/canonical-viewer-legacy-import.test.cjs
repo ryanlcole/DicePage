@@ -75,7 +75,7 @@ test('Legacy accepts several loose files and deduplicates by metadata plus SHA-2
   const gate=read('Components/LegacyWorldGate.razor');
   const importer=read('LegacyArchiveImport.cs');
 
-  assert.match(gate,/InputFile OnChange="ImportLegacyFilesAsync" multiple/);
+  assert.match(gate,/<InputFile[^>]*OnChange="ImportLegacyFilesAsync"[^>]*\bmultiple\b[^>]*\/>/);
   assert.match(gate,/GetMultipleFiles\(LegacyArchiveImport\.MaxEntryCount\)/);
   assert.match(gate,/metadata \+ SHA-256 identify exact duplicates/);
   assert.match(importer,/LegacyUploadCandidate/);
