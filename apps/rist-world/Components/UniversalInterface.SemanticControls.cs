@@ -247,6 +247,8 @@ public partial class UniversalInterface
                 await PressLeft();
                 return;
             case UniversalSemanticControls.Action.Primary:
+                await PressRight();
+                return;
             case UniversalSemanticControls.Action.Intent:
             case UniversalSemanticControls.Action.Target:
             case UniversalSemanticControls.Action.Method:
@@ -256,8 +258,11 @@ public partial class UniversalInterface
             case UniversalSemanticControls.Action.Outcome:
             case UniversalSemanticControls.Action.FollowUp:
             case UniversalSemanticControls.Action.CustomProcedure:
-                await PressRight();
-                return;
+                {
+                    var plan = new GenericTtrpgRulesAdapter().Plan(actionId);
+                    _message = $"{actionId} is available through {plan.SystemLabel}; resolver {plan.Resolver}. Bind a campaign/system adapter before rules execution.";
+                    return;
+                }
             case UniversalSemanticControls.Action.Undo:
                 await HandleViewerMenuCommandAsync("undo");
                 return;
@@ -292,7 +297,7 @@ public partial class UniversalInterface
                     _message = "That GameMaster semantic action requires current trusted authority.";
                     return;
                 }
-                await PressRight();
+                _message = $"{actionId} is authorized, but no campaign/system handler is bound in this Shaep. No unrelated contextual action was executed.";
                 return;
             default:
                 _message = $"Unknown semantic action '{actionId}'. Nothing was executed.";
