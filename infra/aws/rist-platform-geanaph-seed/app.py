@@ -14,7 +14,7 @@ from boto3.dynamodb.conditions import Key
 WORLD_ID = "shaelvien-geonaph-alpha-001"
 WORLD_PK = f"WORLD#{WORLD_ID}"
 ZONE_NAME = "Geanaph"
-ZONE_MARKER = "geanaph-east-v1"
+ZONE_MARKER = "geanaph-east-v2"
 GRID_COLUMNS = 30
 GRID_ROWS = 30
 PARCEL_PIXELS = 2048
@@ -188,6 +188,8 @@ def surface_layer(surface_url: str, truth_manifest_url: str) -> dict:
         "opacity": 1,
         "committed": True,
         "mmoSurface": True,
+        "deedZoneLayer": True,
+        "deedLocalFull": True,
         "representationOnly": True,
         "provenance": "OUTSIDER_AI",
         "truthManifestUrl": truth_manifest_url,
@@ -285,6 +287,7 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         "truthManifestUrl": truth_manifest_url,
         "surfaceRepresentationUrl": surface_url,
         "representationOnly": True,
+        "deedLocalFull": True,
     }
     source_state["migrationMarkers"] = markers
     source_state["savedAt"] = utc_stamp()
@@ -357,7 +360,7 @@ def send_cloudformation_response(event, context, status: str, data: dict, reason
         "Status": status,
         "Reason": reason or f"See CloudWatch Log Stream: {context.log_stream_name}",
         "PhysicalResourceId": str(
-            event.get("PhysicalResourceId") or "geanaph-east-zone-seed-v1"
+            event.get("PhysicalResourceId") or "geanaph-east-zone-seed-v2"
         ),
         "StackId": event["StackId"],
         "RequestId": event["RequestId"],
