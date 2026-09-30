@@ -3150,3 +3150,101 @@ body.rist-viewer-overlays-off .universal-shell .viewer-readout{
  .mmo-inline-manage label:nth-of-type(3){grid-column:1}
  .mmo-inline-manage-save,.mmo-inline-manage header{grid-column:1}
 }
+
+
+/* Sheet 14 semantic controller overlays */
+.semantic-control-announcer{
+ position:absolute!important;
+ width:1px!important;
+ height:1px!important;
+ padding:0!important;
+ margin:-1px!important;
+ overflow:hidden!important;
+ clip:rect(0,0,0,0)!important;
+ white-space:nowrap!important;
+ border:0!important;
+}
+.semantic-quick-deck,
+.semantic-radial-deck{
+ position:absolute;
+ z-index:58;
+ left:50%;
+ bottom:clamp(82px,14dvh,128px);
+ transform:translateX(-50%);
+ max-width:min(92%,720px);
+ pointer-events:auto;
+}
+.semantic-quick-deck{
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ gap:6px;
+ padding:6px;
+ border:1px solid #5d6870;
+ border-radius:10px;
+ background:#071016e8;
+ box-shadow:0 8px 24px #000b;
+ backdrop-filter:blur(7px);
+}
+.semantic-quick-deck button,
+.semantic-radial-deck button{
+ min-width:72px;
+ min-height:36px;
+ padding:6px 9px;
+ border:1px solid #637780;
+ border-radius:8px;
+ background:#0b1820;
+ color:#e8dfc9;
+ font:800 9px/1.15 system-ui,-apple-system,sans-serif;
+ letter-spacing:.035em;
+ touch-action:manipulation;
+}
+.semantic-quick-deck button:focus-visible,
+.semantic-radial-deck button:focus-visible{
+ outline:2px solid #efd58d;
+ outline-offset:2px;
+}
+.semantic-radial-deck{
+ width:min(320px,72vw);
+ height:min(220px,32dvh);
+ pointer-events:none;
+}
+.semantic-radial-deck button{
+ position:absolute;
+ left:50%;
+ top:50%;
+ width:94px;
+ pointer-events:auto;
+ transform:translate(-50%,-50%);
+}
+.semantic-radial-deck button:nth-child(1){transform:translate(-50%,-138%)}
+.semantic-radial-deck button:nth-child(2){transform:translate(10%,-50%)}
+.semantic-radial-deck button:nth-child(3){transform:translate(-50%,-50%)}
+.semantic-radial-deck button:nth-child(4){transform:translate(-110%,-50%)}
+.semantic-radial-deck button:nth-child(5){transform:translate(-20%,42%)}
+.semantic-radial-deck button:nth-child(6){transform:translate(-80%,42%)}
+.semantic-skin-dual-rail .display-slider-left,
+.semantic-skin-dual-rail .display-slider-right{
+ border-color:#82939b;
+ box-shadow:inset 0 0 0 1px #82939b44;
+}
+.semantic-experience-fast .control-display-button>span{
+ opacity:.72;
+}
+@media(max-width:700px){
+ .semantic-quick-deck{
+  left:6px;
+  right:6px;
+  bottom:84px;
+  max-width:none;
+  transform:none;
+  justify-content:flex-start;
+  overflow-x:auto;
+ }
+ .semantic-quick-deck button{min-width:68px;flex:0 0 auto}
+ .semantic-radial-deck{
+  bottom:78px;
+  width:min(280px,82vw);
+  height:190px;
+ }
+}
