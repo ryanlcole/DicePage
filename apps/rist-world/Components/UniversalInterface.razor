@@ -1700,8 +1700,9 @@
      }
      _selectedEnvironment="SHAELVIEN";
      _analogButtonMode=false;
-     _stage=Stage.Role;
-     _message="Shaelvien selected. Choose Roleplayer or GameMaster.";
+     _mmoRoleplayerMode=false;
+     await EnterMmoMapAsync(inspect:false);
+     _message="Shaelvien selected. Choose a deed; the right action changes with the deed and your authority.";
      break;
    case Stage.Role:
     if(string.Equals(_selectedEnvironment,"SHAELVIEN",StringComparison.OrdinalIgnoreCase))
@@ -1862,8 +1863,8 @@
     _mmoManageOpen=false;
     _mmoInspectMode=false;
     _mmoRoleplayerMode=false;
-    _stage=Stage.Role;
-    _message="Returned to Shaelvien role selection.";
+    _stage=Stage.Environment;
+    _message="Returned to environment selection.";
     break;
    case Stage.HistoryCampaign:
     HistoryGoBack();
