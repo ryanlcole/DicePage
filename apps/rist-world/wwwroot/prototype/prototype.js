@@ -753,7 +753,7 @@ async function hydrateSelectedDeedZone(options={}){
   }
 
   try{
-    const localRoot=`/Game/assets/zones/${encodeURIComponent(DEED_ZONE_ID)}/`;
+    const localRoot=new URL(`/Game/assets/zones/${encodeURIComponent(DEED_ZONE_ID)}/`,location.href).toString();
     let root=localRoot;
     let manifest=null;
     let truthMode=false;
