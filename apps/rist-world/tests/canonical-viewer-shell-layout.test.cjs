@@ -93,6 +93,7 @@ test('START opens the existing settings menu without duplicating settings',()=>{
 
 test('Browse cursor and analog press target the thumbnail beneath the reticle',()=>{
   const razor=read('Components/UniversalInterface.razor');
+  const semantic=read('Components/UniversalInterface.SemanticControls.cs');
   const input=read('wwwroot/universal-interface-input.js');
   const index=read('wwwroot/index.html');
 
@@ -100,7 +101,7 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
   assert.match(razor,/bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage\.MmoMap&&(?:_stage!=Stage\.[A-Za-z]+&&)*_stage!=Stage\.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;/);
   assert.match(razor,/bool CursorMode=>_stage==Stage\.MmoMap[\s\S]{0,100}?MmoAnalogCursorMode[\s\S]{0,160}?CursorAvailable[\s\S]{0,120}?!_analogButtonMode/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]{0,360}?_browseCursorActive=true;[\s\S]{0,120}?_analogButtonMode=false;/);
-  assert.match(razor,/if\(\(_stage==Stage\.BrowsePlace\|\|_stage==Stage\.MmoMap\)&&CursorMode\)await ActivateBrowseCursorTargetAsync\(\)/);
+  assert.match(semantic,/SelectSemanticAsync\(\)[\s\S]{0,260}?Stage\.BrowsePlace[\s\S]{0,120}?Stage\.MmoMap[\s\S]{0,120}?CursorMode[\s\S]{0,120}?ActivateBrowseCursorTargetAsync\(\)/);
   assert.match(input,/function activateCursorTarget\(\)/);
   assert.match(input,/document\.elementFromPoint/);
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
@@ -170,6 +171,7 @@ test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer d
 
 test('analog center tap selects the asset currently under the cursor',()=>{
   const razor=read('Components/UniversalInterface.razor');
+  const semantic=read('Components/UniversalInterface.SemanticControls.cs');
   const input=read('wwwroot/universal-interface-input.js');
 
   assert.match(input,/const ANALOG_SELECT_RADIUS = 0\.46;/);
@@ -180,7 +182,10 @@ test('analog center tap selects the asset currently under the cursor',()=>{
   assert.match(input,/document\.elementFromPoint/);
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
-  assert.match(razor,/case "select":[\s\S]{0,320}?Stage\.BrowsePlace\|\|_stage==Stage\.MmoMap[\s\S]{0,140}?CursorMode[\s\S]{0,120}?ActivateBrowseCursorTargetAsync/);
+  assert.match(razor,/ReceiveSemanticHardwareInputAsync\(control,direction\)/);
+  assert.match(semantic,/case "select":[\s\S]{0,180}?Action\.Select/);
+  assert.match(semantic,/case UniversalSemanticControls\.Action\.Select:[\s\S]{0,120}?SelectSemanticAsync\(\)/);
+  assert.match(semantic,/SelectSemanticAsync\(\)[\s\S]{0,320}?CursorMode[\s\S]{0,120}?ActivateBrowseCursorTargetAsync\(\)/);
 });
 
 
