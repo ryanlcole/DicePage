@@ -116,7 +116,9 @@ public partial class UniversalInterface
     // an explicit parcel-level Edit/Manage/Owner delegation.
     bool MmoCanGameMasterSelected =>
         MmoSelectedIsEndemar
-            ? Session.IsServerVerifiedPlatformOwner || Session.HasTrustedWorldBuilderAuthority
+            ? Session.IsServerVerifiedPlatformOwner
+                || Session.TrustedPlatformOwner
+                || Session.HasTrustedWorldBuilderAuthority
             : MmoSelectedIsOwned || MmoSelectedHasExplicitEditPermission;
 
     bool MmoCanViewSelected =>
@@ -331,6 +333,13 @@ public partial class UniversalInterface
     async Task EnterMmoMapAsync(bool inspect)
     {
         await EnsureShaelvienEnvironmentAsync();
+
+        // Endemar is the protected platform origin. Resolve the same authenticated
+        // platform-owner account that owns canonical platform deeds before the map
+        // decides whether the origin action is VIEW or EDIT.
+        await Session.RefreshCommercialEntitlementsAsync();
+        await Session.RefreshTrustedWorldAuthorityAsync();
+
         _mmoInspectMode = inspect && Session.TrustedPlatformDeveloper;
         _mmoLeftIndex = 0;
         _mmoRightIndex = 0;
