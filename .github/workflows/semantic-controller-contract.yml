@@ -1,0 +1,50 @@
+name: Semantic Controller Contract
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - '.github/workflows/semantic-controller-contract.yml'
+      - 'apps/rist-world/UniversalSemanticControls.cs'
+      - 'apps/rist-world/LegacyArchiveImport.cs'
+      - 'apps/rist-world/Components/UniversalInterface.razor'
+      - 'apps/rist-world/Components/UniversalInterface.SemanticControls.cs'
+      - 'apps/rist-world/Components/LegacyWorldGate.razor'
+      - 'apps/rist-world/Components/AuthenticatedWorld.razor'
+      - 'apps/rist-world/wwwroot/universal-interface-input.js'
+      - 'apps/rist-world/wwwroot/css/universal-interface.css'
+      - 'apps/rist-world/wwwroot/index.html'
+      - 'apps/rist-world/tests/canonical-viewer-*.test.cjs'
+      - 'apps/rist-world/tests/test_universal_semantic_controls.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: semantic-controller-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Validate universal input JavaScript
+        run: node --check apps/rist-world/wwwroot/universal-interface-input.js
+
+      - name: Verify controller regressions
+        run: |
+          npm install --prefix "$RUNNER_TEMP/rist-semantic-tests" --no-audit --no-fund jsdom@26.1.0
+          NODE_PATH="$RUNNER_TEMP/rist-semantic-tests/node_modules" node --test apps/rist-world/tests/canonical-viewer-*.test.cjs
+
+      - name: Build RIST WORLD
+        run: dotnet build apps/rist-world/RistWorld.csproj -c Release
