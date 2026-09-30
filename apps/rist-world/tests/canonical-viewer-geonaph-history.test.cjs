@@ -127,3 +127,25 @@ test('World Builder shows the full Geonaph tier-layer stack while MMO stays flat
   assert.match(mmo,/if \(tier != 0\) continue;/);
   assert.match(mmo,/JsonBool\(item, "mmoSurface", false\)/);
 });
+
+
+test('World Builder full stack remains independent from MMO Tier 0 optimization',()=>{
+  const razor=read('Components/UniversalInterface.razor');
+  const mmo=read('Components/UniversalInterface.MmoMap.cs');
+  const seed=readRepo('infra/aws/rist-platform-geanaph-seed/app.py');
+
+  assert.match(razor,/var entryView=access=="edit"\?"all-parallax":"saved";/);
+  assert.doesNotMatch(razor,/entryView=access=="edit"&&[^\n]+selectedDeedName/);
+  assert.match(
+    razor,
+    /if\(_stage==Stage\.WorldBuilderTier&&CurrentBuilderScope=="WORLD"\)[\s\S]{0,120}?await ShowAllWorldLayersAsync\(\);[\s\S]{0,100}?else[\s\S]{0,100}?await SyncWorldBuilderDepthAsync\(\);/
+  );
+
+  assert.match(mmo,/var tier = JsonInt\(item, "tier", 0\);[\s\S]{0,80}?if \(tier != 0\) continue;/);
+  assert.match(mmo,/JsonBool\(item, "mmoSurface", false\)/);
+
+  const tuples=[...seed.matchAll(/\("[^"]+",\s*"[^"]+",\s*"[^"]+",\s*(\d),\s*(\d),\s*-?\d+,\s*(?:True|False)\)/g)]
+    .map(match=>({tier:Number(match[1]),layer:Number(match[2])}));
+  assert.equal(tuples.length,9);
+  assert.deepEqual([...new Set(tuples.map(item=>item.tier))],[0,1,2]);
+});

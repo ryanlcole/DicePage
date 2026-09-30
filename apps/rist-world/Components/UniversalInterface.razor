@@ -990,7 +990,10 @@
    var deedName=Uri.EscapeDataString(_selectedDeedName??"");
    var deedRegionId=Uri.EscapeDataString(SelectedDeedRegionId);
    var deedZone=Uri.EscapeDataString(SelectedDeedZoneId);
-   var entryView=access=="edit"&&!string.IsNullOrWhiteSpace(_selectedDeedName)?"all-parallax":"saved";
+   // World Builder edit mode starts from the complete authored tier/layer stack.
+   // The MMO deed map owns its separate Tier-0-only performance representation.
+   // Explicit Tier/Layer selection later isolates editing depth via setExternalDepth.
+   var entryView=access=="edit"?"all-parallax":"saved";
    return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&entryView={entryView}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20260930-world-stack-1";
   }
  }
@@ -3194,7 +3197,12 @@
    if(IsMyAssetSource)await LoadMyAssetsAsync();
    else if(IsGameAssetSource)LoadGameAssets();
   }
-  await SyncWorldBuilderDepthAsync();
+  // Restoring navigation to the WORLD tier picker is an overview operation,
+  // not an implicit Tier 0 / Layer 0 selection.
+  if(_stage==Stage.WorldBuilderTier&&CurrentBuilderScope=="WORLD")
+   await ShowAllWorldLayersAsync();
+  else
+   await SyncWorldBuilderDepthAsync();
  }
 
  async Task NavigateViewerBackAsync()
