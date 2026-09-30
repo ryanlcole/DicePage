@@ -30,6 +30,8 @@ def test_geanaph_surface_is_representation_and_truth_manifest_is_separate():
     seed = text("infra/aws/rist-platform-geanaph-seed/app.py")
     assert 'SURFACE_FILE = "fantasy_archipelago_terrain_atlas.png"' in seed
     assert '"mmoSurface": True' in seed
+    assert '"deedZoneLayer": True' in seed
+    assert '"deedLocalFull": True' in seed
     assert '"representationOnly": True' in seed
     assert '"provenance": "OUTSIDER_AI"' in seed
     assert 'f"{base}/truth/geanaph_truth_manifest.json"' in seed
@@ -43,7 +45,7 @@ def test_geanaph_seed_uses_same_configured_owner_as_endemar_and_runs_after_sunke
     assert "OWNER_USER_ID: !Ref OwnerUserId" in template
     assert "ASSET_BASE_URL: !Sub '${AssetOrigin}/zones/geanaph/v1'" in template
     assert "- SunkenTundraSeed" in template
-    assert "Revision: geanaph-east-v1" in template
+    assert "Revision: geanaph-east-v2" in template
     assert "GeanaphCanonicalEastOfEndemar:" in template
     assert "GeanaphOwnerBoundToPlatformAccount:" in template
 
