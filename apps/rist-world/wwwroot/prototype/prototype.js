@@ -709,59 +709,113 @@ async function attachRestoredLayer(raw,options={}){
   }
   return item;
 }
+function selectedDeedTruthManifestUrl(){
+  if(!DEED_REGION_ID)return'';
+  return String(userLayers.find(item=>
+    String(item?.regionId||'')===DEED_REGION_ID&&String(item?.truthManifestUrl||'').startsWith('https://')
+  )?.truthManifestUrl||'');
+}
+function applyDeedEditEntryView(){
+  if(!DEED_EDIT_PARALLAX_START)return false;
+  viewerTier='all';
+  viewerLayer=9;
+  stage.dataset.deedEditEntry='all-parallax';
+  return true;
+}
 async function hydrateSelectedDeedZone(options={}){
   if(REGION_DEFINER||!DEED_REGION_ID||!DEED_ZONE_ID)return 0;
   const preserveView=options?.preserveView===true;
   const preservedTier=viewerTier;
   const preservedLayer=viewerLayer;
+  const truthManifestUrl=selectedDeedTruthManifestUrl();
 
+  // Remove only layers dynamically hydrated for this local deed view. The
+  // canonical database surface remains present and keeps its global coordinates.
   for(let index=userLayers.length-1;index>=0;index--){
     const item=userLayers[index];
-    if(!item?.deedZoneLayer)continue;
+    if(!item?.deedHydratedLayer)continue;
     stopSpriteMotion(item);
     item.node?.remove();
     userLayers.splice(index,1);
   }
 
+  // A canonical MMO surface is stored in world coordinates. In a selected deed
+  // editor it represents that deed, so the viewer expands the same pixels to the
+  // local frame without rewriting stored X/Y/size truth.
+  for(const item of userLayers){
+    if(String(item?.regionId||'')!==DEED_REGION_ID)continue;
+    if(item.mmoSurface||item.deedLocalFull){
+      item.deedZoneLayer=true;
+      item.deedLocalFull=true;
+      refreshUserImage(item);
+    }
+  }
+
   try{
-    const root=`/Game/assets/zones/${encodeURIComponent(DEED_ZONE_ID)}/`;
-    const response=await fetch(root+'manifest.json',{cache:'no-cache'});
-    if(!response.ok){
+    const localRoot=`/Game/assets/zones/${encodeURIComponent(DEED_ZONE_ID)}/`;
+    let root=localRoot;
+    let manifest=null;
+    let truthMode=false;
+
+    const localResponse=await fetch(localRoot+'manifest.json',{cache:'no-cache'});
+    if(localResponse.ok){
+      manifest=await localResponse.json();
+    }else if(truthManifestUrl){
+      const truthResponse=await fetch(truthManifestUrl,{cache:'no-cache',mode:'cors'});
+      if(!truthResponse.ok)throw new Error('Deed truth manifest unavailable');
+      manifest=await truthResponse.json();
+      root=new URL('.',truthManifestUrl).toString();
+      truthMode=true;
+    }else{
       stage.dataset.deedZonePack='database-only';
+      applyDeedEditEntryView();
       return 0;
     }
-    const manifest=await response.json();
+
     if(manifest?.worldId&&String(manifest.worldId)!==String(WORLD_ID||''))throw new Error('Deed zone world identity mismatch');
 
-    const tier=clamp(Math.trunc(Number(manifest?.tier)||0),0,TIERS.length-1);
+    const tier=truthMode?0:clamp(Math.trunc(Number(manifest?.tier)||0),0,TIERS.length-1);
     const layers=(Array.isArray(manifest?.layers)?manifest.layers:[])
       .filter(layer=>layer&&layer.file)
-      .sort((a,b)=>(Number(a.layer)||0)-(Number(b.layer)||0));
+      .sort((a,b)=>truthMode
+        ?(Number(a.z)||0)-(Number(b.z)||0)
+        :(Number(a.layer)||0)-(Number(b.layer)||0));
     let loaded=0;
-    for(const layer of layers){
-      const index=clamp(Math.trunc(Number(layer.layer)||0),0,9);
+    for(let order=0;order<layers.length;order++){
+      const layer=layers[order];
+      const index=truthMode?clamp(order,0,9):clamp(Math.trunc(Number(layer.layer)||0),0,9);
+      const src=new URL(String(layer.file),root).toString();
       const item=await attachRestoredLayer({
-        id:`deed-zone:${DEED_ZONE_ID}:${index}`,
+        id:`deed-zone:${DEED_ZONE_ID}:${truthMode?'truth:':''}${String(layer.id||index)}`,
         regionId:DEED_REGION_ID,
         scope:'WORLD',
         name:String(layer.name||`Layer ${index}`),
         kind:'image',
-        placementRole:'world-map',
-        fullWorld:true,
-        originalSrc:root+String(layer.file),
-        transparentSrc:root+String(layer.file),
+        placementRole:'layer',
+        fullWorld:false,
+        deedZoneLayer:true,
+        deedLocalFull:true,
+        truthLayer:truthMode,
+        evidenceClass:String(layer.evidenceClass||''),
+        originalSrc:src,
+        transparentSrc:src,
         transparent:layer.opaque!==true,
-        x:0,y:0,tier,layer:index,size:1,rotation:0,opacity:1,committed:true
+        x:.5,y:.5,tier,layer:index,size:1,rotation:0,opacity:1,committed:true
       },{sourceLocked:true,canonicalSource:true});
       if(item){
         item.deedZoneLayer=true;
+        item.deedLocalFull=true;
+        item.deedHydratedLayer=true;
         item.deedZoneId=DEED_ZONE_ID;
+        item.truthLayer=truthMode;
         loaded++;
       }
     }
 
     if(loaded){
-      if(preserveView){
+      if(DEED_EDIT_PARALLAX_START){
+        applyDeedEditEntryView();
+      }else if(preserveView){
         viewerTier=preservedTier;
         viewerLayer=preservedLayer;
       }else{
@@ -769,20 +823,20 @@ async function hydrateSelectedDeedZone(options={}){
         viewerLayer=clamp(Math.trunc(Number(manifest?.surfaceLayer)??0),0,9);
       }
       world.dataset.emptyWorld='false';
-      stage.dataset.deedZonePack=DEED_ZONE_ID;
+      stage.dataset.deedZonePack=truthMode?'truth-manifest':DEED_ZONE_ID;
       stage.dataset.deedRegionId=DEED_REGION_ID;
       loading.hidden=true;
       updateLayerOrder();updateTierButton();renderTierMenu();applyParallax();renderKeyboardKeys();
-      announce(`${DEED_NAME||manifest?.displayName||'Selected deed'} map loaded.`);
+      announce(`${DEED_NAME||manifest?.displayName||'Selected deed'} map loaded${DEED_EDIT_PARALLAX_START?' with all world layers in parallax':''}.`);
     }
     return loaded;
   }catch(error){
     stage.dataset.deedZonePack='error';
+    applyDeedEditEntryView();
     announce(`${DEED_NAME||'Selected deed'} map pack could not load; showing its saved database layers only.`);
     return 0;
   }
 }
-
 async function restoreSavedWorldBuilder(){
   if(restoreSaveStarted)return;restoreSaveStarted=true;
   try{
