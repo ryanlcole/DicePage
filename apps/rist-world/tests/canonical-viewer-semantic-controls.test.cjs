@@ -54,6 +54,14 @@ test('Sheet 14 experience modes and alternate controller representations are sel
   assert.match(css,/\.semantic-skin-dual-rail/);
 });
 
+test('unbound rules and GM semantic actions fail closed instead of aliasing the current primary button',()=>{
+  const semantic=read('Components/UniversalInterface.SemanticControls.cs');
+  assert.match(semantic,/new GenericTtrpgRulesAdapter\(\)\.Plan\(actionId\)/);
+  assert.match(semantic,/Bind a campaign\/system adapter before rules execution/);
+  assert.match(semantic,/no campaign\/system handler is bound in this Shaep/);
+  assert.match(semantic,/No unrelated contextual action was executed/);
+});
+
 test('Legacy archives preserve source bytes and gain semantic controller metadata',()=>{
   const legacy=read('LegacyArchiveImport.cs');
   const gate=read('Components/LegacyWorldGate.razor');
