@@ -21,6 +21,7 @@ const SURFACE_POLICY=QUERY.get('surfacePolicy')||'included';
 const ACCESS_MODE=String(QUERY.get('access')||'edit').toLowerCase();
 const CLAIM_ONLY=ACCESS_MODE==='claim';
 const READ_ONLY=ACCESS_MODE==='view';
+const DEED_EDIT_PARALLAX_START=QUERY.get('deedEditParallax')==='1'&&ACCESS_MODE==='edit';
 const MAP_AUTHORITY_SCOPED=REGION_DEFINER;
 const ASSET_SCALE=REGION_DEFINER?'REGION':'WORLD';
 const SURFACE_WORLD_PIXELS=Math.max(2048,Math.min(32768,Math.trunc(Number(QUERY.get('surfacePixels'))||2048)));
@@ -86,7 +87,7 @@ const CANONICAL_PLANE_KEYS=Object.freeze(['surface','highlands','mountains']);
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
 let viewerSize=null;
-let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
+let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=DEED_EDIT_PARALLAX_START?9:0,upscaleStarted=false;
 let viewerEditClipboard=null;
 const viewerUndoStack=[],viewerRedoStack=[];
 const VIEWER_EDIT_HISTORY_LIMIT=40;
@@ -477,6 +478,9 @@ function serializableUserLayer(item){
   return{
     id:item.id,regionId:String(item.regionId||''),scope:normalizeSpatialScope(item.scope||'WORLD'),spatialNodeId:String(item.spatialNodeId||''),spatialPath:String(item.spatialPath||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     placementRole:isWorldMapItem(item)?'world-map':'layer',fullWorld:isWorldMapItem(item),
+    mmoSurface:!!item.mmoSurface,deedZoneLayer:!!item.deedZoneLayer,deedLocalFull:!!item.deedLocalFull,
+    representationOnly:!!item.representationOnly,truthManifestUrl:String(item.truthManifestUrl||''),
+    truthLayer:!!item.truthLayer,evidenceClass:String(item.evidenceClass||''),
     originalSrc:item.originalSrc||'',transparentSrc:item.transparentSrc||'',transparent:!!item.transparent,
     spriteSheetSrc:item.spriteSheetSrc||null,spriteColumns:item.spriteColumns||null,spriteRows:item.spriteRows||null,
     spriteFrameCount:item.spriteFrameCount||null,spriteFps:item.spriteFps||null,spriteSourceWidth:item.spriteSourceWidth||null,
@@ -680,6 +684,9 @@ async function attachRestoredLayer(raw,options={}){
   const item={
     id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),scope:normalizeSpatialScope(raw.scope||'WORLD'),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',
+    mmoSurface:!!raw.mmoSurface,deedZoneLayer:!!raw.deedZoneLayer,deedLocalFull:!!raw.deedLocalFull,
+    representationOnly:!!raw.representationOnly,truthManifestUrl:String(raw.truthManifestUrl||''),
+    truthLayer:!!raw.truthLayer,evidenceClass:String(raw.evidenceClass||''),
     originalSrc:first,transparentSrc:String(raw.transparentSrc||first),transparent:isSprite?true:!!raw.transparent,
     spriteSheetSrc:isSprite?String(raw.spriteSheetSrc||raw.originalSrc||''):null,spriteColumns:Number(raw.spriteColumns)||null,spriteRows:Number(raw.spriteRows)||null,
     spriteFrameCount:isSprite?(Number(raw.spriteFrameCount)||frameSources.length):null,spriteFps:isSprite?Math.max(1,Number(raw.spriteFps)||6):null,
