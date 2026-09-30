@@ -619,7 +619,7 @@ async function saveWorldBuilder(){
       announce(`Saving ${pendingPersonalUploads.size} personal upload${pendingPersonalUploads.size===1?'':'s'} before committing the ${REGION_DEFINER?'region':'world'}…`);
       await Promise.allSettled([...pendingPersonalUploads]);
     }
-    const editableLayers=REGION_DEFINER?userLayers.filter(item=>!item.sourceLocked):userLayers;
+    const editableLayers=userLayers.filter(item=>!item.sourceLocked);
     const serializedLayers=editableLayers.map(item=>{
       if(REGION_DEFINER&&!item.regionId)item.regionId=activeRegionMapId();
       return serializableUserLayer(item);
