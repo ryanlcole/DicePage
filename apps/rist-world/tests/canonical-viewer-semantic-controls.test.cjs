@@ -1,0 +1,89 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+
+const root=path.resolve(__dirname,'..');
+const read=relative=>fs.readFileSync(path.join(root,relative),'utf8');
+
+test('Sheet 14 semantic contract owns intent through outcome without inventing unknown rules',()=>{
+  const contract=read('UniversalSemanticControls.cs');
+  assert.match(contract,/ContractId = "rist\.semantic-controls\.v1"/);
+  for(const id of ['intent','target','method','modify','confirm','resolve','outcome','followup','custom.procedure']){
+    assert.ok(contract.includes(`"${id}"`),`missing semantic id ${id}`);
+  }
+  assert.match(contract,/CanonicalPlayFlow/);
+  assert.match(contract,/GenericTtrpgRulesAdapter/);
+  assert.match(contract,/UNKNOWN_RULES_REMAIN_UNKNOWN/);
+  assert.match(contract,/manual-or-custom/);
+});
+
+test('touch keyboard and gamepad all enter the same semantic dispatcher',()=>{
+  const razor=read('Components/UniversalInterface.razor');
+  const semantic=read('Components/UniversalInterface.SemanticControls.cs');
+  const input=read('wwwroot/universal-interface-input.js');
+
+  assert.match(razor,/data-semantic-contract="@SemanticContractId"/);
+  assert.match(razor,/ReceiveSemanticHardwareInputAsync\(control,direction\)/);
+  assert.match(razor,/DispatchSemanticActionAsync\(CurrentLeftSemanticId\)/);
+  assert.match(razor,/DispatchSemanticActionAsync\(CurrentRightSemanticId\)/);
+  assert.match(semantic,/case "x":[\s\S]{0,180}?Action\.NavigateX/);
+  assert.match(semantic,/case "y":[\s\S]{0,180}?Action\.NavigateY/);
+  assert.match(semantic,/case "select":[\s\S]{0,180}?Action\.Select/);
+  assert.match(input,/edgeButton\(gamepad, 0, "left"\)/);
+  assert.match(input,/edgeButton\(gamepad, 1, "right"\)/);
+  assert.match(input,/edgeButton\(gamepad, 10, "select"\)/);
+});
+
+test('Sheet 14 experience modes and alternate controller representations are selectable',()=>{
+  const razor=read('Components/UniversalInterface.razor');
+  const semantic=read('Components/UniversalInterface.SemanticControls.cs');
+  const css=read('wwwroot/css/universal-interface.css');
+
+  assert.match(semantic,/ANALOG POSITION", "EXPERIENCE", "CONTROL SKIN/);
+  assert.match(semantic,/GUIDED", "STANDARD", "FAST/);
+  assert.match(semantic,/LINEAR", "QUICK DECK", "RADIAL", "DUAL RAIL/);
+  assert.match(razor,/ShowQuickDeck/);
+  assert.match(razor,/SemanticQuickDeck/);
+  assert.match(razor,/ShowRadialDeck/);
+  assert.match(razor,/SemanticRadialDeck/);
+  assert.match(razor,/SemanticCurrentValueCount/);
+  assert.match(css,/Sheet 14 semantic controller overlays/);
+  assert.match(css,/\.semantic-quick-deck/);
+  assert.match(css,/\.semantic-radial-deck/);
+  assert.match(css,/\.semantic-skin-dual-rail/);
+});
+
+test('Legacy archives preserve source bytes and gain semantic controller metadata',()=>{
+  const legacy=read('LegacyArchiveImport.cs');
+  const gate=read('Components/LegacyWorldGate.razor');
+  const input=read('wwwroot/universal-interface-input.js');
+
+  assert.match(legacy,/ControlProfileKey\(string worldId\)/);
+  assert.match(legacy,/EnsureSemanticControlProfileAsync/);
+  assert.match(legacy,/CreateLegacyImportProfile\(worldId\)/);
+  assert.match(legacy,/"rist-legacy-archive",3/);
+  assert.match(legacy,/ControlContract=UniversalSemanticControls\.ContractId/);
+  assert.match(legacy,/UploadBytesAsync\(sourceKey,zipBytes,"application\/zip"\)/);
+  assert.match(gate,/ReceiveControlAsync\(string control,int direction\)/);
+  assert.match(gate,/EnsureSemanticControlProfileAsync\(world\.WorldId,Auth\)/);
+  assert.match(gate,/id="legacy-import-zip"/);
+  assert.match(gate,/id="legacy-import-files"/);
+  assert.match(input,/openFilePicker\(id\)/);
+});
+
+test('sandbox Roleplayer path is connected and universal assets share one cache generation',()=>{
+  const interfaceRazor=read('Components/UniversalInterface.razor');
+  const semantic=read('Components/UniversalInterface.SemanticControls.cs');
+  const auth=read('Components/AuthenticatedWorld.razor');
+  const index=read('wwwroot/index.html');
+
+  assert.match(interfaceRazor,/await OpenRoleplayerFromUniversalAsync\(\)/);
+  assert.match(semantic,/OpenRoleplayerFromUniversalAsync\(\)/);
+  const start=auth.indexOf('async Task EnterUniversalRoleplayAsync');
+  const end=auth.indexOf('async Task ReturnToStartAsync',start);
+  assert.ok(start>=0&&end>start);
+  assert.doesNotMatch(auth.slice(start,end),/if\(!Session\.IsGeonaphWorld\)return;/);
+  assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-1/);
+  assert.match(index,/universal-interface-input\.js\?v=20260930-semantic-controls-1/);
+});
