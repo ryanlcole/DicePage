@@ -62,7 +62,7 @@ test('database seed migrates canonical display name and verifies provenance plus
   assert.match(seed,/"historyProvenanceVerified": True/);
   assert.match(seed,/"historyContentPolicyVerified": True/);
   assert.match(seed,/"matureContentAllowed": True/);
-  assert.match(template,/Revision: geonaph-east-v5-rating-provenance/);
+  assert.match(template,/Revision: geonaph-east-v6-free-origin/);
 });
 
 test('first evidence-safe sprite package is reconstruction-only and taxonomically unresolved',()=>{

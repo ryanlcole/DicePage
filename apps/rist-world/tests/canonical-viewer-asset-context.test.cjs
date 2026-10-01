@@ -23,8 +23,10 @@ test('host bridge forwards placed selection identity into the Blazor controller'
 
 test('map saves preserve canonical Asset Context extensions',()=>{
   const razor=read('Components/UniversalInterface.razor');
-  assert.match(razor,/currentState\.TryGetProperty\("assetContexts",out var currentContexts\)/);
-  assert.match(razor,/root\["assetContexts"\]=JsonNode\.Parse\(currentContexts\.GetRawText\(\)\)/);
+  const source=read('WorldSession.WorldBuilderSource.cs');
+  assert.match(razor,/MergeWorldBuilderRepresentationState\([\s\S]{0,120}?current\?\.State,[\s\S]{0,100}?SelectedDeedRegionId/);
+  assert.match(source,/if \(!incoming\.ContainsKey\(property\.Key\)\)[\s\S]{0,120}?property\.Value\?\.DeepClone\(\)/);
+  assert.match(source,/string\.Equals\(property\.Key, "userLayers", StringComparison\.Ordinal\)/);
   assert.match(razor,/SaveWorldBuilderSourceAsync\([\s\S]{0,120}?mergedState,[\s\S]{0,100}?_inspectionEditMode,[\s\S]{0,100}?inspectionReason/);
 });
 

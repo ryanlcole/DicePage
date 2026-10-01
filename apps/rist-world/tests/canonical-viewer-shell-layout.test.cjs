@@ -364,8 +364,7 @@ test('developer Inspect is a deed-map oversight action and audited edits return 
   assert.match(razor,/REASON FOR NEXT EDIT/);
   assert.match(razor,/RequireInspectionReason\(\)/);
   assert.match(razor,/AppendInspectionAudit\(root,"SAVE WORLD REPRESENTATION",inspectionReason\)/);
-  assert.match(razor,/currentState\.TryGetProperty\("inspectionAudit",out var currentAudit\)/);
-  assert.match(razor,/root\["inspectionAudit"\]=JsonNode\.Parse\(currentAudit\.GetRawText\(\)\)/);
+  assert.match(razor,/MergeWorldBuilderRepresentationState\([\s\S]{0,120}?current\?\.State,[\s\S]{0,100}?SelectedDeedRegionId/);
   assert.match(razor,/ConsumeInspectionReason\(\)/);
   assert.match(razor,/ReturnToInspectMapAsync\(\)[\s\S]{0,220}?EnterMmoMapAsync\(inspect:true\)/);
   assert.match(razor,/void ReturnToShaelvienDeedSelector\(\)[\s\S]{0,360}?_stage=Stage\.MmoMap/);
@@ -483,7 +482,8 @@ test('selected Shaelvien deed identity drives the embedded map and Sunken Tundra
   assert.match(prototype,/async function hydrateSelectedDeedZone\(options=\{\}\)/);
   assert.match(prototype,/\/Game\/assets\/zones\/\$\{encodeURIComponent\(DEED_ZONE_ID\)\}\//);
   assert.match(prototype,/const worldVisible=!DEED_REGION_ID/);
-  assert.match(prototype,/const deedVisible=!DEED_REGION_ID\|\|item\.deedZoneLayer\|\|String\(item\.regionId\|\|''\)===DEED_REGION_ID/);
+  assert.match(prototype,/const itemRegionId=String\(item\.regionId\|\|''\)\.trim\(\)/);
+  assert.match(prototype,/const deedVisible=DEED_REGION_ID[\s\S]{0,180}?item\.deedZoneLayer\|\|itemRegionId===DEED_REGION_ID[\s\S]{0,180}?IS_ENDEMAR_SEED\?!itemRegionId:true/);
   assert.match(prototype,/item\.deedZoneLayer=true/);
   assert.match(prototype,/hydrateSelectedDeedZone\(\{preserveView:true\}\)/);
   assert.match(prototype,/const preserveView=options\?\.preserveView===true/);
