@@ -71,3 +71,24 @@ def test_deed_saves_preserve_other_deeds_and_endemar_scope():
     assert "SelectedDeedRegionId" in controller
     assert "MergeWorldBuilderRepresentationState(state,current?.State)" in root_host
     assert "worldBuilderSourceLayersForCurrentDeed(layers).map(serializableUserLayer)" in prototype
+
+
+def test_whole_map_assets_keep_one_deed_frame_across_tiers():
+    prototype = text("wwwroot/prototype/prototype.js")
+    controller = text("Components/UniversalInterface.razor")
+
+    assert "function looksLikeWholeMapAsset(raw)" in prototype
+    assert "raw?.fullFrame===true||looksLikeWholeMapAsset(raw)" in prototype
+    assert "const fullDeedFrame=geonaphSeaLevelMap||raw.fullFrame===true||looksLikeWholeMapAsset" in prototype
+    assert "placementRole:fullDeedFrame?'deed-frame':'layer'" in prototype
+    assert "size:fullDeedFrame?1:" in prototype
+    assert "rotation:fullDeedFrame?0:" in prototype
+    assert "bool SelectedAssetUsesFullDeedFrame" in controller
+    assert "fullFrame=SelectedAssetUsesFullDeedFrame" in controller
+
+
+def test_returning_to_endemar_home_restores_fitted_parallax_overview():
+    controller = text("Components/UniversalInterface.razor")
+
+    assert 'renderer=20261001-full-frame-parallax-1' in controller
+    assert controller.count("_=ShowAllWorldLayersAsync();") >= 3
