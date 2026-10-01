@@ -25,7 +25,7 @@ test('Game info credits directly used software contributors after legal links',(
     'Microsoft .NET','Blazor WebAssembly','Python','JavaScript',
     'Node.js','npm','Discord','Git'
   ]) assert.ok(info.includes(label),'missing software contributor: '+label);
-  assert.match(info,/cdn\.simpleicons\.org\/openai/);
-  assert.match(info,/cdn\.simpleicons\.org\/amazonwebservices/);
+  assert.match(info,/assets\/software\/openai-chatgpt\.svg/);
+  assert.match(info,/assets\/software\/aws\.svg/);
   assert.match(info,/trademarks and logos remain the property of their respective owners/);
 });

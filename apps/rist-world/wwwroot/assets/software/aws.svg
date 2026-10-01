@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 96" role="img" aria-labelledby="title">
+<title>Amazon Web Services</title>
+<rect width="128" height="96" rx="18" fill="#fff"/>
+<text x="64" y="51" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="40" font-weight="700" fill="#232f3e">aws</text>
+<path d="M34 64c18 13 43 16 67 4" fill="none" stroke="#ff9900" stroke-width="5" stroke-linecap="round"/>
+<path d="M91 63l12 5-9 9" fill="none" stroke="#ff9900" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
