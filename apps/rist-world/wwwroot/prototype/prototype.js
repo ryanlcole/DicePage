@@ -13,10 +13,12 @@ const DEED_ID=String(QUERY.get('deedId')||'');
 const DEED_NAME=String(QUERY.get('deedName')||'');
 const DEED_REGION_ID=String(QUERY.get('deedRegionId')||'');
 const DEED_ZONE_ID=String(QUERY.get('deedZone')||'').trim().toLowerCase();
-const WORLD_SEED=QUERY.get('seed')||(LIVE_WORLDBUILDER?'empty':'geonaph');
+const WORLD_SEED=QUERY.get('seed')||(LIVE_WORLDBUILDER?'empty':'endemar');
+const IS_ENDEMAR_SEED=WORLD_SEED==='endemar';
 const IS_GEONAPH_SEED=WORLD_SEED==='geonaph';
 const DISPLAY_WORLD_NAME=WORLD_NAME||'Shaelvien';
-const CONTINENT_NAME=IS_GEONAPH_SEED?'Jeyrusal':'';
+const CONTINENT_NAME=IS_ENDEMAR_SEED?'Jeyrusal':'';
+const TRUTH_MODE=String(QUERY.get('truthMode')||'UNSPECIFIED').toUpperCase();
 const SURFACE_POLICY=QUERY.get('surfacePolicy')||'included';
 const ACCESS_MODE=String(QUERY.get('access')||'edit').toLowerCase();
 const ENTRY_VIEW=String(QUERY.get('entryView')||'saved').toLowerCase();
@@ -25,15 +27,27 @@ const READ_ONLY=ACCESS_MODE==='view';
 const MAP_AUTHORITY_SCOPED=REGION_DEFINER;
 const ASSET_SCALE=REGION_DEFINER?'REGION':'WORLD';
 const SURFACE_WORLD_PIXELS=Math.max(2048,Math.min(32768,Math.trunc(Number(QUERY.get('surfacePixels'))||2048)));
+const LAYERS_PER_TIER=10;
+const MAX_HEIGHT=Math.max(LAYERS_PER_TIER,Math.min(1000,Math.trunc(Number(QUERY.get('maxHeight'))||LAYERS_PER_TIER)));
+const TIER_COUNT=Math.max(1,Math.ceil(MAX_HEIGHT/LAYERS_PER_TIER));
 const MIN_VIEW_SCALE=1e-6;
 const ASSET_ROOT='https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/';
 const DEFAULT_SEA_LEVEL_REFERENCE='https://d2d6rnm6fnsp89.cloudfront.net/tilesets/world/terrain/ocean/ocean-067/tile-03-03.jpg';
-const TIERS=Object.freeze([
-  Object.freeze({key:'sea',label:'Sea Level',index:0,glyph:'≈'}),
-  Object.freeze({key:'hills',label:'Hills / Low Clouds',index:1,glyph:'⌁'}),
-  Object.freeze({key:'mountains',label:'Mountains / Weather',index:2,glyph:'▲'})
+const TIER_PRESETS=Object.freeze([
+  Object.freeze({key:'sea',label:'Sea Level',glyph:'≈'}),
+  Object.freeze({key:'hills',label:'Hills / Low Clouds',glyph:'⌁'}),
+  Object.freeze({key:'mountains',label:'Mountains / Weather',glyph:'▲'})
 ]);
-const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED?[
+const TIERS=Object.freeze(Array.from({length:TIER_COUNT},(_,index)=>{
+  const preset=TIER_PRESETS[index];
+  return Object.freeze({
+    key:preset?.key||`tier-${index}`,
+    label:preset?.label||`Tier ${index}`,
+    index,
+    glyph:preset?.glyph||'◇'
+  });
+}));
+const BASE_WORLD_ASSETS=Object.freeze(IS_ENDEMAR_SEED?[
   Object.freeze({key:'surface',tier:0,file:'geonaph_full_static_canonical_surface_v001.png',upscaleFile:'./upscale/geonaph_full_static_canonical_surface_v001_2x.png'}),
   Object.freeze({key:'highlands',tier:1,file:'geonaph_full_static_highlands_rivers_v001.png',upscaleFile:'./upscale/geonaph_full_static_highlands_rivers_v001_2x.png'}),
   Object.freeze({key:'mountains',tier:2,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',upscaleFile:'./upscale/geonaph_full_static_mountain_volcanic_archipelago_v001_2x.png'})
@@ -42,7 +56,7 @@ const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
 const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1.'+(WORLD_ID||'prototype');
 const UPSCALE_KEY='rist.worldbuilder.upscale.v1.'+(WORLD_ID||WORLD_SEED||'prototype');
 const tierNames=(()=>{try{return JSON.parse(localStorage.getItem(TIER_NAMES_KEY)||'{}')||{}}catch{return{}}})();
-let upscaleEnabled=(()=>{try{const saved=localStorage.getItem(UPSCALE_KEY);return saved===null?IS_GEONAPH_SEED:saved==='on'}catch{return IS_GEONAPH_SEED}})();
+let upscaleEnabled=(()=>{try{const saved=localStorage.getItem(UPSCALE_KEY);return saved===null?IS_ENDEMAR_SEED:saved==='on'}catch{return IS_ENDEMAR_SEED}})();
 const upscaleCache=new Map();
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
@@ -3682,7 +3696,7 @@ window.ShaelvienPrototype=Object.freeze({
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
   getViewerState:()=>({
-    workspaceMode:WORKSPACE_MODE,assetScale:ASSET_SCALE,mapAuthorityScoped:MAP_AUTHORITY_SCOPED,
+    workspaceMode:WORKSPACE_MODE,assetScale:ASSET_SCALE,mapAuthorityScoped:MAP_AUTHORITY_SCOPED,worldSeed:WORLD_SEED,truthMode:TRUTH_MODE,maxHeight:MAX_HEIGHT,tierCount:TIER_COUNT,layersPerTier:LAYERS_PER_TIER,
     viewerTier,viewerLayer,spatialScope:currentSpatialScope(),authoringScope:externalSpatialScope,
     layerCount:BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length,
     userLayers:userLayers.map(item=>({id:item.id,kind:item.kind||'image',text:item.kind==='label'?item.text:undefined,tier:item.tier,layer:item.layer,x:item.x,y:item.y,size:item.size,rotation:item.rotation,opacity:item.opacity,transparent:item.transparent,committed:!!item.committed,zoomPassed:!!item.zoomPassed})),
