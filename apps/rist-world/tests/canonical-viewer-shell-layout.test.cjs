@@ -428,7 +428,8 @@ test('selected deed region identity is captured and Endemar uses trusted platfor
   assert.match(razor,/SelectedDeedRegionId[\s\S]{0,180}?_selectedDeedRegionId/);
   assert.doesNotMatch(razor,/SelectedDeedRegionId[\s\S]{0,260}?Session\.MmoParcels\.FirstOrDefault/);
   assert.match(razor,/var platformOwner=Session\.TrustedPlatformOwner/);
-  assert.match(razor,/if\(platformOwner\)[\s\S]{0,600}?SHAELVIEN_ORIGIN/);
+  assert.match(razor,/var endemarOwner=platformOwner\|\|Session\.OwnsCanonicalGeonaphZone/);
+  assert.match(razor,/if\(endemarOwner\)[\s\S]{0,600}?SHAELVIEN_ORIGIN/);
   assert.match(razor,/await Session\.RefreshTrustedWorldAuthorityAsync\(\);[\s\S]{0,160}?await Session\.RefreshMmoLandAsync\(\)/);
 });
 
