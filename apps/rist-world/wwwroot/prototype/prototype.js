@@ -326,7 +326,15 @@ function publishWorldBuilderSelectionContext(item=selectedImage){
   postWorldBuilderHostMessage('selection-context',{selection:worldBuilderSelectionContext(item)});
 }
 function worldBuilderTierImages(){
-  return BASE_WORLD_ASSETS.map(asset=>ASSET_ROOT+asset.file);
+  // Canonical deed/zone artwork is region-scoped. Never persist fallback planes
+  // into the shared WORLDSOURCE tierImages array, where Endemar could inherit them.
+  return [];
+}
+function worldBuilderSourceLayersForCurrentDeed(layers){
+  const list=Array.isArray(layers)?layers:[];
+  if(DEED_REGION_ID)return list.filter(item=>String(item?.regionId||'').trim()===DEED_REGION_ID);
+  if(IS_ENDEMAR_SEED)return list.filter(item=>!String(item?.regionId||'').trim());
+  return list;
 }
 function worldBuilderSourceState(layers=userLayers){
   return{
@@ -1609,7 +1617,10 @@ function applyParallax(){
     const lineage=String(externalSpatialPath||'').split('/').filter(Boolean);
     const nodeId=String(item.spatialNodeId||'');
     const nodeVisible=!nodeId||lineage.includes(nodeId)||nodeId===String(externalSpatialNodeId||'');
-    const deedVisible=!DEED_REGION_ID||item.deedZoneLayer||String(item.regionId||'')===DEED_REGION_ID;
+    const itemRegionId=String(item.regionId||'').trim();
+    const deedVisible=DEED_REGION_ID
+      ? (item.deedZoneLayer||itemRegionId===DEED_REGION_ID)
+      : (IS_ENDEMAR_SEED?!itemRegionId:true);
     const zoneLayerVisible=!item.deedZoneLayer||item.layer<=viewerLayer;
     const scopeVisible=(itemScope===spatialScope&&nodeVisible)
       ||(itemScope==='WORLD'&&spatialScope!=='WORLD')
@@ -1945,8 +1956,11 @@ async function applyCanonicalWorldBuilderSnapshot(state,options={}){
   const stateWorldId=String(state.worldId||'');
   if(stateWorldId&&stateWorldId!==String(WORLD_ID||''))return{loaded:false,sourceLayers:[],tierImages:[],hydration:Promise.resolve(0)};
 
-  const sourceLayers=Array.isArray(state.userLayers)?state.userLayers:[];
-  const tierImages=Array.isArray(state.tierImages)?state.tierImages.map(String).filter(Boolean):[];
+  const allSourceLayers=Array.isArray(state.userLayers)?state.userLayers:[];
+  const sourceLayers=regionMode?allSourceLayers:worldBuilderSourceLayersForCurrentDeed(allSourceLayers);
+  const tierImages=regionMode
+    ? (Array.isArray(state.tierImages)?state.tierImages.map(String).filter(Boolean):[])
+    : [];
   const sourcePixelWidth=Math.max(1,Math.trunc(regionSourceNumber(state.sourcePixelWidth,SURFACE_WORLD_PIXELS)));
   const sourcePixelHeight=Math.max(1,Math.trunc(regionSourceNumber(state.sourcePixelHeight,SURFACE_WORLD_PIXELS)));
   if(sourcePixelWidth>1&&sourcePixelHeight>1){
