@@ -48,9 +48,9 @@ const TIERS=Object.freeze(Array.from({length:TIER_COUNT},(_,index)=>{
   });
 }));
 const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED?[
-  Object.freeze({key:'surface',tier:0,file:'geonaph_full_static_canonical_surface_v001.png',upscaleFile:'./upscale/geonaph_full_static_canonical_surface_v001_2x.png'}),
-  Object.freeze({key:'highlands',tier:1,file:'geonaph_full_static_highlands_rivers_v001.png',upscaleFile:'./upscale/geonaph_full_static_highlands_rivers_v001_2x.png'}),
-  Object.freeze({key:'mountains',tier:2,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',upscaleFile:'./upscale/geonaph_full_static_mountain_volcanic_archipelago_v001_2x.png'})
+  Object.freeze({key:'surface',tier:0,layer:1,file:'geonaph_full_static_canonical_surface_v001.png',upscaleFile:'./upscale/geonaph_full_static_canonical_surface_v001_2x.png'}),
+  Object.freeze({key:'highlands',tier:1,layer:1,file:'geonaph_full_static_highlands_rivers_v001.png',upscaleFile:'./upscale/geonaph_full_static_highlands_rivers_v001_2x.png'}),
+  Object.freeze({key:'mountains',tier:2,layer:1,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',upscaleFile:'./upscale/geonaph_full_static_mountain_volcanic_archipelago_v001_2x.png'})
 ]:[]);
 const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
 const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1.'+(WORLD_ID||'prototype');
@@ -1072,9 +1072,12 @@ function tierStackBase(tier){return 100+(clamp(Math.trunc(Number(tier)||0),0,TIE
 function updateLayerOrder(){
   // Tier is the committed parallax/depth boundary. Unsaved placements float above
   // the stack only while the user is positioning them; Save drops them into truth.
-  surface.style.zIndex=String(tierStackBase(0));
-  highlands.style.zIndex=String(tierStackBase(1));
-  mountains.style.zIndex=String(tierStackBase(2));
+  for(const asset of BASE_WORLD_ASSETS){
+    const node=planeByKey[asset.key];if(!node)continue;
+    node.style.zIndex=String(tierStackBase(asset.tier)+1+clamp(Math.trunc(Number(asset.layer)||0),0,9));
+    node.dataset.tier=String(asset.tier);
+    node.dataset.layer=String(asset.layer);
+  }
   userLayers.forEach((item,index)=>{
     item.stackOrder=index;
     const committedZ=tierStackBase(item.tier)+1+clamp(Math.trunc(Number(item.layer)||0),0,9)+(index/100);
@@ -1577,11 +1580,14 @@ function applyParallax(){
   stage.dataset.spatialScope=spatialScope.toLowerCase();
   const dx=x-fitX,dy=y-fitY,mix=tierMix(),worldMap=customWorldMap();
   if(REGION_DEFINER)updateRegionWorldSourceVisibility();
-  const builtins=[
-    {node:surface,key:'surface',tier:0,layer:0,sceneZ:0,alpha:worldMap?0:mix.surface},
-    {node:highlands,key:'highlands',tier:1,layer:0,sceneZ:4,alpha:mix.highlands},
-    {node:mountains,key:'mountains',tier:2,layer:0,sceneZ:7,alpha:mix.mountains}
-  ];
+  const builtins=BASE_WORLD_ASSETS.map(asset=>({
+    node:planeByKey[asset.key],
+    key:asset.key,
+    tier:asset.tier,
+    layer:asset.layer,
+    sceneZ:(asset.tier*LAYERS_PER_TIER)+asset.layer,
+    alpha:asset.key==='surface'?(worldMap?0:mix.surface):asset.key==='highlands'?mix.highlands:mix.mountains
+  }));
   for(const entry of builtins){
     const sourceVisible=!REGION_DEFINER||(entry.tier<=currentRegionTierIndex()&&regionSourceLayerVisible(entry.tier,entry.layer));
     const worldVisible=!DEED_REGION_ID&&(spatialScope==='WORLD'||(spatialScope==='REGION'&&!regionEnhanceActive));
