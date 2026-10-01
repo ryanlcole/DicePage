@@ -1,0 +1,73 @@
+name: Geonaph Tier Asset Audit
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'apps/rist-world/wwwroot/prototype/prototype.js'
+      - 'apps/rist-world/wwwroot/prototype/prototype.css'
+      - '.github/workflows/geonaph-tier-asset-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install image inspector
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+      - name: Inspect canonical Geonaph tier PNGs
+        shell: bash
+        env:
+          ROOT: https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/geonaph-tier-audit
+          curl --fail --location --retry 8 --retry-delay 3 --output /tmp/geonaph-tier-audit/surface.png "$ROOT/geonaph_full_static_canonical_surface_v001.png"
+          curl --fail --location --retry 8 --retry-delay 3 --output /tmp/geonaph-tier-audit/highlands.png "$ROOT/geonaph_full_static_highlands_rivers_v001.png"
+          curl --fail --location --retry 8 --retry-delay 3 --output /tmp/geonaph-tier-audit/mountains.png "$ROOT/geonaph_full_static_mountain_volcanic_archipelago_v001.png"
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import json
+
+          root = Path('/tmp/geonaph-tier-audit')
+          report = {}
+          sizes = set()
+          for key in ('surface', 'highlands', 'mountains'):
+              path = root / f'{key}.png'
+              with Image.open(path) as im:
+                  rgba = im.convert('RGBA')
+                  alpha = rgba.getchannel('A')
+                  lo, hi = alpha.getextrema()
+                  histogram = alpha.histogram()
+                  pixels = rgba.width * rgba.height
+                  transparent = sum(histogram[:255])
+                  fully_transparent = histogram[0]
+                  report[key] = {
+                      'width': rgba.width,
+                      'height': rgba.height,
+                      'mode': im.mode,
+                      'alpha_min': lo,
+                      'alpha_max': hi,
+                      'transparent_pixels': transparent,
+                      'fully_transparent_pixels': fully_transparent,
+                      'transparent_fraction': round(transparent / pixels, 6),
+                  }
+                  sizes.add((rgba.width, rgba.height))
+
+          print(json.dumps(report, indent=2, sort_keys=True))
+          if len(sizes) != 1:
+              print('::warning::Geonaph canonical tier images do not share one pixel frame.')
+          if next(iter(sizes))[0] != next(iter(sizes))[1]:
+              print('::warning::Geonaph canonical tier frame is not square.')
+          for key in ('highlands', 'mountains'):
+              if report[key]['transparent_pixels'] == 0:
+                  print(f'::warning::{key} has no transparent pixels; it cannot reveal the tier below.')
+          PY
