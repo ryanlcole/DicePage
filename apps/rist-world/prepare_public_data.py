@@ -300,7 +300,7 @@ geonaph_upscales = build_geonaph_upscale_representations()
 
 
 def build_geonaph_perceiver_representations():
-    """Build transparent tier representations for Perceiver without changing canonical world art."""
+    """Build aligned transparent Geonaph tier representations without changing canonical world art."""
     if os.environ.get('GITHUB_ACTIONS', '').lower() != 'true':
         return []
 
@@ -318,9 +318,9 @@ def build_geonaph_perceiver_representations():
         'geonaph_full_static_mountain_volcanic_archipelago_v001.png',
     )
     output_names = (
-        'endemar_tier_1_perceiver_v001.png',
-        'endemar_tier_2_perceiver_v001.png',
-        'endemar_tier_3_perceiver_v001.png',
+        'geonaph_tier_0_worldbuilder_v002.png',
+        'geonaph_tier_1_worldbuilder_v002.png',
+        'geonaph_tier_2_worldbuilder_v002.png',
     )
     output_root = web / 'assets' / 'perceiver'
     if output_root.exists():
@@ -451,7 +451,7 @@ def build_geonaph_perceiver_representations():
         digest = hashlib.sha256(output_path.read_bytes()).hexdigest()
 
         manifest.append({
-            'tier': index + 1,
+            'tier': index,
             'source': source_urls[index],
             'derived': f'assets/perceiver/{output_name}',
             'width': layer.width,
@@ -462,7 +462,7 @@ def build_geonaph_perceiver_representations():
             'sha256': digest,
         })
         print(
-            f'perceiver-alpha tier={index + 1} method={method} '
+            f'worldbuilder-alpha tier={index} method={method} '
             f'transparent={transparent_ratio:.1%} '
             f'{layer.width}x{layer.height}'
         )
