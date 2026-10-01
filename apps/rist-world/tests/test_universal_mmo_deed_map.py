@@ -61,6 +61,29 @@ def test_universal_mmo_map_has_requested_deed_actions_and_left_rail():
     assert '"right-slider"' in input_js
 
 
+def test_endemar_inherits_canonical_geanaph_owner_authority():
+    interface = text("apps/rist-world/Components/UniversalInterface.razor")
+    mmo = text("apps/rist-world/Components/UniversalInterface.MmoMap.cs")
+    session = text("apps/rist-world/WorldSession.MmoLand.cs")
+    source = text("apps/rist-world/WorldSession.WorldBuilderSource.cs")
+
+    # Canonical Geanaph is the persisted account bridge for Endemar.
+    assert "public bool OwnsCanonicalGeanaphZone" in session
+    assert "proving the same authenticated owner may edit Endemar" in session
+
+    # The deed map, owned-zone rail, and world selector must all honor that bridge.
+    assert "|| Session.OwnsCanonicalGeanaphZone" in mmo
+    assert "var endemarOwner=platformOwner||Session.OwnsCanonicalGeanaphZone;" in interface
+    assert "if(endemarOwner)" in interface
+
+    # Opening Endemar through the controller must pass edit mode to the embedded
+    # World Builder, and the authoritative save path must accept the same proof.
+    assert 'string.Equals(_selectedDeedKind,"SHAELVIEN_ORIGIN",StringComparison.OrdinalIgnoreCase)' in interface
+    assert "&&Session.OwnsCanonicalGeanaphZone" in interface
+    assert "&&(IsGeonaphWorld && OwnsCanonicalGeanaphZone)" not in source
+    assert "&& !(IsGeonaphWorld && OwnsCanonicalGeanaphZone)" in source
+
+
 def test_private_names_and_deed_requests_remain_server_authoritative():
     backend = text("infra/aws/rist-platform-authority/app.py")
     template = text("infra/aws/rist-platform.yml")
