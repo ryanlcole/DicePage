@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install image inspector
-        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.3.3
       - name: Inspect canonical Geonaph tier PNGs
         shell: bash
         env:
@@ -70,4 +70,22 @@ jobs:
           for key in ('highlands', 'mountains'):
               if report[key]['transparent_pixels'] == 0:
                   print(f'::warning::{key} has no transparent pixels; it cannot reveal the tier below.')
+
+          # Diagnose whether an opaque upper tier can safely be converted into a
+          # delta overlay against the composited lower stack.
+          import numpy as np
+          surface = np.asarray(Image.open(root / 'surface.png').convert('RGBA'), dtype=np.int16)
+          highlands = np.asarray(Image.open(root / 'highlands.png').convert('RGBA'), dtype=np.int16)
+          mountains = np.asarray(Image.open(root / 'mountains.png').convert('RGBA'), dtype=np.int16)
+
+          base = surface.copy()
+          ha = highlands[..., 3:4] / 255.0
+          base[..., :3] = np.rint(highlands[..., :3] * ha + base[..., :3] * (1.0 - ha)).astype(np.int16)
+          base[..., 3] = 255
+
+          delta = np.abs(mountains[..., :3] - base[..., :3]).max(axis=2)
+          flat = delta.reshape(-1)
+          quantiles = {str(q): float(np.quantile(flat, q)) for q in (0.25, 0.5, 0.75, 0.9, 0.95, 0.99)}
+          thresholds = {str(t): round(float((flat <= t).mean()), 6) for t in (2, 4, 8, 12, 16, 24, 32, 48, 64)}
+          print(json.dumps({'mountain_vs_lower_delta_quantiles': quantiles, 'candidate_transparent_fraction': thresholds}, indent=2, sort_keys=True))
           PY
