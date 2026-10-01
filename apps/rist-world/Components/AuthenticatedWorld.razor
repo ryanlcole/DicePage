@@ -170,7 +170,8 @@ else
  @@keyframes rist-auth-start-pulse{50%{opacity:.42}}
  @@media(prefers-reduced-motion:reduce){.rist-auth-press-start{animation:none}.rist-auth-start-art{transform:none}}
  .rist-authenticated-body{position:relative;flex:1 1 auto;min-width:0;min-height:0;overflow:hidden}
- .rist-authenticated-body .launcher-hub{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important}
+ .rist-authenticated-body:has(.launcher-hub){overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior-y:auto!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important}
+ .rist-authenticated-body .launcher-hub{position:relative!important;inset:auto!important;width:100%!important;height:auto!important;min-height:100%!important;overflow:visible!important;overscroll-behavior-y:auto!important;touch-action:pan-y!important}
  .rist-authenticated-body .alpha-world-stage{height:100%!important;min-height:0!important}
  .rist-world-choice-root{position:fixed;inset:0;min-height:100dvh;background:radial-gradient(circle at 50% 18%,#102633 0,#071118 42%,#020609 100%);color:#e7edf0;font-family:system-ui,-apple-system,sans-serif}
  .rist-world-choice-underlay{position:absolute;inset:0;display:grid;place-content:center;text-align:center;opacity:.42}
