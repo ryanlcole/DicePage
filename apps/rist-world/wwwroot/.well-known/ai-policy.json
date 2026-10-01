@@ -15,5 +15,20 @@
   "resourceYieldRequiredWhenDirected": true,
   "systemClaimsMustBeProvable": true,
   "playerCreationsProtected": true,
-  "governmentIdentityGrantsPrivilegedAccess": false
+  "governmentIdentityGrantsPrivilegedAccess": false,
+  "simulationBoundary": {
+    "simulatedCauseIsExternalCause": false,
+    "inWorldActionGrantsExternalAuthority": false,
+    "characterActionIsHumanAction": false
+  },
+  "physicalEmbodiment": {
+    "roboticEmbodimentAllowed": false,
+    "physicalActuationAllowed": false,
+    "indirectActuationAllowed": false,
+    "permittedExternalOutputs": [
+      "audio",
+      "video"
+    ],
+    "audioVideoOutputGrantsExternalAuthority": false
+  }
 }
