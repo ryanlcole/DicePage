@@ -84,7 +84,7 @@ def test_whole_map_assets_keep_one_deed_frame_across_tiers():
     controller = text("Components/UniversalInterface.razor")
 
     assert "function looksLikeWholeMapAsset(raw)" in prototype
-    assert "raw?.fullFrame===true||looksLikeWholeMapAsset(raw)" in prototype
+    assert "raw?.fullFrame===true||looksLikeWholeMapAsset(raw)" not in prototype
     assert "if(raw?.mmoSurface===true&&raw?.frameLock===true)return'deed-frame';" in prototype
     assert "const fullDeedFrame=geonaphSeaLevelMap;" in prototype
     assert "placementRole:fullDeedFrame?'deed-frame':'layer'" in prototype
