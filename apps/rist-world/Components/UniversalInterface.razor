@@ -1873,10 +1873,6 @@
     _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
     _message="Returned to the GameMaster Suite. Choose World Builder, Region Definer, Local, or Instance.";
     break;
-   case Stage.WorldHome:
-    _stage=Stage.WorldBuilderTier;
-    _message="Choose a Tier. Slide Y, then touch the left display to select it.";
-    break;
    case Stage.WorldBuilderTier:
     _stage=Stage.WorldBuilderLayer;
     await SyncWorldBuilderDepthAsync();
