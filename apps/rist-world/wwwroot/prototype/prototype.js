@@ -47,7 +47,7 @@ const TIERS=Object.freeze(Array.from({length:TIER_COUNT},(_,index)=>{
     glyph:preset?.glyph||'◇'
   });
 }));
-const BASE_WORLD_ASSETS=Object.freeze(IS_ENDEMAR_SEED?[
+const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED?[
   Object.freeze({key:'surface',tier:0,file:'geonaph_full_static_canonical_surface_v001.png',upscaleFile:'./upscale/geonaph_full_static_canonical_surface_v001_2x.png'}),
   Object.freeze({key:'highlands',tier:1,file:'geonaph_full_static_highlands_rivers_v001.png',upscaleFile:'./upscale/geonaph_full_static_highlands_rivers_v001_2x.png'}),
   Object.freeze({key:'mountains',tier:2,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',upscaleFile:'./upscale/geonaph_full_static_mountain_volcanic_archipelago_v001_2x.png'})
@@ -56,7 +56,7 @@ const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
 const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1.'+(WORLD_ID||'prototype');
 const UPSCALE_KEY='rist.worldbuilder.upscale.v1.'+(WORLD_ID||WORLD_SEED||'prototype');
 const tierNames=(()=>{try{return JSON.parse(localStorage.getItem(TIER_NAMES_KEY)||'{}')||{}}catch{return{}}})();
-let upscaleEnabled=(()=>{try{const saved=localStorage.getItem(UPSCALE_KEY);return saved===null?IS_ENDEMAR_SEED:saved==='on'}catch{return IS_ENDEMAR_SEED}})();
+let upscaleEnabled=(()=>{try{const saved=localStorage.getItem(UPSCALE_KEY);return saved===null?IS_GEONAPH_SEED:saved==='on'}catch{return IS_GEONAPH_SEED}})();
 const upscaleCache=new Map();
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
@@ -1046,7 +1046,7 @@ async function applyUpscalePreference(){
     const node=planeByKey[asset.key];node.dataset.derivedUpscale=result.derived?'1':'0';node.dataset.renderFactor=String(result.factor);if(node.src!==result.url)node.src=result.url;
   }
   stage.dataset.upscale=results.some(x=>x.derived)?'2x-derived':'browser-interpolation';
-  announce(results.some(x=>x.derived)?'High resolution Endemar representation active. Original world images remain canonical.':'Upscale enabled. Browser high-quality interpolation is active; canonical images are unchanged.');
+  announce(results.some(x=>x.derived)?'High resolution Geonaph representation active. Original world images remain canonical.':'Upscale enabled. Browser high-quality interpolation is active; canonical images are unchanged.');
 }
 async function toggleUpscale(){
   upscaleEnabled=!upscaleEnabled;try{localStorage.setItem(UPSCALE_KEY,upscaleEnabled?'on':'off')}catch{}
