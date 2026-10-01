@@ -159,6 +159,8 @@ const REGION_ENHANCE_DELAY=140;
 const REGION_ENHANCE_MAX_DPR=2;
 const MAX_VIEW_ZOOM_RATIO=256;
 const IMAGE_RETURN_COVERAGE=.9;
+const FULL_FRAME_PASS_COVERAGE=1.35;
+const FULL_FRAME_RETURN_COVERAGE=1.04;
 const regionSourceCache=new Map();
 let regionEnhanceCanvas=null,regionEnhanceTimer=0,regionEnhanceToken=0,regionEnhanceActive=false,regionEnhanceRendering=false,regionCameraRevision=0;
 const collisionMasks=new Map();
@@ -211,6 +213,8 @@ function builtinCollision(node,key,clientX,clientY){
 }
 function userImageBaseSize(item){
   const node=item?.node;
+  if(isWorldMapItem(item)||isFullDeedFrameItem(item))
+    return{width:Math.max(naturalWidth,1),height:Math.max(naturalHeight,1)};
   const baseW=naturalWidth*.12;
   const aspect=(node?.naturalWidth>0&&node?.naturalHeight>0)?node.naturalHeight/node.naturalWidth:1;
   return{width:baseW*Math.max(Number(item?.size)||1,.00001),height:(baseW*aspect)*Math.max(Number(item?.size)||1,.00001)};
@@ -232,17 +236,39 @@ function restorePassedImages(targetScale){
   let restored=false;
   for(const item of userLayers){
     if(!item?.zoomPassed)continue;
-    if(userImageCoverageAtScale(item,targetScale)>IMAGE_RETURN_COVERAGE)continue;
+    const returnCoverage=isFullDeedFrameItem(item)?FULL_FRAME_RETURN_COVERAGE:IMAGE_RETURN_COVERAGE;
+    if(userImageCoverageAtScale(item,targetScale)>returnCoverage)continue;
     item.zoomPassed=false;item.zoomPassScale=null;item.node?.removeAttribute('data-zoom-passed');restored=true;
   }
   if(restored)stage.dataset.zoomPassedImage='';
   return restored;
 }
+function restorePassedFullFrames(tier=null){
+  let restored=false;
+  for(const item of userLayers){
+    if(!isFullDeedFrameItem(item)||!item.zoomPassed)continue;
+    if(Number.isInteger(tier)&&item.tier!==tier)continue;
+    item.zoomPassed=false;item.zoomPassScale=null;item.node?.removeAttribute('data-zoom-passed');restored=true;
+  }
+  if(restored){stage.dataset.zoomPassedImage='';applyParallax()}
+  return restored;
+}
+function topPassableFullDeedFrame(){
+  if(REGION_DEFINER||viewerTier!=='all')return null;
+  return userLayers
+    .filter(item=>isFullDeedFrameItem(item)&&item.committed&&!item.zoomPassed&&(Number(item.renderOpacity)||0)>0)
+    .sort((a,b)=>sceneDepthForItem(b)-sceneDepthForItem(a))[0]||null;
+}
 function prepareZoomCollision(clientX,clientY,oldScale,nextScale,existing=null){
-  // A placed image remains part of the current representation at every camera
-  // zoom. Filling the viewport is not a semantic boundary and must not make the
-  // image disappear. Scale/layer transitions are explicit viewer operations.
   const restored=nextScale<oldScale?restorePassedImages(nextScale):false;
+  if(nextScale>oldScale&&viewerTier==='all'&&!REGION_DEFINER){
+    const top=topPassableFullDeedFrame();
+    if(top&&userImageCoverageAtScale(top,nextScale)>=FULL_FRAME_PASS_COVERAGE){
+      passUserImage(top);
+      applyParallax();
+      return collisionAt(clientX,clientY);
+    }
+  }
   return restored?collisionAt(clientX,clientY):(existing??collisionAt(clientX,clientY));
 }
 function userCollision(item,clientX,clientY){
@@ -1113,6 +1139,7 @@ function setViewerTier(key){
   const previous=viewerTier;
   viewerTier=REGION_DEFINER?(key==='all'?'sea':tierByKey(key).key):(key==='all'?'all':tierByKey(key).key);
   viewerLayer=0;
+  if(viewerTier!=='all')restorePassedFullFrames(tierByKey(viewerTier).index);
   if(REGION_DEFINER&&previous!==viewerTier){clearRegionSelection(false);deselectUserImage(false)}
   updateTierButton();renderTierMenu();applyTransform();scheduleRegionEnhancement(40);renderKeyboardKeys();
   announce(viewerTier==='all'?'All Parallax selected. Zoom blends through all world tiers.':`${tierLabel(tierByKey(viewerTier))} selected${REGION_DEFINER?' for regional definition.':''}`);
@@ -1154,12 +1181,16 @@ function moveSelectedLayer(delta){
 }
 function isWorldMapItem(item){return item?.placementRole==='world-map'||item?.fullWorld===true}
 function isFullDeedFrameItem(item){return item?.placementRole==='deed-frame'||item?.fullDeedFrame===true}
-// World Builder presentation only: authored full-deed-frame layers keep their
-// canonical tier/layer identity, while displayZ gives All Parallax a visible
-// resting spread even before the user pans or tilts the device.
+function sceneDepthForItem(item){
+  return (clamp(Math.trunc(Number(item?.tier)||0),0,TIERS.length-1)*LAYERS_PER_TIER)
+    +clamp(Math.trunc(Number(item?.layer)||0),0,LAYERS_PER_TIER-1);
+}
+// Full-deed-frame maps use the same semantic tier/layer depth as ordinary map
+// content. The extra resting offset simply makes every tier readable in All
+// Parallax before the camera moves; it never changes the saved Z identity.
 function allParallaxRestOffset(item){
   if(REGION_DEFINER||viewerTier!=='all'||!isFullDeedFrameItem(item))return{x:0,y:0};
-  const z=clamp(Number(item?.displayZ)||0,-60,60);
+  const z=sceneDepthForItem(item);
   return{x:z*.24,y:-z*.34};
 }
 function storedPlacementRole(raw){
@@ -1633,7 +1664,7 @@ function applyParallax(){
     }
     // Presentation parallax uses the full scene address. Semantic tier/layer
     // identity remains unchanged in the saved world source.
-    const sceneDepth=(item.tier*10)+item.layer;
+    const sceneDepth=sceneDepthForItem(item);
     const depth=sceneDepth/10;
     const panStrength=depth*.022,tiltStrength=depth*.48;
     const rest=allParallaxRestOffset(item);
@@ -3651,6 +3682,7 @@ function showAllParallax(){
   if(REGION_DEFINER)return false;
   viewerTier='all';
   viewerLayer=9;
+  restorePassedFullFrames();
   stage.dataset.entryView='all-parallax';
   updateTierButton();renderTierMenu();fitMap();applyTransform();renderKeyboardKeys();
   announce('All world layers shown in parallax. Choose a Tier when you are ready to isolate editing depth.');
@@ -3664,6 +3696,7 @@ function setExternalDepth(raw={}){
   const tier=clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(tier).key;
   viewerLayer=Math.max(0,Math.trunc(Number(raw.layer)||0));
+  restorePassedFullFrames(tier);
   updateTierButton();renderTierMenu();applyTransform();renderKeyboardKeys();
 }
 async function placeExternalAsset(raw={}){
@@ -3673,8 +3706,23 @@ async function placeExternalAsset(raw={}){
   const before=editableLayerSnapshot();
   const scope=normalizeSpatialScope(raw.scope||externalSpatialScope);
   externalSpatialScope=scope;
+  const tier=clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1);
+  const layer=clamp(Math.trunc(Number(raw.layer)||0),0,LAYERS_PER_TIER-1);
+  const kind=String(raw.kind||'image').toLowerCase()==='sprite'?'sprite':'image';
+  const regionId=authoringRegionId();
+  const geonaphSeaLevelMap=IS_GEONAPH_SEED&&!!DEED_REGION_ID&&scope==='WORLD'&&tier===0&&layer===0&&kind==='image';
+  if(geonaphSeaLevelMap){
+    for(let index=userLayers.length-1;index>=0;index--){
+      const existing=userLayers[index];
+      if(existing?.sourceLocked)continue;
+      if(String(existing?.regionId||'')!==String(regionId||''))continue;
+      if(existing.tier!==0||existing.layer!==0)continue;
+      if(!existing.mmoSurface&&!isFullDeedFrameItem(existing))continue;
+      stopSpriteMotion(existing);existing.node?.remove();userLayers.splice(index,1);
+    }
+  }
   const center=viewerCenterPosition(),px=Number(raw.offsetX)||0,py=Number(raw.offsetY)||0;
-  const point=snapAssetPoint(
+  const point=geonaphSeaLevelMap?{x:.5,y:.5}:snapAssetPoint(
     center.x+(px/(Math.max(scale,.00001)*Math.max(naturalWidth,1))),
     center.y+(py/(Math.max(scale,.00001)*Math.max(naturalHeight,1)))
   );
@@ -3683,23 +3731,24 @@ async function placeExternalAsset(raw={}){
     spatialNodeId:String(raw.spatialNodeId||externalSpatialNodeId||''),
     spatialPath:String(raw.spatialPath||externalSpatialPath||''),
     assetId:String(raw.assetId||raw.key||'')||null,personalAssetKey:null,
-    name:String(raw.name||'Placed asset'),kind:String(raw.kind||'image').toLowerCase()==='sprite'?'sprite':'image',
-    libraryTile:false,sourceLocked:false,regionOverlay:false,regionId:authoringRegionId(),
-    placementRole:'layer',fullWorld:false,originalSrc:src,transparentSrc:src,transparent:true,
-    x:point.x,y:point.y,tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
-    layer:Math.max(0,Math.trunc(Number(raw.layer)||0)),size:clamp(Number(raw.scale)||1,.05,20),
-    rotation:Number(raw.rotation)||0,opacity:1,committed:false,renderOpacity:1,
+    name:String(raw.name||'Placed asset'),kind,
+    libraryTile:false,sourceLocked:false,regionOverlay:false,regionId,
+    placementRole:geonaphSeaLevelMap?'deed-frame':'layer',fullWorld:false,fullDeedFrame:geonaphSeaLevelMap,
+    mmoSurface:geonaphSeaLevelMap,representationOnly:geonaphSeaLevelMap,semanticRole:geonaphSeaLevelMap?'sea-level-map':'',
+    frameLock:geonaphSeaLevelMap,originalSrc:src,transparentSrc:src,transparent:!geonaphSeaLevelMap,
+    x:point.x,y:point.y,tier,layer,size:geonaphSeaLevelMap?1:clamp(Number(raw.scale)||1,.05,20),
+    rotation:geonaphSeaLevelMap?0:(Number(raw.rotation)||0),opacity:1,committed:false,renderOpacity:1,
     zoomPassed:false,zoomPassScale:null,node:null
   };
-  const node=document.createElement('img');node.className='user-image-placement';node.alt=item.name;node.draggable=false;item.node=node;
+  const node=document.createElement('img');node.className=`user-image-placement${geonaphSeaLevelMap?' full-deed-frame-placement':''}`;node.alt=item.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   userLayers.push(item);world.appendChild(node);world.dataset.emptyWorld='false';void primeCollisionMask(src);
   updateLayerOrder();refreshUserImage(item);selectUserImage(item);applyParallax();
-  const saved=await saveWorldBuilder();
-  if(saved)return true;
-  stopSpriteMotion(item);node.remove();
-  const index=userLayers.indexOf(item);if(index>=0)userLayers.splice(index,1);
-  selectedImage=null;publishWorldBuilderSelectionContext();updateLayerOrder();applyParallax();
+  const saved=await saveEditedSnapshotOrRollback(before);
+  if(saved){
+    if(geonaphSeaLevelMap)announce('Geonaph sea-level map committed at Tier 0, Layer 0. The deed map will use this flattened surface while World Builder keeps the parallax tier stack.');
+    return true;
+  }
   announce('External placement was rolled back because canonical save failed.');
   return false;
 }

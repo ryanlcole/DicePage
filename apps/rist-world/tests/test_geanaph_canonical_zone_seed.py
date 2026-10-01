@@ -27,7 +27,7 @@ def test_geanaph_is_canonical_east_of_endemar_and_platform_owned():
     assert '{"geonaph", "geanaph"}' in seed
 
 
-def test_geanaph_has_nine_locked_full_frame_visual_layers_and_separate_truth():
+def test_geanaph_has_nine_locked_full_frame_visual_tiers_and_separate_truth():
     seed = text("infra/aws/rist-platform-geanaph-seed/app.py")
 
     expected_files = [
@@ -56,11 +56,15 @@ def test_geanaph_has_nine_locked_full_frame_visual_layers_and_separate_truth():
     assert '"representationPolicy": "Representation != Semantic Truth"' in seed
     assert "len(verify_layers) != len(VISUAL_LAYERS)" in seed
 
-    assert '("cavern", "Cavern Network", "luminous_underground_cavern_network.png", 0, 1, -40, False)' in seed
-    assert '("terrain", "Terrain Surface", SURFACE_FILE, 0, 5, 0, True)' in seed
-    assert '("surface-overlay", "Surface Overlay", "luminous_fantasy_archipelago_map_overlay.png", 1, 1, 10, False)' in seed
-    assert '("celestial", "Celestial Overlay", "celestial_nebula_archipelago_map.png", 2, 1, 40, False)' in seed
-    assert "Tier 0 / Layer 0 must remain free for the sea-level map" in seed
+    assert '("cavern", "Cavern Network", "luminous_underground_cavern_network.png", 1, 0, 10, False)' in seed
+    assert '("terrain", "Terrain Surface", SURFACE_FILE, 5, 0, 50, False)' in seed
+    assert '("surface-overlay", "Surface Overlay", "luminous_fantasy_archipelago_map_overlay.png", 6, 0, 60, False)' in seed
+    assert '("celestial", "Celestial Overlay", "celestial_nebula_archipelago_map.png", 9, 0, 90, False)' in seed
+    assert "generated representations must occupy Tiers 1-9 at Layer 0" in seed
+    assert "Tier 0 / Layer 0 must remain free for the owner-authored sea-level map" in seed
+    assert 'str(item.get("assetId") or "").startswith("zone:geanaph:")' in seed
+    assert '"depthModel": "tier-parallax-v1"' in seed
+    assert '"seaLevelMapOwnerAuthored": True' in seed
     assert 'ENDEMAR_CLEAR_MARKER = "endemar-root-cleared-v1"' in seed
     assert 'source_state["tierImages"] = []' in seed
     assert '"preservedRegionScopedLayers": True' in seed
@@ -73,7 +77,7 @@ def test_geanaph_seed_uses_same_configured_owner_as_endemar_and_revision_runs():
     assert "OWNER_USER_ID: !Ref OwnerUserId" in template
     assert "ASSET_BASE_URL: !Sub '${AssetOrigin}/zones/geanaph/v1'" in template
     assert "- SunkenTundraSeed" in template
-    assert "Revision: geonaph-east-v6-free-origin" in template
+    assert "Revision: geonaph-east-v7-tier-parallax" in template
     assert "GeanaphCanonicalEastOfEndemar:" in template
     assert "GeanaphOwnerBoundToPlatformAccount:" in template
 
@@ -98,6 +102,7 @@ def test_mmo_deed_map_prefers_explicit_surface_without_rewriting_z_order():
     mmo = text("apps/rist-world/Components/UniversalInterface.MmoMap.cs")
     assert "bool MmoSurface" in mmo
     assert 'JsonBool(item, "mmoSurface", false)' in mmo
+    assert "if (tier != 0) continue;" in mmo
     assert "(layer.MmoSurface && !current.MmoSurface)" in mmo
     assert "(layer.MmoSurface == current.MmoSurface && layer.Layer > current.Layer)" in mmo
 
@@ -117,8 +122,15 @@ def test_edit_entry_starts_all_layers_in_parallax_and_deed_frame_fills_viewer():
     assert "function showAllParallax()" in prototype
     assert "viewerTier='all';" in prototype
     assert "viewerLayer=9;" in prototype
-    assert "const sceneDepth=(item.tier*10)+item.layer;" in prototype
+    assert "function sceneDepthForItem(item)" in prototype
+    assert "const sceneDepth=sceneDepthForItem(item);" in prototype
     assert "function isFullDeedFrameItem(item)" in prototype
+    assert "function topPassableFullDeedFrame()" in prototype
+    assert "passUserImage(top);" in prototype
+    assert "restorePassedFullFrames(tier);" in prototype
+    assert "const geonaphSeaLevelMap=IS_GEONAPH_SEED&&!!DEED_REGION_ID&&scope==='WORLD'&&tier===0&&layer===0&&kind==='image';" in prototype
+    assert "placementRole:geonaphSeaLevelMap?'deed-frame':'layer'" in prototype
+    assert "mmoSurface:geonaphSeaLevelMap" in prototype
     assert "fullDeedFrame:isFullDeedFrameItem(item)" in prototype
     assert "fullDeedFrame:storedPlacementRole(raw)==='deed-frame'" in prototype
     assert "mmoSurface:!!item.mmoSurface" in prototype
