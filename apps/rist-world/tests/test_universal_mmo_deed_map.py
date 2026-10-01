@@ -67,9 +67,9 @@ def test_endemar_inherits_canonical_geanaph_owner_authority():
     session = text("apps/rist-world/WorldSession.MmoLand.cs")
     source = text("apps/rist-world/WorldSession.WorldBuilderSource.cs")
 
-    # Canonical Geanaph is the persisted account bridge for Endemar.
-    assert "public bool OwnsCanonicalGeanaphZone" in session
-    assert "proving the same authenticated owner may edit Endemar" in session
+    # Canonical Geonaph ownership is the persisted account bridge for Endemar.
+    assert "public bool OwnsCanonicalGeonaphZone" in session
+    assert "IsMmoParcelOwnedByCurrentUser(GeonaphCanonicalCell)" in session
 
     # The deed map, owned-zone rail, and world selector must all honor that bridge.
     assert "|| Session.OwnsCanonicalGeanaphZone" in mmo
