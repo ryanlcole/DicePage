@@ -6,6 +6,10 @@ on:
       - live-alpha-rist-blazor-world
     paths:
       - '.github/workflows/deploy-geonaph-tier-hotfix.yml'
+      - 'apps/rist-world/wwwroot/prototype/prototype.js'
+      - 'apps/rist-world/wwwroot/prototype/prototype.css'
+      - 'apps/rist-world/tests/test_endemar_geonaph_zone_depth.py'
+      - 'apps/rist-world/tests/canonical-viewer-geonaph-history.test.cjs'
   workflow_dispatch:
 
 permissions:
