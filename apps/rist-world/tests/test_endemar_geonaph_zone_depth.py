@@ -49,9 +49,10 @@ def test_endemar_never_bootstraps_geonaph_base_art():
     assert "geonaph_full_static_canonical_surface_v001.png" in prototype
     assert "geonaph_full_static_highlands_rivers_v001.png" in prototype
     assert "geonaph_full_static_mountain_volcanic_archipelago_v001.png" in prototype
-    assert "Object.freeze({key:'surface',tier:0,layer:1" in prototype
-    assert "Object.freeze({key:'highlands',tier:1,layer:1" in prototype
-    assert "Object.freeze({key:'mountains',tier:2,layer:1" in prototype
+    assert "const TIER_TOP_LAYER=LAYERS_PER_TIER-1;" in prototype
+    assert "Object.freeze({key:'surface',tier:0,layer:TIER_TOP_LAYER" in prototype
+    assert "Object.freeze({key:'highlands',tier:1,layer:TIER_TOP_LAYER" in prototype
+    assert "Object.freeze({key:'mountains',tier:2,layer:TIER_TOP_LAYER" in prototype
     assert "function worldBuilderSourceLayersForCurrentDeed(layers,strictIdentity=false)" in prototype
     assert "if(DEED_REGION_ID)return list.filter" in prototype
     assert "if(IS_ENDEMAR_SEED)return list.filter" in prototype
@@ -78,6 +79,7 @@ def test_deed_saves_preserve_other_deeds_and_endemar_scope():
 
 def test_whole_map_assets_keep_one_deed_frame_across_tiers():
     prototype = text("wwwroot/prototype/prototype.js")
+    prototype_css = text("wwwroot/prototype/prototype.css")
     controller = text("Components/UniversalInterface.razor")
 
     assert "function looksLikeWholeMapAsset(raw)" in prototype
@@ -88,8 +90,22 @@ def test_whole_map_assets_keep_one_deed_frame_across_tiers():
     assert "rotation:geonaphSeaLevelMap?0:" in prototype
     assert "frameLock:geonaphSeaLevelMap" in prototype
     assert "scale(${size})" in prototype
+    assert "item.node.style.objectFit='fill';" in prototype
+    assert ".user-image-placement.full-deed-frame-placement" in prototype_css
+    assert "object-fit:fill!important" in prototype_css
     assert 'bool SelectedAssetUsesFullDeedFrame=>CurrentBuilderScope=="WORLD";' in controller
     assert "fullFrame=SelectedAssetUsesFullDeedFrame" in controller
+
+
+def test_geonaph_tier_top_surfaces_are_ten_layers_apart_and_cumulative():
+    prototype = text("wwwroot/prototype/prototype.js")
+
+    assert "const TIER_REST_X_PER_LAYER=4;" in prototype
+    assert "const TIER_REST_Y_PER_LAYER=8;" in prototype
+    assert "const layersFromPriorTop=tierIndex*LAYERS_PER_TIER;" in prototype
+    assert "return{surface:1,highlands:index>=1?1:0,mountains:index>=2?1:0};" in prototype
+    assert "const rest=tierRestOffset(entry.tier);" in prototype
+    assert "const rest=allParallaxRestOffset(item);" in prototype
 
 
 def test_returning_to_endemar_home_restores_fitted_parallax_overview():
