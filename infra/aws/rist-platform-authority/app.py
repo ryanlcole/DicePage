@@ -1013,6 +1013,7 @@ def validate_region_map_layer(region_state, layer):
         raise ValueError("Region map layer position is invalid")
     if x < 0 or x > 1 or y < 0 or y > 1:
         raise ValueError("Region map layer is outside the world map")
+    parcel_root = bool(str(region_state.get("parcelId") or "").strip())
     selected = {
         int(value)
         for value in (region_state.get("selectedCells") or [])
@@ -1020,10 +1021,11 @@ def validate_region_map_layer(region_state, layer):
     }
     column = min(MMO_PARCEL_GRID_COLUMNS - 1, max(0, int(x * MMO_PARCEL_GRID_COLUMNS)))
     row = min(MMO_PARCEL_GRID_ROWS - 1, max(0, int(y * MMO_PARCEL_GRID_ROWS)))
-    if selected and row * MMO_PARCEL_GRID_COLUMNS + column not in selected:
+    # Parcel-root map coordinates are local to that deed (0..1 across its own
+    # 2048x2048 surface), not normalized against the parent 30x30 deed lattice.
+    if selected and not parcel_root and row * MMO_PARCEL_GRID_COLUMNS + column not in selected:
         raise PermissionError("Region map layer is outside the authorized region")
     region_tier = int(region_state.get("tierIndex") or 0)
-    parcel_root = bool(str(region_state.get("parcelId") or "").strip())
     if parcel_root:
         max_height = max(LAYERS_PER_TIER, int(region_state.get("maxHeight") or MMO_PARCEL_MAX_HEIGHT))
         max_tier = max(0, (max_height - 1) // LAYERS_PER_TIER)
