@@ -65,7 +65,7 @@ def test_geanaph_has_nine_locked_full_frame_visual_tiers_and_separate_truth():
     assert 'str(item.get("assetId") or "").startswith("zone:geanaph:")' in seed
     assert '"depthModel": "tier-parallax-v1"' in seed
     assert '"seaLevelMapOwnerAuthored": True' in seed
-    assert 'ENDEMAR_CLEAR_MARKER = "endemar-root-cleared-v1"' in seed
+    assert 'ENDEMAR_CLEAR_MARKER = "endemar-root-cleared-v2"' in seed
     assert 'source_state["tierImages"] = []' in seed
     assert '"preservedRegionScopedLayers": True' in seed
 
@@ -77,7 +77,7 @@ def test_geanaph_seed_uses_same_configured_owner_as_endemar_and_revision_runs():
     assert "OWNER_USER_ID: !Ref OwnerUserId" in template
     assert "ASSET_BASE_URL: !Sub '${AssetOrigin}/zones/geanaph/v1'" in template
     assert "- SunkenTundraSeed" in template
-    assert "Revision: geonaph-east-v7-tier-parallax" in template
+    assert "Revision: geonaph-east-v8-endemar-reset" in template
     assert "GeanaphCanonicalEastOfEndemar:" in template
     assert "GeanaphOwnerBoundToPlatformAccount:" in template
 
