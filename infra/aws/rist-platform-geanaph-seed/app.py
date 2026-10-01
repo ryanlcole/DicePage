@@ -14,7 +14,7 @@ from boto3.dynamodb.conditions import Key
 WORLD_ID = "shaelvien-geonaph-alpha-001"
 WORLD_PK = f"WORLD#{WORLD_ID}"
 ZONE_NAME = "Geonaph"
-ZONE_MARKER = "geonaph-east-v4-history-policy"
+ZONE_MARKER = "geonaph-east-v6-free-origin"\nENDEMAR_CLEAR_MARKER = "endemar-root-cleared-v1"
 GRID_COLUMNS = 30
 GRID_ROWS = 30
 PARCEL_PIXELS = 2048
@@ -36,16 +36,19 @@ HISTORY_INSTANCE_NODE_ID = "instance-lom3-toolmaking-locality"
 # Display representations only. The independent truth manifest remains the
 # evidence/provenance authority; these generated layers never become semantic
 # truth merely because they share a locked canvas.
+# Scene addresses are shifted up by one global layer so Tier 0 / Layer 0
+# remains intentionally empty and available for the authored sea-level map.
+# The shift crosses tier boundaries rather than resetting each tier independently.
 VISUAL_LAYERS = (
-    ("cavern", "Cavern Network", "luminous_underground_cavern_network.png", 0, 0, -40, False),
-    ("subterranean", "Subterranean Realm", "enchanted_subterranean_realm_map.png", 0, 1, -30, False),
-    ("aquifer", "Aquifer", "luminous_underground_aquifer_world_map.png", 0, 2, -20, False),
-    ("deep-geology", "Deep Geology", "glowing_volcanic_world_map_layer.png", 0, 3, -10, False),
-    ("terrain", "Terrain Surface", SURFACE_FILE, 0, 4, 0, True),
-    ("surface-overlay", "Surface Overlay", "luminous_fantasy_archipelago_map_overlay.png", 1, 0, 10, False),
-    ("water", "Waterways", "glowing_fantasy_waterway_map.png", 1, 1, 20, False),
-    ("ruins", "Ruined Surface", "fantastical_ruined_archipelago_layer.png", 1, 2, 30, False),
-    ("celestial", "Celestial Overlay", "celestial_nebula_archipelago_map.png", 2, 0, 40, False),
+    ("cavern", "Cavern Network", "luminous_underground_cavern_network.png", 0, 1, -40, False),
+    ("subterranean", "Subterranean Realm", "enchanted_subterranean_realm_map.png", 0, 2, -30, False),
+    ("aquifer", "Aquifer", "luminous_underground_aquifer_world_map.png", 0, 3, -20, False),
+    ("deep-geology", "Deep Geology", "glowing_volcanic_world_map_layer.png", 0, 4, -10, False),
+    ("terrain", "Terrain Surface", SURFACE_FILE, 0, 5, 0, True),
+    ("surface-overlay", "Surface Overlay", "luminous_fantasy_archipelago_map_overlay.png", 1, 1, 10, False),
+    ("water", "Waterways", "glowing_fantasy_waterway_map.png", 1, 2, 20, False),
+    ("ruins", "Ruined Surface", "fantastical_ruined_archipelago_layer.png", 1, 3, 30, False),
+    ("celestial", "Celestial Overlay", "celestial_nebula_archipelago_map.png", 2, 1, 40, False),
 )
 
 
@@ -324,6 +327,32 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         else []
     )
 
+    # One-time Endemar reset requested by the owner. Endemar is the unscoped root
+    # authoring surface; deed/zone content carries a regionId and is preserved.
+    # The marker is written before future Endemar authoring so subsequent deploys
+    # never erase the owner's new build.
+    endemar_cleared_this_run = False
+    endemar_layers_removed = 0
+    if not markers.get(ENDEMAR_CLEAR_MARKER):
+        retained_layers = []
+        for item in existing_layers:
+            if not isinstance(item, dict):
+                retained_layers.append(item)
+                continue
+            if str(item.get("regionId") or "").strip():
+                retained_layers.append(item)
+                continue
+            endemar_layers_removed += 1
+        existing_layers = retained_layers
+        source_state["tierImages"] = []
+        markers[ENDEMAR_CLEAR_MARKER] = {
+            "clearedAtUtc": utc_stamp(),
+            "removedUnscopedLayerCount": endemar_layers_removed,
+            "scope": "Endemar root only",
+            "preservedRegionScopedLayers": True,
+        }
+        endemar_cleared_this_run = True
+
     parcels = query_world_prefix(table, "PARCEL#")
     existing_parcel = verify_existing_target(parcels)
 
@@ -432,6 +461,10 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
             f"Geonaph verification failed: expected {len(VISUAL_LAYERS)} visual layers, "
             f"found {len(verify_layers)}."
         )
+    if any(int(item.get("tier") or 0) == 0 and int(item.get("layer") or 0) == 0 for item in verify_layers):
+        raise RuntimeError(
+            "Geonaph verification failed: Tier 0 / Layer 0 must remain free for the sea-level map."
+        )
     if sum(1 for item in verify_layers if bool(item.get("mmoSurface"))) != 1:
         raise RuntimeError(
             "Geonaph verification failed: exactly one deed-map surface representation is required."
@@ -502,6 +535,9 @@ def seed_zone(table, owner_user_id: str, asset_base_url: str) -> dict:
         "ownerUserId": owner_user_id,
         "visibility": "Public",
         "visualLayerCount": len(verify_layers),
+        "tierZeroLayerZeroFree": True,
+        "endemarClearedThisRun": endemar_cleared_this_run,
+        "endemarLayersRemoved": endemar_layers_removed,
         "historyRegionNodeId": HISTORY_REGION_NODE_ID,
         "historyLocalNodeId": HISTORY_LOCAL_NODE_ID,
         "historyInstanceNodeId": HISTORY_INSTANCE_NODE_ID,
