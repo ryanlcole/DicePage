@@ -55,15 +55,18 @@ const TIERS=Object.freeze(Array.from({length:TIER_COUNT},(_,index)=>{
 const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED?[
   // The canonical Geonaph tier maps are the top surfaces of their tiers.
   // Their scene addresses are therefore 9, 19, and 29: exactly ten layers apart.
-  Object.freeze({key:'surface',tier:0,layer:TIER_TOP_LAYER,file:'geonaph_full_static_canonical_surface_v001.png',representationFile:'../assets/perceiver/geonaph_tier_0_worldbuilder_v002.png'}),
-  Object.freeze({key:'highlands',tier:1,layer:TIER_TOP_LAYER,file:'geonaph_full_static_highlands_rivers_v001.png',representationFile:'../assets/perceiver/geonaph_tier_1_worldbuilder_v002.png'}),
-  Object.freeze({key:'mountains',tier:2,layer:TIER_TOP_LAYER,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',representationFile:'../assets/perceiver/geonaph_tier_2_worldbuilder_v002.png'})
+  Object.freeze({key:'surface',tier:0,layer:TIER_TOP_LAYER,file:'geonaph_full_static_canonical_surface_v001.png',representationFile:'geonaph_full_static_canonical_surface_v002.png'}),
+  Object.freeze({key:'highlands',tier:1,layer:TIER_TOP_LAYER,file:'geonaph_full_static_highlands_rivers_v001.png',representationFile:'geonaph_full_static_highlands_rivers_v002.png'}),
+  Object.freeze({key:'mountains',tier:2,layer:TIER_TOP_LAYER,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',representationFile:'geonaph_full_static_mountain_volcanic_archipelago_v002.png'})
 ]:[]);
 const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
 const baseWorldAssetCanonicalUrl=asset=>ASSET_ROOT+asset.file;
 const baseWorldAssetRepresentationUrl=asset=>{
   if(!asset?.representationFile)return baseWorldAssetCanonicalUrl(asset);
-  try{return new URL(asset.representationFile,location.href).href}catch{return baseWorldAssetCanonicalUrl(asset)}
+  const value=String(asset.representationFile||'').trim();
+  if(/^https?:\/\//i.test(value))return value;
+  if(value&&!value.includes('/')&&!value.includes('\\'))return ASSET_ROOT+value;
+  try{return new URL(value,location.href).href}catch{return baseWorldAssetCanonicalUrl(asset)}
 };
 const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1.'+(WORLD_ID||'prototype');
 const UPSCALE_KEY='rist.worldbuilder.upscale.v1.'+(WORLD_ID||WORLD_SEED||'prototype');
