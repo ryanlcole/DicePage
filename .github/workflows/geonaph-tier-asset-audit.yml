@@ -88,4 +88,19 @@ jobs:
           quantiles = {str(q): float(np.quantile(flat, q)) for q in (0.25, 0.5, 0.75, 0.9, 0.95, 0.99)}
           thresholds = {str(t): round(float((flat <= t).mean()), 6) for t in (2, 4, 8, 12, 16, 24, 32, 48, 64)}
           print(json.dumps({'mountain_vs_lower_delta_quantiles': quantiles, 'candidate_transparent_fraction': thresholds}, indent=2, sort_keys=True))
+
+          # Candidate recovery masks for the opaque mountain export. The source
+          # screenshot shows the lost alpha as ocean/background; measure blue-water
+          # segmentation before any production replacement is allowed.
+          rgb = mountains[..., :3].astype(np.float32)
+          r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+          mx = np.maximum(np.maximum(r, g), b)
+          mn = np.minimum(np.minimum(r, g), b)
+          sat = (mx - mn) / np.maximum(mx, 1.0)
+          masks = {
+              'conservative': (b > 70) & (b >= g * 1.05) & (b >= r * 1.22) & ((b - r) >= 24) & (sat >= .18),
+              'balanced': (b > 60) & (b >= g * 1.02) & (b >= r * 1.15) & ((b - r) >= 18) & (sat >= .14),
+              'broad': (b > 50) & (b >= g) & (b >= r * 1.10) & ((b - r) >= 12) & (sat >= .10),
+          }
+          print(json.dumps({'mountain_water_mask_fraction': {k: round(float(v.mean()), 6) for k, v in masks.items()}}, indent=2, sort_keys=True))
           PY
