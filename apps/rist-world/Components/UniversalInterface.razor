@@ -1482,7 +1482,8 @@
  }
 
   string ReticleStyle=>$"left:{50+(_cursorX*.45):0.##}%;top:{50-(_cursorY*.45):0.##}%;";
- bool AssetScaleUsesZoneBasis=>CurrentBuilderScope=="WORLD";
+ bool SelectedDeedIsEndemar=>string.Equals(_selectedDeedKind,"SHAELVIEN_ORIGIN",StringComparison.OrdinalIgnoreCase);
+ bool AssetScaleUsesZoneBasis=>CurrentBuilderScope=="WORLD"&&!SelectedDeedIsEndemar;
  string AssetScaleLabel=>AssetScaleUsesZoneBasis
   ?(Math.Abs(_assetScale-1)<.0005?"FILL ZONE":$"{_assetScale*100:0.#}% ZONE")
   :$"{_assetScale:0.00}×";
@@ -2658,7 +2659,7 @@
   }
  }
 
- bool SelectedAssetUsesFullDeedFrame=>CurrentBuilderScope=="WORLD";
+ bool SelectedAssetUsesFullDeedFrame=>CurrentBuilderScope=="WORLD"&&!SelectedDeedIsEndemar;
 
  void SelectGameAsset(string key)=>ActivateAssetFromBrowser(key);
 
