@@ -987,7 +987,7 @@
     ? selectedIsEndemar?"endemar":selectedIsGeonaph?"geonaph":"empty"
     : "empty";
    var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
-   var maxHeight=Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
+   var maxHeight=selectedIsEndemar?WorldSession.EndemarMaxHeight:Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
    var truthMode=selectedIsEndemar
     ? WorldSession.EndemarTruthMode
     : selectedIsGeonaph
@@ -1016,11 +1016,10 @@
  bool IsPathDrivenStage=>!IsDeedContextNode&&_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
  bool IsMyAssetSource=>_assetSource is "MY IMAGES" or "MY SPRITES";
  bool IsGameAssetSource=>_assetSource is "GAME IMAGES" or "GAME SPRITES";
- const string EndemarCanonicalAssetRoot="https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/";
+ const string GeonaphCanonicalAssetRoot="https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/";
  string PrivateAssetPrefix=>_assetKind=="SPRITE"
   ?$"assets/sprites/{_assetScope.ToLowerInvariant()}/"
   :$"assets/images/{_assetScope.ToLowerInvariant()}/";
- string EndemarSeedPrefix=>"assets/images/world/endomar/";
  string LeftSliderClass=>$"display-slider display-slider-left {(LeftDisplayOptionCount>1?"is-scrollable":"is-static")}";
  string RightSliderClass=>$"display-slider display-slider-right {(RightDisplayOptionCount>1?"is-scrollable":"is-static")}";
  string LeftDisplayTextClass=>DisplayTextClass(LeftDisplayValue);
@@ -2584,15 +2583,18 @@
   _gameAssets.Clear();
   _assetLoadError="";
 
-  if(_assetKind=="IMAGE"&&_assetScope=="WORLD")
+  // These three legacy CDN images are Geonaph representations. They must never
+  // appear as Endemar Game Images simply because the two zones share old paths.
+  if(_assetKind=="IMAGE"&&_assetScope=="WORLD"
+     &&string.Equals(_selectedDeedName,WorldSession.GeonaphZoneDisplayName,StringComparison.OrdinalIgnoreCase))
   {
    _gameAssets=
    [
-    new UserAssetEntry("game:endemar:surface",EndemarCanonicalAssetRoot+"geonaph_full_static_canonical_surface_v001.png","Endemar · Surface",DateTimeOffset.MinValue),
-    new UserAssetEntry("game:endemar:highlands",EndemarCanonicalAssetRoot+"geonaph_full_static_highlands_rivers_v001.png","Endemar · Highlands + Rivers",DateTimeOffset.MinValue),
-    new UserAssetEntry("game:endemar:mountains",EndemarCanonicalAssetRoot+"geonaph_full_static_mountain_volcanic_archipelago_v001.png","Endemar · Mountains + Volcanic",DateTimeOffset.MinValue)
+    new UserAssetEntry("game:geonaph:surface",GeonaphCanonicalAssetRoot+"geonaph_full_static_canonical_surface_v001.png","Geonaph · Surface",DateTimeOffset.MinValue),
+    new UserAssetEntry("game:geonaph:highlands",GeonaphCanonicalAssetRoot+"geonaph_full_static_highlands_rivers_v001.png","Geonaph · Highlands + Rivers",DateTimeOffset.MinValue),
+    new UserAssetEntry("game:geonaph:mountains",GeonaphCanonicalAssetRoot+"geonaph_full_static_mountain_volcanic_archipelago_v001.png","Geonaph · Mountains + Volcanic",DateTimeOffset.MinValue)
    ];
-   _message="Loaded the same canonical Endemar world images used by the GameMaster chain.";
+   _message="Loaded canonical Geonaph world images. Endemar remains asset-isolated.";
   }
  }
 
@@ -2655,28 +2657,6 @@
    }
 
    var listing=await Auth.ListAsync(PrivateAssetPrefix);
-
-   if(_assetKind=="IMAGE"&&_assetScope=="WORLD")
-   {
-    var hasEndemarSeed=(listing?.Items??[])
-     .Any(item=>item.Key.StartsWith(EndemarSeedPrefix,StringComparison.OrdinalIgnoreCase));
-
-    if(!hasEndemarSeed)
-    {
-     _message="Copying the existing Endemar world artwork into My Images…";
-     await InvokeAsync(StateHasChanged);
-     var imported=await Auth.ImportGameAssetsAsync("endomar","world");
-     if(imported?.Ok==true)
-     {
-      _message=$"Endemar world artwork linked to My Images: {imported.Imported.Count} copied, {imported.Skipped.Count} already present.";
-     }
-     else
-     {
-      _assetLoadError="Endemar world artwork was not found in the deployed Game Images yet.";
-     }
-     listing=await Auth.ListAsync(PrivateAssetPrefix);
-    }
-   }
 
    var items=(listing?.Items??[])
     .Where(item=>IsSupportedImageKey(item.Key))
