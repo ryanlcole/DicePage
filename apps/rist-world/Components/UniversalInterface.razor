@@ -3327,27 +3327,23 @@
   if(_inspectionEditMode&&string.IsNullOrWhiteSpace(inspectionReason))
    throw new InvalidOperationException("Inspection edit requires a reason. Enter a reason in the Inspect audit bar, then save again.");
 
-  // The embedded map editor owns map representation fields, not Asset Context
-  // or the append-only developer inspection audit. Preserve both.
-  var mergedState=state.Clone();
+  // Replace only the selected deed representation. Endemar is the unscoped
+  // root; each canonical/claimed deed is isolated by regionId. This also keeps
+  // migration markers, Asset Context and the inspection audit intact.
   var current=await Session.LoadWorldBuilderSourceAsync();
+  var mergedState=WorldSession.MergeWorldBuilderRepresentationState(
+   state,
+   current?.State,
+   SelectedDeedRegionId);
   try
   {
-   var root=state.ValueKind==JsonValueKind.Object
-    ?JsonNode.Parse(state.GetRawText()) as JsonObject??new JsonObject()
-    :new JsonObject();
-
-   if(current?.State is JsonElement currentState&&currentState.ValueKind==JsonValueKind.Object)
+   if(_inspectionEditMode)
    {
-    if(currentState.TryGetProperty("assetContexts",out var currentContexts))
-     root["assetContexts"]=JsonNode.Parse(currentContexts.GetRawText());
-    if(currentState.TryGetProperty("inspectionAudit",out var currentAudit))
-     root["inspectionAudit"]=JsonNode.Parse(currentAudit.GetRawText());
+    var root=JsonNode.Parse(mergedState.GetRawText()) as JsonObject??new JsonObject();
+    AppendInspectionAudit(root,"SAVE WORLD REPRESENTATION",inspectionReason);
+    using var mergedDocument=JsonDocument.Parse(root.ToJsonString());
+    mergedState=mergedDocument.RootElement.Clone();
    }
-
-   if(_inspectionEditMode)AppendInspectionAudit(root,"SAVE WORLD REPRESENTATION",inspectionReason);
-   using var mergedDocument=JsonDocument.Parse(root.ToJsonString());
-   mergedState=mergedDocument.RootElement.Clone();
   }
   catch(Exception ex)
   {

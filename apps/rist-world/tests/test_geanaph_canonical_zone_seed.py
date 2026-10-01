@@ -13,7 +13,7 @@ def test_geanaph_is_canonical_east_of_endemar_and_platform_owned():
     seed = text("infra/aws/rist-platform-geanaph-seed/app.py")
     ast.parse(seed)
 
-    assert 'ZONE_NAME = "Geanaph"' in seed
+    assert 'ZONE_NAME = "Geonaph"' in seed
     assert "CANONICAL_COLUMN = ENDEMAR_COLUMN + 1" in seed
     assert "CANONICAL_ROW = ENDEMAR_ROW" in seed
     assert '"ownerUserId": owner_user_id' in seed
@@ -24,6 +24,7 @@ def test_geanaph_is_canonical_east_of_endemar_and_platform_owned():
     assert '"canonicalEastOfEndemar": True' in seed
     assert '"ownerBoundToPlatformAccount": True' in seed
     assert "refusing to overwrite existing world truth" in seed
+    assert '{"geonaph", "geanaph"}' in seed
 
 
 def test_geanaph_has_nine_locked_full_frame_visual_layers_and_separate_truth():
@@ -83,13 +84,14 @@ def test_endemar_edit_authority_follows_same_canonical_geanaph_owner_account():
     source = text("apps/rist-world/WorldSession.WorldBuilderSource.cs")
     mmo = text("apps/rist-world/Components/UniversalInterface.MmoMap.cs")
 
-    assert "public const int GeanaphCanonicalColumn = EndemarOriginColumn + 1;" in land
-    assert "public bool OwnsCanonicalGeanaphZone" in land
-    assert 'string.Equals(parcel.DisplayName, "Geanaph"' in land
+    assert "public const int GeonaphCanonicalColumn = EndemarOriginColumn + 1;" in land
+    assert "public bool OwnsCanonicalGeonaphZone" in land
+    assert "GeonaphZoneDisplayName" in land
     assert 'string.Equals(parcel.Status, "Canonical"' in land
     assert "|| (IsGeonaphWorld && OwnsCanonicalGeanaphZone);" in relationships
     assert "&& !(IsGeonaphWorld && OwnsCanonicalGeanaphZone)" in source
-    assert "Session.IsServerVerifiedPlatformOwner || Session.HasWorldBuilderEditAuthority" in mmo
+    assert "Session.HasWorldBuilderEditAuthority" in mmo
+    assert "Session.OwnsCanonicalGeonaphZone" in mmo
 
 
 def test_mmo_deed_map_prefers_explicit_surface_without_rewriting_z_order():

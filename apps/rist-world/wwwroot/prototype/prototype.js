@@ -352,7 +352,7 @@ function worldBuilderSourceState(layers=userLayers){
     gridRows:REGION_GRID_ROWS,
     gridStyle:'square',
     tierImages:worldBuilderTierImages(),
-    userLayers:layers.map(serializableUserLayer)
+    userLayers:worldBuilderSourceLayersForCurrentDeed(layers).map(serializableUserLayer)
   };
 }
 function saveWorldSourceToDatabase(state){

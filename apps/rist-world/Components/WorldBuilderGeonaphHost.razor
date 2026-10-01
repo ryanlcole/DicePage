@@ -275,7 +275,9 @@ else
  [JSInvokable]
  public async Task<object> SaveWorldBuilderSourceFromPrototypeAsync(System.Text.Json.JsonElement state)
  {
-  var source=await Session.SaveWorldBuilderSourceAsync(state);
+  var current=await Session.LoadWorldBuilderSourceAsync();
+  var merged=WorldSession.MergeWorldBuilderRepresentationState(state,current?.State);
+  var source=await Session.SaveWorldBuilderSourceAsync(merged);
   return new
   {
    success=source is not null,

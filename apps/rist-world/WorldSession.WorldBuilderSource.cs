@@ -1,9 +1,66 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace RistWorld;
 
 public sealed partial class WorldSession
 {
+    // All Shaelvien deed representations currently share one WORLDSOURCE item.
+    // A save may replace only its own layer scope: Endemar owns unscoped layers,
+    // while a deed owns layers carrying that deed's regionId. Metadata outside
+    // the editor's map fields is preserved unless explicitly supplied.
+    public static JsonElement MergeWorldBuilderRepresentationState(
+        JsonElement incomingState,
+        JsonElement? currentState,
+        string regionScopeId = "")
+    {
+        if (incomingState.ValueKind != JsonValueKind.Object)
+            return incomingState.Clone();
+
+        var incoming = JsonNode.Parse(incomingState.GetRawText()) as JsonObject ?? new JsonObject();
+        JsonObject? current = null;
+        if (currentState is JsonElement existing && existing.ValueKind == JsonValueKind.Object)
+            current = JsonNode.Parse(existing.GetRawText()) as JsonObject;
+
+        if (current is not null)
+        {
+            foreach (var property in current)
+            {
+                if (string.Equals(property.Key, "userLayers", StringComparison.Ordinal)) continue;
+                if (!incoming.ContainsKey(property.Key))
+                    incoming[property.Key] = property.Value?.DeepClone();
+            }
+        }
+
+        var scope = (regionScopeId ?? "").Trim();
+
+        static string LayerRegionId(JsonNode? node)
+            => node is JsonObject obj ? (obj["regionId"]?.GetValue<string>() ?? "").Trim() : "";
+
+        bool InScope(JsonNode? node)
+        {
+            var layerRegionId = LayerRegionId(node);
+            return scope.Length == 0
+                ? layerRegionId.Length == 0
+                : string.Equals(layerRegionId, scope, StringComparison.Ordinal);
+        }
+
+        var mergedLayers = new JsonArray();
+        if (current?["userLayers"] is JsonArray currentLayers)
+            foreach (var layer in currentLayers)
+                if (!InScope(layer))
+                    mergedLayers.Add(layer?.DeepClone());
+
+        if (incoming["userLayers"] is JsonArray incomingLayers)
+            foreach (var layer in incomingLayers)
+                if (InScope(layer))
+                    mergedLayers.Add(layer?.DeepClone());
+
+        incoming["userLayers"] = mergedLayers;
+        using var document = JsonDocument.Parse(incoming.ToJsonString());
+        return document.RootElement.Clone();
+    }
+
     private async Task<bool> HasOwnedPrivateWorldDescriptorAsync(string worldId, string accountId)
     {
         if (!IsLoggedIn || string.Equals(worldId, GeonaphWorldId, StringComparison.Ordinal)

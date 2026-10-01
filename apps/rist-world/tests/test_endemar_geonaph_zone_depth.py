@@ -56,3 +56,18 @@ def test_endemar_never_bootstraps_geonaph_base_art():
     assert "if(DEED_REGION_ID)return list.filter" in prototype
     assert "if(IS_ENDEMAR_SEED)return list.filter" in prototype
     assert "return [];" in prototype
+
+
+def test_deed_saves_preserve_other_deeds_and_endemar_scope():
+    source = text("WorldSession.WorldBuilderSource.cs")
+    controller = text("Components/UniversalInterface.razor")
+    root_host = text("Components/WorldBuilderGeonaphHost.razor")
+    prototype = text("wwwroot/prototype/prototype.js")
+
+    assert "MergeWorldBuilderRepresentationState" in source
+    assert 'string.Equals(property.Key, "userLayers"' in source
+    assert "if (!InScope(layer))" in source
+    assert "if (InScope(layer))" in source
+    assert "SelectedDeedRegionId" in controller
+    assert "MergeWorldBuilderRepresentationState(state,current?.State)" in root_host
+    assert "worldBuilderSourceLayersForCurrentDeed(layers).map(serializableUserLayer)" in prototype

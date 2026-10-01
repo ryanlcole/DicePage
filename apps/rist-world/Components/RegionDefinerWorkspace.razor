@@ -164,7 +164,12 @@
   if(!Session.HasTrustedWorldBuilderAuthority)
    return new { success=false, worldId=Session.WorldId, updatedAtUtc="" };
 
-  var saved=await Session.SaveWorldBuilderSourceAsync(state);
+  var current=await Session.LoadWorldBuilderSourceAsync();
+  var merged=WorldSession.MergeWorldBuilderRepresentationState(
+   state,
+   current?.State,
+   Session.ActiveRegion?.RegionId??"");
+  var saved=await Session.SaveWorldBuilderSourceAsync(merged);
   return new
   {
    success=saved is not null,
