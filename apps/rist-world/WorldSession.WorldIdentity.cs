@@ -15,6 +15,10 @@ public sealed partial class WorldSession
     public const string GeonaphZoneDisplayName = "Geonaph";
     public const string EndemarTruthMode = "FANTASY_FICTION";
     public const string GeonaphTruthMode = "TRUTH_HYBRID";
+    // Endemar has exactly three authored world tiers. Region/Local/Instance are semantic
+    // recursion below the world surface, not additional world tiers.
+    public const int EndemarTierCount = 3;
+    public const int EndemarMaxHeight = EndemarTierCount * LayersPerTier;
     // Legacy public symbol retained because the root world ID historically used "Geonaph".
     // It denotes Shaelvien at the world-identity layer, not the Geonaph deed/zone.
     public const string GeonaphDisplayName = ShaelvienDisplayName;
