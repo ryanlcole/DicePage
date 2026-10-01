@@ -73,8 +73,8 @@ test('portrait builder keeps source content in the vertical center and corner PI
     css,
     /@media\(max-width:430px\) and \(orientation:portrait\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/
   );
-  assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-2/);
-  assert.match(index,/universal-interface-input\.js\?v=20260930-semantic-controls-2/);
+  assert.match(index,/universal-interface\.css\?v=20261001-world-home-fill-1/);
+  assert.match(index,/universal-interface-input\.js\?v=20261001-world-home-fill-1/);
 });
 
 
@@ -107,8 +107,8 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
   assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button,\.analog-mode-button"\)/);
-  assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-2/);
-  assert.match(index,/universal-interface-input\.js\?v=20260930-semantic-controls-2/);
+  assert.match(index,/universal-interface\.css\?v=20261001-world-home-fill-1/);
+  assert.match(index,/universal-interface-input\.js\?v=20261001-world-home-fill-1/);
 });
 
 
@@ -164,8 +164,8 @@ test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer d
   assert.match(css,/--rist-cursor-image-pointer/);
   assert.match(css,/--rist-cursor-image-selectAlt2/);
   assert.match(index,/cursors-haptics\.js\?v=20260928-visible-cursor-assets-1/);
-  assert.match(index,/universal-interface-input\.js\?v=20260930-semantic-controls-2/);
-  assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-2/);
+  assert.match(index,/universal-interface-input\.js\?v=20261001-world-home-fill-1/);
+  assert.match(index,/universal-interface\.css\?v=20261001-world-home-fill-1/);
 });
 
 
@@ -282,7 +282,7 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
   assert.match(prototypeIndex,/prototype\.css\?v=20260928-canonical-spatial-1/);
   assert.match(prototypeIndex,/prototype\.js\?v=[0-9]{8}-[a-z0-9-]+/i);
   assert.match(index,/start-menu\.js\?v=20260928-grid-density-1/);
-  assert.match(index,/universal-interface\.css\?v=20260930-semantic-controls-2/);
+  assert.match(index,/universal-interface\.css\?v=20261001-world-home-fill-1/);
 });
 
 
@@ -294,14 +294,15 @@ test('image tool is labeled IMAGES and exposes existing libraries plus upload',(
   assert.doesNotMatch(razor,/ArtMethods=\[[^\]]*"IMPORT IMAGE"/);
 });
 
-test('viewer top menu exposes back undo cut copy redo paste and forward',()=>{
+test('viewer top menu exposes back world home undo cut copy redo paste and forward',()=>{
   const razor=read('Components/UniversalInterface.razor');
   const host=read('wwwroot/worldbuilder-source-host.js');
   const prototype=read('wwwroot/prototype/prototype.js');
   const css=read('wwwroot/css/universal-interface.css');
 
-  assert.match(razor,/class="viewer-menu-bar"[\s\S]{0,900}?BACK[\s\S]{0,200}?UNDO[\s\S]{0,200}?CUT[\s\S]{0,200}?COPY[\s\S]{0,200}?REDO[\s\S]{0,200}?PASTE[\s\S]{0,200}?FORWARD/);
+  assert.match(razor,/class="viewer-menu-bar"[\s\S]{0,1000}?BACK[\s\S]{0,240}?WORLD HOME[\s\S]{0,240}?UNDO[\s\S]{0,200}?CUT[\s\S]{0,200}?COPY[\s\S]{0,200}?REDO[\s\S]{0,200}?PASTE[\s\S]{0,200}?FORWARD/);
   assert.match(razor,/HandleViewerMenuCommandAsync\("back"\)/);
+  assert.match(razor,/HandleViewerMenuCommandAsync\("world-home"\)/);
   assert.match(razor,/HandleViewerMenuCommandAsync\("forward"\)/);
   assert.match(host,/export async function editCommand\(frame,command\)/);
   assert.match(prototype,/async function runViewerEditCommand\(command\)/);

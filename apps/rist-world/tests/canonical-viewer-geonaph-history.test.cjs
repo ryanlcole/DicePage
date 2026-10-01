@@ -62,7 +62,7 @@ test('database seed migrates canonical display name and verifies provenance plus
   assert.match(seed,/"historyProvenanceVerified": True/);
   assert.match(seed,/"historyContentPolicyVerified": True/);
   assert.match(seed,/"matureContentAllowed": True/);
-  assert.match(template,/Revision: geonaph-east-v6-free-origin/);
+  assert.match(template,/Revision: geonaph-east-v7-tier-parallax/);
 });
 
 test('first evidence-safe sprite package is reconstruction-only and taxonomically unresolved',()=>{
@@ -116,13 +116,13 @@ test('World Builder shows the full Geonaph tier-layer stack while MMO stays flat
   const addresses=[...visualBlock.matchAll(/\("[^"]+",\s*"[^"]+",\s*(?:"[^"]+"|[A-Z_]+),\s*(\d+),\s*(\d+),/g)]
     .map(match=>[Number(match[1]),Number(match[2])]);
   assert.equal(addresses.length,9);
-  assert.deepEqual([...new Set(addresses.map(address=>address[0]))],[0,1,2]);
+  assert.deepEqual([...new Set(addresses.map(address=>address[0]))],[1,2,3,4,5,6,7,8,9]);
 
   assert.match(prototype,/function allParallaxRestOffset\(item\)/);
   assert.match(prototype,/viewerTier!=='all'\|\|!isFullDeedFrameItem\(item\)/);
   assert.match(prototype,/const rest=allParallaxRestOffset\(item\);/);
   assert.match(prototype,/viewerTier='all';\s*viewerLayer=9;/);
-  assert.match(interfaceRazor,/entryView=\{entryView\}.*renderer=20261001-zone-depth-1/);
+  assert.match(interfaceRazor,/entryView=\{entryView\}.*renderer=20261001-world-home-fill-1/);
 
   assert.match(mmo,/if \(tier != 0\) continue;/);
   assert.match(mmo,/JsonBool\(item, "mmoSurface", false\)/);
@@ -138,7 +138,7 @@ test('World Builder full stack remains independent from MMO Tier 0 optimization'
   assert.doesNotMatch(razor,/entryView=access=="edit"&&[^\n]+selectedDeedName/);
   assert.match(
     razor,
-    /if\(_stage==Stage\.WorldBuilderTier&&CurrentBuilderScope=="WORLD"\)[\s\S]{0,120}?await ShowAllWorldLayersAsync\(\);[\s\S]{0,100}?else[\s\S]{0,100}?await SyncWorldBuilderDepthAsync\(\);/
+    /if\(_stage==Stage\.WorldHome\|\|\(_stage==Stage\.WorldBuilderTier&&CurrentBuilderScope=="WORLD"\)\)[\s\S]{0,120}?await ShowAllWorldLayersAsync\(\);[\s\S]{0,100}?else[\s\S]{0,100}?await SyncWorldBuilderDepthAsync\(\);/
   );
 
   assert.match(mmo,/var tier = JsonInt\(item, "tier", 0\);[\s\S]{0,80}?if \(tier != 0\) continue;/);
@@ -147,5 +147,5 @@ test('World Builder full stack remains independent from MMO Tier 0 optimization'
   const tuples=[...seed.matchAll(/\("[^"]+",\s*"[^"]+",\s*(?:"[^"]+"|[A-Z_]+),\s*(\d),\s*(\d),\s*-?\d+,\s*(?:True|False)\)/g)]
     .map(match=>({tier:Number(match[1]),layer:Number(match[2])}));
   assert.equal(tuples.length,9);
-  assert.deepEqual([...new Set(tuples.map(item=>item.tier))],[0,1,2]);
+  assert.deepEqual([...new Set(tuples.map(item=>item.tier))],[1,2,3,4,5,6,7,8,9]);
 });
