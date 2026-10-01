@@ -52,3 +52,7 @@ def test_endemar_never_bootstraps_geonaph_base_art():
     assert "Object.freeze({key:'surface',tier:0,layer:1" in prototype
     assert "Object.freeze({key:'highlands',tier:1,layer:1" in prototype
     assert "Object.freeze({key:'mountains',tier:2,layer:1" in prototype
+    assert "function worldBuilderSourceLayersForCurrentDeed(layers)" in prototype
+    assert "if(DEED_REGION_ID)return list.filter" in prototype
+    assert "if(IS_ENDEMAR_SEED)return list.filter" in prototype
+    assert "return [];" in prototype
