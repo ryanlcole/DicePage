@@ -49,3 +49,6 @@ def test_endemar_never_bootstraps_geonaph_base_art():
     assert "geonaph_full_static_canonical_surface_v001.png" in prototype
     assert "geonaph_full_static_highlands_rivers_v001.png" in prototype
     assert "geonaph_full_static_mountain_volcanic_archipelago_v001.png" in prototype
+    assert "Object.freeze({key:'surface',tier:0,layer:1" in prototype
+    assert "Object.freeze({key:'highlands',tier:1,layer:1" in prototype
+    assert "Object.freeze({key:'mountains',tier:2,layer:1" in prototype
