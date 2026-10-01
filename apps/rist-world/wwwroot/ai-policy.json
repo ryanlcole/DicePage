@@ -105,5 +105,30 @@
       "video"
     ],
     "audioVideoOutputGrantsExternalAuthority": false
+  },
+  "trustedBoot": {
+    "uefiMayEstablishDedicatedShaelvienBoot": true,
+    "gameplayMayWriteFirmware": false,
+    "aiMayWriteFirmware": false,
+    "semanticControlsMayAlterBootPolicy": false,
+    "purpose": "Boot only the approved ShaelvienOS/game environment."
+  },
+  "audioVideoIngress": {
+    "authoritativeForGameplay": false,
+    "microphoneAuthoritative": false,
+    "cameraAuthoritative": false,
+    "speechRecognitionAuthoritative": false,
+    "visualRecognitionAuthoritative": false,
+    "recordingsAuthoritative": false,
+    "streamsAuthoritative": false,
+    "mayTriggerGameplayActions": false,
+    "mayMutateAuthoritativeGameState": false,
+    "blockIfReflectedIntoGameAction": true,
+    "approvedAuthoritativeHumanInputs": [
+      "controller",
+      "keyboard",
+      "touch",
+      "accessibility-control"
+    ]
   }
 }
