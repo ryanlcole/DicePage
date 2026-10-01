@@ -368,10 +368,17 @@ function worldBuilderTierImages(){
   // into the shared WORLDSOURCE tierImages array, where Endemar could inherit them.
   return [];
 }
-function worldBuilderSourceLayersForCurrentDeed(layers){
+function layerZoneIdentity(item){
+  return String(item?.zoneIdentity||item?.worldSeed||'').trim().toLowerCase();
+}
+function worldBuilderSourceLayersForCurrentDeed(layers,strictIdentity=false){
   const list=Array.isArray(layers)?layers:[];
   if(DEED_REGION_ID)return list.filter(item=>String(item?.regionId||'').trim()===DEED_REGION_ID);
-  if(IS_ENDEMAR_SEED)return list.filter(item=>!String(item?.regionId||'').trim());
+  if(IS_ENDEMAR_SEED)return list.filter(item=>{
+    if(String(item?.regionId||'').trim())return false;
+    const identity=layerZoneIdentity(item);
+    return identity==='endemar'||(!strictIdentity&&!identity);
+  });
   return list;
 }
 function worldBuilderSourceState(layers=userLayers){
@@ -532,7 +539,7 @@ async function readSavedWorldBuilder(key=WORLDBUILDER_SAVE_KEY){
 function serializableUserLayer(item){
   if(item?.kind==='label'){
     return{
-      id:item.id,regionId:String(item.regionId||''),scope:normalizeSpatialScope(item.scope||'WORLD'),spatialNodeId:String(item.spatialNodeId||''),spatialPath:String(item.spatialPath||''),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
+      id:item.id,regionId:String(item.regionId||''),zoneIdentity:String(item.zoneIdentity||WORLD_SEED||'').trim().toLowerCase(),scope:normalizeSpatialScope(item.scope||'WORLD'),spatialNodeId:String(item.spatialNodeId||''),spatialPath:String(item.spatialPath||''),name:item.name||item.text||'Label',kind:'label',text:String(item.text||'').slice(0,120),
       x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(item.layer)||0),0,9),rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),
       fontSize:clamp(Number(item.fontSize)||48,12,180),bold:!!item.bold,italic:!!item.italic,color:String(item.color||LABEL_COLORS[0]),
@@ -541,7 +548,7 @@ function serializableUserLayer(item){
     };
   }
   return{
-    id:item.id,regionId:String(item.regionId||''),scope:normalizeSpatialScope(item.scope||'WORLD'),spatialNodeId:String(item.spatialNodeId||''),spatialPath:String(item.spatialPath||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
+    id:item.id,regionId:String(item.regionId||''),zoneIdentity:String(item.zoneIdentity||WORLD_SEED||'').trim().toLowerCase(),scope:normalizeSpatialScope(item.scope||'WORLD'),spatialNodeId:String(item.spatialNodeId||''),spatialPath:String(item.spatialPath||''),assetId:item.assetId||null,personalAssetKey:item.personalAssetKey||null,name:item.name||'',libraryTile:!!item.libraryTile,kind:item.kind||'image',
     placementRole:storedPlacementRole(item),fullWorld:isWorldMapItem(item),fullDeedFrame:isFullDeedFrameItem(item),
     mmoSurface:!!item.mmoSurface,representationOnly:!!item.representationOnly,provenance:String(item.provenance||''),
     truthManifestUrl:String(item.truthManifestUrl||''),frameLock:!!item.frameLock,
@@ -553,7 +560,7 @@ function serializableUserLayer(item){
     spriteSourceHeight:item.spriteSourceHeight||null,spriteCropX:item.spriteCropX||0,spriteCropY:item.spriteCropY||0,
     spriteCropWidth:item.spriteCropWidth||null,spriteCropHeight:item.spriteCropHeight||null,spriteWhiteTransparent:item.spriteWhiteTransparent!==false,
     x:clamp(Number(item.x)||0,0,1),y:clamp(Number(item.y)||0,0,1),tier:clamp(Math.trunc(Number(item.tier)||0),0,TIERS.length-1),
-    layer:clamp(Math.trunc(Number(item.layer)||0),0,9),size:clamp(Number(item.size)||1,.05,20),
+    layer:clamp(Math.trunc(Number(item.layer)||0),0,9),size:clamp(Number(item.size)||1,.01,20),
     rotation:Number(item.rotation)||0,opacity:clamp(Number(item.opacity)||1,.01,1),committed:true
   };
 }
@@ -720,7 +727,7 @@ async function attachRestoredLayer(raw,options={}){
   const kind=String(raw?.kind||'image').toLowerCase();
   if(kind==='label'){
     const item={
-      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),scope:normalizeSpatialScope(raw.scope||'WORLD'),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
+      id:String(raw.id||`label:${crypto.randomUUID?.()||Date.now()}`),regionId:String(raw.regionId||''),zoneIdentity:String(raw.zoneIdentity||'').trim().toLowerCase(),scope:normalizeSpatialScope(raw.scope||'WORLD'),kind:'label',name:String(raw.name||raw.text||'Label'),text:String(raw.text||raw.name||'Label').slice(0,120),sourceLocked,regionOverlay,canonicalSource,
       x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
       layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),rotation:Number(raw.rotation)||0,opacity:clamp(Number(raw.opacity)||1,.01,1),
       fontSize:clamp(Number(raw.fontSize)||48,12,180),bold:!!raw.bold,italic:!!raw.italic,color:String(raw.color||LABEL_COLORS[0]),
@@ -748,7 +755,7 @@ async function attachRestoredLayer(raw,options={}){
   }
   const first=isSprite?(frameSources[0]||String(raw.originalSrc||raw.spriteSheetSrc||'')):String(raw.originalSrc||'');
   const item={
-    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),scope:normalizeSpatialScope(raw.scope||'WORLD'),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
+    id:String(raw.id||crypto.randomUUID?.()||Date.now()),regionId:String(raw.regionId||''),zoneIdentity:String(raw.zoneIdentity||'').trim().toLowerCase(),scope:normalizeSpatialScope(raw.scope||'WORLD'),assetId:raw.assetId||null,personalAssetKey:raw.personalAssetKey||null,name:String(raw.name||''),libraryTile:!!raw.libraryTile,kind:isSprite?'sprite':'image',sourceLocked,regionOverlay,canonicalSource,
     placementRole:storedPlacementRole(raw),fullWorld:storedPlacementRole(raw)==='world-map',fullDeedFrame:storedPlacementRole(raw)==='deed-frame',
     mmoSurface:!!raw.mmoSurface,representationOnly:!!raw.representationOnly,provenance:String(raw.provenance||''),
     truthManifestUrl:String(raw.truthManifestUrl||''),frameLock:!!raw.frameLock,
@@ -761,7 +768,7 @@ async function attachRestoredLayer(raw,options={}){
     spriteCropWidth:Number(raw.spriteCropWidth)||null,spriteCropHeight:Number(raw.spriteCropHeight)||null,spriteWhiteTransparent:raw.spriteWhiteTransparent!==false,
     frameSources,currentFrame:0,playing:false,
     x:clamp(Number(raw.x)||0,0,1),y:clamp(Number(raw.y)||0,0,1),tier:clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1),
-    layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),size:clamp(Number(raw.size)||1,.05,20),rotation:Number(raw.rotation)||0,
+    layer:clamp(Math.trunc(Number(raw.layer)||0),0,9),size:clamp(Number(raw.size)||1,.01,20),rotation:Number(raw.rotation)||0,
     opacity:clamp(Number(raw.opacity)||1,.01,1),committed:raw.committed!==false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className=`user-image-placement${item.libraryTile?' library-tile-placement':''}${isSprite?' sprite-placement':''}${isWorldMapItem(item)?' full-world-placement':''}${isFullDeedFrameItem(item)?' full-deed-frame-placement':''}`;node.alt=item.name||(isSprite?'Placed sprite':'Placed image');node.draggable=false;item.node=node;
@@ -1436,7 +1443,7 @@ function placeLabel(text){
   text=String(text||'').trim().slice(0,120);if(!text){announce('Type label text first.');return null}
   const rawPoint=viewerCenterPosition(),point=snapAssetPoint(rawPoint.x,rawPoint.y),address=placementAddress(currentTierIndex(),1);
   const item={
-    id:`label:${crypto.randomUUID?.()||Date.now()}`,scope:normalizeSpatialScope(externalSpatialScope),kind:'label',name:text,text,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:authoringRegionId(),
+    id:`label:${crypto.randomUUID?.()||Date.now()}`,scope:normalizeSpatialScope(externalSpatialScope),kind:'label',name:text,text,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:authoringRegionId(),zoneIdentity:WORLD_SEED,
     x:point.x,y:point.y,tier:address.tier,layer:address.layer,rotation:0,opacity:1,committed:false,renderOpacity:1,
     fontSize:48,bold:false,italic:false,color:LABEL_COLORS[0],textAlign:'center',letterSpacing:0,plate:false,
     offsetX:0,offsetY:0,parallaxX:0,parallaxY:0,node:null
@@ -1521,7 +1528,8 @@ function refreshUserImage(item){
     const offsetX=(itemX-.5)*naturalWidth,offsetY=(itemY-.5)*naturalHeight;
     const size=clamp(Number(item.size)||1,.01,20);
     item.node.style.left='0';item.node.style.top='0';item.node.style.width='100%';item.node.style.height='100%';
-    item.node.style.maxWidth='none';item.node.style.maxHeight='none';item.node.style.objectFit='contain';
+    item.node.style.maxWidth='none';item.node.style.maxHeight='none';
+    item.node.style.objectFit=item.semanticRole==='sea-level-map'?'fill':'contain';
     item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item?'none':'auto');
     item.node.style.transformOrigin='50% 50%';
     item.node.style.transform=`translate3d(${(offsetX+px).toFixed(2)}px,${(offsetY+py).toFixed(2)}px,0) rotate(${Number(item.rotation)||0}deg) scale(${size})`;return;
@@ -1616,7 +1624,7 @@ async function placeUploadedImage(file){
   const requestedPoint={x:clamp(Number(imageX.value)||0,0,1),y:clamp(Number(imageY.value)||0,0,1)};
   const placementPoint=placementRole==='world-map'?{x:.5,y:.5}:snapAssetPoint(requestedPoint.x,requestedPoint.y);
   const item={
-    id:crypto.randomUUID?.()||String(Date.now()),scope:normalizeSpatialScope(externalSpatialScope),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:authoringRegionId(),
+    id:crypto.randomUUID?.()||String(Date.now()),scope:normalizeSpatialScope(externalSpatialScope),assetId:null,personalAssetKey:null,name:String(file.name||'Uploaded image').replace(/\.[^.]+$/,''),kind:'image',libraryTile:false,sourceLocked:false,regionOverlay:REGION_DEFINER,regionId:authoringRegionId(),zoneIdentity:WORLD_SEED,
     placementRole,fullWorld:placementRole==='world-map',
     originalSrc,transparentSrc,transparent:!!imageTransparency.checked,
     x:placementPoint.x,y:placementPoint.y,tier,layer,size:1,rotation:0,opacity:1,committed:false,renderOpacity:1,zoomPassed:false,zoomPassScale:null,node:null
@@ -2026,7 +2034,7 @@ async function applyCanonicalWorldBuilderSnapshot(state,options={}){
   if(stateWorldId&&stateWorldId!==String(WORLD_ID||''))return{loaded:false,sourceLayers:[],tierImages:[],hydration:Promise.resolve(0)};
 
   const allSourceLayers=Array.isArray(state.userLayers)?state.userLayers:[];
-  const sourceLayers=regionMode?allSourceLayers:worldBuilderSourceLayersForCurrentDeed(allSourceLayers);
+  const sourceLayers=regionMode?allSourceLayers:worldBuilderSourceLayersForCurrentDeed(allSourceLayers,true);
   const tierImages=regionMode
     ? (Array.isArray(state.tierImages)?state.tierImages.map(String).filter(Boolean):[])
     : [];
@@ -3774,7 +3782,7 @@ async function placeExternalAsset(raw={}){
     spatialPath:String(raw.spatialPath||externalSpatialPath||''),
     assetId:String(raw.assetId||raw.key||'')||null,personalAssetKey:null,
     name:String(raw.name||'Placed asset'),kind,
-    libraryTile:false,sourceLocked:false,regionOverlay:false,regionId,
+    libraryTile:false,sourceLocked:false,regionOverlay:false,regionId,zoneIdentity:WORLD_SEED,
     placementRole:fullDeedFrame?'deed-frame':'layer',fullWorld:false,fullDeedFrame,
     mmoSurface:geonaphSeaLevelMap,representationOnly:geonaphSeaLevelMap,semanticRole:geonaphSeaLevelMap?'sea-level-map':'',
     frameLock:geonaphSeaLevelMap,originalSrc:src,transparentSrc:src,transparent:!geonaphSeaLevelMap,
