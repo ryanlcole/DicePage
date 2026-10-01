@@ -19,7 +19,14 @@
     <span>@(OpeningComplete?DepthSubtitle:SceneSubtitle)</span>
    </div>
    <div class="gh-badges">
-    <b>FACT-FIRST</b><b>SHARED EXPERIENCE</b><b>RATING ≠ PROVENANCE</b>
+    @if(OpeningComplete)
+    {
+     <b>EVIDENCE-FIRST</b><b>SHARED EXPERIENCE</b><b>RATING ≠ PROVENANCE</b>
+    }
+    else
+    {
+     <b>FICTIONAL BACKBONE</b><b>AI PERSPECTIVE</b><b>SIM ≠ REAL</b>
+    }
    </div>
   </header>
 
@@ -149,9 +156,18 @@
   }
 
   <footer class="gh-footer">
-   <span>ORIGINAL LANGUAGE: UNATTESTED AT THIS NODE</span>
-   <span>FACT ≠ RECONSTRUCTION ≠ FICTION</span>
-   <span>CONTENT RATING ≠ PROVENANCE</span>
+   @if(OpeningComplete)
+   {
+    <span>ORIGINAL LANGUAGE: UNATTESTED AT THIS NODE</span>
+    <span>FACT ≠ RECONSTRUCTION ≠ FICTION</span>
+    <span>CONTENT RATING ≠ PROVENANCE</span>
+   }
+   else
+   {
+    <span>FICTIONAL PLAYER BACKBONE</span>
+    <span>AI PERSPECTIVE ≠ ABSOLUTE TRUTH</span>
+    <span>SIMULATED CAUSE ≠ EXTERNAL CAUSE</span>
+   }
   </footer>
  }
 </section>
