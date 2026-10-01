@@ -64,20 +64,13 @@ public sealed partial class WorldSession
             && string.Equals(parcel.DisplayName, GeonaphZoneDisplayName, StringComparison.OrdinalIgnoreCase)
             && string.Equals(parcel.Status, "Canonical", StringComparison.OrdinalIgnoreCase));
 
-    // The server seed binds the one canonical Geonaph parcel at (+1,0) to the
-    // configured platform-owner user. Geonaph remains a separate zone from Endemar;
-    // shared ownership proves account authority only, never shared map/content identity.
-    public bool OwnsCanonicalGeonaphZone
-    {
-        get
-        {
-            var userId = auth.Profile?.UserId?.Trim() ?? "";
-            var parcel = CanonicalGeonaphParcel;
-            return userId.Length > 0
-                && parcel is not null
-                && string.Equals(parcel.OwnerUserId, userId, StringComparison.Ordinal);
-        }
-    }
+    // The canonical Geonaph deed occupies one fixed authority cell. Endemar and
+    // Geonaph remain separate zones, but ownership of that exact Geonaph deed is
+    // the account-level bridge granting the same owner edit authority to Endemar.
+    // Use the same ownership predicate as the deed map; display/status metadata
+    // must not make an authenticated owner lose Endemar authority.
+    public bool OwnsCanonicalGeonaphZone =>
+        IsMmoParcelOwnedByCurrentUser(GeonaphCanonicalCell);
 
     // Compatibility aliases for older callers; new code uses the correctly-spelled names.
     public AwsAuthorityClient.MmoParcel? CanonicalGeanaphParcel => CanonicalGeonaphParcel;
