@@ -142,12 +142,17 @@ digraph CodeGraph {
   "chid.003624" [label="chid.003624\nbody\nvariable"];
   "chid.003625" [label="chid.003625\noutput\nvariable"];
   "chid.003626" [label="chid.003626\nPath\nimport"];
+  "chid.003632" [label="chid.003632\nsubprocess\nimport"];
+  "chid.003633" [label="chid.003633\nsys\nimport"];
   "chid.003634" [label="chid.003634\nroot\nvariable"];
   "chid.003635" [label="chid.003635\ntactical\nvariable"];
   "chid.003636" [label="chid.003636\nweb\nvariable"];
   "chid.003637" [label="chid.003637\ndata_dir\nvariable"];
   "chid.003640" [label="chid.003640\n_load_pillow\nfunction"];
   "chid.003641" [label="chid.003641\nImage\nimport"];
+  "chid.003642" [label="chid.003642\n_median\nfunction"];
+  "chid.003643" [label="chid.003643\nvalues\nparameter"];
+  "chid.003644" [label="chid.003644\nordered\nvariable"];
   "chid.009715" [label="chid.009715\nsorted\nvariable"];
   "chid.012251" [label="chid.012251\nforbidden\nvariable"];
   "chid.074530" [label="chid.074530\nBytesIO\nimport"];
@@ -159,7 +164,6 @@ digraph CodeGraph {
   "chid.107386" [label="chid.107386\ncheck_call\nvariable"];
   "chid.110174" [label="chid.110174\nis_file\nmethod"];
   "chid.113186" [label="chid.113186\nint\nfunction"];
-  "chid.118651" [label="chid.118651\nwrite_text\nmethod"];
   "chid.153590" [label="chid.153590\nprint\nfunction"];
   "chid.167604" [label="chid.167604\nFINAL_AUTHORITY\nimport"];
   "chid.167605" [label="chid.167605\nSOURCES\nimport"];
@@ -275,7 +279,6 @@ digraph CodeGraph {
   "chid.003502" -> "chid.003501" [label="read"];
   "chid.003502" -> "chid.003501" [label="read"];
   "chid.003502" -> "chid.003502" [label="read"];
-  "chid.003502" -> "chid.118651" [label="call"];
   "chid.003502" -> "chid.003499" [label="read"];
   "chid.003502" -> "chid.103614" [label="call"];
   "chid.003502" -> "chid.003501" [label="read"];
@@ -292,7 +295,6 @@ digraph CodeGraph {
   "chid.003508" -> "chid.003507" [label="read"];
   "chid.003508" -> "chid.003507" [label="read"];
   "chid.003508" -> "chid.003508" [label="read"];
-  "chid.003508" -> "chid.118651" [label="call"];
   "chid.003508" -> "chid.003505" [label="read"];
   "chid.003508" -> "chid.103614" [label="call"];
   "chid.003508" -> "chid.003507" [label="read"];
@@ -307,7 +309,6 @@ digraph CodeGraph {
   "chid.003514" -> "chid.003513" [label="read"];
   "chid.003514" -> "chid.103614" [label="call"];
   "chid.003514" -> "chid.003513" [label="read"];
-  "chid.003514" -> "chid.118651" [label="call"];
   "chid.003514" -> "chid.003511" [label="read"];
   "chid.003514" -> "chid.103614" [label="call"];
   "chid.003514" -> "chid.003513" [label="read"];
@@ -497,7 +498,6 @@ digraph CodeGraph {
   "chid.003573" -> "chid.003580" [label="read"];
   "chid.003573" -> "chid.003580" [label="read"];
   "chid.003573" -> "chid.003580" [label="read"];
-  "chid.003573" -> "chid.118651" [label="call"];
   "chid.003573" -> "chid.003523" [label="read"];
   "chid.003573" -> "chid.003517" [label="read"];
   "chid.003573" -> "chid.003577" [label="read"];
@@ -581,11 +581,9 @@ digraph CodeGraph {
   "chid.003596" -> "chid.003600" [label="read"];
   "chid.003596" -> "chid.003590" [label="read"];
   "chid.003596" -> "chid.003594" [label="read"];
-  "chid.003596" -> "chid.118651" [label="call"];
   "chid.003596" -> "chid.003595" [label="read"];
   "chid.003596" -> "chid.003590" [label="read"];
   "chid.003596" -> "chid.003601" [label="read"];
-  "chid.003596" -> "chid.118651" [label="call"];
   "chid.003596" -> "chid.003595" [label="read"];
   "chid.003596" -> "chid.003590" [label="read"];
   "chid.003596" -> "chid.003598" [label="read"];
@@ -653,7 +651,6 @@ digraph CodeGraph {
   "chid.003621" -> "chid.103614" [label="call"];
   "chid.003621" -> "chid.003622" [label="read"];
   "chid.003621" -> "chid.003625" [label="read"];
-  "chid.003621" -> "chid.118651" [label="call"];
   "chid.003621" -> "chid.003607" [label="read"];
   "chid.003621" -> "chid.003625" [label="read"];
   "chid.003621" -> "chid.153590" [label="call"];
@@ -671,4 +668,11 @@ digraph CodeGraph {
   "chid.003637" -> "chid.003637" [label="read"];
   "chid.003640" -> "chid.003641" [label="read"];
   "chid.003640" -> "chid.107386" [label="call"];
+  "chid.003640" -> "chid.003632" [label="read"];
+  "chid.003640" -> "chid.003633" [label="read"];
+  "chid.003640" -> "chid.003641" [label="read"];
+  "chid.003642" -> "chid.009715" [label="call"];
+  "chid.003642" -> "chid.009715" [label="read"];
+  "chid.003642" -> "chid.003643" [label="read"];
+  "chid.003642" -> "chid.003644" [label="read"];
 }
