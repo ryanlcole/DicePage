@@ -79,14 +79,14 @@ jobs:
           curl --fail --location --retry 8 --retry-delay 3             --output /tmp/live-prototype.css "${URL}Game/prototype/prototype.css"
           curl --fail --location --retry 8 --retry-delay 3             --output /tmp/live-worldbuilder-projection.js "${URL}Game/worldbuilder-projection.js"
 
-          grep -q "layer:TIER_TOP_LAYER" /tmp/live-prototype.js
-          grep -q "geonaph_full_static_canonical_surface_v002.png" /tmp/live-prototype.js
-          grep -q "geonaph_full_static_highlands_rivers_v002.png" /tmp/live-prototype.js
-          grep -q "geonaph_full_static_mountain_volcanic_archipelago_v002.png" /tmp/live-prototype.js
-          grep -q "node.src=baseWorldAssetRepresentationUrl(asset)" /tmp/live-prototype.js
-          grep -q "if(IS_ENDEMAR_SEED)return'layer';" /tmp/live-prototype.js
-          grep -q "if(IS_ENDEMAR_SEED)return tier;" /tmp/live-prototype.js
-          grep -q "REGION_DEFINER||(!IS_ENDEMAR_SEED&&spatialScope!=='WORLD')" /tmp/live-prototype.js
-          grep -q "const lift=hasPreviousTop?clamp(-tierStep*9*strength*spatialWeight,-42,0):0;" /tmp/live-worldbuilder-projection.js
-          grep -q "object-fit:fill" /tmp/live-prototype.css
+          grep -Fq "layer:TIER_TOP_LAYER" /tmp/live-prototype.js
+          grep -Fq "geonaph_full_static_canonical_surface_v002.png" /tmp/live-prototype.js
+          grep -Fq "geonaph_full_static_highlands_rivers_v002.png" /tmp/live-prototype.js
+          grep -Fq "geonaph_full_static_mountain_volcanic_archipelago_v002.png" /tmp/live-prototype.js
+          grep -Fq "node.src=baseWorldAssetRepresentationUrl(asset)" /tmp/live-prototype.js
+          grep -Fq "if(IS_ENDEMAR_SEED)return'layer';" /tmp/live-prototype.js
+          grep -Fq "if(IS_ENDEMAR_SEED)return tier;" /tmp/live-prototype.js
+          grep -Fq "REGION_DEFINER||(!IS_ENDEMAR_SEED&&spatialScope!=='WORLD')" /tmp/live-prototype.js
+          grep -Fq "const lift=hasPreviousTop?clamp(-tierStep*9*strength*spatialWeight,-42,0):0;" /tmp/live-worldbuilder-projection.js
+          grep -Fq "object-fit:fill" /tmp/live-prototype.css
           echo "ENDEMAR PLACEMENT REVERT + GEONAPH TIER HOTFIX LIVE VERIFIED"
