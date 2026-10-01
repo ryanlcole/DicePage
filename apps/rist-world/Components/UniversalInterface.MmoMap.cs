@@ -55,7 +55,7 @@ public partial class UniversalInterface
 
             if (Session.IsServerVerifiedPlatformOwner
                 || Session.HasWorldBuilderEditAuthority
-                || Session.OwnsCanonicalGeanaphZone)
+                || Session.OwnsCanonicalGeonaphZone)
                 result.Add(new("ENDEMAR", "owned", WorldSession.EndemarOriginCell));
 
             result.AddRange(
@@ -100,10 +100,10 @@ public partial class UniversalInterface
         Session.MmoParcels.FirstOrDefault(parcel => parcel.CellIndex == _mmoSelectedCell);
 
     bool MmoSelectedIsEndemar => _mmoSelectedCell == WorldSession.EndemarOriginCell;
-    bool MmoSelectedIsCanonicalGeanaph =>
+    bool MmoSelectedIsCanonicalGeonaph =>
         MmoSelectedParcel is { } geanaph
-        && geanaph.CellIndex == WorldSession.GeanaphCanonicalCell
-        && string.Equals(geanaph.DisplayName, "Geanaph", StringComparison.OrdinalIgnoreCase)
+        && geanaph.CellIndex == WorldSession.GeonaphCanonicalCell
+        && string.Equals(geanaph.DisplayName, WorldSession.GeonaphZoneDisplayName, StringComparison.OrdinalIgnoreCase)
         && string.Equals(geanaph.Status, "Canonical", StringComparison.OrdinalIgnoreCase);
     bool MmoSelectedIsOpen => !MmoSelectedIsEndemar && MmoSelectedParcel is null && Session.IsMmoParcelOpen(_mmoSelectedCell);
     bool MmoSelectedIsOwned => MmoSelectedParcel is { } parcel && Session.IsMmoParcelOwnedByCurrentUser(parcel.CellIndex);
@@ -120,15 +120,15 @@ public partial class UniversalInterface
             || string.Equals(parcel.EffectivePermission, "Owner", StringComparison.OrdinalIgnoreCase));
 
     // Platform/developer authority must not make every player's deed look owned.
-    // Endemar and canonical Geanaph share the configured owner account. The
-    // persisted canonical Geanaph parcel is therefore valid account-level proof
+    // Endemar and canonical Geonaph share the configured owner account. The
+    // persisted canonical Geonaph parcel is therefore valid account-level proof
     // for Endemar edit authority as well as the server/platform authority flags.
     // Other claimed deeds still require their own owner/delegated permission.
     bool MmoCanGameMasterSelected =>
         MmoSelectedIsEndemar
             ? Session.IsServerVerifiedPlatformOwner
                 || Session.HasWorldBuilderEditAuthority
-                || Session.OwnsCanonicalGeanaphZone
+                || Session.OwnsCanonicalGeonaphZone
             : MmoSelectedIsOwned || MmoSelectedHasExplicitEditPermission;
 
     bool MmoCanViewSelected =>
@@ -359,7 +359,7 @@ public partial class UniversalInterface
     async Task EnterMmoMapAsync(bool inspect)
     {
         // The deed map is the Shaelvien root, not the previously opened zone.
-        // Clearing the active recursive region prevents a prior Geanaph editor
+        // Clearing the active recursive region prevents a prior Geonaph editor
         // from leaking its LOCAL/INSTANCE context into a fresh GameMaster map.
         Session.SetActiveRegion("");
         await EnsureShaelvienEnvironmentAsync();
@@ -615,10 +615,10 @@ public partial class UniversalInterface
 
         if (action == "roleplay")
         {
-            if (MmoSelectedIsCanonicalGeanaph)
+            if (MmoSelectedIsCanonicalGeonaph)
             {
-                if (MmoSelectedParcel is { RegionId.Length: > 0 } canonicalGeanaph)
-                    Session.SetActiveRegion(canonicalGeanaph.RegionId);
+                if (MmoSelectedParcel is { RegionId.Length: > 0 } canonicalGeonaph)
+                    Session.SetActiveRegion(canonicalGeonaph.RegionId);
                 EnterGeonaphHistoryCampaign();
                 return;
             }
