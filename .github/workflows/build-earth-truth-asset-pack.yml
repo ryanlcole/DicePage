@@ -32,6 +32,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: earth-truth-asset-pack-v1
-          path: build/artifacts/earth-truth-asset-pack-v1.zip
+          path: build/earth-truth-pack-v1/**
           if-no-files-found: error
           retention-days: 30
