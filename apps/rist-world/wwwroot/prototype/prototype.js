@@ -272,7 +272,7 @@ function prepareZoomCollision(clientX,clientY,oldScale,nextScale,existing=null){
   return restored?collisionAt(clientX,clientY):(existing??collisionAt(clientX,clientY));
 }
 function userCollision(item,clientX,clientY){
-  if(!item?.node||item.zoomPassed||item.kind==='label'||isWorldMapItem(item))return null;
+  if(!item?.node||item.zoomPassed||item.kind==='label'||isWorldMapItem(item)||isFullDeedFrameItem(item))return null;
   const visible=(viewerTier==='all'||item.tier===tierByKey(viewerTier).index)&&(!REGION_DEFINER||!item.sourceLocked||regionSourceLayerVisible(item.tier,item.layer));
   if(!visible||!(Number(item.opacity)>0))return null;
   const r=stage.getBoundingClientRect(),worldX=(clientX-r.left-x)/Math.max(scale,.00001),worldY=(clientY-r.top-y)/Math.max(scale,.00001);
