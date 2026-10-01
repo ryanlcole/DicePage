@@ -3,6 +3,7 @@
  const TILE_SELECTOR='.worldbuilder-studio .world-stage > .tile-cell';
  const LAYERS_PER_TIER=10;
  const TIER_TOP_LAYER=LAYERS_PER_TIER-1;
+ const LAYER_VISUAL_GAP_PX=3;
  let visuals=[];
  let observer=null;
  let raf=0;
@@ -87,7 +88,9 @@
    // tier-top is one visual step relative to the preceding tier-top. Nothing
    // here mutates TierIndex, LayerOffset, SceneZ, placement, or SHAEP identity.
    const angle=hasPreviousTop?clamp(-tierStep*5.25*strength*spatialWeight,-18,0):0;
-   const lift=hasPreviousTop?clamp(-tierStep*9*strength*spatialWeight,-42,0):0;
+   // Tier tops are separated by one complete ten-layer span from the prior
+   // tier top. This is presentation spacing only; SceneZ remains tier*10+layer.
+   const lift=hasPreviousTop?clamp(-tierStep*LAYERS_PER_TIER*LAYER_VISUAL_GAP_PX*strength*spatialWeight,-120,0):0;
    const stackZ=1000000+((sceneZ+1000)*1000)+index;
 
    tile.dataset.sceneZ=String(sceneZ);
