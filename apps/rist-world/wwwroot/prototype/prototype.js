@@ -29,10 +29,9 @@ const ASSET_SCALE=REGION_DEFINER?'REGION':'WORLD';
 const SURFACE_WORLD_PIXELS=Math.max(2048,Math.min(32768,Math.trunc(Number(QUERY.get('surfacePixels'))||2048)));
 const LAYERS_PER_TIER=10;
 const TIER_TOP_LAYER=LAYERS_PER_TIER-1;
-// All-Parallax is a physical stack representation: each higher tier rests one
-// full ten-layer span above the top surface of the prior tier.
-const TIER_REST_X_PER_LAYER=4;
-const TIER_REST_Y_PER_LAYER=8;
+// Representation is compact everywhere, matching the pre-controller placement.
+// Tier/layer truth still uses ten semantic layers per tier; visual spacing does not.
+const COMPACT_TIER_PRESENTATION_STEP=.4;
 const MAX_HEIGHT=Math.max(LAYERS_PER_TIER,Math.min(1000,Math.trunc(Number(QUERY.get('maxHeight'))||LAYERS_PER_TIER)));
 const TIER_COUNT=Math.max(1,Math.ceil(MAX_HEIGHT/LAYERS_PER_TIER));
 const MIN_VIEW_SCALE=1e-6;
@@ -1231,30 +1230,11 @@ function isWorldMapItem(item){return item?.placementRole==='world-map'||item?.fu
 function isFullDeedFrameItem(item){return item?.placementRole==='deed-frame'||item?.fullDeedFrame===true}
 function sceneDepthForItem(item){
   const tier=clamp(Math.trunc(Number(item?.tier)||0),0,TIERS.length-1);
-  // Endemar keeps the compact placement model that was in use before the
-  // controller work: tier changes create gentle parallax while layer changes
-  // control stack order without multiplying visual separation.
-  if(IS_ENDEMAR_SEED)return tier;
   return (tier*LAYERS_PER_TIER)
     +clamp(Math.trunc(Number(item?.layer)||0),0,LAYERS_PER_TIER-1);
 }
-// Full-deed-frame maps use the same semantic tier/layer depth as ordinary map
-// content. The extra resting offset simply makes every tier readable in All
-// Parallax before the camera moves; it never changes the saved Z identity.
-function tierRestOffset(tier){
-  // Endemar uses the compact historical placement geometry. Do not add the
-  // later ten-layer presentation offset on top of its saved coordinates.
-  if(IS_ENDEMAR_SEED||REGION_DEFINER||viewerTier!=='all')return{x:0,y:0};
-  const tierIndex=clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1);
-  const layersFromPriorTop=tierIndex*LAYERS_PER_TIER;
-  return{
-    x:layersFromPriorTop*TIER_REST_X_PER_LAYER,
-    y:-layersFromPriorTop*TIER_REST_Y_PER_LAYER
-  };
-}
-function allParallaxRestOffset(item){
-  if(!isFullDeedFrameItem(item))return{x:0,y:0};
-  return tierRestOffset(item.tier);
+function presentationDepthForTier(tier){
+  return clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1)*COMPACT_TIER_PRESENTATION_STEP;
 }
 function looksLikeWholeMapAsset(raw){
   if(!raw||String(raw.kind||'image').toLowerCase()==='sprite')return false;
@@ -1276,12 +1256,9 @@ function looksLikeWholeMapAsset(raw){
 }
 function storedPlacementRole(raw){
   if(raw?.placementRole==='world-map'||raw?.fullWorld===true)return'world-map';
-  // Endemar predates automatic deed-frame promotion. Preserve the coordinates,
-  // scale, tier and layer that were saved when its artwork and regions were
-  // originally placed instead of reinterpreting whole-map filenames as fills.
-  if(IS_ENDEMAR_SEED)return'layer';
-  if(raw?.placementRole==='deed-frame'||raw?.fullDeedFrame===true)return'deed-frame';
-  if(raw?.fullFrame===true||looksLikeWholeMapAsset(raw))return'deed-frame';
+  // All zones use the same historical adjustable placement model. Only the
+  // system-owned locked MMO sea-level surface remains a deed-frame.
+  if(raw?.mmoSurface===true&&raw?.frameLock===true)return'deed-frame';
   return'layer';
 }
 function customWorldMap(){return userLayers.find(isWorldMapItem)||null}
@@ -1724,12 +1701,11 @@ function applyParallax(){
     const sourceVisible=!REGION_DEFINER||(entry.tier<=currentRegionTierIndex()&&regionSourceLayerVisible(entry.tier,entry.layer));
     const worldVisible=!DEED_REGION_ID&&(spatialScope==='WORLD'||(spatialScope==='REGION'&&!regionEnhanceActive));
     entry.node.style.opacity=worldVisible&&layerReady[entry.key]&&sourceVisible?String(clamp(Number(entry.alpha)||0,0,1)):'0';
-    const depth=entry.sceneZ/10;
+    const depth=presentationDepthForTier(entry.tier);
     const panStrength=depth*.055;
     const tiltStrength=.42+(depth*.78);
-    const rest=tierRestOffset(entry.tier);
-    const px=rest.x+(((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001));
-    const py=rest.y+(((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001));
+    const px=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
+    const py=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     entry.node.dataset.parallaxX=px.toFixed(4);entry.node.dataset.parallaxY=py.toFixed(4);
     entry.node.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`;
   }
@@ -1757,14 +1733,12 @@ function applyParallax(){
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
-    // Presentation parallax uses the full scene address. Semantic tier/layer
+    // Presentation is compact and identical across zones. Semantic tier/layer
     // identity remains unchanged in the saved world source.
-    const sceneDepth=sceneDepthForItem(item);
-    const depth=sceneDepth/10;
+    const depth=presentationDepthForTier(item.tier);
     const panStrength=depth*.022,tiltStrength=depth*.48;
-    const rest=allParallaxRestOffset(item);
-    item.parallaxX=rest.x+(((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001));
-    item.parallaxY=rest.y+(((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001));
+    item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
+    item.parallaxY=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);
   }
 }
@@ -1785,11 +1759,9 @@ function applyTransform(){
   world.style.width=naturalWidth+'px';
   world.style.height=naturalHeight+'px';
   world.style.transformOrigin='0 0';
-  const spatialScope=currentSpatialScope();
-  // Endemar keeps the original flat World/Region/Local/Instance placement
-  // geometry; only the dedicated Region Definer tilts the map. Other zones keep
-  // the newer spatial-scope presentation.
-  world.style.transform=(REGION_DEFINER||(!IS_ENDEMAR_SEED&&spatialScope!=='WORLD'))
+  // World, Region, Local, and Instance preserve one placement geometry in every
+  // zone. Only the dedicated Region Definer uses the 15-degree authoring view.
+  world.style.transform=REGION_DEFINER
     ? `translate3d(${x}px,${y}px,0) scale(${scale}) rotateX(15deg)`
     : `translate3d(${x}px,${y}px,0) scale(${scale})`;
   if(REGION_DEFINER)syncClaimedRegionContextMask();
@@ -3815,7 +3787,7 @@ async function placeExternalAsset(raw={}){
   const kind=String(raw.kind||'image').toLowerCase()==='sprite'?'sprite':'image';
   const regionId=authoringRegionId();
   const geonaphSeaLevelMap=IS_GEONAPH_SEED&&!!DEED_REGION_ID&&scope==='WORLD'&&tier===0&&layer===0&&kind==='image';
-  const fullDeedFrame=!IS_ENDEMAR_SEED&&(geonaphSeaLevelMap||raw.fullFrame===true||looksLikeWholeMapAsset({...raw,scope,kind,originalSrc:src,url:src}));
+  const fullDeedFrame=geonaphSeaLevelMap;
   if(geonaphSeaLevelMap){
     for(let index=userLayers.length-1;index>=0;index--){
       const existing=userLayers[index];

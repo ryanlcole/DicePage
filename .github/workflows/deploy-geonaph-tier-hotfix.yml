@@ -35,7 +35,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Verify Geonaph viewer hotfix only
+      - name: Verify shared placement renderer
         shell: bash
         run: |
           set -euo pipefail
@@ -55,7 +55,7 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Publish only Geonaph prototype renderer files
+      - name: Publish shared placement renderer files
         shell: bash
         run: |
           set -euo pipefail
@@ -84,9 +84,11 @@ jobs:
           grep -Fq "geonaph_full_static_highlands_rivers_v002.png" /tmp/live-prototype.js
           grep -Fq "geonaph_full_static_mountain_volcanic_archipelago_v002.png" /tmp/live-prototype.js
           grep -Fq "node.src=baseWorldAssetRepresentationUrl(asset)" /tmp/live-prototype.js
-          grep -Fq "if(IS_ENDEMAR_SEED)return'layer';" /tmp/live-prototype.js
-          grep -Fq "if(IS_ENDEMAR_SEED)return tier;" /tmp/live-prototype.js
-          grep -Fq "REGION_DEFINER||(!IS_ENDEMAR_SEED&&spatialScope!=='WORLD')" /tmp/live-prototype.js
+          grep -Fq "const COMPACT_TIER_PRESENTATION_STEP=.4;" /tmp/live-prototype.js
+          grep -Fq "const depth=presentationDepthForTier(entry.tier);" /tmp/live-prototype.js
+          grep -Fq "const depth=presentationDepthForTier(item.tier);" /tmp/live-prototype.js
+          grep -Fq "const fullDeedFrame=geonaphSeaLevelMap;" /tmp/live-prototype.js
+          grep -Fq "world.style.transform=REGION_DEFINER" /tmp/live-prototype.js
           grep -Fq "const lift=hasPreviousTop?clamp(-tierStep*9*strength*spatialWeight,-42,0):0;" /tmp/live-worldbuilder-projection.js
           grep -Fq "object-fit:fill" /tmp/live-prototype.css
-          echo "ENDEMAR PLACEMENT REVERT + GEONAPH TIER HOTFIX LIVE VERIFIED"
+          echo "SHARED COMPACT PLACEMENT + GEONAPH TRANSPARENCY LIVE VERIFIED"

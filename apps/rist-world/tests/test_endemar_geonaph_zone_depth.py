@@ -85,8 +85,8 @@ def test_whole_map_assets_keep_one_deed_frame_across_tiers():
 
     assert "function looksLikeWholeMapAsset(raw)" in prototype
     assert "raw?.fullFrame===true||looksLikeWholeMapAsset(raw)" in prototype
-    assert "if(IS_ENDEMAR_SEED)return'layer';" in prototype
-    assert "const fullDeedFrame=!IS_ENDEMAR_SEED&&(geonaphSeaLevelMap||raw.fullFrame===true||looksLikeWholeMapAsset" in prototype
+    assert "if(raw?.mmoSurface===true&&raw?.frameLock===true)return'deed-frame';" in prototype
+    assert "const fullDeedFrame=geonaphSeaLevelMap;" in prototype
     assert "placementRole:fullDeedFrame?'deed-frame':'layer'" in prototype
     assert "size:clamp(Number(raw.scale)||1,.01,20)" in prototype
     assert "rotation:geonaphSeaLevelMap?0:" in prototype
@@ -100,26 +100,32 @@ def test_whole_map_assets_keep_one_deed_frame_across_tiers():
     assert "fullFrame=SelectedAssetUsesFullDeedFrame" in controller
 
 
-def test_endemar_keeps_pre_controller_compact_placement_geometry():
+def test_all_zones_keep_pre_controller_compact_placement_geometry():
     prototype = text("wwwroot/prototype/prototype.js")
     projection = text("wwwroot/worldbuilder-projection.js")
 
-    assert "if(IS_ENDEMAR_SEED)return tier;" in prototype
-    assert "if(IS_ENDEMAR_SEED||REGION_DEFINER||viewerTier!=='all')return{x:0,y:0};" in prototype
-    assert "REGION_DEFINER||(!IS_ENDEMAR_SEED&&spatialScope!=='WORLD')" in prototype
+    assert "const COMPACT_TIER_PRESENTATION_STEP=.4;" in prototype
+    assert "function presentationDepthForTier(tier)" in prototype
+    assert "const depth=presentationDepthForTier(entry.tier);" in prototype
+    assert "const depth=presentationDepthForTier(item.tier);" in prototype
+    assert "world.style.transform=REGION_DEFINER" in prototype
+    assert "TIER_REST_X_PER_LAYER" not in prototype
+    assert "TIER_REST_Y_PER_LAYER" not in prototype
+    assert "allParallaxRestOffset" not in prototype
+    assert "tierRestOffset" not in prototype
     assert "const lift=hasPreviousTop?clamp(-tierStep*9*strength*spatialWeight,-42,0):0;" in projection
     assert "LAYER_VISUAL_GAP_PX" not in projection
 
 
-def test_geonaph_tier_top_surfaces_are_ten_layers_apart_and_cumulative():
+def test_geonaph_tier_top_surfaces_keep_semantic_depth_but_use_compact_presentation():
     prototype = text("wwwroot/prototype/prototype.js")
 
-    assert "const TIER_REST_X_PER_LAYER=4;" in prototype
-    assert "const TIER_REST_Y_PER_LAYER=8;" in prototype
-    assert "const layersFromPriorTop=tierIndex*LAYERS_PER_TIER;" in prototype
+    assert "Object.freeze({key:'surface',tier:0,layer:TIER_TOP_LAYER" in prototype
+    assert "Object.freeze({key:'highlands',tier:1,layer:TIER_TOP_LAYER" in prototype
+    assert "Object.freeze({key:'mountains',tier:2,layer:TIER_TOP_LAYER" in prototype
+    assert "sceneZ:(asset.tier*LAYERS_PER_TIER)+asset.layer" in prototype
     assert "return{surface:1,highlands:index>=1?1:0,mountains:index>=2?1:0};" in prototype
-    assert "const rest=tierRestOffset(entry.tier);" in prototype
-    assert "const rest=allParallaxRestOffset(item);" in prototype
+    assert "const depth=presentationDepthForTier(entry.tier);" in prototype
 
 
 def test_returning_to_endemar_home_restores_fitted_parallax_overview():
