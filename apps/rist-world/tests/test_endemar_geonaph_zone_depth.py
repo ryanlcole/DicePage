@@ -85,7 +85,8 @@ def test_whole_map_assets_keep_one_deed_frame_across_tiers():
 
     assert "function looksLikeWholeMapAsset(raw)" in prototype
     assert "raw?.fullFrame===true||looksLikeWholeMapAsset(raw)" in prototype
-    assert "const fullDeedFrame=geonaphSeaLevelMap||raw.fullFrame===true||looksLikeWholeMapAsset" in prototype
+    assert "if(IS_ENDEMAR_SEED)return'layer';" in prototype
+    assert "const fullDeedFrame=!IS_ENDEMAR_SEED&&(geonaphSeaLevelMap||raw.fullFrame===true||looksLikeWholeMapAsset" in prototype
     assert "placementRole:fullDeedFrame?'deed-frame':'layer'" in prototype
     assert "size:clamp(Number(raw.scale)||1,.01,20)" in prototype
     assert "rotation:geonaphSeaLevelMap?0:" in prototype
@@ -94,8 +95,21 @@ def test_whole_map_assets_keep_one_deed_frame_across_tiers():
     assert "item.node.style.objectFit='fill';" in prototype
     assert ".user-image-placement.full-deed-frame-placement" in prototype_css
     assert "object-fit:fill!important" in prototype_css
-    assert 'bool SelectedAssetUsesFullDeedFrame=>CurrentBuilderScope=="WORLD";' in controller
+    assert 'bool SelectedDeedIsEndemar=>string.Equals(_selectedDeedKind,"SHAELVIEN_ORIGIN",StringComparison.OrdinalIgnoreCase);' in controller
+    assert 'bool AssetScaleUsesZoneBasis=>CurrentBuilderScope=="WORLD"&&!SelectedDeedIsEndemar;' in controller
+    assert 'bool SelectedAssetUsesFullDeedFrame=>CurrentBuilderScope=="WORLD"&&!SelectedDeedIsEndemar;' in controller
     assert "fullFrame=SelectedAssetUsesFullDeedFrame" in controller
+
+
+def test_endemar_keeps_pre_controller_compact_placement_geometry():
+    prototype = text("wwwroot/prototype/prototype.js")
+    projection = text("wwwroot/worldbuilder-projection.js")
+
+    assert "if(IS_ENDEMAR_SEED)return tier;" in prototype
+    assert "if(IS_ENDEMAR_SEED||REGION_DEFINER||viewerTier!='all')return{x:0,y:0};" in prototype
+    assert "REGION_DEFINER||(!IS_ENDEMAR_SEED&&spatialScope!='WORLD')" in prototype
+    assert "const lift=hasPreviousTop?clamp(-tierStep*9*strength*spatialWeight,-42,0):0;" in projection
+    assert "LAYER_VISUAL_GAP_PX" not in projection
 
 
 def test_geonaph_tier_top_surfaces_are_ten_layers_apart_and_cumulative():
