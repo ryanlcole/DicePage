@@ -1010,7 +1010,7 @@
    // The MMO deed map owns its separate Tier-0-only performance representation.
    // Explicit Tier/Layer selection later isolates editing depth via setExternalDepth.
    var entryView=access=="edit"?"all-parallax":"saved";
-   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&entryView={entryView}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20261001-deed-home-scope-1";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&entryView={entryView}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20261001-full-frame-parallax-1";
   }
  }
  bool IsPathDrivenStage=>!IsDeedContextNode&&_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
@@ -1922,6 +1922,7 @@
      _stage=Stage.PathSelect;
      _pathIndex=0;
      _message=$"Returned to {_selectedDeedName}.";
+     _=ShowAllWorldLayersAsync();
     }
     else
     {
@@ -2327,6 +2328,7 @@
     {
      _stage=Stage.PathSelect;
      _message="Returned to GameMaster path selection.";
+     _=ShowAllWorldLayersAsync();
     }
     else
     {
@@ -2349,6 +2351,7 @@
 
   _stage=Stage.PathSelect;
   _message="Returned to GameMaster path selection.";
+  _=ShowAllWorldLayersAsync();
  }
 
  void OpenPathNode(string target)
@@ -2616,6 +2619,26 @@
   }
  }
 
+ bool SelectedAssetUsesFullDeedFrame
+ {
+  get
+  {
+   if(_assetKind!="IMAGE"||CurrentBuilderScope!="WORLD")return false;
+   var marker=$"{_selectedAssetKey} {SelectedAssetName} {SelectedAssetUrl}".Replace("\\","/").ToLowerInvariant();
+   return marker.Contains("/whole_maps/")
+    ||marker.Contains("/whole-maps/")
+    ||marker.Contains("whole_maps")
+    ||marker.Contains("whole-maps")
+    ||marker.Contains("full_static")
+    ||marker.Contains("full-static")
+    ||marker.Contains("full static")
+    ||marker.Contains("world_map")
+    ||marker.Contains("world-map")
+    ||marker.Contains("canonical_surface")
+    ||marker.Contains("canonical-surface");
+  }
+ }
+
  void SelectGameAsset(string key)=>ActivateAssetFromBrowser(key);
 
  void ActivateAssetFromBrowser(string key)
@@ -2794,6 +2817,7 @@
      name=SelectedAssetName,
      kind=_assetKind,
      scope=CurrentBuilderScope,
+     fullFrame=SelectedAssetUsesFullDeedFrame,
      spatialNodeId=CurrentSpatialNodeId,
      spatialPath=CurrentSpatialPath,
      tier=_tier,
