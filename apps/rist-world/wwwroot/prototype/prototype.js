@@ -28,6 +28,11 @@ const MAP_AUTHORITY_SCOPED=REGION_DEFINER;
 const ASSET_SCALE=REGION_DEFINER?'REGION':'WORLD';
 const SURFACE_WORLD_PIXELS=Math.max(2048,Math.min(32768,Math.trunc(Number(QUERY.get('surfacePixels'))||2048)));
 const LAYERS_PER_TIER=10;
+const TIER_TOP_LAYER=LAYERS_PER_TIER-1;
+// All-Parallax is a physical stack representation: each higher tier rests one
+// full ten-layer span above the top surface of the prior tier.
+const TIER_REST_X_PER_LAYER=4;
+const TIER_REST_Y_PER_LAYER=8;
 const MAX_HEIGHT=Math.max(LAYERS_PER_TIER,Math.min(1000,Math.trunc(Number(QUERY.get('maxHeight'))||LAYERS_PER_TIER)));
 const TIER_COUNT=Math.max(1,Math.ceil(MAX_HEIGHT/LAYERS_PER_TIER));
 const MIN_VIEW_SCALE=1e-6;
@@ -1210,10 +1215,18 @@ function sceneDepthForItem(item){
 // Full-deed-frame maps use the same semantic tier/layer depth as ordinary map
 // content. The extra resting offset simply makes every tier readable in All
 // Parallax before the camera moves; it never changes the saved Z identity.
+function tierRestOffset(tier){
+  if(REGION_DEFINER||viewerTier!=='all')return{x:0,y:0};
+  const tierIndex=clamp(Math.trunc(Number(tier)||0),0,TIERS.length-1);
+  const layersFromPriorTop=tierIndex*LAYERS_PER_TIER;
+  return{
+    x:layersFromPriorTop*TIER_REST_X_PER_LAYER,
+    y:-layersFromPriorTop*TIER_REST_Y_PER_LAYER
+  };
+}
 function allParallaxRestOffset(item){
-  if(REGION_DEFINER||viewerTier!=='all'||!isFullDeedFrameItem(item))return{x:0,y:0};
-  const z=sceneDepthForItem(item);
-  return{x:z*.24,y:-z*.34};
+  if(!isFullDeedFrameItem(item))return{x:0,y:0};
+  return tierRestOffset(item.tier);
 }
 function looksLikeWholeMapAsset(raw){
   if(!raw||String(raw.kind||'image').toLowerCase()==='sprite')return false;
@@ -1529,7 +1542,9 @@ function refreshUserImage(item){
     const size=clamp(Number(item.size)||1,.01,20);
     item.node.style.left='0';item.node.style.top='0';item.node.style.width='100%';item.node.style.height='100%';
     item.node.style.maxWidth='none';item.node.style.maxHeight='none';
-    item.node.style.objectFit=item.semanticRole==='sea-level-map'?'fill':'contain';
+    // A deed-frame is authored against the deed/world extent. Fit it to that
+    // exact frame so every tier shares one scale and one origin.
+    item.node.style.objectFit='fill';
     item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item?'none':'auto');
     item.node.style.transformOrigin='50% 50%';
     item.node.style.transform=`translate3d(${(offsetX+px).toFixed(2)}px,${(offsetY+py).toFixed(2)}px,0) rotate(${Number(item.rotation)||0}deg) scale(${size})`;return;
@@ -1646,10 +1661,10 @@ async function placeUploadedImage(file){
 function tierMix(){
   if(viewerTier!=='all'){
     const index=tierByKey(viewerTier).index;
-    // Region Definer works on one tier at a time, but a tier is still a view into
-    // the same stacked world. Keep lower canonical tiers visible as context.
-    if(REGION_DEFINER)return{surface:1,highlands:index>=1?1:0,mountains:index>=2?1:0};
-    return{surface:index===0?1:0,highlands:index===1?1:0,mountains:index===2?1:0};
+    // A selected tier is the top of a cumulative stack, not an isolated image.
+    // Keeping lower canonical tiers mounted is what makes transparent upper-tier
+    // pixels reveal the actual prior tier instead of the viewer background.
+    return{surface:1,highlands:index>=1?1:0,mountains:index>=2?1:0};
   }
   const ratio=Math.max(.01,scale/Math.max(minScale,.00001));
   const peakToHighlands=smoothstep(1.00,1.60,ratio);
@@ -1680,7 +1695,9 @@ function applyParallax(){
     const depth=entry.sceneZ/10;
     const panStrength=depth*.055;
     const tiltStrength=.42+(depth*.78);
-    const px=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001),py=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
+    const rest=tierRestOffset(entry.tier);
+    const px=rest.x+(((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001));
+    const py=rest.y+(((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001));
     entry.node.dataset.parallaxX=px.toFixed(4);entry.node.dataset.parallaxY=py.toFixed(4);
     entry.node.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`;
   }
