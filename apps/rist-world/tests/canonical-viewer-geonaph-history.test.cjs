@@ -62,7 +62,7 @@ test('database seed migrates canonical display name and verifies provenance plus
   assert.match(seed,/"historyProvenanceVerified": True/);
   assert.match(seed,/"historyContentPolicyVerified": True/);
   assert.match(seed,/"matureContentAllowed": True/);
-  assert.match(template,/Revision: geonaph-east-v7-tier-parallax/);
+  assert.match(template,/Revision: geonaph-east-v8-endemar-reset/);
 });
 
 test('first evidence-safe sprite package is reconstruction-only and taxonomically unresolved',()=>{
@@ -118,11 +118,19 @@ test('World Builder shows the full Geonaph tier-layer stack while MMO stays flat
   assert.equal(addresses.length,9);
   assert.deepEqual([...new Set(addresses.map(address=>address[0]))],[1,2,3,4,5,6,7,8,9]);
 
-  assert.match(prototype,/function allParallaxRestOffset\(item\)/);
-  assert.match(prototype,/viewerTier!=='all'\|\|!isFullDeedFrameItem\(item\)/);
+  assert.match(prototype,/const TIER_TOP_LAYER=LAYERS_PER_TIER-1;/);
+  assert.match(prototype,/key:'surface',tier:0,layer:TIER_TOP_LAYER/);
+  assert.match(prototype,/key:'highlands',tier:1,layer:TIER_TOP_LAYER/);
+  assert.match(prototype,/key:'mountains',tier:2,layer:TIER_TOP_LAYER/);
+  assert.match(prototype,/const layersFromPriorTop=tierIndex\*LAYERS_PER_TIER;/);
+  assert.match(prototype,/return\{surface:1,highlands:index>=1\?1:0,mountains:index>=2\?1:0\};/);
+  assert.match(prototype,/const rest=tierRestOffset\(entry.tier\);/);
   assert.match(prototype,/const rest=allParallaxRestOffset\(item\);/);
+  assert.match(prototype,/geonaph_tier_0_worldbuilder_v002\.png/);
+  assert.match(prototype,/geonaph_tier_1_worldbuilder_v002\.png/);
+  assert.match(prototype,/geonaph_tier_2_worldbuilder_v002\.png/);
   assert.match(prototype,/viewerTier='all';\s*viewerLayer=9;/);
-  assert.match(interfaceRazor,/entryView=\{entryView\}.*renderer=20261001-world-home-fill-1/);
+  assert.match(interfaceRazor,/entryView=\{entryView\}.*renderer=20261001-zone-fill-endemar-2/);
 
   assert.match(mmo,/if \(tier != 0\) continue;/);
   assert.match(mmo,/JsonBool\(item, "mmoSurface", false\)/);
