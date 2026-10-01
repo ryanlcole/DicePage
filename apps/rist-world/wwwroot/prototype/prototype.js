@@ -53,9 +53,11 @@ const TIERS=Object.freeze(Array.from({length:TIER_COUNT},(_,index)=>{
   });
 }));
 const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED?[
-  Object.freeze({key:'surface',tier:0,layer:1,file:'geonaph_full_static_canonical_surface_v001.png',upscaleFile:'./upscale/geonaph_full_static_canonical_surface_v001_2x.png'}),
-  Object.freeze({key:'highlands',tier:1,layer:1,file:'geonaph_full_static_highlands_rivers_v001.png',upscaleFile:'./upscale/geonaph_full_static_highlands_rivers_v001_2x.png'}),
-  Object.freeze({key:'mountains',tier:2,layer:1,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',upscaleFile:'./upscale/geonaph_full_static_mountain_volcanic_archipelago_v001_2x.png'})
+  // The canonical Geonaph tier maps are the top surfaces of their tiers.
+  // Their scene addresses are therefore 9, 19, and 29: exactly ten layers apart.
+  Object.freeze({key:'surface',tier:0,layer:TIER_TOP_LAYER,file:'geonaph_full_static_canonical_surface_v001.png',upscaleFile:'./upscale/geonaph_full_static_canonical_surface_v001_2x.png'}),
+  Object.freeze({key:'highlands',tier:1,layer:TIER_TOP_LAYER,file:'geonaph_full_static_highlands_rivers_v001.png',upscaleFile:'./upscale/geonaph_full_static_highlands_rivers_v001_2x.png'}),
+  Object.freeze({key:'mountains',tier:2,layer:TIER_TOP_LAYER,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',upscaleFile:'./upscale/geonaph_full_static_mountain_volcanic_archipelago_v001_2x.png'})
 ]:[]);
 const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
 const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1.'+(WORLD_ID||'prototype');
