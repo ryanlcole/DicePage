@@ -14,7 +14,8 @@ from boto3.dynamodb.conditions import Key
 WORLD_ID = "shaelvien-geonaph-alpha-001"
 WORLD_PK = f"WORLD#{WORLD_ID}"
 ZONE_NAME = "Geonaph"
-ZONE_MARKER = "geonaph-east-v6-free-origin"\nENDEMAR_CLEAR_MARKER = "endemar-root-cleared-v1"
+ZONE_MARKER = "geonaph-east-v6-free-origin"
+ENDEMAR_CLEAR_MARKER = "endemar-root-cleared-v1"
 GRID_COLUMNS = 30
 GRID_ROWS = 30
 PARCEL_PIXELS = 2048
