@@ -55,11 +55,16 @@ const TIERS=Object.freeze(Array.from({length:TIER_COUNT},(_,index)=>{
 const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED?[
   // The canonical Geonaph tier maps are the top surfaces of their tiers.
   // Their scene addresses are therefore 9, 19, and 29: exactly ten layers apart.
-  Object.freeze({key:'surface',tier:0,layer:TIER_TOP_LAYER,file:'geonaph_full_static_canonical_surface_v001.png',upscaleFile:'./upscale/geonaph_full_static_canonical_surface_v001_2x.png'}),
-  Object.freeze({key:'highlands',tier:1,layer:TIER_TOP_LAYER,file:'geonaph_full_static_highlands_rivers_v001.png',upscaleFile:'./upscale/geonaph_full_static_highlands_rivers_v001_2x.png'}),
-  Object.freeze({key:'mountains',tier:2,layer:TIER_TOP_LAYER,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',upscaleFile:'./upscale/geonaph_full_static_mountain_volcanic_archipelago_v001_2x.png'})
+  Object.freeze({key:'surface',tier:0,layer:TIER_TOP_LAYER,file:'geonaph_full_static_canonical_surface_v001.png',representationFile:'../assets/perceiver/geonaph_tier_0_worldbuilder_v002.png'}),
+  Object.freeze({key:'highlands',tier:1,layer:TIER_TOP_LAYER,file:'geonaph_full_static_highlands_rivers_v001.png',representationFile:'../assets/perceiver/geonaph_tier_1_worldbuilder_v002.png'}),
+  Object.freeze({key:'mountains',tier:2,layer:TIER_TOP_LAYER,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',representationFile:'../assets/perceiver/geonaph_tier_2_worldbuilder_v002.png'})
 ]:[]);
 const BASE_LAYER_COUNT=BASE_WORLD_ASSETS.length;
+const baseWorldAssetCanonicalUrl=asset=>ASSET_ROOT+asset.file;
+const baseWorldAssetRepresentationUrl=asset=>{
+  if(!asset?.representationFile)return baseWorldAssetCanonicalUrl(asset);
+  try{return new URL(asset.representationFile,location.href).href}catch{return baseWorldAssetCanonicalUrl(asset)}
+};
 const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1.'+(WORLD_ID||'prototype');
 const UPSCALE_KEY='rist.worldbuilder.upscale.v1.'+(WORLD_ID||WORLD_SEED||'prototype');
 const tierNames=(()=>{try{return JSON.parse(localStorage.getItem(TIER_NAMES_KEY)||'{}')||{}}catch{return{}}})();
@@ -133,7 +138,7 @@ let regionClaimMaskUrl='';
 const regionWorldSourceTiles=[];
 const regionWorldTierImages=[];
 let regionWorldSourceOcean=null;
-let regionCanonicalTierImages=BASE_WORLD_ASSETS.map(asset=>ASSET_ROOT+asset.file);
+let regionCanonicalTierImages=BASE_WORLD_ASSETS.map(baseWorldAssetRepresentationUrl);
 let regionTierPreview=null,regionTierPreviewPointer=null;
 let canonicalHydrationRevision=0;
 const regionWorldLayerVisibility=Array.from({length:TIERS.length},()=>new Set(Array.from({length:10},(_,index)=>index)));
@@ -1066,8 +1071,9 @@ function updateUpscaleControl(){
 function canvasBlob(canvas){return new Promise(resolve=>canvas.toBlob(resolve,'image/png'))}
 async function buildUpscaledRepresentation(asset){
   if(upscaleCache.has(asset.key))return upscaleCache.get(asset.key);
-  const canonical=ASSET_ROOT+asset.file;
-  if(asset.upscaleFile){
+  const canonical=baseWorldAssetRepresentationUrl(asset);
+  const fallback=baseWorldAssetCanonicalUrl(asset);
+  if(asset.upscaleFile&&!asset.representationFile){
     try{
       const local=new URL(asset.upscaleFile,location.href).href;
       const probe=await fetch(local,{method:'HEAD',cache:'force-cache'});
@@ -1087,7 +1093,7 @@ async function buildUpscaledRepresentation(asset){
     const out=await canvasBlob(canvas);if(!out)throw new Error('upscale encoding failed');
     const result={url:URL.createObjectURL(out),factor,derived:true};upscaleCache.set(asset.key,result);return result;
   }catch{
-    const result={url:canonical,factor:1,derived:false,fallback:true};upscaleCache.set(asset.key,result);return result;
+    const result={url:fallback,factor:1,derived:false,fallback:true};upscaleCache.set(asset.key,result);return result;
   }
 }
 async function applyUpscalePreference(){
@@ -1095,8 +1101,12 @@ async function applyUpscalePreference(){
   recomputeMaxViewScale();
   if(!BASE_WORLD_ASSETS.length)return;
   if(!upscaleEnabled){
-    for(const asset of BASE_WORLD_ASSETS){const node=planeByKey[asset.key];node.dataset.derivedUpscale='0';node.dataset.renderFactor='1';if(node.src!==ASSET_ROOT+asset.file)node.src=ASSET_ROOT+asset.file}
-    stage.dataset.upscale='original';return;
+    for(const asset of BASE_WORLD_ASSETS){
+      const node=planeByKey[asset.key],url=baseWorldAssetRepresentationUrl(asset);
+      node.dataset.derivedUpscale='0';node.dataset.renderFactor='1';
+      if(node.src!==url)node.src=url;
+    }
+    stage.dataset.upscale='representation';return;
   }
   stage.dataset.upscale='loading';
   const results=[];
@@ -3524,12 +3534,18 @@ BASE_WORLD_ASSETS.forEach(asset=>{
     }
   });
   node.addEventListener('error',()=>{
+    const canonical=baseWorldAssetCanonicalUrl(asset);
+    if(asset.representationFile&&node.dataset.representationFallback!=='canonical'&&node.src!==canonical){
+      node.dataset.representationFallback='canonical';
+      node.src=canonical;
+      return;
+    }
     layerReady[asset.key]=false;
     if(asset.key==='surface'){loading.hidden=false;loading.textContent='WORLD MAP ASSET UNAVAILABLE'}
     renderState();
     if(REGION_DEFINER)refreshRegionTierPreview();
   });
-  node.src=ASSET_ROOT+asset.file;
+  node.src=baseWorldAssetRepresentationUrl(asset);
 });
 
 if(!BASE_WORLD_ASSETS.length){
