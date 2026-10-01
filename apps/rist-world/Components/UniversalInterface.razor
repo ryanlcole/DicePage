@@ -116,6 +116,8 @@
   @if(_stage==Stage.HistoryCampaign)
   {
    <GeonaphHistoryCampaign
+       OpeningStep="@_historyOpeningStep"
+       OpeningComplete="@HistoryOpeningComplete"
        DepthIndex="@_historyDepthIndex"
        TaskIndex="@_historyTaskIndex"
        ContextOpen="@_historyContextOpen"
@@ -1084,7 +1086,7 @@
  {
   Stage.DeedSelect=>"Y · ROOT",
   Stage.MmoMap=>"Y · MAP",
-  Stage.HistoryCampaign=>"Y · RECURSION",
+  Stage.HistoryCampaign=>HistoryOpeningComplete?"Y · RECURSION":"Y · ARRIVAL",
   Stage.PathSelect=>IsShaelvienDeedHome?"Y · BUILD":"Y · PATHS",
   Stage.ContextSelect=>"Y · BACK",
   Stage.GameMasterHub=>"Y · WORLDS",
@@ -1106,7 +1108,7 @@
   {
    Stage.DeedSelect=>"X · DEEDS",
    Stage.MmoMap=>"X · MAP",
-   Stage.HistoryCampaign=>"X · TASKS",
+   Stage.HistoryCampaign=>HistoryOpeningComplete?"X · TASKS":"X · ARRIVAL",
    Stage.PathSelect when IsShaelvienDeedHome=>"X · CONTEXT",
    Stage.ContextSelect=>"X · CONTEXT",
    Stage.GameMasterHub=>"X · OPTIONS",
@@ -1121,7 +1123,7 @@
   Stage.Role=>_selectedEnvironment,
   Stage.DeedSelect=>"GAMEMASTER",
   Stage.MmoMap=>"MMO NAVIGATION",
-  Stage.HistoryCampaign=>"HISTORY",
+  Stage.HistoryCampaign=>HistoryOpeningComplete?"HISTORY":"ACT 1 · SCENE 1",
   Stage.PathSelect=>IsShaelvienDeedHome?"BUILD":"GAMEMASTER PATH",
   Stage.ContextSelect=>"NAVIGATION",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
@@ -1147,7 +1149,7 @@
   Stage.Role=>"ROLEPLAYER",
   Stage.DeedSelect=>"SHAELVIEN",
   Stage.MmoMap=>MmoLeftValue,
-  Stage.HistoryCampaign=>HistoryAtInstance?HistoryTaskLabel:"DESCEND",
+  Stage.HistoryCampaign=>!HistoryOpeningComplete?"CONTINUE":HistoryAtInstance?HistoryTaskLabel:"DESCEND",
   Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
   Stage.ContextSelect=>"BACK",
   Stage.GameMasterScope=>CurrentScope,
@@ -1176,7 +1178,7 @@
   Stage.Role=>_selectedEnvironment,
   Stage.DeedSelect=>"DEED / ACCESS",
   Stage.MmoMap=>_mmoInspectMode?"INSPECT / DEED":"DEED / ACCESS",
-  Stage.HistoryCampaign=>"CONTEXT",
+  Stage.HistoryCampaign=>HistoryOpeningComplete?"CONTEXT":"TRAVELER",
   Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldEyebrow,
   Stage.ContextSelect=>"CONTEXT",
   Stage.GameMasterScope=>"NAVIGATION",
@@ -1198,7 +1200,7 @@
   Stage.Role=>"GAMEMASTER",
   Stage.DeedSelect=>PathWorldLabel,
   Stage.MmoMap=>MmoRightValue,
-  Stage.HistoryCampaign=>_historyContextOpen?"CLOSE CONTEXT":"CONTEXT",
+  Stage.HistoryCampaign=>!HistoryOpeningComplete?"CHARACTER":_historyContextOpen?"CLOSE CONTEXT":"CONTEXT",
   Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldLabel,
   Stage.ContextSelect=>CurrentContextSelection,
   Stage.GameMasterScope=>"BACK",
@@ -1219,9 +1221,11 @@
   Stage.Environment=>"Shared Shaelvien MMO environment.",
   Stage.Role=>"Player-facing role.",
   Stage.DeedSelect=>"Shaelvien is the GameMaster root. Choose an owned/delegated deed, developer Inspect, or Explore on the right.",
-  Stage.HistoryCampaign=>HistoryAtInstance
-   ?$"Aid the selected evidence-grounded task: {HistoryTaskLabel}. Completing gameplay never promotes a reconstruction into fact."
-   :$"Descend through the fixed historical hierarchy from {HistoryDepthLabel}.",
+  Stage.HistoryCampaign=>!HistoryOpeningComplete
+   ?HistoryOpeningPrompt
+   :HistoryAtInstance
+    ?$"Aid the selected evidence-grounded task: {HistoryTaskLabel}. Completing gameplay never promotes a reconstruction into fact."
+    :$"Descend through the fixed historical hierarchy from {HistoryDepthLabel}.",
   Stage.PathSelect=>IsShaelvienDeedHome
    ?$"World Builder edits {_selectedDeedName}. Region, Local, and Instance remain selection-first."
    :"Choose World Builder or Context.",
@@ -1253,7 +1257,9 @@
   Stage.Environment=>"Private/universal RIST environment.",
   Stage.Role=>"Enter the GameMaster selector.",
   Stage.DeedSelect=>PathWorldPrompt,
-  Stage.HistoryCampaign=>"Context shows provenance plus original language, transliteration, and translation when they actually survive.",
+  Stage.HistoryCampaign=>!HistoryOpeningComplete
+   ?"Open the universal character sheet. Only the owner-approved traveler backbone is prefilled; era-specific identity remains unresolved."
+   :"Context shows provenance plus original language, transliteration, and translation when they actually survive.",
   Stage.PathSelect=>IsShaelvienDeedHome
    ?"Open Context for the selected deed."
    :HasPathWorlds
@@ -1294,7 +1300,7 @@
  {
   Stage.DeedSelect=>"SHAELVIEN",
   Stage.MmoMap=>MmoLeftValue,
-  Stage.HistoryCampaign=>HistoryAtInstance?HistoryTaskLabel:HistoryDepthLabel,
+  Stage.HistoryCampaign=>!HistoryOpeningComplete?HistoryOpeningLabel:HistoryAtInstance?HistoryTaskLabel:HistoryDepthLabel,
   Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
   Stage.ContextSelect=>"BACK",
   Stage.GameMasterHub=>CurrentWorld,
@@ -1324,7 +1330,7 @@
    {
     Stage.DeedSelect=>PathWorldLabel,
     Stage.MmoMap=>MmoRightValue,
-    Stage.HistoryCampaign=>_historyContextOpen?"CLOSE CONTEXT":"CONTEXT",
+    Stage.HistoryCampaign=>!HistoryOpeningComplete?"CHARACTER":_historyContextOpen?"CLOSE CONTEXT":"CONTEXT",
     Stage.PathSelect=>IsShaelvienDeedHome?"CONTEXT":PathWorldLabel,
     Stage.ContextSelect=>CurrentContextSelection,
     Stage.GameMasterHub=>CurrentSetting,
@@ -1337,7 +1343,7 @@
  {
   Stage.DeedSelect=>"TOUCH · SHAELVIEN",
   Stage.MmoMap=>MmoLeftPrompt,
-  Stage.HistoryCampaign=>HistoryAtInstance?"SLIDE ↔ · TOUCH AID":"TOUCH · DESCEND",
+  Stage.HistoryCampaign=>!HistoryOpeningComplete?"TOUCH · CONTINUE":HistoryAtInstance?"SLIDE ↔ · TOUCH AID":"TOUCH · DESCEND",
   Stage.PathSelect=>IsShaelvienDeedHome?"TOUCH · BUILD":"SLIDE ↑↓ · TOUCH PATH",
   Stage.ContextSelect=>"TOUCH · BACK",
   Stage.GameMasterHub=>"TOUCH · SELECT WORLD",
@@ -1366,7 +1372,7 @@
    {
     Stage.DeedSelect=>PathWorldPrompt,
     Stage.MmoMap=>MmoRightPrompt,
-    Stage.HistoryCampaign=>_historyContextOpen?"TOUCH · CLOSE":"TOUCH · OPEN",
+    Stage.HistoryCampaign=>!HistoryOpeningComplete?"TOUCH · CHARACTER":_historyContextOpen?"TOUCH · CLOSE":"TOUCH · OPEN",
     Stage.PathSelect=>IsShaelvienDeedHome?"TOUCH · OPEN":PathWorldPrompt,
     Stage.ContextSelect=>"SLIDE ↔ · TOUCH OPEN",
     Stage.GameMasterHub=>"TOUCH · OPEN OPTION",
