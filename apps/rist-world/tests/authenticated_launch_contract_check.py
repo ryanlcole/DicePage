@@ -161,10 +161,11 @@ def main() -> None:
     require(perceiver_player, "Tier 1 + Tier 2 + Tier 3", "Perceiver proof must include the all-tier state")
     require(perceiver_player, "deviceorientation", "Perceiver must react to device tilt when permission is available")
 
-    # One universal World Builder. Geonaph differs only by seed data.
+    # One universal World Builder. The Shaelvien root uses Endemar as its authored
+    # seed while Geonaph remains a distinct deed/zone with its own truth boundary.
     require(router, '<WorldBuilderGeonaphHost OnStartMenu="OnStartMenu" OnHome="OnHome" />', "all worlds must use the universal builder host and return Home without reloading Press Start")
     forbid(router, '<WorldBuilderStudio OnStartMenu="OnStartMenu" />', "normal worlds must not route to a second builder")
-    require(host, 'var seed=Session.IsGeonaphWorld?"geonaph":"empty";', "Geonaph may differ only by seed data")
+    require(host, 'var seed=Session.IsGeonaphWorld?"endemar":"empty";', "Shaelvien root must seed Endemar without collapsing Geonaph into it")
     require(host, "worldId={worldId}", "builder must receive selected world identity")
 
     # Ticker is world-scoped and absent before world choice.
