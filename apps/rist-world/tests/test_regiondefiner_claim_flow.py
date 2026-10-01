@@ -20,7 +20,9 @@ def test_region_gate_exposes_new_or_claim_from_trusted_database_authority():
 def test_region_definer_uses_selected_world_source_and_scoped_region_authority():
     workspace = text("Components/RegionDefinerWorkspace.razor")
     assert 'source="database"' in workspace
-    assert 'var seed=Session.IsGeonaphWorld?"geonaph":"empty";' in workspace
+    assert 'var seed=Session.IsGeonaphWorld&&string.IsNullOrWhiteSpace(activeRegion?.ParcelId)?"geonaph":"empty";' in workspace
+    assert "an MMO parcel is" in workspace
+    assert "distinct zone" in workspace
     assert "await Session.LoadWorldBuilderSourceAsync()" in workspace
     assert "state=databaseSource?.State" in workspace
     assert "Session.CanEditRegion(activeRegion)" in workspace
