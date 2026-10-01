@@ -34,7 +34,13 @@
   const CURSOR_GAMEPAD_DEAD_ZONE = 0.14;
   const CURSOR_MAX_SPEED = 86;
   const CURSOR_SYNC_MS = 120;
+  const SCALE_REPEAT_DELAY_MS = 360;
+  const SCALE_REPEAT_INTERVAL_MS = 86;
   const axisState = { x: 0, y: 0 };
+  const axisRepeatState = {
+    x: { started: 0, last: 0 },
+    y: { started: 0, last: 0 }
+  };
 
   function activeGamepad() {
     const pads = navigator.getGamepads?.() || [];
@@ -191,19 +197,42 @@
 
   // Snapping controller: emit once when an axis enters a direction.
   // Re-centering arms that axis for another page snap.
-  function processAxis(name, dir) {
+  function scaleHoldRepeatEnabled(name) {
+    if (name !== "y") return false;
+    const shell = analog?.closest?.(".universal-shell");
+    return shell?.dataset?.semanticContext === "shaep.scale";
+  }
+
+  function processAxis(name, dir, now = performance.now()) {
+    const repeat = axisRepeatState[name];
     if (!dir) {
       axisState[name] = 0;
+      repeat.started = 0;
+      repeat.last = 0;
       return;
     }
-    if (axisState[name] === dir) return;
-    axisState[name] = dir;
-    invoke(name, dir);
+    if (axisState[name] !== dir) {
+      axisState[name] = dir;
+      repeat.started = now;
+      repeat.last = now;
+      invoke(name, dir);
+      return;
+    }
+    if (
+      scaleHoldRepeatEnabled(name) &&
+      now - repeat.started >= SCALE_REPEAT_DELAY_MS &&
+      now - repeat.last >= SCALE_REPEAT_INTERVAL_MS
+    ) {
+      repeat.last = now;
+      invoke(name, dir);
+    }
   }
 
   function resetAxisState() {
     axisState.x = 0;
     axisState.y = 0;
+    axisRepeatState.x.started = axisRepeatState.x.last = 0;
+    axisRepeatState.y.started = axisRepeatState.y.last = 0;
   }
 
   function setKnob(nx, ny) {
@@ -481,8 +510,8 @@
         ? { x: pointerX, y: pointerY }
         : gamepadVector(gamepad);
 
-      processAxis("x", vector.x);
-      processAxis("y", vector.y);
+      processAxis("x", vector.x, now);
+      processAxis("y", vector.y, now);
     } else {
       resetAxisState();
 

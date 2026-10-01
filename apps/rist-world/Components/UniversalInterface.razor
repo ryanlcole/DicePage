@@ -328,6 +328,7 @@
   {
    <nav class="viewer-menu-bar" role="toolbar" aria-label="Viewer editing and navigation">
     <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("back")' aria-label="Back">BACK</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("world-home")' aria-label="World Home — show all layers and parallax">WORLD HOME</button>
     <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("undo")' aria-label="Undo">UNDO</button>
     <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("cut")' aria-label="Cut selected item">CUT</button>
     <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("copy")' aria-label="Copy selected item">COPY</button>
@@ -529,6 +530,7 @@
   SpatialSelect,
   SoftwareHub,
   ControlSettings,
+  WorldHome,
   WorldBuilderTier,
   WorldBuilderLayer,
   ArtMethod,
@@ -579,6 +581,8 @@
  double _cursorY;
  string _analogPlacement="center";
  int _analogPlacementDraft=1;
+ const double MinAssetScale=.01;
+ const double MaxAssetScale=20;
  double _assetScale=1;
  int _assetRotation;
  int _assetX;
@@ -1010,7 +1014,7 @@
    // The MMO deed map owns its separate Tier-0-only performance representation.
    // Explicit Tier/Layer selection later isolates editing depth via setExternalDepth.
    var entryView=access=="edit"?"all-parallax":"saved";
-   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&entryView={entryView}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20261001-full-frame-parallax-1";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&entryView={entryView}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20261001-world-home-fill-1";
   }
  }
  bool IsPathDrivenStage=>!IsDeedContextNode&&_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
@@ -1037,6 +1041,7 @@
   Stage.SpatialSelect=>SpatialOptionCount,
   Stage.SoftwareHub=>SoftwareCapabilities.Length,
   Stage.ControlSettings=>SemanticSettingFields.Length,
+  Stage.WorldHome=>1,
   Stage.WorldBuilderTier=>10,
   Stage.WorldBuilderLayer=>100,
   Stage.ArtMethod=>ArtMethods.Length,
@@ -1089,7 +1094,7 @@
  bool IsDepthStage=>_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
  bool IsAssetTransformStage=>_stage is Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel;
  bool IsBuilderStage=>IsDepthStage
-  ||_stage is Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.AssetKind or Stage.AssetMode or Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel or Stage.FullMapReview
+  ||_stage is Stage.WorldHome or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.AssetKind or Stage.AssetMode or Stage.BrowsePlace or Stage.Scale or Stage.Rotate or Stage.Move or Stage.SaveCancel or Stage.FullMapReview
   ||(_stage==Stage.KnowledgeNode&&!IsDeedContextNode);
  bool HasSavedViewer=>_savedAssets.Count>0;
  int VisibleGlassSheets=>Math.Clamp(_layer+1,1,8);
@@ -1106,6 +1111,7 @@
   Stage.GameMasterScope=>"Y · SUITES",
   Stage.SpatialSelect=>$"Y · {CurrentBuilderScope}",
   Stage.SoftwareHub=>"Y · CAPABILITIES",
+  Stage.WorldHome=>"Y · HOME",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"Y · DEPTH",
   Stage.ArtMethod or Stage.ArtPhase or Stage.AssetKind=>"Y · A/V",
   Stage.Scale=>"Y · SCALE",
@@ -1142,6 +1148,7 @@
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
   Stage.SpatialSelect=>$"SELECT {CurrentBuilderScope}",
   Stage.ControlSettings=>SemanticSettingField,
+  Stage.WorldHome=>"WORLD HOME",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"DEPTH",
   Stage.ArtMethod=>"A/V METHOD",
   Stage.ArtPhase=>CurrentArtMethod,
@@ -1167,6 +1174,7 @@
   Stage.ContextSelect=>"BACK",
   Stage.GameMasterScope=>CurrentScope,
   Stage.SpatialSelect=>CurrentSpatialSelectionLabel,
+  Stage.WorldHome=>"CHOOSE TIER",
   Stage.ControlSettings=>"BACK",
   Stage.WorldBuilderTier=>$"TIER {_tier}",
   Stage.WorldBuilderLayer=>$"LAYER {_layer}",
@@ -1219,6 +1227,7 @@
   Stage.GameMasterScope=>"BACK",
   Stage.SpatialSelect=>"BACK",
   Stage.ControlSettings=>"SAVE",
+  Stage.WorldHome=>"CONTEXT",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>CurrentPathTarget,
   Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind=>CurrentPathTarget,
   Stage.AssetMode=>"ADD",
@@ -1248,6 +1257,7 @@
    ?$"Create a new {CurrentBuilderScope.ToLowerInvariant()} inside the selected parent. Editing depth stays locked until the object is selected."
    :$"Select {CurrentSpatialSelectionLabel}. Editing Tier and Layer remains locked until selection is explicit.",
   Stage.ControlSettings=>"Move the analog left, center, or right of the two display buttons.",
+  Stage.WorldHome=>"All authored world layers are visible together in parallax. Touch Choose Tier when you are ready to isolate editing depth.",
   Stage.WorldBuilderTier=>"Y pages through tiers. Touch the left display to select the shown tier.",
   Stage.WorldBuilderLayer=>"Y pages through layers. Touch the left display to select the shown layer, then choose an art method.",
   Stage.ArtMethod=>"Left is the A/V rail: Draw, CAD, Images, Sprite, Audio, or Video.",
@@ -1257,7 +1267,7 @@
   Stage.AssetKind=>"Y pages Game, My, and Upload sources. Touch the left display to open the shown source.",
   Stage.AssetMode=>"Choose an existing asset to transform.",
   Stage.BrowsePlace=>"Tap an asset once to select it. Tap it again to place it. With the cursor, press the analog once to select and again to place.",
-  Stage.Scale=>"Y changes preview size without changing asset identity.",
+  Stage.Scale=>"Y resizes from Fill Zone down to 1% or up to 2000% without changing asset identity. Hold Y to keep reducing or increasing.",
   Stage.Rotate=>"X changes preview rotation.",
   Stage.Move=>"X/Y move the preview representation.",
   Stage.SaveCancel=>"Save commits the representation and opens the full-map recursive review.",
@@ -1318,6 +1328,7 @@
   Stage.ContextSelect=>"BACK",
   Stage.GameMasterHub=>CurrentWorld,
   Stage.SpatialSelect=>CurrentSpatialSelectionLabel,
+  Stage.WorldHome=>"CHOOSE TIER",
   Stage.SoftwareHub=>CurrentSoftware,
   Stage.ControlSettings=>"BACK",
   Stage.ArtMethod=>CurrentArtMethod,
@@ -1325,7 +1336,7 @@
   Stage.ArtWork=>$"SAVE {CurrentArtPhase}",
   Stage.KnowledgeNode=>"ADD ENTRY",
   Stage.AssetKind=>CurrentAssetSource,
-  Stage.Scale=>$"{_assetScale:0.00}×",
+  Stage.Scale=>AssetScaleLabel,
   _=>LeftLabel
  };
 
@@ -1363,6 +1374,7 @@
   Stage.SpatialSelect=>SpatialOptionIsNew?$"TOUCH · CREATE {CurrentBuilderScope}":"TOUCH · SELECT",
   Stage.SoftwareHub=>"TOUCH · SELECT TOOL",
   Stage.ControlSettings=>"SLIDE ↑↓ · TOUCH BACK",
+  Stage.WorldHome=>"TOUCH · TIERS",
   Stage.ArtMethod=>"SLIDE ↑↓ · TOUCH METHOD",
   Stage.ArtPhase=>"TOUCH · OPEN WORKBENCH",
   Stage.ArtWork=>"TOUCH · SAVE PASS",
@@ -1410,6 +1422,7 @@
   Stage.SpatialSelect=>$"{CurrentBuilderScope} · SELECT BEFORE EDIT",
   Stage.SoftwareHub=>"SOFTWARE CAPABILITY ADAPTERS",
   Stage.ControlSettings=>$"CONTROLS · {SemanticSettingField}",
+  Stage.WorldHome=>$"{CurrentBuilderSuite} · WORLD HOME",
   Stage.WorldBuilderTier=>$"{CurrentBuilderSuite} · TIER",
   Stage.WorldBuilderLayer=>$"{CurrentBuilderSuite} · LAYER",
   Stage.ArtMethod=>$"{CurrentBuilderSuite} · SELECT ART METHOD",
@@ -1419,7 +1432,7 @@
   Stage.AssetKind=>$"{CurrentBuilderSuite} · {_assetKind} SOURCE",
   Stage.AssetMode=>$"{CurrentBuilderSuite} · {_assetKind}",
   Stage.BrowsePlace=>$"{_assetSource} · {_assetKind}",
-  Stage.Scale=>$"{_assetKind} · SCALE {_assetScale:0.00}×",
+  Stage.Scale=>$"{_assetKind} · SCALE {AssetScaleLabel}",
   Stage.Rotate=>$"{_assetKind} · ROTATE {_assetRotation}°",
   Stage.Move=>$"{_assetKind} · MOVE {_assetX},{_assetY}",
   Stage.SaveCancel=>$"{_assetKind} · READY",
@@ -1440,6 +1453,7 @@
   Stage.SpatialSelect=>string.IsNullOrWhiteSpace(CurrentSpatialBreadcrumb)?$"GAMEMASTER → {CurrentBuilderScope}":$"{CurrentSpatialBreadcrumb} → SELECT {CurrentBuilderScope}",
   Stage.SoftwareHub=>"GAMEMASTER → SOFTWARE",
   Stage.ControlSettings=>"GAMEMASTER → CONTROLS",
+  Stage.WorldHome=>$"{CurrentEditContextPath} → WORLD HOME",
   Stage.WorldBuilderTier=>$"{CurrentEditContextPath} → TIER",
   Stage.WorldBuilderLayer=>$"{CurrentEditContextPath} → LAYER",
   Stage.ArtMethod=>$"{CurrentEditContextPath} → A/V METHOD",
@@ -1468,7 +1482,11 @@
  }
 
   string ReticleStyle=>$"left:{50+(_cursorX*.45):0.##}%;top:{50-(_cursorY*.45):0.##}%;";
- string AssetPreviewStyle=>$"left:calc(50% + {_assetX}px);top:calc(50% + {_assetY}px);transform:translate(-50%,-50%) scale({_assetScale:0.00}) rotate({_assetRotation}deg);";
+ bool AssetScaleUsesZoneBasis=>CurrentBuilderScope=="WORLD";
+ string AssetScaleLabel=>AssetScaleUsesZoneBasis
+  ?(Math.Abs(_assetScale-1)<.0005?"FILL ZONE":$"{_assetScale*100:0.#}% ZONE")
+  :$"{_assetScale:0.00}×";
+ string AssetPreviewStyle=>$"left:calc(50% + {_assetX}px);top:calc(50% + {_assetY}px);transform:translate(-50%,-50%) scale({_assetScale:0.####}) rotate({_assetRotation}deg);";
 
  string GlassSheetStyle(int sheet)
  {
@@ -1626,6 +1644,9 @@
     _assetSourceIndex=Wrap(_assetSourceIndex+direction,AssetSources.Length);
     _message=$"{_assetKind} source: {CurrentAssetSource}.";
     break;
+   case Stage.WorldHome:
+    _message="World Home keeps every authored layer visible. Touch Choose Tier to begin editing depth.";
+    break;
    case Stage.WorldBuilderTier:
     _tier=Math.Clamp(_tier+direction,0,9);
     _=SyncWorldBuilderDepthAsync();
@@ -1637,8 +1658,7 @@
     _message=$"Layer {_layer}. The embedded canonical viewer is following this layer.";
     break;
    case Stage.Scale:
-    _assetScale=Math.Clamp(_assetScale+(direction*.1),.25,4);
-    _message=$"Preview scale {_assetScale:0.00}×.";
+    AdjustAssetScale(direction);
     break;
    case Stage.Move:
     _assetY=Math.Clamp(_assetY-(direction*8),-160,160);
@@ -1781,6 +1801,10 @@
    case Stage.ControlSettings:
     GoBack();
     break;
+   case Stage.WorldHome:
+    _stage=Stage.WorldBuilderTier;
+    _message="Choose a Tier. World Home remains the all-layer parallax overview until a tier is selected.";
+    break;
    case Stage.ArtMethod:
     SelectArtMethod();
     break;
@@ -1830,8 +1854,17 @@
      }
 
      ResetAssetTransform();
-     _stage=Stage.ArtMethod;
-     _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. {CurrentArtMethod} remains selected.";
+     if(savedScope=="WORLD")
+     {
+      _stage=Stage.WorldHome;
+      await ShowAllWorldLayersAsync();
+      _message=$"Saved {_assetKind.ToLowerInvariant()} at World Tier {savedTier}, Layer {savedLayer}. Returned to World Home with all layers and parallax visible.";
+     }
+     else
+     {
+      _stage=Stage.ArtMethod;
+      _message=$"Saved {_assetKind.ToLowerInvariant()} at {savedScope} Tier {savedTier}, Layer {savedLayer}. {CurrentArtMethod} remains selected.";
+     }
      await InvokeAsync(StateHasChanged);
      break;
     }
@@ -1839,6 +1872,10 @@
     _stage=Stage.GameMasterScope;
     _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
     _message="Returned to the GameMaster Suite. Choose World Builder, Region Definer, Local, or Instance.";
+    break;
+   case Stage.WorldHome:
+    _stage=Stage.WorldBuilderTier;
+    _message="Choose a Tier. Slide Y, then touch the left display to select it.";
     break;
    case Stage.WorldBuilderTier:
     _stage=Stage.WorldBuilderLayer;
@@ -1855,7 +1892,7 @@
     break;
    case Stage.Scale:
     _stage=Stage.Rotate;
-    _message=$"Scale {_assetScale:0.00}× selected. Use X to rotate; touch the left display to continue.";
+    _message=$"Size {AssetScaleLabel} selected. Use X to rotate; touch the left display to continue.";
     break;
    case Stage.Rotate:
     _stage=Stage.Move;
@@ -1943,11 +1980,17 @@
     _stage=Stage.GameMasterHub;
     _message="Analog placement unchanged.";
     break;
+   case Stage.WorldHome:
+    _stage=Stage.PathSelect;
+    _pathIndex=0;
+    _message=$"Returned to {_selectedDeedName}.";
+    break;
    case Stage.WorldBuilderTier:
     if(CurrentBuilderScope=="WORLD")
     {
-     _stage=Stage.GameMasterScope;
-     _message="Returned to the GameMaster suite selector.";
+     _stage=Stage.WorldHome;
+     _=ShowAllWorldLayersAsync();
+     _message="Returned to World Home with all layers and parallax visible.";
     }
     else
     {
@@ -2006,7 +2049,7 @@
     break;
    case Stage.Rotate:
     _stage=Stage.Scale;
-    _message=$"Returned to scale {_assetScale:0.00}×.";
+    _message=$"Returned to size {AssetScaleLabel}.";
     break;
    case Stage.Move:
     _stage=Stage.Rotate;
@@ -2436,8 +2479,8 @@
 
   if(CurrentBuilderScope=="WORLD")
   {
-   _stage=Stage.WorldBuilderTier;
-   _message="World selected. All world layers are shown in parallax; choose a Tier to isolate its editing depth.";
+   _stage=Stage.WorldHome;
+   _message="World Home. All authored layers are shown together in parallax; choose Tier when you are ready to edit depth.";
    _=ShowAllWorldLayersAsync();
    return;
   }
@@ -2619,25 +2662,7 @@
   }
  }
 
- bool SelectedAssetUsesFullDeedFrame
- {
-  get
-  {
-   if(_assetKind!="IMAGE"||CurrentBuilderScope!="WORLD")return false;
-   var marker=$"{_selectedAssetKey} {SelectedAssetName} {SelectedAssetUrl}".Replace("\\","/").ToLowerInvariant();
-   return marker.Contains("/whole_maps/")
-    ||marker.Contains("/whole-maps/")
-    ||marker.Contains("whole_maps")
-    ||marker.Contains("whole-maps")
-    ||marker.Contains("full_static")
-    ||marker.Contains("full-static")
-    ||marker.Contains("full static")
-    ||marker.Contains("world_map")
-    ||marker.Contains("world-map")
-    ||marker.Contains("canonical_surface")
-    ||marker.Contains("canonical-surface");
-  }
- }
+ bool SelectedAssetUsesFullDeedFrame=>CurrentBuilderScope=="WORLD";
 
  void SelectGameAsset(string key)=>ActivateAssetFromBrowser(key);
 
@@ -2659,9 +2684,12 @@
  void BeginSelectedAssetPlacement()
  {
   if(string.IsNullOrWhiteSpace(_selectedAssetKey))return;
+  ResetAssetTransform();
   _browseCursorActive=false;
   _stage=Stage.Scale;
-  _message=$"{SelectedAssetName} ready to place. Use Y or slide the left display to set scale.";
+  _message=AssetScaleUsesZoneBasis
+   ?$"{SelectedAssetName} starts at Fill Zone. Hold Y to reduce or enlarge it, down to 1% of the zone."
+   :$"{SelectedAssetName} ready to place. Hold Y or slide the left display to set scale.";
  }
 
  async Task LoadMyAssetsAsync()
@@ -2840,6 +2868,20 @@
    _message="Canonical placement failed. This asset was not reported as saved.";
    return false;
   }
+ }
+
+ async Task OpenWorldHomeAsync(string? message=null)
+ {
+  _builderChainIndex=0;
+  _requestedBuilderChainIndex=0;
+  _assetScope="WORLD";
+  _tier=0;
+  _layer=0;
+  _browseCursorActive=false;
+  _stage=Stage.WorldHome;
+  await ShowAllWorldLayersAsync();
+  _message=message??"World Home. All authored layers and parallax are visible. Choose Tier to isolate editing depth.";
+  await InvokeAsync(StateHasChanged);
  }
 
  async Task ShowAllWorldLayersAsync()
@@ -3144,6 +3186,19 @@
   try{await JS.InvokeVoidAsync("localStorage.setItem",AnalogPlacementStorageKey,_analogPlacement);}catch{}
  }
 
+ void AdjustAssetScale(int direction)
+ {
+  direction=Math.Sign(direction);
+  if(direction==0)return;
+  const double factor=1.08;
+  var next=direction>0?_assetScale*factor:_assetScale/factor;
+  if(direction>0&&_assetScale<1&&next>1)next=1;
+  if(direction<0&&_assetScale>1&&next<1)next=1;
+  _assetScale=Math.Clamp(Math.Round(next,4),MinAssetScale,MaxAssetScale);
+  if(_assetScale<=MinAssetScale*1.01)_assetScale=MinAssetScale;
+  _message=$"Preview size {AssetScaleLabel}. Hold Y to keep resizing.";
+ }
+
  void ResetAssetTransform()
  {
   _assetScale=1;
@@ -3223,7 +3278,7 @@
   }
   // Restoring navigation to the WORLD tier picker is an overview operation,
   // not an implicit Tier 0 / Layer 0 selection.
-  if(_stage==Stage.WorldBuilderTier&&CurrentBuilderScope=="WORLD")
+  if(_stage==Stage.WorldHome||(_stage==Stage.WorldBuilderTier&&CurrentBuilderScope=="WORLD"))
    await ShowAllWorldLayersAsync();
   else
    await SyncWorldBuilderDepthAsync();
@@ -3255,6 +3310,7 @@
  {
   command=(command??"").Trim().ToLowerInvariant();
   if(command=="back"){await NavigateViewerBackAsync();return;}
+  if(command=="world-home"){await OpenWorldHomeAsync();return;}
   if(command=="forward"){await NavigateViewerForwardAsync();return;}
 
   if(_worldBuilderSourceModule is null)

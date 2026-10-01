@@ -2767,7 +2767,7 @@ body.rist-viewer-overlays-off .universal-shell .viewer-readout{
  left:8px!important;
  right:8px!important;
  display:grid!important;
- grid-template-columns:repeat(7,minmax(0,1fr))!important;
+ grid-template-columns:repeat(8,minmax(0,1fr))!important;
  gap:3px!important;
  box-sizing:border-box!important;
  padding:3px!important;

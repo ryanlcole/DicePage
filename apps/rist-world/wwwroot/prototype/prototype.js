@@ -1160,11 +1160,14 @@ function adjustSelectedSize(direction){
   if(READ_ONLY)return;
   if(!selectedImage)return;
   if(isWorldMapItem(selectedImage)){announce('World Map always fills 100% by 100% of the world.');return}
-  const current=Math.max(.2,Number(selectedImage.size)||1);
-  const step=current<2?.1:current<6?.25:.5;
-  selectedImage.size=clamp(current+(Math.sign(direction||1)*step),.2,20);
+  const current=Math.max(.01,Number(selectedImage.size)||1);
+  const factor=1.08;
+  let next=Math.sign(direction||1)>0?current*factor:current/factor;
+  if(direction>0&&current<1&&next>1)next=1;
+  if(direction<0&&current>1&&next<1)next=1;
+  selectedImage.size=clamp(Math.round(next*10000)/10000,.01,20);
   refreshUserImage(selectedImage);scheduleRegionEnhancement(20);renderKeyboardKeys();
-  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} size ${selectedImage.size.toFixed(selectedImage.size<2?1:2)}.`);
+  announce(`${selectedImage.kind==='sprite'?'Sprite':'Image'} size ${selectedImage.size===1?'Fill Zone':Math.round(selectedImage.size*1000)/10+'% Zone'}.`);
 }
 function moveSelectedTier(delta){
   if(READ_ONLY)return;
@@ -1513,11 +1516,15 @@ function refreshUserImage(item){
   }
   if(isFullDeedFrameItem(item)){
     const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
+    const itemX=Number.isFinite(Number(item.x))?Number(item.x):.5;
+    const itemY=Number.isFinite(Number(item.y))?Number(item.y):.5;
+    const offsetX=(itemX-.5)*naturalWidth,offsetY=(itemY-.5)*naturalHeight;
+    const size=clamp(Number(item.size)||1,.01,20);
     item.node.style.left='0';item.node.style.top='0';item.node.style.width='100%';item.node.style.height='100%';
     item.node.style.maxWidth='none';item.node.style.maxHeight='none';item.node.style.objectFit='contain';
     item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item?'none':'auto');
     item.node.style.transformOrigin='50% 50%';
-    item.node.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`;return;
+    item.node.style.transform=`translate3d(${(offsetX+px).toFixed(2)}px,${(offsetY+py).toFixed(2)}px,0) rotate(${Number(item.rotation)||0}deg) scale(${size})`;return;
   }
   item.node.style.width='12%';item.node.style.height='auto';item.node.style.maxWidth='';item.node.style.maxHeight='';item.node.style.objectFit='';
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
@@ -3754,7 +3761,10 @@ async function placeExternalAsset(raw={}){
     }
   }
   const center=viewerCenterPosition(),px=Number(raw.offsetX)||0,py=Number(raw.offsetY)||0;
-  const point=fullDeedFrame?{x:.5,y:.5}:snapAssetPoint(
+  const point=fullDeedFrame?{
+    x:.5+(px/(Math.max(scale,.00001)*Math.max(naturalWidth,1))),
+    y:.5+(py/(Math.max(scale,.00001)*Math.max(naturalHeight,1)))
+  }:snapAssetPoint(
     center.x+(px/(Math.max(scale,.00001)*Math.max(naturalWidth,1))),
     center.y+(py/(Math.max(scale,.00001)*Math.max(naturalHeight,1)))
   );
@@ -3767,9 +3777,9 @@ async function placeExternalAsset(raw={}){
     libraryTile:false,sourceLocked:false,regionOverlay:false,regionId,
     placementRole:fullDeedFrame?'deed-frame':'layer',fullWorld:false,fullDeedFrame,
     mmoSurface:geonaphSeaLevelMap,representationOnly:geonaphSeaLevelMap,semanticRole:geonaphSeaLevelMap?'sea-level-map':'',
-    frameLock:fullDeedFrame,originalSrc:src,transparentSrc:src,transparent:!geonaphSeaLevelMap,
-    x:point.x,y:point.y,tier,layer,size:fullDeedFrame?1:clamp(Number(raw.scale)||1,.05,20),
-    rotation:fullDeedFrame?0:(Number(raw.rotation)||0),opacity:1,committed:false,renderOpacity:1,
+    frameLock:geonaphSeaLevelMap,originalSrc:src,transparentSrc:src,transparent:!geonaphSeaLevelMap,
+    x:point.x,y:point.y,tier,layer,size:clamp(Number(raw.scale)||1,.01,20),
+    rotation:geonaphSeaLevelMap?0:(Number(raw.rotation)||0),opacity:1,committed:false,renderOpacity:1,
     zoomPassed:false,zoomPassScale:null,node:null
   };
   const node=document.createElement('img');node.className=`user-image-placement${fullDeedFrame?' full-deed-frame-placement':''}`;node.alt=item.name;node.draggable=false;item.node=node;

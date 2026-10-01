@@ -81,14 +81,45 @@ def test_whole_map_assets_keep_one_deed_frame_across_tiers():
     assert "raw?.fullFrame===true||looksLikeWholeMapAsset(raw)" in prototype
     assert "const fullDeedFrame=geonaphSeaLevelMap||raw.fullFrame===true||looksLikeWholeMapAsset" in prototype
     assert "placementRole:fullDeedFrame?'deed-frame':'layer'" in prototype
-    assert "size:fullDeedFrame?1:" in prototype
-    assert "rotation:fullDeedFrame?0:" in prototype
-    assert "bool SelectedAssetUsesFullDeedFrame" in controller
+    assert "size:clamp(Number(raw.scale)||1,.01,20)" in prototype
+    assert "rotation:geonaphSeaLevelMap?0:" in prototype
+    assert "frameLock:geonaphSeaLevelMap" in prototype
+    assert "scale(${size})" in prototype
+    assert 'bool SelectedAssetUsesFullDeedFrame=>CurrentBuilderScope=="WORLD";' in controller
     assert "fullFrame=SelectedAssetUsesFullDeedFrame" in controller
 
 
 def test_returning_to_endemar_home_restores_fitted_parallax_overview():
     controller = text("Components/UniversalInterface.razor")
 
-    assert 'renderer=20261001-full-frame-parallax-1' in controller
+    assert 'renderer=20261001-world-home-fill-1' in controller
     assert controller.count("_=ShowAllWorldLayersAsync();") >= 3
+
+
+def test_world_home_precedes_tier_and_save_returns_to_overview():
+    controller = text("Components/UniversalInterface.razor")
+    css = text("wwwroot/css/universal-interface.css")
+
+    assert "WorldHome," in controller
+    assert 'HandleViewerMenuCommandAsync("world-home")' in controller
+    assert ">WORLD HOME</button>" in controller
+    assert 'Stage.WorldHome=>"CHOOSE TIER"' in controller
+    assert 'Stage.WorldHome=>$"{CurrentBuilderSuite} · WORLD HOME"' in controller
+    assert 'if(command=="world-home"){await OpenWorldHomeAsync();return;}' in controller
+    assert 'if(savedScope=="WORLD")' in controller
+    assert 'Returned to World Home with all layers and parallax visible.' in controller
+    assert "grid-template-columns:repeat(8,minmax(0,1fr))!important;" in css
+
+
+def test_zone_fill_resize_reaches_one_percent_and_repeats_on_hold():
+    controller = text("Components/UniversalInterface.razor")
+    prototype = text("wwwroot/prototype/prototype.js")
+    universal_input = text("wwwroot/universal-interface-input.js")
+
+    assert "const double MinAssetScale=.01;" in controller
+    assert 'Math.Abs(_assetScale-1)<.0005?"FILL ZONE"' in controller
+    assert "Hold Y to keep resizing." in controller
+    assert "selectedImage.size=clamp(Math.round(next*10000)/10000,.01,20);" in prototype
+    assert 'shell?.dataset?.semanticContext === "shaep.scale"' in universal_input
+    assert "SCALE_REPEAT_DELAY_MS" in universal_input
+    assert "SCALE_REPEAT_INTERVAL_MS" in universal_input
