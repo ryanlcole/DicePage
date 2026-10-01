@@ -1,0 +1,79 @@
+name: Deploy Geonaph Tier Hotfix
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - '.github/workflows/deploy-geonaph-tier-hotfix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  FRONTEND_STACK: rist-frontend
+  ASSET_ROOT: https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph/
+
+jobs:
+  verify-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify Geonaph viewer hotfix only
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/rist-world/wwwroot/prototype/prototype.js
+          python -m pip install --disable-pip-version-check pytest
+          python -m pytest -q apps/rist-world/tests/test_endemar_geonaph_zone_depth.py
+          node --test             --test-name-pattern="World Builder shows the full Geonaph tier-layer stack while MMO stays flattened"             apps/rist-world/tests/canonical-viewer-geonaph-history.test.cjs
+
+          for file in             geonaph_full_static_canonical_surface_v002.png             geonaph_full_static_highlands_rivers_v002.png             geonaph_full_static_mountain_volcanic_archipelago_v002.png; do
+            curl --fail --location --retry 6 --retry-delay 3 --output /dev/null "${ASSET_ROOT}${file}"
+          done
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish only Geonaph prototype renderer files
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUCKET=$(aws cloudformation describe-stacks             --stack-name "$FRONTEND_STACK"             --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue | [0]"             --output text)
+          DIST=$(aws cloudformation describe-stacks             --stack-name "$FRONTEND_STACK"             --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue | [0]"             --output text)
+          URL=$(aws cloudformation describe-stacks             --stack-name "$FRONTEND_STACK"             --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue | [0]"             --output text)
+          test -n "$BUCKET" && test "$BUCKET" != "None"
+          test -n "$DIST" && test "$DIST" != "None"
+          URL="${URL%/}/"
+
+          aws s3 cp apps/rist-world/wwwroot/prototype/prototype.js             "s3://$BUCKET/Game/prototype/prototype.js"             --content-type 'text/javascript; charset=utf-8'             --cache-control 'no-cache,no-store,must-revalidate'             --only-show-errors
+
+          aws s3 cp apps/rist-world/wwwroot/prototype/prototype.css             "s3://$BUCKET/Game/prototype/prototype.css"             --content-type 'text/css; charset=utf-8'             --cache-control 'no-cache,no-store,must-revalidate'             --only-show-errors
+
+          INVALIDATION=$(aws cloudfront create-invalidation             --distribution-id "$DIST"             --paths '/Game/prototype/prototype.js' '/Game/prototype/prototype.css'             --query Invalidation.Id --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
+
+          curl --fail --location --retry 8 --retry-delay 3             --output /tmp/live-prototype.js "${URL}Game/prototype/prototype.js"
+          curl --fail --location --retry 8 --retry-delay 3             --output /tmp/live-prototype.css "${URL}Game/prototype/prototype.css"
+
+          grep -q "layer:TIER_TOP_LAYER" /tmp/live-prototype.js
+          grep -q "geonaph_full_static_canonical_surface_v002.png" /tmp/live-prototype.js
+          grep -q "geonaph_full_static_highlands_rivers_v002.png" /tmp/live-prototype.js
+          grep -q "geonaph_full_static_mountain_volcanic_archipelago_v002.png" /tmp/live-prototype.js
+          grep -q "node.src=baseWorldAssetRepresentationUrl(asset)" /tmp/live-prototype.js
+          grep -q "object-fit:fill" /tmp/live-prototype.css
+          echo "GEONAPH TIER HOTFIX LIVE VERIFIED"
