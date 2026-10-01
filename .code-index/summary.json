@@ -1,19 +1,19 @@
 {
-  "code_records": 496250,
+  "code_records": 496399,
   "comment_records": 57297,
   "exact_duplicate_groups": 8,
   "exact_source_duplicate_groups": 4,
   "files_by_classification": {
     "asset": 484,
     "config": 5,
-    "docs": 132,
+    "docs": 133,
     "generated": 96,
-    "source": 3202,
+    "source": 3203,
     "vendor": 154
   },
-  "indexed_records": 553547,
-  "next_id": 565721,
+  "indexed_records": 553696,
+  "next_id": 565870,
   "stale_or_generated_candidates": 96,
-  "tracked_files": 4073,
+  "tracked_files": 4075,
   "version": 1
 }
