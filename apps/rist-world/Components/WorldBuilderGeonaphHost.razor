@@ -234,7 +234,7 @@ else
    // and is never bootstrapped through this root seed.
    var seed=Session.IsGeonaphWorld?"endemar":"empty";
    var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
-   var maxHeight=Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
+   var maxHeight=Session.IsGeonaphWorld?WorldSession.EndemarMaxHeight:WorldSession.LayersPerTier;
    var truthMode=Session.IsGeonaphWorld?WorldSession.EndemarTruthMode:"UNSPECIFIED";
    var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
    var access=Session.HasWorldBuilderEditAuthority?"edit":"view";
