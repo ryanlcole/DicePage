@@ -53,7 +53,9 @@ public partial class UniversalInterface
                 return result;
             }
 
-            if (Session.IsServerVerifiedPlatformOwner || Session.HasWorldBuilderEditAuthority)
+            if (Session.IsServerVerifiedPlatformOwner
+                || Session.HasWorldBuilderEditAuthority
+                || Session.OwnsCanonicalGeanaphZone)
                 result.Add(new("ENDEMAR", "owned", WorldSession.EndemarOriginCell));
 
             result.AddRange(
@@ -118,11 +120,15 @@ public partial class UniversalInterface
             || string.Equals(parcel.EffectivePermission, "Owner", StringComparison.OrdinalIgnoreCase));
 
     // Platform/developer authority must not make every player's deed look owned.
-    // Endemar is platform-owned; claimed deeds show EDIT only for their owner or
-    // an explicit parcel-level Edit/Manage/Owner delegation.
+    // Endemar and canonical Geanaph share the configured owner account. The
+    // persisted canonical Geanaph parcel is therefore valid account-level proof
+    // for Endemar edit authority as well as the server/platform authority flags.
+    // Other claimed deeds still require their own owner/delegated permission.
     bool MmoCanGameMasterSelected =>
         MmoSelectedIsEndemar
-            ? Session.IsServerVerifiedPlatformOwner || Session.HasWorldBuilderEditAuthority
+            ? Session.IsServerVerifiedPlatformOwner
+                || Session.HasWorldBuilderEditAuthority
+                || Session.OwnsCanonicalGeanaphZone
             : MmoSelectedIsOwned || MmoSelectedHasExplicitEditPermission;
 
     bool MmoCanViewSelected =>
