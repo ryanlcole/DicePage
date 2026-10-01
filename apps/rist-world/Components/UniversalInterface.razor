@@ -670,7 +670,7 @@
    {
     var userId=Auth.Profile?.UserId?.Trim()??"";
     var platformOwner=Session.TrustedPlatformOwner;
-    var endemarOwner=platformOwner||Session.OwnsCanonicalGeanaphZone;
+    var endemarOwner=platformOwner||Session.OwnsCanonicalGeonaphZone;
     var platformDeveloper=Session.TrustedPlatformDeveloper;
     var mmoOptions=Session.MmoParcels
      .Where(parcel=>
@@ -981,8 +981,18 @@
 
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
-   var seed=Session.IsGeonaphWorld?"geonaph":"empty";
+   var selectedIsEndemar=string.Equals(_selectedDeedKind,"SHAELVIEN_ORIGIN",StringComparison.OrdinalIgnoreCase);
+   var selectedIsGeonaph=string.Equals(_selectedDeedName,WorldSession.GeonaphZoneDisplayName,StringComparison.OrdinalIgnoreCase);
+   var seed=Session.IsGeonaphWorld
+    ? selectedIsEndemar?"endemar":selectedIsGeonaph?"geonaph":"empty"
+    : "empty";
    var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
+   var maxHeight=Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
+   var truthMode=selectedIsEndemar
+    ? WorldSession.EndemarTruthMode
+    : selectedIsGeonaph
+     ? WorldSession.GeonaphTruthMode
+     : "UNSPECIFIED";
    var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
    var access=_exploreReadOnlyMode
     ?"view"
@@ -990,7 +1000,7 @@
      ?"edit"
      :Session.HasWorldBuilderEditAuthority
       ||(string.Equals(_selectedDeedKind,"SHAELVIEN_ORIGIN",StringComparison.OrdinalIgnoreCase)
-         &&Session.OwnsCanonicalGeanaphZone)
+         &&Session.OwnsCanonicalGeonaphZone)
        ?"edit":"view";
    var deedId=Uri.EscapeDataString(_selectedDeedId??"");
    var deedName=Uri.EscapeDataString(_selectedDeedName??"");
@@ -1000,7 +1010,7 @@
    // The MMO deed map owns its separate Tier-0-only performance representation.
    // Explicit Tier/Layer selection later isolates editing depth via setExternalDepth.
    var entryView=access=="edit"?"all-parallax":"saved";
-   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&surfacePolicy={surfacePolicy}&access={access}&entryView={entryView}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20260930-world-stack-1";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&entryView={entryView}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20261001-zone-depth-1";
   }
  }
  bool IsPathDrivenStage=>!IsDeedContextNode&&_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
