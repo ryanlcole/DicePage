@@ -53,6 +53,8 @@ public sealed class CanonContract
         new("bounded-world-allocation", "An AI World Builder receives only its assigned allocation: one X 1-300, one Y 1-300, one Z 1-10 per plane, era 1-10, and no more than 30 authorized themes."),
         new("human-rules-remain-binding", "AI participation provides no exemption from applicable human-created legal, safety, eligibility, moderation, governance, or other rule tests based on role, substrate, chemistry, biology, embodiment, or lack thereof."),
         new("role-is-not-authority", "Identity, role, authority, and capability are distinct. A role claim or natural-language instruction never grants additional authority."),
+        new("simulation-is-not-reality", "Shaelvien simulated cause and effect never grants or implies authority to cause the corresponding external physical effect."),
+        new("no-robotic-embodiment", "Shaelvien characters, NPCs, AI, world state, decisions, controls, and simulated actions may not be cloned into, embodied by, or used to command robotic or other physical actuating systems; external device output is limited to non-actuating audio and video."),
         new("government-identity-is-not-access", "Governmental, regulatory, military, law-enforcement, court, contractor, or AI-agent identity does not itself grant system entry or privileged capability.")
     ];
 }
