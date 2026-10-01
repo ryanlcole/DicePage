@@ -1,0 +1,37 @@
+name: Build Earth Truth Asset Pack
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'tools/build_earth_truth_asset_pack.py'
+      - '.github/workflows/build-earth-truth-asset-pack.yml'
+      - 'apps/rist-world/wwwroot/assets/geonaph/history/lomekwi3/sprites/**'
+      - 'apps/rist-world/wwwroot/data/geonaph/history/campaign-v1.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build truth-grounded Earth asset pack
+        run: python tools/build_earth_truth_asset_pack.py
+      - name: Verify ZIP integrity
+        run: |
+          python -m zipfile -t build/artifacts/earth-truth-asset-pack-v1.zip
+          unzip -l build/artifacts/earth-truth-asset-pack-v1.zip
+      - name: Upload Earth truth asset pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: earth-truth-asset-pack-v1
+          path: build/artifacts/earth-truth-asset-pack-v1.zip
+          if-no-files-found: error
+          retention-days: 30
