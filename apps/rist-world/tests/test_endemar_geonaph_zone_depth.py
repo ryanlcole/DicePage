@@ -52,9 +52,12 @@ def test_endemar_never_bootstraps_geonaph_base_art():
     assert "Object.freeze({key:'surface',tier:0,layer:1" in prototype
     assert "Object.freeze({key:'highlands',tier:1,layer:1" in prototype
     assert "Object.freeze({key:'mountains',tier:2,layer:1" in prototype
-    assert "function worldBuilderSourceLayersForCurrentDeed(layers)" in prototype
+    assert "function worldBuilderSourceLayersForCurrentDeed(layers,strictIdentity=false)" in prototype
     assert "if(DEED_REGION_ID)return list.filter" in prototype
     assert "if(IS_ENDEMAR_SEED)return list.filter" in prototype
+    assert "identity==='endemar'||(!strictIdentity&&!identity)" in prototype
+    assert "worldBuilderSourceLayersForCurrentDeed(allSourceLayers,true)" in prototype
+    assert "zoneIdentity:String(item.zoneIdentity||WORLD_SEED||'')" in prototype
     assert "return [];" in prototype
 
 
@@ -92,7 +95,7 @@ def test_whole_map_assets_keep_one_deed_frame_across_tiers():
 def test_returning_to_endemar_home_restores_fitted_parallax_overview():
     controller = text("Components/UniversalInterface.razor")
 
-    assert 'renderer=20261001-world-home-fill-1' in controller
+    assert 'renderer=20261001-zone-fill-endemar-2' in controller
     assert controller.count("_=ShowAllWorldLayersAsync();") >= 3
 
 
@@ -123,3 +126,23 @@ def test_zone_fill_resize_reaches_one_percent_and_repeats_on_hold():
     assert 'shell?.dataset?.semanticContext === "shaep.scale"' in universal_input
     assert "SCALE_REPEAT_DELAY_MS" in universal_input
     assert "SCALE_REPEAT_INTERVAL_MS" in universal_input
+
+
+def test_fill_zone_preview_uses_the_full_world_viewer():
+    controller = text("Components/UniversalInterface.razor")
+    css = text("wwwroot/css/universal-interface.css")
+    prototype = text("wwwroot/prototype/prototype.js")
+
+    assert 'AssetScaleUsesZoneBasis?"zone-fill-preview":""' in controller
+    assert ".asset-preview.zone-fill-preview{" in css
+    assert ".asset-preview.zone-fill-preview img{" in css
+    assert "object-fit:fill;" in css
+    assert "item.semanticRole==='sea-level-map'?'fill':'contain'" in prototype
+    assert "size:clamp(Number(raw.size)||1,.01,20)" in prototype
+
+
+def test_endemar_root_requires_explicit_endemar_zone_identity():
+    prototype = text("wwwroot/prototype/prototype.js")
+    assert "function layerZoneIdentity(item)" in prototype
+    assert "worldBuilderSourceLayersForCurrentDeed(allSourceLayers,true)" in prototype
+    assert "identity==='endemar'||(!strictIdentity&&!identity)" in prototype
