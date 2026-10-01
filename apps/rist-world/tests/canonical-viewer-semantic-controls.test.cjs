@@ -119,6 +119,6 @@ test('deed map itself exposes play and edit choices without a preselected role',
   const map=read('Components/UniversalInterface.MmoMap.cs');
 
   assert.match(map,/if \(MmoCanGameMasterSelected\)[\s\S]{0,120}?EDIT[\s\S]{0,120}?ROLEPLAY/);
-  assert.match(map,/if \(MmoSelectedIsCanonicalGeanaph\)[\s\S]{0,220}?EnterGeonaphHistoryCampaign\(\)/);
-  assert.doesNotMatch(map,/if \(_mmoRoleplayerMode && MmoSelectedIsCanonicalGeanaph\)/);
+  assert.match(map,/if \(MmoSelectedIsCanonicalGeonaph\)[\s\S]{0,220}?EnterGeonaphHistoryCampaign\(\)/);
+  assert.doesNotMatch(map,/if \(_mmoRoleplayerMode && MmoSelectedIsCanonicalGeonaph\)/);
 });
