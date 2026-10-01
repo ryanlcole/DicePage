@@ -86,7 +86,7 @@ jobs:
           grep -q "node.src=baseWorldAssetRepresentationUrl(asset)" /tmp/live-prototype.js
           grep -q "if(IS_ENDEMAR_SEED)return'layer';" /tmp/live-prototype.js
           grep -q "if(IS_ENDEMAR_SEED)return tier;" /tmp/live-prototype.js
-          grep -q "REGION_DEFINER||(!IS_ENDEMAR_SEED&&spatialScope!='WORLD')" /tmp/live-prototype.js
+          grep -q "REGION_DEFINER||(!IS_ENDEMAR_SEED&&spatialScope!=='WORLD')" /tmp/live-prototype.js
           grep -q "const lift=hasPreviousTop?clamp(-tierStep*9*strength*spatialWeight,-42,0):0;" /tmp/live-worldbuilder-projection.js
           grep -q "object-fit:fill" /tmp/live-prototype.css
           echo "ENDEMAR PLACEMENT REVERT + GEONAPH TIER HOTFIX LIVE VERIFIED"
