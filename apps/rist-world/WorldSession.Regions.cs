@@ -273,7 +273,10 @@ public sealed partial class WorldSession
         if (!HasTrustedWorldBuilderAuthority) throw new UnauthorizedAccessException("World Builder authority is required to define regions.");
         if (!HasActiveWorld) throw new InvalidOperationException("Choose a world before defining a region.");
         name = NormalizeRegionName(name);
-        tierIndex = Math.Clamp(tierIndex, 0, 2);
+        var maxTierIndex = IsGeonaphWorld
+            ? Math.Max(0, (MmoParcelMaxHeight - 1) / LayersPerTier)
+            : 2;
+        tierIndex = Math.Clamp(tierIndex, 0, maxTierIndex);
         gridShape = string.Equals(gridShape, "hex", StringComparison.OrdinalIgnoreCase) ? "hex" : "square";
         var sourceLayers = sourceLayerOffsets is null
             ? Enumerable.Range(0, LayersPerTier).ToList()
