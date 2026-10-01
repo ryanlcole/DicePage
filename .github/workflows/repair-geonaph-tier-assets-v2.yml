@@ -1,0 +1,202 @@
+name: Repair Geonaph Tier Assets V2
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - '.github/workflows/repair-geonaph-tier-assets-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  ASSET_STACK: rist-assets
+  ROOT: https://d2d6rnm6fnsp89.cloudfront.net/library/terrains/standard/world/whole_maps/geonaph
+  PREFIX: library/terrains/standard/world/whole_maps/geonaph
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install image tooling
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.3.3
+
+      - name: Download and rebuild one canonical 2048 world frame
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/geonaph-v2
+          curl --fail --location --retry 8 --retry-delay 3 --output /tmp/geonaph-v2/surface-v1.png "$ROOT/geonaph_full_static_canonical_surface_v001.png"
+          curl --fail --location --retry 8 --retry-delay 3 --output /tmp/geonaph-v2/highlands-v1.png "$ROOT/geonaph_full_static_highlands_rivers_v001.png"
+          curl --fail --location --retry 8 --retry-delay 3 --output /tmp/geonaph-v2/mountains-v1.png "$ROOT/geonaph_full_static_mountain_volcanic_archipelago_v001.png"
+
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageFilter
+          import numpy as np
+          import hashlib, json
+
+          root = Path('/tmp/geonaph-v2')
+          names = {
+              'surface': 'geonaph_full_static_canonical_surface_v002.png',
+              'highlands': 'geonaph_full_static_highlands_rivers_v002.png',
+              'mountains': 'geonaph_full_static_mountain_volcanic_archipelago_v002.png',
+          }
+
+          src = {
+              'surface': Image.open(root / 'surface-v1.png').convert('RGBA'),
+              'highlands': Image.open(root / 'highlands-v1.png').convert('RGBA'),
+              'mountains': Image.open(root / 'mountains-v1.png').convert('RGBA'),
+          }
+          sizes = {im.size for im in src.values()}
+          if len(sizes) != 1:
+              raise SystemExit(f'Geonaph v1 frames are not registered to one canvas: {sizes}')
+          if next(iter(sizes))[0] != next(iter(sizes))[1]:
+              raise SystemExit(f'Geonaph v1 frame is not square: {next(iter(sizes))}')
+
+          # The v1 mountain export lost its alpha. Recover the visibly blue ocean /
+          # empty background conservatively, preserving non-blue mountain, snow,
+          # volcanic and land pixels. Feather one pixel to remove blue export halos.
+          mountain = np.asarray(src['mountains'], dtype=np.uint8)
+          rgb = mountain[..., :3].astype(np.float32)
+          r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+          mx = np.maximum(np.maximum(r, g), b)
+          mn = np.minimum(np.minimum(r, g), b)
+          sat = (mx - mn) / np.maximum(mx, 1.0)
+          water = (
+              (b > 70)
+              & (b >= g * 1.05)
+              & (b >= r * 1.22)
+              & ((b - r) >= 24)
+              & (sat >= .18)
+          )
+          raw_fraction = float(water.mean())
+          if not .45 <= raw_fraction <= .65:
+              raise SystemExit(f'Mountain background mask outside safe range: {raw_fraction:.6f}')
+
+          alpha = Image.fromarray(np.where(water, 0, 255).astype(np.uint8), mode='L')
+          alpha = alpha.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(1.15))
+          repaired_mountains = src['mountains'].copy()
+          repaired_mountains.putalpha(alpha)
+
+          rebuilt = {
+              'surface': src['surface'].resize((2048, 2048), Image.Resampling.LANCZOS),
+              'highlands': src['highlands'].resize((2048, 2048), Image.Resampling.LANCZOS),
+              'mountains': repaired_mountains.resize((2048, 2048), Image.Resampling.LANCZOS),
+          }
+
+          report = {
+              'version': 2,
+              'coordinate_frame': '2048x2048-property-space',
+              'source_frame': list(next(iter(sizes))),
+              'mountain_background_mask_fraction_before_feather': round(raw_fraction, 6),
+              'files': {},
+          }
+
+          for key, im in rebuilt.items():
+              out = root / names[key]
+              im.save(out, format='PNG', optimize=True)
+              check = Image.open(out).convert('RGBA')
+              if check.size != (2048, 2048):
+                  raise SystemExit(f'{key} did not rebuild to 2048x2048')
+              a = np.asarray(check.getchannel('A'))
+              transparent_fraction = float((a < 255).mean())
+              fully_transparent_fraction = float((a == 0).mean())
+              if key == 'highlands' and transparent_fraction < .25:
+                  raise SystemExit(f'highlands alpha unexpectedly low: {transparent_fraction:.6f}')
+              if key == 'mountains' and not .40 <= transparent_fraction <= .75:
+                  raise SystemExit(f'mountains repaired alpha outside safe range: {transparent_fraction:.6f}')
+              digest = hashlib.sha256(out.read_bytes()).hexdigest()
+              report['files'][key] = {
+                  'filename': names[key],
+                  'width': 2048,
+                  'height': 2048,
+                  'transparent_fraction': round(transparent_fraction, 6),
+                  'fully_transparent_fraction': round(fully_transparent_fraction, 6),
+                  'sha256': digest,
+                  'bytes': out.stat().st_size,
+              }
+
+          (root / 'geonaph_tier_repair_report_v002.json').write_text(
+              json.dumps(report, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(report, indent=2, sort_keys=True))
+          PY
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish versioned repaired assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUCKET=$(aws cloudformation describe-stacks             --stack-name "$ASSET_STACK"             --query "Stacks[0].Outputs[?OutputKey=='AssetBucketName'].OutputValue | [0]"             --output text)
+          DIST=$(aws cloudformation describe-stacks             --stack-name "$ASSET_STACK"             --query "Stacks[0].Outputs[?OutputKey=='DistributionId'].OutputValue | [0]"             --output text)
+          BASE=$(aws cloudformation describe-stacks             --stack-name "$ASSET_STACK"             --query "Stacks[0].Outputs[?OutputKey=='AssetBaseUrl'].OutputValue | [0]"             --output text)
+          test -n "$BUCKET" && test "$BUCKET" != "None"
+          test -n "$DIST" && test "$DIST" != "None"
+          BASE="${BASE%/}/"
+
+          # Prove the path maps to the live v1 authority before publishing v2.
+          aws s3api head-object --bucket "$BUCKET" --key "$PREFIX/geonaph_full_static_canonical_surface_v001.png" >/dev/null
+          aws s3api head-object --bucket "$BUCKET" --key "$PREFIX/geonaph_full_static_highlands_rivers_v001.png" >/dev/null
+          aws s3api head-object --bucket "$BUCKET" --key "$PREFIX/geonaph_full_static_mountain_volcanic_archipelago_v001.png" >/dev/null
+
+          STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+          for file in             geonaph_full_static_canonical_surface_v002.png             geonaph_full_static_highlands_rivers_v002.png             geonaph_full_static_mountain_volcanic_archipelago_v002.png; do
+            if aws s3api head-object --bucket "$BUCKET" --key "$PREFIX/$file" >/dev/null 2>&1; then
+              aws s3 cp "s3://$BUCKET/$PREFIX/$file"                 "s3://$BUCKET/deployment-backups/geonaph-tier-v2/$STAMP/$file"                 --only-show-errors
+            fi
+            aws s3 cp "/tmp/geonaph-v2/$file" "s3://$BUCKET/$PREFIX/$file"               --content-type image/png               --cache-control 'public,max-age=31536000,immutable'               --metadata 'derived-from=geonaph-v001,frame=2048x2048,repair=alpha-preserving-v2'               --only-show-errors
+          done
+
+          aws s3 cp /tmp/geonaph-v2/geonaph_tier_repair_report_v002.json             "s3://$BUCKET/$PREFIX/geonaph_tier_repair_report_v002.json"             --content-type application/json             --cache-control 'no-cache,no-store,must-revalidate'             --only-show-errors
+
+          INVALIDATION=$(aws cloudfront create-invalidation             --distribution-id "$DIST"             --paths               "/$PREFIX/geonaph_full_static_canonical_surface_v002.png"               "/$PREFIX/geonaph_full_static_highlands_rivers_v002.png"               "/$PREFIX/geonaph_full_static_mountain_volcanic_archipelago_v002.png"               "/$PREFIX/geonaph_tier_repair_report_v002.json"             --query Invalidation.Id --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
+
+          for file in             geonaph_full_static_canonical_surface_v002.png             geonaph_full_static_highlands_rivers_v002.png             geonaph_full_static_mountain_volcanic_archipelago_v002.png; do
+            curl --fail --location --retry 8 --retry-delay 3               --output "/tmp/geonaph-v2/live-$file" "${BASE}$PREFIX/$file"
+          done
+
+      - name: Verify live V2 dimensions and alpha
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import numpy as np
+
+          root = Path('/tmp/geonaph-v2')
+          files = {
+              'surface': 'live-geonaph_full_static_canonical_surface_v002.png',
+              'highlands': 'live-geonaph_full_static_highlands_rivers_v002.png',
+              'mountains': 'live-geonaph_full_static_mountain_volcanic_archipelago_v002.png',
+          }
+          for key, name in files.items():
+              im = Image.open(root / name).convert('RGBA')
+              assert im.size == (2048, 2048), (key, im.size)
+              alpha = np.asarray(im.getchannel('A'))
+              frac = float((alpha < 255).mean())
+              if key == 'surface':
+                  assert frac < .01, (key, frac)
+              elif key == 'highlands':
+                  assert frac > .25, (key, frac)
+              else:
+                  assert .40 <= frac <= .75, (key, frac)
+              print(key, im.size, 'transparent_fraction', round(frac, 6))
+          print('GEONAPH V2 LIVE ASSET REPAIR VERIFIED')
+          PY
