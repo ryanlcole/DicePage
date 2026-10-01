@@ -122,10 +122,13 @@ test('World Builder shows the full Geonaph tier-layer stack while MMO stays flat
   assert.match(prototype,/key:'surface',tier:0,layer:TIER_TOP_LAYER/);
   assert.match(prototype,/key:'highlands',tier:1,layer:TIER_TOP_LAYER/);
   assert.match(prototype,/key:'mountains',tier:2,layer:TIER_TOP_LAYER/);
-  assert.match(prototype,/const layersFromPriorTop=tierIndex\*LAYERS_PER_TIER;/);
+  assert.match(prototype,/sceneZ:\(asset.tier\*LAYERS_PER_TIER\)\+asset.layer/);
   assert.match(prototype,/return\{surface:1,highlands:index>=1\?1:0,mountains:index>=2\?1:0\};/);
-  assert.match(prototype,/const rest=tierRestOffset\(entry.tier\);/);
-  assert.match(prototype,/const rest=allParallaxRestOffset\(item\);/);
+  assert.match(prototype,/const COMPACT_TIER_PRESENTATION_STEP=\.4;/);
+  assert.match(prototype,/const depth=presentationDepthForTier\(entry.tier\);/);
+  assert.match(prototype,/const depth=presentationDepthForTier\(item.tier\);/);
+  assert.doesNotMatch(prototype,/tierRestOffset/);
+  assert.doesNotMatch(prototype,/allParallaxRestOffset/);
   assert.match(prototype,/geonaph_full_static_canonical_surface_v002\.png/);
   assert.match(prototype,/geonaph_full_static_highlands_rivers_v002\.png/);
   assert.match(prototype,/geonaph_full_static_mountain_volcanic_archipelago_v002\.png/);
