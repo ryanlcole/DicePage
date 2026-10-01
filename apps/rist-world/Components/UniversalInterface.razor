@@ -670,6 +670,7 @@
    {
     var userId=Auth.Profile?.UserId?.Trim()??"";
     var platformOwner=Session.TrustedPlatformOwner;
+    var endemarOwner=platformOwner||Session.OwnsCanonicalGeanaphZone;
     var platformDeveloper=Session.TrustedPlatformDeveloper;
     var mmoOptions=Session.MmoParcels
      .Where(parcel=>
@@ -688,7 +689,7 @@
      .ThenBy(option=>option.Id,StringComparer.Ordinal)
      .ToList();
 
-    if(platformOwner)
+    if(endemarOwner)
     {
      mmoOptions.Insert(0,new ControllerWorldOption(
       "__endemar__",
@@ -987,7 +988,10 @@
     ?"view"
     :_inspectionEditMode&&Session.TrustedPlatformDeveloper
      ?"edit"
-     :Session.HasWorldBuilderEditAuthority?"edit":"view";
+     :Session.HasWorldBuilderEditAuthority
+      ||(string.Equals(_selectedDeedKind,"SHAELVIEN_ORIGIN",StringComparison.OrdinalIgnoreCase)
+         &&Session.OwnsCanonicalGeanaphZone)
+       ?"edit":"view";
    var deedId=Uri.EscapeDataString(_selectedDeedId??"");
    var deedName=Uri.EscapeDataString(_selectedDeedName??"");
    var deedRegionId=Uri.EscapeDataString(SelectedDeedRegionId);
