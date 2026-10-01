@@ -105,7 +105,7 @@ def test_endemar_keeps_pre_controller_compact_placement_geometry():
     projection = text("wwwroot/worldbuilder-projection.js")
 
     assert "if(IS_ENDEMAR_SEED)return tier;" in prototype
-    assert "if(IS_ENDEMAR_SEED||REGION_DEFINER||viewerTier!='all')return{x:0,y:0};" in prototype
+    assert "if(IS_ENDEMAR_SEED||REGION_DEFINER||viewerTier!=='all')return{x:0,y:0};" in prototype
     assert "REGION_DEFINER||(!IS_ENDEMAR_SEED&&spatialScope!='WORLD')" in prototype
     assert "const lift=hasPreviousTop?clamp(-tierStep*9*strength*spatialWeight,-42,0):0;" in projection
     assert "LAYER_VISUAL_GAP_PX" not in projection
