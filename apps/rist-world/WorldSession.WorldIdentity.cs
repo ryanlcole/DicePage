@@ -3,12 +3,20 @@ namespace RistWorld;
 public sealed partial class WorldSession
 {
     // The original alpha ID/path names remain stable for migration and save compatibility.
-    // The canonical MMO world is Shaelvien. Endemar is its protected starting point/origin;
-    // Jeyrusal remains the primary continent name carried by existing content.
+    // The canonical MMO world is Shaelvien. Endemar and Geonaph are separate canonical zones:
+    // Endemar is fantasy fiction representing Earth near the believed beginning of land formation;
+    // Geonaph is Truth/Hybrid representing Earth near the believed beginning of humanity and must
+    // preserve evidence/provenance boundaries. Legacy "geonaph" world IDs/asset paths are technical
+    // compatibility identifiers only and never collapse the two zone identities.
     public const string LegacyAlphaWorldId = "shaelvien-geonaph-alpha-001";
     public const string GeonaphWorldId = LegacyAlphaWorldId;
     public const string ShaelvienDisplayName = "Shaelvien";
     public const string EndemarStartingPointDisplayName = "Endemar";
+    public const string GeonaphZoneDisplayName = "Geonaph";
+    public const string EndemarTruthMode = "FANTASY_FICTION";
+    public const string GeonaphTruthMode = "TRUTH_HYBRID";
+    // Legacy public symbol retained because the root world ID historically used "Geonaph".
+    // It denotes Shaelvien at the world-identity layer, not the Geonaph deed/zone.
     public const string GeonaphDisplayName = ShaelvienDisplayName;
     public const string EndemarContinentDisplayName = "Jeyrusal";
     public const string CurrentWorldId = LegacyAlphaWorldId;
