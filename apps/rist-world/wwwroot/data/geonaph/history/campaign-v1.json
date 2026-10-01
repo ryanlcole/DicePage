@@ -206,5 +206,92 @@
       "url": "https://www.nature.com/articles/s41467-025-64244-x",
       "classification": "FACT"
     }
-  ]
+  ],
+  "epistemicFrame": {
+    "perspective": "AI_EVIDENCE_BOUNDED_PERSPECTIVE_OF_HUMAN_TRUTH",
+    "claimsAbsoluteMetaphysicalTruth": false,
+    "rule": "Present what humanity currently observes, preserves, records, remembers, believes, disputes, and can reasonably reconstruct. Preserve uncertainty and provenance. AI output never promotes itself to truth."
+  },
+  "playerBackbone": {
+    "classification": "FICTION",
+    "origin": "Humanity's future after immortality has been achieved.",
+    "timeTravel": "Time travel requires the traveler's matter to conform to the destination historical world-state.",
+    "memory": "Temporal matter conformity causes near-total loss of future memory.",
+    "continuity": "The same underlying traveler lives forward with the people of each era.",
+    "death": "Death ends that traveler's Geonaph run.",
+    "completion": "If the traveler survives, history eventually catches up to the future from which the traveler departed; that future becomes present."
+  },
+  "act1": {
+    "title": "Humanity Evolution 1",
+    "scene1": {
+      "id": "act1-scene1-first-breath",
+      "title": "First Breath",
+      "status": "PLAYABLE_V1",
+      "classification": "FICTION",
+      "historicalAnchor": {
+        "region": "West Turkana",
+        "local": "Lomekwi 3",
+        "chronology": "approximately 3.3 million years ago",
+        "rule": "The arrival fiction may connect the player to this verified archaeological node but may not invent a species, language, named culture, or unsupported equipment as historical fact."
+      },
+      "openingSteps": [
+        {
+          "id": "future",
+          "label": "THE FUTURE",
+          "classification": "FICTION",
+          "text": "Humanity has survived long enough to achieve immortality and, finally, time travel. You volunteered to travel into humanity's deep past."
+        },
+        {
+          "id": "conform",
+          "label": "TRANSFORM",
+          "classification": "FICTION",
+          "text": "Crossing time is not simple relocation. Your matter must be transformed into a form that can exist in the destination world-state. Nothing physical from the future can simply remain unchanged."
+        },
+        {
+          "id": "forget",
+          "label": "FORGET",
+          "classification": "FICTION",
+          "text": "The transformation preserves your underlying identity but destroys access to almost all future memory. You cannot use unrestricted future knowledge to dominate the past."
+        },
+        {
+          "id": "awaken",
+          "label": "AWAKEN",
+          "classification": "RECONSTRUCTION",
+          "text": "You awaken inside the evidence-bounded reconstruction of West Turkana near the Lomekwi 3 archaeological node. Your exact taxonomic identity, language, social group, and personal history are not established by the evidence."
+        },
+        {
+          "id": "live",
+          "label": "LIVE",
+          "classification": "FICTION",
+          "text": "There is no mission to rewrite history. Live as a person of the time. Learn, survive, witness humanity, and move forward with the world. If you die, this run ends."
+        }
+      ],
+      "controls": {
+        "primary": "Continue the arrival sequence, then enter the evidence-grounded scene tasks.",
+        "secondary": "Open the universal character sheet for the temporally conformed traveler.",
+        "xAxis": "Cycles evidence-grounded scene tasks after arrival.",
+        "yAxis": "Traverses Region → Local → Instance after arrival.",
+        "hardwareRule": "All hardware maps into the same semantic controller contract; device-specific input must not change game authority."
+      },
+      "aiRole": {
+        "mode": "ADVISORY_NARRATOR_AND_NPC_INTERPRETER",
+        "canAuthorCanon": false,
+        "canRollDice": false,
+        "canGrantRewards": false,
+        "canChangeInventoryOwnership": false,
+        "canChangePermissions": false,
+        "canCreateHistoricalFacts": false,
+        "mayPropose": [
+          "narration",
+          "NPC behavior",
+          "fictional connective tissue",
+          "bounded reconstructions",
+          "questions/checks"
+        ],
+        "requiredPerspective": "AI evidence-bounded perspective of human truth",
+        "simulationBoundary": "In-world cause/effect is not external cause/effect.",
+        "roboticsBoundary": "No Shaelvien character, NPC, AI, decision, control, or world-state may be embodied in or command a robotic or physical actuating system. External device output is audio/video only."
+      }
+    }
+  }
 }
