@@ -442,7 +442,7 @@ Resources:
       - SunkenTundraSeed
     Properties:
       ServiceToken: !GetAtt GeanaphSeedFunction.Arn
-      Revision: geonaph-east-v5-rating-provenance
+      Revision: geonaph-east-v6-free-origin
       WorldId: shaelvien-geonaph-alpha-001
       RelativeTo: Endemar
       RelativeX: 1
