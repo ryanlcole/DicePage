@@ -4,6 +4,36 @@ function post(frame,message){
   try{frame?.contentWindow?.postMessage({source:"shaelvien-worldbuilder-host",...message},location.origin)}catch{}
 }
 
+function currentFrameContext(frame){
+  try{
+    const raw=frame?.getAttribute?.("src")||frame?.src||"";
+    const url=new URL(raw,location.href);
+    return{
+      worldId:String(url.searchParams.get("worldId")||""),
+      deedId:String(url.searchParams.get("deedId")||""),
+      deedRegionId:String(url.searchParams.get("deedRegionId")||""),
+      deedZoneId:String(url.searchParams.get("deedZone")||""),
+      seed:String(url.searchParams.get("seed")||"")
+    };
+  }catch{
+    return{worldId:"",deedId:"",deedRegionId:"",deedZoneId:"",seed:""};
+  }
+}
+
+function messageMatchesCurrentFrame(frame,data){
+  const current=currentFrameContext(frame);
+  const fields=["worldId","deedId","deedRegionId","deedZoneId","seed"];
+  for(const field of fields){
+    const expected=String(current[field]||"");
+    const actual=String(data?.[field]||"");
+    // When the current iframe is deed-scoped, an older script that emits no
+    // identity is stale by definition and must not control parent navigation.
+    if(expected&&actual!==expected)return false;
+    if(!expected&&actual)return false;
+  }
+  return true;
+}
+
 export async function save(frame){
   const fn=frame?.contentWindow?.ShaelvienPrototype?.save;
   if(typeof fn!=="function")return false;
@@ -84,6 +114,7 @@ export function attach(frame,dotnet){
     if(!data||data.source!=="shaelvien-worldbuilder")return;
     try{
       if(data.type==="home"){
+        if(!messageMatchesCurrentFrame(frame,data))return;
         await dotnet.invokeMethodAsync("RequestHomeFromPrototypeAsync");
         return;
       }

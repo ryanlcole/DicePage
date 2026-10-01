@@ -142,9 +142,24 @@ def test_gamemaster_deed_map_isolates_stale_geanaph_viewer_state():
     interface = text("apps/rist-world/Components/UniversalInterface.razor")
     mmo = text("apps/rist-world/Components/UniversalInterface.MmoMap.cs")
 
-    assert 'if(_stage is Stage.Environment or Stage.Role or Stage.DeedSelect or Stage.MmoMap or Stage.ContextSelect)' in interface
+    assert 'if(_stage is Stage.Environment or Stage.Role or Stage.DeedSelect or Stage.MmoMap or Stage.HistoryCampaign or Stage.ContextSelect)' in interface
     assert 'return "about:blank";' in interface
     assert "public async Task RequestHomeFromPrototypeAsync()" in interface
+    assert "Stage.HistoryCampaign or Stage.PathSelect or Stage.ContextSelect" in interface
     assert "background child must never eject the player" in interface
     assert 'Session.SetActiveRegion("");' in mmo
     assert "previously opened zone" in mmo
+
+
+def test_worldbuilder_home_messages_are_scoped_to_current_deed_document():
+    interface = text("apps/rist-world/Components/UniversalInterface.razor")
+    prototype = text("apps/rist-world/wwwroot/prototype/prototype.js")
+    host = text("apps/rist-world/wwwroot/worldbuilder-source-host.js")
+
+    assert "deedId:DEED_ID" in prototype
+    assert "deedRegionId:DEED_REGION_ID" in prototype
+    assert "deedZoneId:DEED_ZONE_ID" in prototype
+    assert "seed:WORLD_SEED" in prototype
+    assert "function messageMatchesCurrentFrame(frame,data)" in host
+    assert 'if(!messageMatchesCurrentFrame(frame,data))return;' in host
+    assert "20261001-deed-home-scope-1" in interface

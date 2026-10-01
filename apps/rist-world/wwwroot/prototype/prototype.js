@@ -319,7 +319,19 @@ function settleCollisionAnchor(hit,clientX,clientY){
 function announce(text){live.textContent='';requestAnimationFrame(()=>{live.textContent=text})}
 function postWorldBuilderHostMessage(type,payload={}){
   if(REGION_DEFINER||window.parent===window)return false;
-  try{window.parent.postMessage({source:'shaelvien-worldbuilder',type,...payload},location.origin);return true}catch{return false}
+  try{
+    window.parent.postMessage({
+      source:'shaelvien-worldbuilder',
+      type,
+      worldId:WORLD_ID,
+      deedId:DEED_ID,
+      deedRegionId:DEED_REGION_ID,
+      deedZoneId:DEED_ZONE_ID,
+      seed:WORLD_SEED,
+      ...payload
+    },location.origin);
+    return true;
+  }catch{return false}
 }
 function authoringRegionId(){
   return REGION_DEFINER?activeRegionMapId():DEED_REGION_ID;

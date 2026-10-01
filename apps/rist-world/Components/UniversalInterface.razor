@@ -1010,7 +1010,7 @@
    // The MMO deed map owns its separate Tier-0-only performance representation.
    // Explicit Tier/Layer selection later isolates editing depth via setExternalDepth.
    var entryView=access=="edit"?"all-parallax":"saved";
-   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&entryView={entryView}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20261001-geonaph-tier-parallax-1";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&entryView={entryView}&embedded-controller=1&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20261001-deed-home-scope-1";
   }
  }
  bool IsPathDrivenStage=>!IsDeedContextNode&&_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer or Stage.ArtMethod or Stage.ArtPhase or Stage.ArtWork or Stage.KnowledgeNode or Stage.AssetKind or Stage.FullMapReview;
@@ -1489,7 +1489,7 @@
    {
     try
     {
-     _worldBuilderSourceModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-source-host.js?v=20260928-canonical-spatial-1");
+     _worldBuilderSourceModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-source-host.js?v=20261001-deed-home-scope-1");
      await _worldBuilderSourceModule.InvokeVoidAsync("attach",_worldBuilderFrame,_selfRef);
      _worldBuilderSourceAttached=true;
     }
@@ -3300,7 +3300,7 @@
   // player has already returned to the deed map. Navigation stages own their
   // own HOME/BACK behavior; a background child must never eject the player to
   // the authenticated Press Start screen.
-  if(_stage is Stage.Environment or Stage.Role or Stage.DeedSelect or Stage.MmoMap or Stage.HistoryCampaign or Stage.ContextSelect)
+  if(_stage is Stage.Environment or Stage.Role or Stage.DeedSelect or Stage.MmoMap or Stage.HistoryCampaign or Stage.PathSelect or Stage.ContextSelect)
    return;
 
   if(OnExit.HasDelegate)await OnExit.InvokeAsync();
