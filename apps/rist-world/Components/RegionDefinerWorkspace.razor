@@ -72,9 +72,11 @@
    var surfacePixels=activeRegion?.ParcelPixelWidth>0
     ? activeRegion.ParcelPixelWidth
     : Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
-   var maxHeight=activeRegion?.MaxHeight>0
-    ? activeRegion.MaxHeight
-    : Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
+   var maxHeight=isEndemar
+    ? WorldSession.EndemarMaxHeight
+    : activeRegion?.MaxHeight>0
+     ? activeRegion.MaxHeight
+     : Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
    var surfacePolicy=!string.IsNullOrWhiteSpace(activeRegion?.ParcelId)
     ?"mmo-parcel"
     : Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
