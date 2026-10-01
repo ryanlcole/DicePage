@@ -95,9 +95,8 @@ def test_whole_map_assets_keep_one_deed_frame_across_tiers():
     assert "item.node.style.objectFit='fill';" in prototype
     assert ".user-image-placement.full-deed-frame-placement" in prototype_css
     assert "object-fit:fill!important" in prototype_css
-    assert 'bool SelectedDeedIsEndemar=>string.Equals(_selectedDeedKind,"SHAELVIEN_ORIGIN",StringComparison.OrdinalIgnoreCase);' in controller
-    assert 'bool AssetScaleUsesZoneBasis=>CurrentBuilderScope=="WORLD"&&!SelectedDeedIsEndemar;' in controller
-    assert 'bool SelectedAssetUsesFullDeedFrame=>CurrentBuilderScope=="WORLD"&&!SelectedDeedIsEndemar;' in controller
+    assert 'bool AssetScaleUsesZoneBasis=>CurrentBuilderScope=="WORLD";' in controller
+    assert 'bool SelectedAssetUsesFullDeedFrame=>CurrentBuilderScope=="WORLD";' in controller
     assert "fullFrame=SelectedAssetUsesFullDeedFrame" in controller
 
 
