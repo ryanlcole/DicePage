@@ -42,7 +42,9 @@ def test_mmo_parcel_claim_is_exclusive_atomic_and_endemar_centered():
     assert '"pixelWidth": MMO_PARCEL_PIXELS' in backend
     assert '"pixelHeight": MMO_PARCEL_PIXELS' in backend
     assert '"maxHeight": MMO_PARCEL_MAX_HEIGHT' in backend
-    assert '"sourceLayerOffsets": list(range(MMO_PARCEL_MAX_HEIGHT))' in backend
+    assert "LAYERS_PER_TIER = 10" in backend
+    assert "MMO_PARCEL_TIER_COUNT = (MMO_PARCEL_MAX_HEIGHT + LAYERS_PER_TIER - 1) // LAYERS_PER_TIER" in backend
+    assert '"sourceLayerOffsets": list(range(LAYERS_PER_TIER))' in backend
     assert "Claim is idempotent for the account that already owns this exact" in backend
     assert "return response(200, public_parcel(existing_parcel))" in backend
     assert "latest_token = world_token_for_parcel(user_id, parcel_id)" in backend
@@ -228,6 +230,9 @@ def test_shaelvien_is_the_mmo_world_and_endemar_is_the_starting_point():
     identity = text("apps/rist-world/WorldSession.WorldIdentity.cs")
     assert 'public const string ShaelvienDisplayName = "Shaelvien";' in identity
     assert 'public const string EndemarStartingPointDisplayName = "Endemar";' in identity
+    assert 'public const string GeonaphZoneDisplayName = "Geonaph";' in identity
+    assert 'public const string EndemarTruthMode = "FANTASY_FICTION";' in identity
+    assert 'public const string GeonaphTruthMode = "TRUTH_HYBRID";' in identity
     assert "public const string GeonaphDisplayName = ShaelvienDisplayName;" in identity
 
 
