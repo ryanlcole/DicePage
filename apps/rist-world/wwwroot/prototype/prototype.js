@@ -388,7 +388,13 @@ function layerZoneIdentity(item){
 }
 function worldBuilderSourceLayersForCurrentDeed(layers,strictIdentity=false){
   const list=Array.isArray(layers)?layers:[];
-  if(DEED_REGION_ID)return list.filter(item=>String(item?.regionId||'').trim()===DEED_REGION_ID);
+  if(DEED_REGION_ID)return list.filter(item=>{
+    if(String(item?.regionId||'').trim()!==DEED_REGION_ID)return false;
+    const identity=layerZoneIdentity(item);
+    // Region identity is authoritative; an explicitly different zone must never
+    // bleed into this deed. Identity-less legacy rows remain readable for migration.
+    return !identity||identity===WORLD_SEED||identity===DEED_ZONE_ID;
+  });
   if(IS_ENDEMAR_SEED)return list.filter(item=>{
     if(String(item?.regionId||'').trim())return false;
     const identity=layerZoneIdentity(item);
