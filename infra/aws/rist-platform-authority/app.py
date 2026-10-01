@@ -47,8 +47,10 @@ MMO_PARCEL_GRID_ROWS = 30
 SHAELVIEN_TOKEN_CLASS = "shaelvien.property-space"
 SHAELVIEN_PROPERTY_SPACE_PIXELS = 2048
 SHAELVIEN_PROPERTY_SPACE_LAYERS = 100
+LAYERS_PER_TIER = 10
 MMO_PARCEL_PIXELS = SHAELVIEN_PROPERTY_SPACE_PIXELS
 MMO_PARCEL_MAX_HEIGHT = SHAELVIEN_PROPERTY_SPACE_LAYERS
+MMO_PARCEL_TIER_COUNT = (MMO_PARCEL_MAX_HEIGHT + LAYERS_PER_TIER - 1) // LAYERS_PER_TIER
 ENDEMAR_ORIGIN_COLUMN = 15
 ENDEMAR_ORIGIN_ROW = 15
 GENESIS_WORLD_TOKEN_SK = "WORLD_TOKEN#GENESIS"
@@ -626,7 +628,7 @@ def ensure_parcel_region(world_id, parcel, now_value=None):
         "createdAtUtc": str(state.get("createdAtUtc") or parcel.get("claimedAtUtc") or utc_stamp()),
         "updatedAtUtc": utc_stamp(),
         "tierIndex": int(state.get("tierIndex") or 0),
-        "sourceLayerOffsets": list(range(MMO_PARCEL_MAX_HEIGHT)),
+        "sourceLayerOffsets": list(range(LAYERS_PER_TIER)),
         "gridShape": str(state.get("gridShape") or "square"),
         "ownerUserId": owner,
         "parcelId": parcel_id,
@@ -1021,11 +1023,17 @@ def validate_region_map_layer(region_state, layer):
     if selected and row * MMO_PARCEL_GRID_COLUMNS + column not in selected:
         raise PermissionError("Region map layer is outside the authorized region")
     region_tier = int(region_state.get("tierIndex") or 0)
-    if tier != region_tier:
+    parcel_root = bool(str(region_state.get("parcelId") or "").strip())
+    if parcel_root:
+        max_height = max(LAYERS_PER_TIER, int(region_state.get("maxHeight") or MMO_PARCEL_MAX_HEIGHT))
+        max_tier = max(0, (max_height - 1) // LAYERS_PER_TIER)
+        if tier < 0 or tier > max_tier:
+            raise PermissionError("Region map layer is outside the authorized parcel height")
+    elif tier != region_tier:
         raise PermissionError("Region map layer is outside the authorized tier")
     allowed_layers = {
         int(value)
-        for value in (region_state.get("sourceLayerOffsets") or range(10))
+        for value in (region_state.get("sourceLayerOffsets") or range(LAYERS_PER_TIER))
         if isinstance(value, (int, float, Decimal))
     }
     if layer_offset not in allowed_layers:
@@ -1899,7 +1907,7 @@ def handler(event, context):
                 req.get("requesterDisplayName") or session["displayName"]
             )[:120],
             "workspace": str(req.get("workspace") or "regiondefiner")[:40],
-            "tierIndex": max(0, min(2, int(req.get("tierIndex") or 0))),
+            "tierIndex": max(0, min(MMO_PARCEL_TIER_COUNT - 1, int(req.get("tierIndex") or 0))),
             "selectedCells": cells,
             "sourceLayerOffsets": layers,
             "gridShape": "hex"
@@ -2046,7 +2054,7 @@ def handler(event, context):
                 "overlayTiles": [],
                 "createdAtUtc": stamp,
                 "updatedAtUtc": stamp,
-                "tierIndex": max(0, min(2, int(item.get("tierIndex") or 0))),
+                "tierIndex": max(0, min(MMO_PARCEL_TIER_COUNT - 1, int(item.get("tierIndex") or 0))),
                 "sourceLayerOffsets": layers,
                 "gridShape": "hex"
                 if str(item.get("gridShape") or "").lower() == "hex"
@@ -2330,7 +2338,7 @@ def handler(event, context):
             "createdAtUtc": stamp,
             "updatedAtUtc": stamp,
             "tierIndex": 0,
-            "sourceLayerOffsets": list(range(MMO_PARCEL_MAX_HEIGHT)),
+            "sourceLayerOffsets": list(range(LAYERS_PER_TIER)),
             "gridShape": "square",
             "ownerUserId": user_id,
             "parcelId": parcel_id,
