@@ -55,6 +55,15 @@ def test_geanaph_has_nine_locked_full_frame_visual_layers_and_separate_truth():
     assert '"representationPolicy": "Representation != Semantic Truth"' in seed
     assert "len(verify_layers) != len(VISUAL_LAYERS)" in seed
 
+    assert '("cavern", "Cavern Network", "luminous_underground_cavern_network.png", 0, 1, -40, False)' in seed
+    assert '("terrain", "Terrain Surface", SURFACE_FILE, 0, 5, 0, True)' in seed
+    assert '("surface-overlay", "Surface Overlay", "luminous_fantasy_archipelago_map_overlay.png", 1, 1, 10, False)' in seed
+    assert '("celestial", "Celestial Overlay", "celestial_nebula_archipelago_map.png", 2, 1, 40, False)' in seed
+    assert "Tier 0 / Layer 0 must remain free for the sea-level map" in seed
+    assert 'ENDEMAR_CLEAR_MARKER = "endemar-root-cleared-v1"' in seed
+    assert 'source_state["tierImages"] = []' in seed
+    assert '"preservedRegionScopedLayers": True' in seed
+
 
 def test_geanaph_seed_uses_same_configured_owner_as_endemar_and_revision_runs():
     template = text("infra/aws/rist-platform.yml")
@@ -63,7 +72,7 @@ def test_geanaph_seed_uses_same_configured_owner_as_endemar_and_revision_runs():
     assert "OWNER_USER_ID: !Ref OwnerUserId" in template
     assert "ASSET_BASE_URL: !Sub '${AssetOrigin}/zones/geanaph/v1'" in template
     assert "- SunkenTundraSeed" in template
-    assert "Revision: geanaph-east-v2" in template
+    assert "Revision: geonaph-east-v6-free-origin" in template
     assert "GeanaphCanonicalEastOfEndemar:" in template
     assert "GeanaphOwnerBoundToPlatformAccount:" in template
 
