@@ -57,11 +57,12 @@
   {
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
-   // Region Definer is another viewer over the exact same world map as World Builder.
-   // The seed chooses the shared base-map loader; database WORLDSOURCE adds the same
-   // authored layers. Perspective/crop and permissions are the only differences.
-   var seed=Session.IsGeonaphWorld?"geonaph":"empty";
+   // The Shaelvien root may use its canonical bootstrap map, but an MMO parcel is
+   // a distinct zone. Never inject the root/Endemar bootstrap image into a selected
+   // parcel such as Geonaph; the parcel is reconstructed from its scoped database
+   // region layers instead.
    var activeRegion=Session.ActiveRegion;
+   var seed=Session.IsGeonaphWorld&&string.IsNullOrWhiteSpace(activeRegion?.ParcelId)?"geonaph":"empty";
    var surfacePixels=activeRegion?.ParcelPixelWidth>0
     ? activeRegion.ParcelPixelWidth
     : Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
