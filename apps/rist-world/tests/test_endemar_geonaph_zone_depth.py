@@ -154,7 +154,7 @@ def test_fill_zone_preview_uses_the_full_world_viewer():
     assert ".asset-preview.zone-fill-preview{" in css
     assert ".asset-preview.zone-fill-preview img{" in css
     assert "object-fit:fill;" in css
-    assert "item.semanticRole==='sea-level-map'?'fill':'contain'" in prototype
+    assert "item.node.style.objectFit='fill';" in prototype
     assert "size:clamp(Number(raw.size)||1,.01,20)" in prototype
 
 
