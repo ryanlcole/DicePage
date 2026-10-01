@@ -21,7 +21,10 @@ def test_new_region_uses_database_world_source_and_swipe_tier_preview():
     prototype = (ROOT / "wwwroot" / "prototype" / "prototype.js").read_text(encoding="utf-8")
 
     assert 'source="database"' in host
-    assert 'var seed=Session.IsGeonaphWorld?"geonaph":"empty";' in host
+    assert 'var seed=isEndemar?"endemar":isGeonaph?"geonaph":"empty";' in host
+    assert "WorldSession.GeonaphTruthMode" in host
+    assert "WorldSession.EndemarTruthMode" in host
+    assert "&maxHeight={maxHeight}" in host
     assert "await Session.LoadWorldBuilderSourceAsync()" in host
     assert "state=databaseSource?.State" in host
     assert "fallbackTierImages" not in host
