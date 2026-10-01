@@ -57,12 +57,18 @@
   {
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
-   // The Shaelvien root may use its canonical bootstrap map, but an MMO parcel is
-   // a distinct zone. Never inject the root/Endemar bootstrap image into a selected
-   // parcel such as Geonaph; the parcel is reconstructed from its scoped database
-   // region layers instead.
+   // Endemar and Geonaph are separate Shaelvien zones. Endemar owns the primordial
+   // fantasy-fiction bootstrap; Geonaph is Truth/Hybrid and must hydrate only from
+   // its own database-backed region/history layers. Legacy geonaph asset paths do
+   // not grant Endemar content to the Geonaph zone.
    var activeRegion=Session.ActiveRegion;
-   var seed=Session.IsGeonaphWorld&&string.IsNullOrWhiteSpace(activeRegion?.ParcelId)?"geonaph":"empty";
+   var activeParcel=string.IsNullOrWhiteSpace(activeRegion?.ParcelId)
+    ?null
+    :Session.MmoParcels.FirstOrDefault(parcel=>string.Equals(parcel.ParcelId,activeRegion!.ParcelId,StringComparison.Ordinal));
+   var isEndemar=Session.IsGeonaphWorld&&string.IsNullOrWhiteSpace(activeRegion?.ParcelId);
+   var isGeonaph=activeParcel is not null
+    &&string.Equals(activeParcel.DisplayName,WorldSession.GeonaphZoneDisplayName,StringComparison.OrdinalIgnoreCase);
+   var seed=isEndemar?"endemar":isGeonaph?"geonaph":"empty";
    var surfacePixels=activeRegion?.ParcelPixelWidth>0
     ? activeRegion.ParcelPixelWidth
     : Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
@@ -72,10 +78,15 @@
    var surfacePolicy=!string.IsNullOrWhiteSpace(activeRegion?.ParcelId)
     ?"mmo-parcel"
     : Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
+   var truthMode=isEndemar
+    ?WorldSession.EndemarTruthMode
+    :isGeonaph
+     ?WorldSession.GeonaphTruthMode
+     :"UNSPECIFIED";
    var access=(Session.HasTrustedWorldBuilderAuthority||Session.CanEditRegion(activeRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
    var regionFlow=activeRegion is null?"new":"existing";
    var regionId=Uri.EscapeDataString(activeRegion?.RegionId??"");
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20260920-region-entry-2";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20261001-zone-depth-1";
   }
  }
 
