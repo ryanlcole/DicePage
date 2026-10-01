@@ -60,8 +60,8 @@ def test_history_campaign_uses_universal_controller_instead_of_leaving_it():
 
     assert "Stage.HistoryCampaign" in interface
     assert "<GeonaphHistoryCampaign" in interface
-    assert "Stage.HistoryCampaign=>\"Y · RECURSION\"" in interface
-    assert "Stage.HistoryCampaign=>\"X · TASKS\"" in interface
+    assert 'Stage.HistoryCampaign=>HistoryOpeningComplete?"Y · RECURSION":"Y · ARRIVAL"' in interface
+    assert 'Stage.HistoryCampaign=>HistoryOpeningComplete?"X · TASKS":"X · ARRIVAL"' in interface
     assert "_mmoRoleplayerMode" in mmo
     assert "MmoSelectedIsCanonicalGeanaph" in mmo
     assert "EnterGeonaphHistoryCampaign();" in mmo
@@ -128,3 +128,51 @@ def test_history_provenance_and_content_policy_allow_only_evidence_safe_values()
     assert data["contentProfile"]["ratingStatus"] == "UNRATED"
     assert data["contentProfile"]["matureContent"] == "ALLOWED"
     assert data["contentProfile"]["provenanceIndependent"] is True
+
+
+def test_act1_scene1_preserves_traveler_backbone_truth_frame_and_physical_boundary():
+    data = json.loads(text("apps/rist-world/wwwroot/data/geonaph/history/campaign-v1.json"))
+    scene = data["act1"]["scene1"]
+    ai = scene["aiRole"]
+    backbone = data["playerBackbone"]
+    frame = data["epistemicFrame"]
+    history = text("apps/rist-world/Components/UniversalInterface.HistoryCampaign.cs")
+    character = text("apps/rist-world/WorldSession.GeonaphCharacter.cs")
+    access = text("apps/rist-world/ExternalAiAccess.cs")
+    policy = json.loads(text("apps/rist-world/wwwroot/.well-known/relic-ai-policy.json"))
+
+    assert data["act1"]["title"] == "Humanity Evolution 1"
+    assert scene["title"] == "First Breath"
+    assert scene["status"] == "PLAYABLE_V1"
+    assert [step["label"] for step in scene["openingSteps"]] == [
+        "THE FUTURE", "TRANSFORM", "FORGET", "AWAKEN", "LIVE"
+    ]
+    assert "immortality" in backbone["origin"].lower()
+    assert "matter" in backbone["timeTravel"].lower()
+    assert "near-total" in backbone["memory"].lower()
+    assert "ends" in backbone["death"].lower()
+    assert frame["claimsAbsoluteMetaphysicalTruth"] is False
+    assert "perspective of human truth" in frame["rule"].lower()
+    assert ai["canAuthorCanon"] is False
+    assert ai["canRollDice"] is False
+    assert ai["canCreateHistoricalFacts"] is False
+    assert "audio/video only" in ai["roboticsBoundary"]
+    assert "HistoryOpeningComplete" in history
+    assert "PrepareGeonaphTravelerCharacter" in history
+    assert "CharacterSpecies = \"\"" in character
+    assert "no-robotic-embodiment" in access
+    assert policy["physicalEmbodiment"]["roboticEmbodimentAllowed"] is False
+    assert policy["physicalEmbodiment"]["physicalActuationAllowed"] is False
+    assert policy["physicalEmbodiment"]["permittedExternalOutputs"] == ["audio", "video"]
+
+
+def test_scene1_does_not_claim_a_species_language_or_future_knowledge():
+    data = json.loads(text("apps/rist-world/wwwroot/data/geonaph/history/campaign-v1.json"))
+    scene = data["act1"]["scene1"]
+    joined = json.dumps(scene).lower()
+
+    assert "taxonomic identity" in joined
+    assert "language" in joined
+    assert "cannot use unrestricted future knowledge" in joined
+    assert scene["historicalAnchor"]["region"] == "West Turkana"
+    assert scene["historicalAnchor"]["local"] == "Lomekwi 3"
