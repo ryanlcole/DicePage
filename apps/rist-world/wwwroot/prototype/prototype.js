@@ -1205,9 +1205,28 @@ function allParallaxRestOffset(item){
   const z=sceneDepthForItem(item);
   return{x:z*.24,y:-z*.34};
 }
+function looksLikeWholeMapAsset(raw){
+  if(!raw||String(raw.kind||'image').toLowerCase()==='sprite')return false;
+  if(normalizeSpatialScope(raw.scope||'WORLD')!=='WORLD')return false;
+  const marker=[
+    raw.name,raw.assetId,raw.personalAssetKey,raw.originalSrc,raw.transparentSrc,raw.url,raw.key
+  ].map(value=>String(value||'').replaceAll('\\','/').toLowerCase()).join(' ');
+  return marker.includes('/whole_maps/')
+    ||marker.includes('/whole-maps/')
+    ||marker.includes('whole_maps')
+    ||marker.includes('whole-maps')
+    ||marker.includes('full_static')
+    ||marker.includes('full-static')
+    ||marker.includes('full static')
+    ||marker.includes('world_map')
+    ||marker.includes('world-map')
+    ||marker.includes('canonical_surface')
+    ||marker.includes('canonical-surface');
+}
 function storedPlacementRole(raw){
   if(raw?.placementRole==='world-map'||raw?.fullWorld===true)return'world-map';
   if(raw?.placementRole==='deed-frame'||raw?.fullDeedFrame===true)return'deed-frame';
+  if(raw?.fullFrame===true||looksLikeWholeMapAsset(raw))return'deed-frame';
   return'layer';
 }
 function customWorldMap(){return userLayers.find(isWorldMapItem)||null}
@@ -3723,6 +3742,7 @@ async function placeExternalAsset(raw={}){
   const kind=String(raw.kind||'image').toLowerCase()==='sprite'?'sprite':'image';
   const regionId=authoringRegionId();
   const geonaphSeaLevelMap=IS_GEONAPH_SEED&&!!DEED_REGION_ID&&scope==='WORLD'&&tier===0&&layer===0&&kind==='image';
+  const fullDeedFrame=geonaphSeaLevelMap||raw.fullFrame===true||looksLikeWholeMapAsset({...raw,scope,kind,originalSrc:src,url:src});
   if(geonaphSeaLevelMap){
     for(let index=userLayers.length-1;index>=0;index--){
       const existing=userLayers[index];
@@ -3734,7 +3754,7 @@ async function placeExternalAsset(raw={}){
     }
   }
   const center=viewerCenterPosition(),px=Number(raw.offsetX)||0,py=Number(raw.offsetY)||0;
-  const point=geonaphSeaLevelMap?{x:.5,y:.5}:snapAssetPoint(
+  const point=fullDeedFrame?{x:.5,y:.5}:snapAssetPoint(
     center.x+(px/(Math.max(scale,.00001)*Math.max(naturalWidth,1))),
     center.y+(py/(Math.max(scale,.00001)*Math.max(naturalHeight,1)))
   );
@@ -3745,20 +3765,21 @@ async function placeExternalAsset(raw={}){
     assetId:String(raw.assetId||raw.key||'')||null,personalAssetKey:null,
     name:String(raw.name||'Placed asset'),kind,
     libraryTile:false,sourceLocked:false,regionOverlay:false,regionId,
-    placementRole:geonaphSeaLevelMap?'deed-frame':'layer',fullWorld:false,fullDeedFrame:geonaphSeaLevelMap,
+    placementRole:fullDeedFrame?'deed-frame':'layer',fullWorld:false,fullDeedFrame,
     mmoSurface:geonaphSeaLevelMap,representationOnly:geonaphSeaLevelMap,semanticRole:geonaphSeaLevelMap?'sea-level-map':'',
-    frameLock:geonaphSeaLevelMap,originalSrc:src,transparentSrc:src,transparent:!geonaphSeaLevelMap,
-    x:point.x,y:point.y,tier,layer,size:geonaphSeaLevelMap?1:clamp(Number(raw.scale)||1,.05,20),
-    rotation:geonaphSeaLevelMap?0:(Number(raw.rotation)||0),opacity:1,committed:false,renderOpacity:1,
+    frameLock:fullDeedFrame,originalSrc:src,transparentSrc:src,transparent:!geonaphSeaLevelMap,
+    x:point.x,y:point.y,tier,layer,size:fullDeedFrame?1:clamp(Number(raw.scale)||1,.05,20),
+    rotation:fullDeedFrame?0:(Number(raw.rotation)||0),opacity:1,committed:false,renderOpacity:1,
     zoomPassed:false,zoomPassScale:null,node:null
   };
-  const node=document.createElement('img');node.className=`user-image-placement${geonaphSeaLevelMap?' full-deed-frame-placement':''}`;node.alt=item.name;node.draggable=false;item.node=node;
+  const node=document.createElement('img');node.className=`user-image-placement${fullDeedFrame?' full-deed-frame-placement':''}`;node.alt=item.name;node.draggable=false;item.node=node;
   node.addEventListener('pointerdown',event=>beginImageDrag(event,item));node.addEventListener('pointermove',moveImageDrag);node.addEventListener('pointerup',endImageDrag);node.addEventListener('pointercancel',endImageDrag);
   userLayers.push(item);world.appendChild(node);world.dataset.emptyWorld='false';void primeCollisionMask(src);
   updateLayerOrder();refreshUserImage(item);selectUserImage(item);applyParallax();
   const saved=await saveEditedSnapshotOrRollback(before);
   if(saved){
     if(geonaphSeaLevelMap)announce('Geonaph sea-level map committed at Tier 0, Layer 0. The deed map will use this flattened surface while World Builder keeps the parallax tier stack.');
+    else if(fullDeedFrame)announce(`${item.name||'Whole-map image'} committed as a full deed-frame parallax layer at Tier ${tier}, Layer ${layer}.`);
     return true;
   }
   announce('External placement was rolled back because canonical save failed.');
