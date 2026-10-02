@@ -61,8 +61,9 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.match(info,/02_jeyrusal_character_cutout\.png/);
   assert.match(info,/03_jeyrusal_holographic_overlay\.png/);
   assert.match(info,/class="signature-card-shine"/);
-  assert.match(info,/\.signature-card::before\{[^}]*rgba\(214,223,231,\.16\)[^}]*opacity:\.44/);
-  assert.match(info,/\.signature-card::before\{[^}]*translate3d\(calc\(var\(--px\) \* 5px\),calc\(var\(--py\) \* 5px\),32px\)/);
+  assert.match(info,/class="signature-card-foil"/);
+  assert.match(info,/\.signature-card-foil\{[^}]*rgba\(244,247,250,\.38\)[^}]*opacity:\.72/);
+  assert.match(info,/\.signature-card-foil\{[^}]*translate3d\(calc\(var\(--px\) \* 5px\),calc\(var\(--py\) \* 5px\),48px\)/);
   assert.match(info,/\.signature-card-shine\{position:absolute;z-index:5/);
   assert.match(info,/\.signature-card::after\{content:"";position:absolute;z-index:6/);
   assert.match(info,/function setParallax\(x,y,tilt=7\)/);
@@ -98,6 +99,10 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.match(info,/function motionShake\(event\)/);
   assert.match(info,/addEventListener\('devicemotion',motionShake/);
   assert.match(info,/DeviceMotionEvent\.requestPermission/);
+  assert.match(info,/document\.addEventListener\('touchstart',unlockSensors/);
+  assert.match(info,/motionTiltBaseline/);
+  assert.match(info,/now-lastOrientationAt>300/);
+  assert.doesNotMatch(info,/if\(!orientationActive\|\|reducedMotion\)/);
   assert.match(info,/strength<13\|\|now-lastShakeAt<650/);
   assert.match(info,/rollLogoDice\(true\)/);
   assert.match(info,/--logo-tx/);
