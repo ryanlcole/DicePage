@@ -57,6 +57,11 @@ test('profile frame fits creator portrait and removes only the GameMaster outer 
   assert.match(info,/\.portrait-stage\.creator img\{[^}]*width:calc\(100% - 22px\)[^}]*height:calc\(100% - 22px\)/);
   assert.match(info,/async function makeDarkOuterBackgroundTransparent\(url\)/);
   assert.match(info,/const visited=new Uint8Array\(width\*height\)/);
-  assert.match(info,/return distance<78 && luminance<105/);
+  assert.match(info,/const referenceWidth=360/);
+  assert.match(info,/const referenceHeight=540/);
+  assert.match(info,/const foregroundPolygons=\[/);
+  assert.match(info,/function protectedForeground\(x,y\)/);
+  assert.match(info,/if\(protectedForeground\(x,y\)\)return false/);
+  assert.match(info,/return distance<52 && luminance<82/);
   assert.match(info,/gmUrl=await makeDarkOuterBackgroundTransparent\(rawGmUrl\)/);
 });

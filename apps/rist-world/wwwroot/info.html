@@ -172,6 +172,46 @@
      });
    }
 
+   // Canonical source artwork is 360 x 540. These source-space polygons
+   // protect the GameMaster, staff, d20, crown, cloak and robe from the
+   // background flood-fill. They are scaled if the source is ever resized.
+   const referenceWidth=360;
+   const referenceHeight=540;
+   const foregroundPolygons=[
+     // d20 + upper staff ornament / flame
+     [[34,55],[63,37],[103,42],[128,69],[132,112],[115,151],[61,158],[36,128]],
+     // staff shaft, hand and lower staff
+     [[61,132],[105,128],[108,236],[100,330],[103,430],[96,540],[58,540],[64,430],[61,330],[66,230]],
+     // crown, flame, head and hood
+     [[142,23],[175,7],[215,10],[244,37],[258,86],[248,139],[238,183],[151,188],[133,137],[133,80]],
+     // shoulders, arms and upper torso
+     [[105,139],[151,119],[219,118],[277,139],[315,177],[329,233],[308,292],[267,318],[107,315],[77,278],[78,207]],
+     // central torso, belt and hanging robe
+     [[126,186],[257,177],[288,248],[296,349],[280,458],[264,540],[102,540],[91,465],[94,350],[102,245]],
+     // left cape / sleeve silhouette
+     [[77,205],[126,170],[151,235],[145,330],[126,438],[91,521],[69,493],[70,380]],
+     // right cape / sleeve silhouette
+     [[260,165],[312,190],[337,261],[329,363],[317,469],[291,535],[258,526],[273,420],[271,318]]
+   ];
+
+   function pointInPolygon(x,y,polygon){
+     let inside=false;
+     for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+       const xi=polygon[i][0],yi=polygon[i][1];
+       const xj=polygon[j][0],yj=polygon[j][1];
+       const crosses=((yi>y)!==(yj>y)) &&
+         (x < (xj-xi)*(y-yi)/((yj-yi)||1e-9)+xi);
+       if(crosses)inside=!inside;
+     }
+     return inside;
+   }
+
+   function protectedForeground(x,y){
+     const rx=x*referenceWidth/Math.max(1,source.naturalWidth);
+     const ry=y*referenceHeight/Math.max(1,source.naturalHeight);
+     return foregroundPolygons.some(polygon=>pointInPolygon(rx,ry,polygon));
+   }
+
    const canvas=document.createElement('canvas');
    canvas.width=source.naturalWidth;
    canvas.height=source.naturalHeight;
@@ -199,12 +239,14 @@
    baseR/=cornerSamples.length;baseG/=cornerSamples.length;baseB/=cornerSamples.length;
 
    function backgroundLike(x,y){
+     if(protectedForeground(x,y))return false;
      const i=(y*width+x)*4;
      const r=data[i],g=data[i+1],b=data[i+2];
      const dr=r-baseR,dg=g-baseG,db=b-baseB;
      const distance=Math.sqrt(dr*dr+dg*dg+db*db);
      const luminance=.2126*r+.7152*g+.0722*b;
-     return distance<78 && luminance<105;
+     // Deliberately conservative: coordinate protection does the heavy lifting.
+     return distance<52 && luminance<82;
    }
 
    function enqueue(x,y){
@@ -228,8 +270,7 @@
      const p=queue[head++];
      const x=p%width;
      const y=Math.floor(p/width);
-     const i=p*4;
-     data[i+3]=0;
+     data[p*4+3]=0;
      enqueue(x-1,y);enqueue(x+1,y);enqueue(x,y-1);enqueue(x,y+1);
    }
 
