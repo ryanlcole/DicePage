@@ -16,7 +16,9 @@
          data-semantic-skin="@SemanticControlSkin"
          @ref="_shell"
          @onkeydown="HandleKeyDown"
-         data-spatial-scope="@CurrentBuilderScope"
+         data-spatial-scope="@_viewerSpatialScope"
+         data-spatial-angle="@_viewerSpatialViewAngle"
+         data-spatial-depth-prefix="@_viewerSpatialDepthPrefix"
          data-world-id="@Session.WorldId"
          aria-label="RIST universal GameMaster Suite">
  <button type="button"
@@ -629,6 +631,10 @@
  int _worldBuilderSelectionLayer;
  double _worldBuilderSelectionX;
  double _worldBuilderSelectionY;
+ string _viewerSpatialScope="WORLD";
+ double _viewerSpatialZoomRatio=1;
+ int _viewerSpatialViewAngle;
+ string _viewerSpatialDepthPrefix="Z";
  List<UserAssetEntry> _myAssets=[];
  List<UserAssetEntry> _gameAssets=[];
  List<AccountWorldReference> _controllerDirectoryWorlds=[];
@@ -795,6 +801,10 @@
   _selectedDeedName=option.Name?.Trim()??"";
   _selectedDeedKind=option.Environment;
   _selectedDeedRegionId=option.Parcel?.RegionId?.Trim()??"";
+  _viewerSpatialScope="WORLD";
+  _viewerSpatialZoomRatio=1;
+  _viewerSpatialViewAngle=0;
+  _viewerSpatialDepthPrefix="Z";
   _pathIndex=0;
   _pathMenuIndex=0;
   _scopeIndex=0;
@@ -2869,6 +2879,10 @@
  async Task OpenWorldHomeAsync(string? message=null)
  {
   _builderChainIndex=0;
+  _viewerSpatialScope="WORLD";
+  _viewerSpatialZoomRatio=1;
+  _viewerSpatialViewAngle=0;
+  _viewerSpatialDepthPrefix="Z";
   _requestedBuilderChainIndex=0;
   _assetScope="WORLD";
   _tier=0;
@@ -3442,6 +3456,37 @@
    worldId=source?.WorldId??Session.WorldId,
    updatedAtUtc=source?.UpdatedAtUtc??""
   };
+ }
+
+ [JSInvokable]
+ public async Task ReceiveWorldBuilderSpatialScopeAsync(
+  string scope,
+  double zoomRatio,
+  int angle,
+  string depthPrefix)
+ {
+  await InvokeAsync(() =>
+  {
+   var normalized=(scope??"WORLD").Trim().ToUpperInvariant();
+   if(!BuilderChain.Contains(normalized,StringComparer.Ordinal))normalized="WORLD";
+   _viewerSpatialScope=normalized;
+   _viewerSpatialZoomRatio=Math.Max(1,zoomRatio);
+   _viewerSpatialViewAngle=normalized switch
+   {
+    "REGION"=>15,
+    "LOCAL"=>30,
+    "INSTANCE"=>45,
+    _=>0
+   };
+   _viewerSpatialDepthPrefix=normalized switch
+   {
+    "REGION"=>"R",
+    "LOCAL"=>"L",
+    "INSTANCE"=>"I",
+    _=>"Z"
+   };
+   StateHasChanged();
+  });
  }
 
  [JSInvokable]

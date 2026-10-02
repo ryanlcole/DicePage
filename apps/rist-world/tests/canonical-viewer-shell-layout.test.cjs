@@ -471,6 +471,24 @@ test('zoom hands representation from World to Region Local and Instance',()=>{
   assert.match(prototype,/itemScope===spatialScope/);
 });
 
+test('zoom scope trigger reaches the parent without changing edit scope',()=>{
+  const host=read('wwwroot/worldbuilder-source-host.js');
+  const razor=read('Components/UniversalInterface.razor');
+
+  assert.match(host,/data\.type==="spatial-scope-change"/);
+  assert.match(host,/messageMatchesCurrentFrame\(frame,data\)/);
+  assert.match(host,/ReceiveWorldBuilderSpatialScopeAsync/);
+  assert.match(razor,/data-spatial-scope="@_viewerSpatialScope"/);
+  assert.match(razor,/public async Task ReceiveWorldBuilderSpatialScopeAsync/);
+  assert.match(razor,/"REGION"=>15/);
+  assert.match(razor,/"LOCAL"=>30/);
+  assert.match(razor,/"INSTANCE"=>45/);
+  assert.match(razor,/"REGION"=>"R"/);
+  assert.match(razor,/"LOCAL"=>"L"/);
+  assert.match(razor,/"INSTANCE"=>"I"/);
+  assert.doesNotMatch(razor,/ReceiveWorldBuilderSpatialScopeAsync[\s\S]{0,1400}?_builderChainIndex=/);
+});
+
 test('canonical placements retain their World Region Local or Instance scope',()=>{
   const prototype=read('wwwroot/prototype/prototype.js');
 

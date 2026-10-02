@@ -140,6 +140,20 @@ export function attach(frame,dotnet){
         );
         return;
       }
+      if(data.type==="spatial-scope-change"){
+        if(!messageMatchesCurrentFrame(frame,data))return;
+        const spatial=data.spatial&&typeof data.spatial==="object"?data.spatial:{};
+        try{
+          await dotnet.invokeMethodAsync(
+            "ReceiveWorldBuilderSpatialScopeAsync",
+            String(spatial.scope||"WORLD"),
+            Number.isFinite(Number(spatial.zoomRatio))?Number(spatial.zoomRatio):1,
+            Number.isFinite(Number(spatial.angle))?Math.trunc(Number(spatial.angle)):0,
+            String(spatial.depthPrefix||"Z")
+          );
+        }catch{}
+        return;
+      }
       if(data.type==="save-source"){
         const requestId=String(data.requestId||"");
         const result=await dotnet.invokeMethodAsync("SaveWorldBuilderSourceFromPrototypeAsync",data.state||{});
