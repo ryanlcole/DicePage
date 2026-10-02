@@ -323,7 +323,7 @@ jobs:
           grep -q 'href="/store/"' /tmp/relic-home.html
           grep -q 'href="/relic/">AI</a>' /tmp/relic-home.html
           grep -q 'Meet the team' /tmp/relic-home.html
-          grep -q 'href="/Game/info.html"' /tmp/relic-home.html
+          grep -q 'href="/Game/info.html?signature=jeyrusal"' /tmp/relic-home.html
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-info.html "${URL}Game/info.html"
           grep -q 'Software Contributors' /tmp/relic-info.html
