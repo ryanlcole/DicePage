@@ -64,7 +64,17 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.match(info,/function setParallax\(x,y,tilt=7\)/);
   assert.match(info,/requestAnimationFrame\(idleTilt\)/);
   assert.match(info,/DeviceOrientationEvent\.requestPermission/);
+  assert.match(info,/function orientationAxes\(event\)/);
+  assert.match(info,/orientationBaseline=\{x:axes\.x,y:axes\.y\}/);
+  assert.match(info,/const dx=axes\.x-orientationBaseline\.x/);
+  assert.match(info,/const dy=axes\.y-orientationBaseline\.y/);
+  assert.match(info,/dx\/18/);
+  assert.match(info,/dy\/18/);
+  assert.match(info,/function runOrientationParallax\(\)/);
+  assert.match(info,/setParallax\(orientationCurrent\.x,orientationCurrent\.y,11\)/);
   assert.match(info,/addEventListener\('deviceorientation',orientationTilt/);
+  assert.match(info,/signatureCard\.addEventListener\('click',enableDeviceTilt\)/);
+  assert.match(info,/signatureCard\.addEventListener\('touchend',enableDeviceTilt/);
   assert.match(info,/signatureCard\.addEventListener\('pointermove',pointerTilt/);
   assert.match(info,/Move or tilt Jeyrusal's Dev Forged Signature Card to reveal its parallax foil layers/);
   assert.doesNotMatch(info,/Press the ReLiCGameMaster logo/);
