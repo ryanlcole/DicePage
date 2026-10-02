@@ -1884,7 +1884,7 @@ function regionCellFromPoint(x,y,shape=regionGridShape,region=null){
   const column=clamp(Math.floor((clamp(x,0,.999999)*grid.columns)-offset),0,grid.columns-1);
   return row*grid.columns+column;
 }
-function viewerGridSvgfunction viewerGridSvg(shape,columns=viewerGridColumns,rows=viewerGridRows){
+function viewerGridSvg(shape,columns=viewerGridColumns,rows=viewerGridRows){
   const stroke='rgba(199,229,239,.24)';
   columns=clamp(Math.trunc(Number(columns)||30),1,64);rows=clamp(Math.trunc(Number(rows)||30),1,64);
   if(shape==='hex'){
