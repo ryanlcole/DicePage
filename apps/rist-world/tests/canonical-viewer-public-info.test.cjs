@@ -29,5 +29,9 @@ test('Game info credits directly used software contributors after legal links',(
   assert.match(info,/assets\/software\/aws\.svg/);
   assert.match(info,/trademarks and logos remain the property of their respective owners/);
   assert.match(info,/creatorUrl='assets\/profile\/ryan-cole-portrait\.png'/);
+  assert.match(info,/class="die-body"/);
+  assert.match(info,/class="die-facet"/);
+  assert.match(info,/<text class="die-number"[^>]*>20<\/text>/);
+  assert.doesNotMatch(info,/>d20<\/button>/);
 });
 
