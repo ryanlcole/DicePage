@@ -88,7 +88,11 @@ jobs:
           grep -Fq "const depth=presentationDepthForTier(entry.tier);" /tmp/live-prototype.js
           grep -Fq "const depth=presentationDepthForTier(item.tier);" /tmp/live-prototype.js
           grep -Fq "const fullDeedFrame=geonaphSeaLevelMap;" /tmp/live-prototype.js
-          grep -Fq "world.style.transform=REGION_DEFINER" /tmp/live-prototype.js
+          grep -Fq "const SCOPE_GRID_COLUMNS=300;" /tmp/live-prototype.js
+          grep -Fq "const VIEWER_WINDOW_GRID_COLUMNS=30;" /tmp/live-prototype.js
+          grep -Fq "const SCOPE_VIEW_ANGLE=Object.freeze({WORLD:0,REGION:15,LOCAL:30,INSTANCE:45});" /tmp/live-prototype.js
+          grep -Fq "const SCOPE_ZOOM_FACTOR=SCOPE_GRID_COLUMNS/VIEWER_WINDOW_GRID_COLUMNS;" /tmp/live-prototype.js
+          grep -Fq "rotateX(${angle}deg)" /tmp/live-prototype.js
           grep -Fq "const lift=hasPreviousTop?clamp(-tierStep*9*strength*spatialWeight,-42,0):0;" /tmp/live-worldbuilder-projection.js
           grep -Fq "object-fit:fill" /tmp/live-prototype.css
-          echo "SHARED COMPACT PLACEMENT + GEONAPH TRANSPARENCY LIVE VERIFIED"
+          echo "RECURSIVE 300X300 SCOPE GEOMETRY + GEONAPH TRANSPARENCY LIVE VERIFIED"
