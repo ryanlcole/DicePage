@@ -147,6 +147,7 @@
  let orientationTarget={x:0,y:0};
  let orientationCurrent={x:0,y:0};
  let orientationFrame=0;
+ let tiltEnablePromise=null;
  let idleFrame=0;
 
  async function makeLogoTransparent(){
@@ -192,7 +193,7 @@
  }
 
  function pointerTilt(event){
-   if(showingCreator||reducedMotion)return;
+   if(showingCreator||reducedMotion||event.pointerType==='touch')return;
    userControlling=true;
    const rect=signatureCard.getBoundingClientRect();
    const x=((event.clientX-rect.left)/Math.max(1,rect.width))*2-1;
@@ -256,16 +257,22 @@
  }
 
  async function enableDeviceTilt(){
-   if(reducedMotion||typeof DeviceOrientationEvent==='undefined')return;
-   try{
-     if(typeof DeviceOrientationEvent.requestPermission==='function'){
-       const state=await DeviceOrientationEvent.requestPermission();
-       if(state!=='granted')return;
+   if(reducedMotion||orientationListening||typeof DeviceOrientationEvent==='undefined')return;
+   if(tiltEnablePromise)return tiltEnablePromise;
+   tiltEnablePromise=(async()=>{
+     try{
+       if(typeof DeviceOrientationEvent.requestPermission==='function'){
+         const state=await DeviceOrientationEvent.requestPermission();
+         if(state!=='granted')return;
+       }
+       startOrientationListener();
+     }catch(error){
+       console.debug('Device tilt unavailable',error);
+     }finally{
+       tiltEnablePromise=null;
      }
-     startOrientationListener();
-   }catch(error){
-     console.debug('Device tilt unavailable',error);
-   }
+   })();
+   return tiltEnablePromise;
  }
 
  function idleTilt(time){
@@ -297,12 +304,16 @@
 
  signatureCard.addEventListener('pointermove',pointerTilt,{passive:true});
  signatureCard.addEventListener('pointerdown',event=>{
-   userControlling=true;
+   if(event.pointerType==='touch'){
+     // A tap only unlocks the phone sensors when WebKit requires permission.
+     // Touch position itself never drives the card.
+     void enableDeviceTilt();
+     return;
+   }
    pointerTilt(event);
  },{passive:true});
- signatureCard.addEventListener('click',enableDeviceTilt);
- signatureCard.addEventListener('touchend',enableDeviceTilt,{passive:true});
- signatureCard.addEventListener('pointerleave',()=>{
+ signatureCard.addEventListener('pointerleave',event=>{
+   if(event.pointerType==='touch')return;
    if(!orientationActive){
      userControlling=false;
      resetParallax();
