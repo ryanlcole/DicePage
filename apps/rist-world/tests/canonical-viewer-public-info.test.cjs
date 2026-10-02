@@ -64,7 +64,9 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.match(info,/class="signature-card-chrome"/);
   assert.match(info,/filter:brightness\(\.58\) saturate\(\.42\) contrast\(1\.22\)/);
   assert.match(info,/class="signature-card-foil"/);
-  assert.match(info,/\.signature-card-foil\{[^}]*background-color:rgba\(184,194,204,\.12\)[^}]*opacity:\.78/);
+  assert.match(info,/\.signature-card-foil\{[^}]*background-color:rgba\(102,111,120,\.10\)[^}]*opacity:\.70/);
+  assert.match(info,/\.signature-card-shine\{[^}]*rgba\(0,0,0,\.72\)[^}]*mix-blend-mode:multiply[^}]*opacity:\.78/);
+  assert.doesNotMatch(info,/\.signature-card-shine\{[^}]*rgba\(255,255,255,\.55\)/);
   assert.match(info,/\.signature-card-foil\{[^}]*translate3d\(calc\(var\(--px\) \* 6px\),calc\(var\(--py\) \* 6px\),62px\)/);
   assert.match(info,/\.signature-card-shine\{position:absolute;z-index:6/);
   assert.match(info,/\.signature-card::after\{content:"";position:absolute;z-index:7/);
@@ -97,6 +99,11 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
     assert.ok(info.includes('data-die="'+die+'"'),'missing logo die '+die);
     assert.ok(info.includes("assets/dice/"+die+".png"),'missing app die asset '+die);
   }
+  assert.match(info,/function animateLogoDieLikeGame\(element,spec,value\)/);
+  assert.match(info,/const steps=13\+randomInt\(10\)/);
+  assert.match(info,/frame=\(frame\+1\)%spec\.frames/);
+  assert.match(info,/await wait\(52\+Math\.min\(n\*3,34\)\)/);
+  assert.match(info,/const finalFrame=frameForLogoDie\(spec,value\)/);
   assert.match(info,/function rollLogoDice\(animate=true\)/);
   assert.match(info,/function motionShake\(event\)/);
   assert.match(info,/addEventListener\('devicemotion',motionShake/);
