@@ -153,8 +153,7 @@
 
  try{gmUrl=await loadB64Image('gamemaster.webp.b64');}
  catch(error){console.error('GameMaster portrait failed',error);}
- try{creatorUrl=await loadB64Image('ryan-cutout.webp.b64');}
- catch(error){console.error('Creator portrait failed',error);}
+ creatorUrl='assets/profile/ryan-cole-portrait.png';
 
  function draw(){
    stage.classList.toggle('creator',showingCreator);
