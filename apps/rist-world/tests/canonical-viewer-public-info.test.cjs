@@ -11,7 +11,7 @@ const readRepo=relative=>fs.readFileSync(path.join(repoRoot,relative),'utf8');
 test('public About section links to Meet the team rather than putting creator biography in the hero',()=>{
   const home=readRepo('site/relic-home/index.html');
   assert.match(home,/<section class="overview" id="about">[\s\S]*?ReLiCGameMaster[\s\S]*?Meet the team/);
-  assert.match(home,/class="meet-team-link" href="\/Game\/info\.html">Meet the team/);
+  assert.match(home,/class="meet-team-link" href="\/Game\/info\.html\?signature=jeyrusal">Meet the team/);
   assert.doesNotMatch(home,/class="hero-actions"[\s\S]{0,700}?About Ryan Cole/);
 });
 
@@ -28,13 +28,13 @@ test('Game info credits directly used software contributors after legal links',(
   assert.match(info,/assets\/software\/openai-chatgpt\.svg/);
   assert.match(info,/assets\/software\/aws\.svg/);
   assert.match(info,/trademarks and logos remain the property of their respective owners/);
-  assert.match(info,/creatorUrl='assets\/profile\/ryan-cole-portrait\.png'/);
+
   assert.match(info,/assets\/branding\/relic_gamemaster_wordmark\.jpg/);
   assert.match(info,/alt="ReLiCGameMaster logo"/);
   assert.match(info,/class="logo-orb"/);
   assert.match(info,/async function makeLogoTransparent\(\)/);
   assert.match(info,/nearWhite\|\|nearBlack/);
-  assert.match(info,/portrait-stage:not\(\.creator\) img\{[^}]*filter:brightness\(1\.2\) contrast\(1\.06\) saturate\(1\.05\) drop-shadow/);
+
   assert.match(info,/Press the ReLiCGameMaster logo to reveal Ryan's portrait/);
   assert.doesNotMatch(info,/class="die-body"/);
 });
@@ -51,17 +51,22 @@ test('Game info has only a bottom Return Home control',()=>{
 });
 
 
-test('profile frame fits creator portrait and removes only the GameMaster outer background',()=>{
+
+
+
+test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   const info=readApp('wwwroot/info.html');
-  assert.match(info,/\.portrait-stage\{[^}]*aspect-ratio:4\/5/);
-  assert.match(info,/\.portrait-stage\.creator img\{[^}]*width:calc\(100% - 22px\)[^}]*height:calc\(100% - 22px\)/);
-  assert.match(info,/async function makeDarkOuterBackgroundTransparent\(url\)/);
-  assert.match(info,/const visited=new Uint8Array\(width\*height\)/);
-  assert.match(info,/const referenceWidth=360/);
-  assert.match(info,/const referenceHeight=540/);
-  assert.match(info,/const foregroundPolygons=\[/);
-  assert.match(info,/function protectedForeground\(x,y\)/);
-  assert.match(info,/if\(protectedForeground\(x,y\)\)return false/);
-  assert.match(info,/return distance<52 && luminance<82/);
-  assert.match(info,/gmUrl=await makeDarkOuterBackgroundTransparent\(rawGmUrl\)/);
+  assert.match(info,/id="signature-card" class="signature-card"/);
+  assert.match(info,/01_jeyrusal_card_frame\.png/);
+  assert.match(info,/02_jeyrusal_character_cutout\.png/);
+  assert.match(info,/03_jeyrusal_holographic_overlay\.png/);
+  assert.match(info,/class="signature-card-shine"/);
+  assert.match(info,/function setParallax\(x,y,tilt=7\)/);
+  assert.match(info,/requestAnimationFrame\(idleTilt\)/);
+  assert.match(info,/DeviceOrientationEvent\.requestPermission/);
+  assert.match(info,/addEventListener\('deviceorientation',orientationTilt/);
+  assert.match(info,/signatureCard\.addEventListener\('pointermove',pointerTilt/);
+  assert.match(info,/Jeyrusal's Dev Forged Signature Card is shown first/);
+  assert.match(info,/creatorUrl='assets\/profile\/ryan-cole-portrait\.png'/);
+  assert.doesNotMatch(info,/makeDarkOuterBackgroundTransparent/);
 });
