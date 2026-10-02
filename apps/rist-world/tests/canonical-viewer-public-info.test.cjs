@@ -112,6 +112,7 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.doesNotMatch(info,/if\(!orientationActive\|\|reducedMotion\)/);
   assert.match(info,/strength<13\|\|now-lastShakeAt<650/);
   assert.match(info,/rollLogoDice\(true\)/);
+  assert.match(info,/toggle\.addEventListener\('click',\(\)=>\{[\s\S]*?rollLogoDice\(true\);[\s\S]*?showingCreator=!showingCreator;[\s\S]*?draw\(\);/);
   assert.match(info,/--logo-tx/);
   assert.match(info,/--logo-ry/);
   assert.match(info,/toggle\.style\.setProperty\('--logo-tx'/);
