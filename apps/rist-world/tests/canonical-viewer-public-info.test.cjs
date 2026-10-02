@@ -61,6 +61,10 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.match(info,/02_jeyrusal_character_cutout\.png/);
   assert.match(info,/03_jeyrusal_holographic_overlay\.png/);
   assert.match(info,/class="signature-card-shine"/);
+  assert.match(info,/\.signature-card::before\{[^}]*rgba\(214,223,231,\.16\)[^}]*opacity:\.44/);
+  assert.match(info,/\.signature-card::before\{[^}]*translate3d\(calc\(var\(--px\) \* 5px\),calc\(var\(--py\) \* 5px\),32px\)/);
+  assert.match(info,/\.signature-card-shine\{position:absolute;z-index:5/);
+  assert.match(info,/\.signature-card::after\{content:"";position:absolute;z-index:6/);
   assert.match(info,/function setParallax\(x,y,tilt=7\)/);
   assert.match(info,/requestAnimationFrame\(idleTilt\)/);
   assert.match(info,/DeviceOrientationEvent\.requestPermission/);
