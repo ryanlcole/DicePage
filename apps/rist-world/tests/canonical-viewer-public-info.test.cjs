@@ -39,3 +39,13 @@ test('Game info credits directly used software contributors after legal links',(
   assert.doesNotMatch(info,/class="die-body"/);
 });
 
+
+
+test('Game info has only a bottom Return Home control',()=>{
+  const info=readApp('wwwroot/info.html');
+  assert.doesNotMatch(info,/Return to RIST WORLD/);
+  assert.match(info,/class="return-home-button" href="\/">Return Home<\/a>/);
+  const button=info.indexOf('class="return-home-button"');
+  const contributors=info.indexOf('id="software-contributors"');
+  assert.ok(button>contributors);
+});
