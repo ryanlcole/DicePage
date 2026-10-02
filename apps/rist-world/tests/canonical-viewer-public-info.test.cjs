@@ -49,3 +49,14 @@ test('Game info has only a bottom Return Home control',()=>{
   const contributors=info.indexOf('id="software-contributors"');
   assert.ok(button>contributors);
 });
+
+
+test('profile frame fits creator portrait and removes only the GameMaster outer background',()=>{
+  const info=readApp('wwwroot/info.html');
+  assert.match(info,/\.portrait-stage\{[^}]*aspect-ratio:4\/5/);
+  assert.match(info,/\.portrait-stage\.creator img\{[^}]*width:calc\(100% - 22px\)[^}]*height:calc\(100% - 22px\)/);
+  assert.match(info,/async function makeDarkOuterBackgroundTransparent\(url\)/);
+  assert.match(info,/const visited=new Uint8Array\(width\*height\)/);
+  assert.match(info,/return distance<78 && luminance<105/);
+  assert.match(info,/gmUrl=await makeDarkOuterBackgroundTransparent\(rawGmUrl\)/);
+});
