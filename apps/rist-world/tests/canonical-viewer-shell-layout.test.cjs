@@ -466,7 +466,7 @@ test('zoom hands representation from World to Region Local and Instance',()=>{
   assert.match(prototype,/const spatialScope=currentSpatialScope\(\),angle=currentSpatialViewAngle\(\);/);
   assert.match(prototype,/rotateX\(\$\{angle\}deg\)/);
   assert.match(prototype,/rist:spatial-scope-change/);
-  assert.match(prototype,/worldVisible=!DEED_REGION_ID&&\(spatialScope==='WORLD'\|\|\(spatialScope==='REGION'&&!regionEnhanceActive\)\)/);
+  assert.match(prototype,/const worldVisible=\(BASE_WORLD_ASSETS\.length>0\|\|!DEED_REGION_ID\)/);
   assert.match(prototype,/const itemScope=normalizeSpatialScope/);
   assert.match(prototype,/itemScope===spatialScope/);
 });
@@ -491,7 +491,7 @@ test('selected Shaelvien deed identity drives the embedded map and Sunken Tundra
   assert.match(prototype,/const DEED_REGION_ID=String\(QUERY\.get\('deedRegionId'\)/);
   assert.match(prototype,/async function hydrateSelectedDeedZone\(options=\{\}\)/);
   assert.match(prototype,/\/Game\/assets\/zones\/\$\{encodeURIComponent\(DEED_ZONE_ID\)\}\//);
-  assert.match(prototype,/const worldVisible=!DEED_REGION_ID/);
+  assert.match(prototype,/const worldVisible=\(BASE_WORLD_ASSETS\.length>0\|\|!DEED_REGION_ID\)/);
   assert.match(prototype,/const itemRegionId=String\(item\.regionId\|\|''\)\.trim\(\)/);
   assert.match(prototype,/const deedVisible=DEED_REGION_ID[\s\S]{0,180}?item\.deedZoneLayer\|\|itemRegionId===DEED_REGION_ID[\s\S]{0,180}?IS_ENDEMAR_SEED\?!itemRegionId:true/);
   assert.match(prototype,/item\.deedZoneLayer=true/);
