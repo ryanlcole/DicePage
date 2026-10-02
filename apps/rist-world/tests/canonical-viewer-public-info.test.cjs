@@ -33,9 +33,9 @@ test('Game info credits directly used software contributors after legal links',(
   assert.match(info,/alt="ReLiCGameMaster logo"/);
   assert.match(info,/class="logo-orb"/);
   assert.match(info,/async function makeLogoTransparent\(\)/);
-  assert.match(info,/nearWhite\|\|nearBlack/);
-
-  assert.match(info,/Press the ReLiCGameMaster logo to reveal Ryan's portrait/);
+  assert.match(info,/const lowSaturation=\(max-min\)<24/);
+  assert.match(info,/\(lowSaturation&&min>214\)\|\|\(lowSaturation&&max<54\)/);
+  assert.doesNotMatch(info,/Press the ReLiCGameMaster logo to reveal Ryan's portrait/);
   assert.doesNotMatch(info,/class="die-body"/);
 });
 
