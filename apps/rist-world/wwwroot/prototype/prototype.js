@@ -1797,7 +1797,7 @@ function applyTransform(){
   updateReadouts();
   scheduleRegionEnhancement();
 }
-function recomputeMaxViewScale(){function recomputeMaxViewScale(){
+function recomputeMaxViewScale(){
   maxScale=Math.max(minScale*MAX_VIEW_ZOOM_RATIO,8);
 }
 function fitMap(){
@@ -2418,7 +2418,7 @@ function updateRegionSelectionOverlay(){
   overlay.innerHTML=regionSelectionSvg();
   stage.classList.toggle('region-crop-preview',!!regionCropPreview);
 }
-function regionNameInput(){function regionNameInput(){
+function regionNameInput(){
   const input=document.createElement('input');input.type='text';input.className='region-name-input';input.maxLength=80;input.value=regionNameDraft;input.placeholder='Region name';input.setAttribute('aria-label','Region name');
   input.addEventListener('input',()=>{regionNameDraft=input.value.slice(0,80)});
   input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();createRegionDefinition()}});
@@ -2451,7 +2451,7 @@ function syncClaimedRegionOutline(region){
   regionClaimOutline.style.height=`${(bounds.height/bounds.rows)*100}%`;
   regionClaimOutline.dataset.label=String(region?.name||'YOUR CLAIM').toUpperCase();
 }
-function clearClaimedRegionCrop(refit=true){function clearClaimedRegionCrop(refit=true){
+function clearClaimedRegionCrop(refit=true){
   if(!REGION_DEFINER)return;
   regionClaimedRegion=null;pendingClaimedRegionId='';syncClaimedRegionOutline(null);
   clearRegionMask(refit);
@@ -3823,7 +3823,7 @@ function setExternalDepth(raw={}){
   if(scopeChanged)fitMap();else applyTransform();
   renderKeyboardKeys();
 }
-async function placeExternalAsset(raw={}){async function placeExternalAsset(raw={}){
+async function placeExternalAsset(raw={}){
   if(READ_ONLY)return false;
   const src=String(raw.url||'').trim();
   if(!src)return false;
