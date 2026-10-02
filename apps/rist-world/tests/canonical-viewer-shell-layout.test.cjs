@@ -272,11 +272,14 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
   assert.match(prototype,/function applyViewerGridMode/);
   assert.match(prototype,/function applyAssetGridMode/);
   assert.match(prototype,/function snapAssetPoint/);
-  assert.match(prototype,/viewerGridColumns=30,viewerGridRows=30,assetGridColumns=30,assetGridRows=30/);
+  assert.match(prototype,/viewerGridColumns=VIEWER_WINDOW_GRID_COLUMNS,viewerGridRows=VIEWER_WINDOW_GRID_ROWS,assetGridColumns=SCOPE_GRID_COLUMNS,assetGridRows=SCOPE_GRID_ROWS/);
+  assert.match(prototype,/const MMO_DEED_GRID_COLUMNS=30;/);
+  assert.match(prototype,/const SCOPE_GRID_COLUMNS=300;/);
+  assert.match(prototype,/const VIEWER_WINDOW_GRID_COLUMNS=30;/);
   assert.match(prototype,/function configuredGridCellCenter/);
   assert.match(prototype,/stage\.dataset\.viewerGridColumns/);
   assert.match(prototype,/stage\.dataset\.assetGridColumns/);
-  assert.match(prototype,/nearestAllowedRegionCell\(regionCell,allowed,regionGridShape\)/);
+  assert.match(prototype,/nearestAllowedRegionCell\(regionCell,allowed,regionGridShape,regionClaimedRegion\)/);
   assert.match(prototypeCss,/\.viewer-grid-overlay/);
   assert.doesNotMatch(prototypeCss,/repeating-linear-gradient\(0deg,rgba\(178,221,236,\.045\)/);
   assert.match(prototypeIndex,/prototype\.css\?v=20260928-canonical-spatial-1/);
@@ -448,18 +451,24 @@ test('outer depth drives embedded canonical tier and layer',()=>{
 test('zoom hands representation from World to Region Local and Instance',()=>{
   const prototype=read('wwwroot/prototype/prototype.js');
 
+  assert.match(prototype,/const SCOPE_GRID_COLUMNS=300;/);
+  assert.match(prototype,/const VIEWER_WINDOW_GRID_COLUMNS=30;/);
+  assert.match(prototype,/const SCOPE_TRANSITION_Z_LAYERS=LAYERS_PER_TIER;/);
+  assert.match(prototype,/const SCOPE_ZOOM_FACTOR=SCOPE_GRID_COLUMNS\/VIEWER_WINDOW_GRID_COLUMNS;/);
   assert.match(prototype,/SPATIAL_SCOPE_THRESHOLDS=Object\.freeze/);
-  assert.match(prototype,/REGION:REGION_ENHANCE_ENTER/);
-  assert.match(prototype,/LOCAL:REGION_ENHANCE_ENTER\*4/);
-  assert.match(prototype,/INSTANCE:REGION_ENHANCE_ENTER\*16/);
-  assert.match(prototype,/function currentSpatialScope\(\)/);
-  assert.match(prototype,/if\(ratio>=SPATIAL_SCOPE_THRESHOLDS\.INSTANCE\)return'INSTANCE'/);
-  assert.match(prototype,/if\(ratio>=SPATIAL_SCOPE_THRESHOLDS\.LOCAL\)return'LOCAL'/);
-  assert.match(prototype,/if\(ratio>=SPATIAL_SCOPE_THRESHOLDS\.REGION\)return'REGION'/);
+  assert.match(prototype,/REGION:SCOPE_ZOOM_FACTOR/);
+  assert.match(prototype,/LOCAL:SCOPE_ZOOM_FACTOR\*SCOPE_ZOOM_FACTOR/);
+  assert.match(prototype,/INSTANCE:SCOPE_ZOOM_FACTOR\*SCOPE_ZOOM_FACTOR\*SCOPE_ZOOM_FACTOR/);
+  assert.match(prototype,/const SCOPE_VIEW_ANGLE=Object\.freeze\(\{WORLD:0,REGION:15,LOCAL:30,INSTANCE:45\}\);/);
+  assert.match(prototype,/const SCOPE_DEPTH_PREFIX=Object\.freeze\(\{WORLD:'Z',REGION:'R',LOCAL:'L',INSTANCE:'I'\}\);/);
+  assert.match(prototype,/function zoomScopeSteps\(\)/);
+  assert.match(prototype,/return SCOPE_ORDER\[Math\.min\(SCOPE_ORDER\.length-1,base\+zoomScopeSteps\(\)\)\];/);
+  assert.match(prototype,/const spatialScope=currentSpatialScope\(\),angle=currentSpatialViewAngle\(\);/);
+  assert.match(prototype,/rotateX\(\$\{angle\}deg\)/);
+  assert.match(prototype,/rist:spatial-scope-change/);
   assert.match(prototype,/worldVisible=!DEED_REGION_ID&&\(spatialScope==='WORLD'\|\|\(spatialScope==='REGION'&&!regionEnhanceActive\)\)/);
   assert.match(prototype,/const itemScope=normalizeSpatialScope/);
   assert.match(prototype,/itemScope===spatialScope/);
-  assert.match(prototype,/spatialScope!=='WORLD'[\s\S]{0,180}?rotateX\(15deg\)/);
 });
 
 test('canonical placements retain their World Region Local or Instance scope',()=>{
