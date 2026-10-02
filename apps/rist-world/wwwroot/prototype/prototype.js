@@ -2504,7 +2504,7 @@ function claimedRegionFitScale(region){
   const tiltHeight=cropH*Math.cos(15*Math.PI/180);
   return Math.min(r.width/Math.max(cropW,1),r.height/Math.max(tiltHeight,1))*.92;
 }
-function syncClaimedRegionContextMask(){function syncClaimedRegionContextMask(){
+function syncClaimedRegionContextMask(){
   if(!REGION_DEFINER||!regionClaimedRegion||!regionClaimMaskUrl)return;
   const focusScale=claimedRegionFitScale(regionClaimedRegion);
   if(!(focusScale>0))return;
