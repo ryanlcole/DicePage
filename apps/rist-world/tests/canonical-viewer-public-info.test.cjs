@@ -34,7 +34,7 @@ test('Game info credits directly used software contributors after legal links',(
   assert.match(info,/class="logo-orb"/);
   assert.match(info,/async function makeLogoTransparent\(\)/);
   assert.match(info,/nearWhite\|\|nearBlack/);
-  assert.match(info,/portrait-stage:not\(\.creator\) img\{filter:brightness\(1\.34\)/);
+  assert.match(info,/portrait-stage:not\(\.creator\) img\{[^}]*filter:brightness\(1\.2\) contrast\(1\.06\) saturate\(1\.05\) drop-shadow/);
   assert.match(info,/Press the ReLiCGameMaster logo to reveal Ryan's portrait/);
   assert.doesNotMatch(info,/class="die-body"/);
 });
