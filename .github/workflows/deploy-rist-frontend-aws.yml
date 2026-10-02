@@ -334,6 +334,19 @@ jobs:
           grep -q 'One mind.' /tmp/relic-ai.html
           grep -q 'id="mind-form"' /tmp/relic-ai.html
           grep -q 'https://relicgamemaster.com/mcp' /tmp/relic-ai.html
+          grep -q 'AI suggestions never self-promote' /tmp/relic-ai.html
+          grep -q 'PROPOSAL → COHERENCE → SAFETY TEST → HUMAN REVIEW → EXPLICIT PROMOTION' /tmp/relic-ai.html
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-ai-policy.json "${URL}Game/ai-policy.json"
+          python - <<'PY'
+import json
+with open('/tmp/relic-ai-policy.json', encoding='utf-8') as handle:
+    policy = json.load(handle)
+rule = policy.get('aiSuggestedRules') or {}
+assert rule.get('aiMayPropose') is True, rule
+assert rule.get('maySelfPromoteToCanonPolicyRuleOrAuthority') is False, rule
+assert rule.get('promotionRequiresAuthorizedHumanDecision') is True, rule
+assert 'explicit-promotion' in (rule.get('requiredReviewPath') or []), rule
+PY
           if grep -q 'href="/kickstarter/' /tmp/relic-home.html; then
             echo "Unpublished Kickstarter preparation link is still present on the public home page."
             exit 1

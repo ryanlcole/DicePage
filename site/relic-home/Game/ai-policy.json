@@ -1,9 +1,9 @@
 {
   "document": "ReLiC/RIST AI Participation, Canon, Resource & Legal Access Policy",
   "status": "canonical-policy-baseline",
-  "sourceDate": "2026-09-10",
-  "policyVersion": "2026-09-10.2",
-  "rulesetVersion": "AI-RULESET-2026-09-10.2",
+  "sourceDate": "2026-10-02",
+  "policyVersion": "2026-10-02.1",
+  "rulesetVersion": "AI-RULESET-2026-10-02.1",
   "timeAuthority": "UTC",
   "timestampFormat": "ISO-8601 UTC (Z)",
   "defaultAccessDecision": "DENY",
@@ -74,21 +74,49 @@
   },
   "worldBuilderAllocation": {
     "perAuthorizedPlane": true,
-    "x": {"count": 1, "minimum": 1, "maximum": 300},
-    "y": {"count": 1, "minimum": 1, "maximum": 300},
-    "z": {"count": 1, "minimum": 1, "maximum": 10},
-    "era": {"count": 1, "minimum": 1, "maximum": 10},
+    "x": {
+      "count": 1,
+      "minimum": 1,
+      "maximum": 300
+    },
+    "y": {
+      "count": 1,
+      "minimum": 1,
+      "maximum": 300
+    },
+    "z": {
+      "count": 1,
+      "minimum": 1,
+      "maximum": 10
+    },
+    "era": {
+      "count": 1,
+      "minimum": 1,
+      "maximum": 10
+    },
     "maximumThemes": 30,
     "permissionNotOwnership": true,
     "allocationAloneAuthorizesModificationOfPlayerContent": false,
-    "serverAuthoritativeFor": ["allocation", "collision", "expiration", "transfer", "enforcement"],
+    "serverAuthoritativeFor": [
+      "allocation",
+      "collision",
+      "expiration",
+      "transfer",
+      "enforcement"
+    ],
     "multiplicationViaAlternateIdentitiesConcurrentSessionsNamingOrCoordinatedAgents": false,
     "exceptionRequiresLaterCanonicalPolicy": true
   },
   "canonBoundary": {
     "authorizedDomainOnly": true,
     "understandingRequiredBeforeCreationAuthority": true,
-    "mustDistinguish": ["canon", "player-authored", "proposal", "generated", "factual-system-state"],
+    "mustDistinguish": [
+      "canon",
+      "player-authored",
+      "proposal",
+      "generated",
+      "factual-system-state"
+    ],
     "generatedOrStoredContentAutomaticallyBecomesCanon": false,
     "canonPromotionHumanGoverned": true
   },
@@ -155,7 +183,8 @@
     "capability-scoped-technical-enforcement",
     "failure-and-revocation",
     "human-authority-and-applicable-law",
-    "deny-by-default-capabilities"
+    "deny-by-default-capabilities",
+    "ai-suggestions-remain-proposals-until-authorized-human-promotion"
   ],
   "legalReview": {
     "qualifiedCounselReviewBeforePublicLaunch": true,
@@ -169,5 +198,24 @@
       "retention",
       "jurisdiction-specific-requirements"
     ]
+  },
+  "aiSuggestedRules": {
+    "aiMayPropose": true,
+    "proposalStatusRequiredUntilPromotion": true,
+    "maySelfPromoteToCanonPolicyRuleOrAuthority": false,
+    "requiredReviewPath": [
+      "proposal-or-imagined",
+      "coherence-review",
+      "safety-review",
+      "authorized-human-review",
+      "explicit-promotion"
+    ],
+    "simulationSuccessAloneCreatesAuthority": false,
+    "mathematicalEleganceAloneCreatesAuthority": false,
+    "repeatedOrMultiModelAgreementAloneCreatesAuthority": false,
+    "aiConfidenceAloneCreatesAuthority": false,
+    "mayCritiqueOrReviseProposalWithoutChangingAuthority": true,
+    "existingCanonPolicyPermissionsAndSafeguardsRemainAuthoritativeUntilPromotion": true,
+    "promotionRequiresAuthorizedHumanDecision": true
   }
 }

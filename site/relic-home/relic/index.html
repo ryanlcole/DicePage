@@ -68,6 +68,7 @@ main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
     <p><strong class="enabled">Enabled.</strong> The public R.e.L.i.C. page and public grounding tools are available.</p>
     <p><strong>Knowledge rule:</strong> reuse a stable semantic identity before creating a duplicate concept.</p>
     <p><strong>Authority rule:</strong> generated material is evidence or proposal until an applicable authority promotes it.</p>
+    <p><strong>AI rule suggestions:</strong> an AI may propose rules, policies, morals, or canon changes, but the proposal cannot promote itself into authority. It remains a proposal until coherence and safety review, authorized human review, and explicit promotion.</p>
     <p><strong>Game boundary:</strong> enabling this page does not unlock external AI authority inside Shaelvien.</p>
   </aside>
 </section>
@@ -163,6 +164,13 @@ main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
   </article>
 
   <article class="card">
+    <h2>AI suggestions never self-promote</h2>
+    <p>An AI may suggest a rule, policy, moral, canon change, safety improvement, or other governing idea. That suggestion remains <strong>PROPOSAL / IMAGINED</strong> until it passes the applicable review path.</p>
+    <p class="law">PROPOSAL → COHERENCE → SAFETY TEST → HUMAN REVIEW → EXPLICIT PROMOTION</p>
+    <p class="small">Simulation success, mathematical elegance, repetition, model agreement, or AI confidence does not create authority. AI may critique or revise its suggestion, but it may not silently rewrite existing canon, policy, permissions, or governing safeguards.</p>
+  </article>
+
+  <article class="card">
     <h2>Canon always surrounds the query</h2>
     <p class="law">Identity ≠ output equivalence.</p>
     <p class="law">Representation ≠ truth.</p>
@@ -218,6 +226,7 @@ main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}
     if(/same|duplicate|identity|name|representation|object|reuse/.test(q)) active.identity=true;
     if(/relation|connect|depend|link|between|part|contain/.test(q)) active.relationships=true;
     if(/fact|true|truth|hypothesis|fiction|unknown|guess|claim/.test(q)) active.truth=true;
+    if(/rule|policy|law|proposal|suggest|promot|govern|authority/.test(q)){active.truth=true;active.safety=true;active.canon=true;}
     if(/error|wrong|fail|bug|contradict|conflict|disagree/.test(q)) active.errors=true;
     if(/time|change|history|state|transition|live|previous|before|after/.test(q)) active.time=true;
     if(/web|mcp|ai|source|provider|search|database|evidence|model/.test(q)) active.sources=true;
