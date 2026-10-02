@@ -90,4 +90,17 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.doesNotMatch(info,/Press it again to return to Jeyrusal/);
   assert.match(info,/creatorUrl='assets\/profile\/ryan-cole-portrait\.png'/);
   assert.doesNotMatch(info,/makeDarkOuterBackgroundTransparent/);
+  for(const die of ['d4','d5-bonus','d5-penalty','d6','d8','d10','d10-inverse','d12','d20']){
+    assert.ok(info.includes('data-die="'+die+'"'),'missing logo die '+die);
+    assert.ok(info.includes("assets/dice/"+die+".png"),'missing app die asset '+die);
+  }
+  assert.match(info,/function rollLogoDice\(animate=true\)/);
+  assert.match(info,/function motionShake\(event\)/);
+  assert.match(info,/addEventListener\('devicemotion',motionShake/);
+  assert.match(info,/DeviceMotionEvent\.requestPermission/);
+  assert.match(info,/strength<13\|\|now-lastShakeAt<650/);
+  assert.match(info,/rollLogoDice\(true\)/);
+  assert.match(info,/--logo-tx/);
+  assert.match(info,/--logo-ry/);
+  assert.match(info,/toggle\.style\.setProperty\('--logo-tx'/);
 });
