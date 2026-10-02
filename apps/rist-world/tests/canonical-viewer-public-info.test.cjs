@@ -81,7 +81,11 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.match(info,/if\(event\.pointerType==='touch'\)\{[\s\S]*?void enableDeviceTilt\(\);[\s\S]*?return;/);
   assert.match(info,/signatureCard\.addEventListener\('pointermove',pointerTilt/);
   assert.doesNotMatch(info,/addEventListener\('touchend',enableDeviceTilt/);
-  assert.match(info,/Move or tilt Jeyrusal's Dev Forged Signature Card to reveal its parallax foil layers/);
+  assert.doesNotMatch(info,/signature-caption/);
+  assert.doesNotMatch(info,/Move or tilt/);
+  assert.match(info,/aria-label="Signature Card"/);
+  assert.doesNotMatch(info,/aria-label="Jeyrusal/);
+  assert.doesNotMatch(info,/Show Jeyrusal Signature Card/);
   assert.doesNotMatch(info,/Press the ReLiCGameMaster logo/);
   assert.doesNotMatch(info,/Press it again to return to Jeyrusal/);
   assert.match(info,/creatorUrl='assets\/profile\/ryan-cole-portrait\.png'/);
