@@ -129,8 +129,8 @@
   {
    worldId=Session.WorldId,
    worldName=Session.WorldDisplayName,
-   gridColumns=WorldSession.GridColumns,
-   gridRows=WorldSession.GridRows,
+   gridColumns=WorldSession.SpatialScopeGridColumns,
+   gridRows=WorldSession.SpatialScopeGridRows,
    gridStyle=Session.GridStyle,
    planeIndex=Session.PlaneIndex,
    source="database",
@@ -193,6 +193,13 @@
    selectedCells=region.SelectedCells,
    sourceLayerOffsets=region.SourceLayerOffsets,
    gridShape=region.GridShape,
+   coordinateSpace=region.CoordinateSpace,
+   gridColumns=string.Equals(region.CoordinateSpace,WorldSession.SpatialWorldCoordinateSpace,StringComparison.OrdinalIgnoreCase)
+    ?WorldSession.SpatialScopeGridColumns
+    :WorldSession.GridColumns,
+   gridRows=string.Equals(region.CoordinateSpace,WorldSession.SpatialWorldCoordinateSpace,StringComparison.OrdinalIgnoreCase)
+    ?WorldSession.SpatialScopeGridRows
+    :WorldSession.GridRows,
    ownerUserId=region.OwnerUserId,
    parcelId=region.ParcelId,
    parcelPixelWidth=region.ParcelPixelWidth,

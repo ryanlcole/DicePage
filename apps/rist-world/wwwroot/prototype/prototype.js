@@ -126,12 +126,18 @@ const WORLD_SOURCE_SAVE_KEY=WORLD_ID||WORLD_SEED||'prototype';
 const REGION_OVERLAY_SAVE_KEY='regiondefiner:'+(WORLD_ID||WORLD_SEED||'prototype');
 const WORLDBUILDER_SAVE_KEY=REGION_DEFINER?REGION_OVERLAY_SAVE_KEY:WORLD_SOURCE_SAVE_KEY;
 let restoreSaveStarted=false;
-const REGION_GRID_COLUMNS=30;
-const REGION_GRID_ROWS=30;
+const MMO_DEED_GRID_COLUMNS=30;
+const MMO_DEED_GRID_ROWS=30;
+const SCOPE_GRID_COLUMNS=300;
+const SCOPE_GRID_ROWS=300;
+const VIEWER_WINDOW_GRID_COLUMNS=30;
+const VIEWER_WINDOW_GRID_ROWS=30;
+const REGION_GRID_COLUMNS=SCOPE_GRID_COLUMNS;
+const REGION_GRID_ROWS=SCOPE_GRID_ROWS;
 const VIEWER_GRID_PREF='rist.viewer.grid.v1';
 const ASSET_GRID_PREF='rist.asset.grid.v1';
 const storedGridMode=key=>{try{return String(localStorage.getItem(key)||'square').toLowerCase()==='hex'?'hex':'square'}catch{return'square'}};
-let viewerGridMode=storedGridMode(VIEWER_GRID_PREF),assetGridMode=storedGridMode(ASSET_GRID_PREF),viewerGridColumns=30,viewerGridRows=30,assetGridColumns=30,assetGridRows=30,viewerGridOverlay=null,externalSpatialScope='WORLD',externalSpatialNodeId='',externalSpatialPath='';
+let viewerGridMode=storedGridMode(VIEWER_GRID_PREF),assetGridMode=storedGridMode(ASSET_GRID_PREF),viewerGridColumns=VIEWER_WINDOW_GRID_COLUMNS,viewerGridRows=VIEWER_WINDOW_GRID_ROWS,assetGridColumns=SCOPE_GRID_COLUMNS,assetGridRows=SCOPE_GRID_ROWS,viewerGridOverlay=null,externalSpatialScope='WORLD',externalSpatialNodeId='',externalSpatialPath='';
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
 let regionGridShape='square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
@@ -162,16 +168,21 @@ let localWorldBuilderRestoreComplete=false;
 const worldSourceSaveWaiters=new Map();
 const regionMapSaveWaiters=new Map();
 const spriteTimers=new Map();
-const REGION_ENHANCE_ENTER=4.25;
-const REGION_ENHANCE_EXIT=3.6;
+const SCOPE_ORDER=Object.freeze(['WORLD','REGION','LOCAL','INSTANCE']);
+const SCOPE_DEPTH_PREFIX=Object.freeze({WORLD:'Z',REGION:'R',LOCAL:'L',INSTANCE:'I'});
+const SCOPE_VIEW_ANGLE=Object.freeze({WORLD:0,REGION:15,LOCAL:30,INSTANCE:45});
+const SCOPE_TRANSITION_Z_LAYERS=LAYERS_PER_TIER;
+const SCOPE_ZOOM_FACTOR=SCOPE_GRID_COLUMNS/VIEWER_WINDOW_GRID_COLUMNS;
 const SPATIAL_SCOPE_THRESHOLDS=Object.freeze({
-  REGION:REGION_ENHANCE_ENTER,
-  LOCAL:REGION_ENHANCE_ENTER*4,
-  INSTANCE:REGION_ENHANCE_ENTER*16
+  REGION:SCOPE_ZOOM_FACTOR,
+  LOCAL:SCOPE_ZOOM_FACTOR*SCOPE_ZOOM_FACTOR,
+  INSTANCE:SCOPE_ZOOM_FACTOR*SCOPE_ZOOM_FACTOR*SCOPE_ZOOM_FACTOR
 });
+const REGION_ENHANCE_ENTER=SPATIAL_SCOPE_THRESHOLDS.REGION;
+const REGION_ENHANCE_EXIT=REGION_ENHANCE_ENTER*.85;
 const REGION_ENHANCE_DELAY=140;
 const REGION_ENHANCE_MAX_DPR=2;
-const MAX_VIEW_ZOOM_RATIO=256;
+const MAX_VIEW_ZOOM_RATIO=2048;
 const IMAGE_RETURN_COVERAGE=.9;
 const FULL_FRAME_PASS_COVERAGE=1.35;
 const FULL_FRAME_RETURN_COVERAGE=1.04;
@@ -927,14 +938,18 @@ function ensureRegionEnhanceCanvas(){
   return canvas;
 }
 function regionZoomRatio(){return scale/Math.max(minScale,.00001)}
+function spatialScopeIndex(scope){return Math.max(0,SCOPE_ORDER.indexOf(normalizeSpatialScope(scope)))}
+function zoomScopeSteps(){
+  const ratio=Math.max(1,regionZoomRatio());
+  return clamp(Math.floor((Math.log(ratio)/Math.log(SCOPE_ZOOM_FACTOR))+1e-9),0,SCOPE_ORDER.length-1);
+}
 function currentSpatialScope(){
   if(REGION_DEFINER)return'REGION';
-  const ratio=regionZoomRatio();
-  if(ratio>=SPATIAL_SCOPE_THRESHOLDS.INSTANCE)return'INSTANCE';
-  if(ratio>=SPATIAL_SCOPE_THRESHOLDS.LOCAL)return'LOCAL';
-  if(ratio>=SPATIAL_SCOPE_THRESHOLDS.REGION)return'REGION';
-  return'WORLD';
+  const base=spatialScopeIndex(externalSpatialScope);
+  return SCOPE_ORDER[Math.min(SCOPE_ORDER.length-1,base+zoomScopeSteps())];
 }
+function currentSpatialViewAngle(){return SCOPE_VIEW_ANGLE[currentSpatialScope()]||0}
+function currentSpatialDepthPrefix(){return SCOPE_DEPTH_PREFIX[currentSpatialScope()]||'Z'}
 function regionDetailWanted(){
   if(REGION_DEFINER)return false;
   return layerReady.surface&&currentSpatialScope()==='REGION';
@@ -1743,33 +1758,46 @@ function applyParallax(){
   }
 }
 function updateReadouts(){
+  const spatialScope=currentSpatialScope(),viewAngle=currentSpatialViewAngle(),depthPrefix=currentSpatialDepthPrefix();
   stage.dataset.worldId=WORLD_ID;
   stage.dataset.worldSeed=WORLD_SEED;
   stage.dataset.viewerTier=viewerTier;
   stage.dataset.viewerLayer=String(viewerLayer);
+  stage.dataset.spatialScope=spatialScope.toLowerCase();
+  stage.dataset.spatialViewAngle=String(viewAngle);
+  stage.dataset.spatialDepthPrefix=depthPrefix;
+  stage.dataset.scopeGridColumns=String(SCOPE_GRID_COLUMNS);
+  stage.dataset.scopeGridRows=String(SCOPE_GRID_ROWS);
+  stage.dataset.scopeTransitionLayers=String(SCOPE_TRANSITION_Z_LAYERS);
   stage.dataset.layerCount=String(BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length);
   const label=viewerTier==='all'?'All Parallax':tierLabel(tierByKey(viewerTier));
   const worldLabel=DISPLAY_WORLD_NAME?DISPLAY_WORLD_NAME+' world. ':'';
   const continentLabel=CONTINENT_NAME?` Continent ${CONTINENT_NAME}.`:'';
   const regionalLayers=REGION_DEFINER?` Visible World layers ${[...regionWorldLayerSet()].sort((a,b)=>a-b).map(layer=>layer+1).join(', ')||'none'}.`:'';
-  stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer.${continentLabel} ${label}. Layer ${viewerLayer}. ${BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length} total image layers.${regionalLayers} Surface authoring extent ${SURFACE_WORLD_PIXELS} by ${SURFACE_WORLD_PIXELS} pixels. Surface policy ${SURFACE_POLICY}.`);
+  stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer.${continentLabel} ${spatialScope} scope, ${SCOPE_GRID_COLUMNS} by ${SCOPE_GRID_ROWS}, ${viewAngle} degree view. ${depthPrefix} tier ${viewerTier}, ${depthPrefix} layer ${viewerLayer}. ${label}. ${BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length} total image layers.${regionalLayers} Surface authoring extent ${SURFACE_WORLD_PIXELS} by ${SURFACE_WORLD_PIXELS} pixels. Surface policy ${SURFACE_POLICY}.`);
 }
 function applyTransform(){
   invalidateRegionCamera();
   world.style.width=naturalWidth+'px';
   world.style.height=naturalHeight+'px';
   world.style.transformOrigin='0 0';
-  // World, Region, Local, and Instance preserve one placement geometry in every
-  // zone. Only the dedicated Region Definer uses the 15-degree authoring view.
-  world.style.transform=REGION_DEFINER
-    ? `translate3d(${x}px,${y}px,0) scale(${scale}) rotateX(15deg)`
+  const spatialScope=currentSpatialScope(),angle=currentSpatialViewAngle();
+  world.style.transform=angle
+    ? `translate3d(${x}px,${y}px,0) scale(${scale}) rotateX(${angle}deg)`
     : `translate3d(${x}px,${y}px,0) scale(${scale})`;
   if(REGION_DEFINER)syncClaimedRegionContextMask();
+  const previous=stage.dataset.renderedSpatialScope||'';
+  stage.dataset.renderedSpatialScope=spatialScope.toLowerCase();
+  if(previous&&previous!==stage.dataset.renderedSpatialScope){
+    const detail={scope:spatialScope,angle,gridColumns:SCOPE_GRID_COLUMNS,gridRows:SCOPE_GRID_ROWS,zoomRatio:regionZoomRatio(),transitionLayers:SCOPE_TRANSITION_Z_LAYERS,depthPrefix:currentSpatialDepthPrefix()};
+    window.dispatchEvent(new CustomEvent('rist:spatial-scope-change',{detail}));
+    postWorldBuilderHostMessage('spatial-scope-change',{spatial:detail});
+  }
   applyParallax();
   updateReadouts();
   scheduleRegionEnhancement();
 }
-function recomputeMaxViewScale(){
+function recomputeMaxViewScale(){function recomputeMaxViewScale(){
   maxScale=Math.max(minScale*MAX_VIEW_ZOOM_RATIO,8);
 }
 function fitMap(){
@@ -1834,20 +1862,29 @@ function postRegionMessage(type,payload={}){
 }
 function currentRegionTierIndex(){return tierByKey(viewerTier==='all'?'sea':viewerTier).index}
 function normalizeRegionGridShape(value){return String(value||'').toLowerCase()==='hex'?'hex':'square'}
-function regionCellRow(cell){return Math.floor(cell/REGION_GRID_COLUMNS)}
-function regionCellColumn(cell){return cell%REGION_GRID_COLUMNS}
-function regionCellCenter(cell,shape=regionGridShape){
-  const row=regionCellRow(cell),column=regionCellColumn(cell);
-  const offset=normalizeRegionGridShape(shape)==='hex'&&(row%2)?0.5:0;
-  return{x:clamp((column+0.5+offset)/REGION_GRID_COLUMNS,0,1),y:clamp((row+0.5)/REGION_GRID_ROWS,0,1)};
+function regionGridDimensions(region=null){
+  const explicitColumns=Math.trunc(Number(region?.gridColumns)||0);
+  const explicitRows=Math.trunc(Number(region?.gridRows)||0);
+  const modern=String(region?.coordinateSpace||'').toLowerCase()==='world-grid-300-v2';
+  const columns=explicitColumns>0?explicitColumns:(region&&!modern?MMO_DEED_GRID_COLUMNS:REGION_GRID_COLUMNS);
+  const rows=explicitRows>0?explicitRows:(region&&!modern?MMO_DEED_GRID_ROWS:REGION_GRID_ROWS);
+  return{columns:clamp(columns,1,SCOPE_GRID_COLUMNS),rows:clamp(rows,1,SCOPE_GRID_ROWS)};
 }
-function regionCellFromPoint(x,y,shape=regionGridShape){
-  const row=clamp(Math.floor(clamp(y,0,.999999)*REGION_GRID_ROWS),0,REGION_GRID_ROWS-1);
+function regionCellRow(cell,region=null){const grid=regionGridDimensions(region);return Math.floor(cell/grid.columns)}
+function regionCellColumn(cell,region=null){const grid=regionGridDimensions(region);return cell%grid.columns}
+function regionCellCenter(cell,shape=regionGridShape,region=null){
+  const grid=regionGridDimensions(region),row=regionCellRow(cell,region),column=regionCellColumn(cell,region);
   const offset=normalizeRegionGridShape(shape)==='hex'&&(row%2)?0.5:0;
-  const column=clamp(Math.floor((clamp(x,0,.999999)*REGION_GRID_COLUMNS)-offset),0,REGION_GRID_COLUMNS-1);
-  return row*REGION_GRID_COLUMNS+column;
+  return{x:clamp((column+0.5+offset)/grid.columns,0,1),y:clamp((row+0.5)/grid.rows,0,1)};
 }
-function viewerGridSvg(shape,columns=viewerGridColumns,rows=viewerGridRows){
+function regionCellFromPoint(x,y,shape=regionGridShape,region=null){
+  const grid=regionGridDimensions(region);
+  const row=clamp(Math.floor(clamp(y,0,.999999)*grid.rows),0,grid.rows-1);
+  const offset=normalizeRegionGridShape(shape)==='hex'&&(row%2)?0.5:0;
+  const column=clamp(Math.floor((clamp(x,0,.999999)*grid.columns)-offset),0,grid.columns-1);
+  return row*grid.columns+column;
+}
+function viewerGridSvgfunction viewerGridSvg(shape,columns=viewerGridColumns,rows=viewerGridRows){
   const stroke='rgba(199,229,239,.24)';
   columns=clamp(Math.trunc(Number(columns)||30),1,64);rows=clamp(Math.trunc(Number(rows)||30),1,64);
   if(shape==='hex'){
@@ -1885,7 +1922,7 @@ function applyViewerGridMode(value,persist=false,columns=viewerGridColumns,rows=
 }
 function applyAssetGridMode(value,persist=false,columns=assetGridColumns,rows=assetGridRows){
   assetGridMode=String(value||'').toLowerCase()==='hex'?'hex':'square';
-  assetGridColumns=clamp(Math.trunc(Number(columns)||30),1,64);assetGridRows=clamp(Math.trunc(Number(rows)||30),1,64);
+  assetGridColumns=clamp(Math.trunc(Number(columns)||SCOPE_GRID_COLUMNS),1,SCOPE_GRID_COLUMNS);assetGridRows=clamp(Math.trunc(Number(rows)||SCOPE_GRID_ROWS),1,SCOPE_GRID_ROWS);
   if(persist){try{localStorage.setItem(ASSET_GRID_PREF,assetGridMode)}catch{}}
   stage.dataset.assetGrid=assetGridMode;stage.dataset.assetGridColumns=String(assetGridColumns);stage.dataset.assetGridRows=String(assetGridRows);
   if(selectedImage&&!isWorldMapItem(selectedImage)){
@@ -1898,7 +1935,7 @@ function configuredGridCellCenter(row,column,shape,columns,rows){
   return{x:clamp((column+0.5+offset)/columns,0,1),y:clamp((row+0.5)/rows,0,1)};
 }
 function nearestGridCellForPoint(x,y,shape,columns=assetGridColumns,rows=assetGridRows){
-  columns=clamp(Math.trunc(Number(columns)||30),1,64);rows=clamp(Math.trunc(Number(rows)||30),1,64);
+  columns=clamp(Math.trunc(Number(columns)||SCOPE_GRID_COLUMNS),1,SCOPE_GRID_COLUMNS);rows=clamp(Math.trunc(Number(rows)||SCOPE_GRID_ROWS),1,SCOPE_GRID_ROWS);
   const row=clamp(Math.floor(clamp(y,0,.999999)*rows),0,rows-1);
   let best={row:0,column:0},bestDistance=Infinity;
   for(let rr=Math.max(0,row-1);rr<=Math.min(rows-1,row+1);rr++){
@@ -1915,8 +1952,8 @@ function snapAssetPoint(x,y){
   const shape=assetGridMode,cell=nearestGridCellForPoint(clamp(x,0,1),clamp(y,0,1),shape,assetGridColumns,assetGridRows);
   const point=configuredGridCellCenter(cell.row,cell.column,shape,assetGridColumns,assetGridRows);
   if(REGION_DEFINER){
-    const regionCell=regionCellFromPoint(point.x,point.y,regionGridShape),allowed=regionActiveCellSet();
-    if(allowed&&!allowed.has(regionCell))return regionCellCenter(nearestAllowedRegionCell(regionCell,allowed,regionGridShape),regionGridShape);
+    const regionCell=regionCellFromPoint(point.x,point.y,regionGridShape,regionClaimedRegion),allowed=regionActiveCellSet();
+    if(allowed&&!allowed.has(regionCell))return regionCellCenter(nearestAllowedRegionCell(regionCell,allowed,regionGridShape,regionClaimedRegion),regionGridShape,regionClaimedRegion);
   }
   return point;
 }
@@ -1924,21 +1961,21 @@ function regionActiveCellSet(){
   const cells=regionClaimedRegion?.selectedCells;
   return Array.isArray(cells)&&cells.length?new Set(cells.map(Number).filter(Number.isInteger)):null;
 }
-function nearestAllowedRegionCell(cell,allowed,shape=regionGridShape){
+function nearestAllowedRegionCell(cell,allowed,shape=regionGridShape,region=regionClaimedRegion){
   if(!allowed||allowed.has(cell))return cell;
-  const target=regionCellCenter(cell,shape),cells=[...allowed];
+  const target=regionCellCenter(cell,shape,region),cells=[...allowed];
   let best=cell,bestDistance=Infinity;
   for(const candidate of cells){
-    const center=regionCellCenter(candidate,shape),dx=center.x-target.x,dy=center.y-target.y,d=(dx*dx)+(dy*dy);
+    const center=regionCellCenter(candidate,shape,region),dx=center.x-target.x,dy=center.y-target.y,d=(dx*dx)+(dy*dy);
     if(d<bestDistance){bestDistance=d;best=candidate}
   }
   return best;
 }
 function snapRegionPoint(x,y){
   if(!REGION_DEFINER)return{x:clamp(x,0,1),y:clamp(y,0,1)};
-  let cell=regionCellFromPoint(x,y);
-  cell=nearestAllowedRegionCell(cell,regionActiveCellSet());
-  return regionCellCenter(cell);
+  let cell=regionCellFromPoint(x,y,regionGridShape,regionClaimedRegion);
+  cell=nearestAllowedRegionCell(cell,regionActiveCellSet(),regionGridShape,regionClaimedRegion);
+  return regionCellCenter(cell,regionGridShape,regionClaimedRegion);
 }
 function clearRegionWorldSource(){
   for(const item of regionWorldSourceTiles)item.node?.remove();
@@ -2317,31 +2354,52 @@ function toggleRegionCell(cell){
   updateRegionSelectionOverlay();renderKeyboardKeys();
   announce(`${regionSelectedCells.size} region tile${regionSelectedCells.size===1?'':'s'} selected on Tier ${currentRegionTierIndex()+1}.`);
 }
-function regionCellsForTier(){
-  const tier=currentRegionTierIndex(),map=new Map();
+function regionOverlayFigure(cell,shape,region,cssClass){
+  const grid=regionGridDimensions(region);
+  const row=regionCellRow(cell,region),column=regionCellColumn(cell,region);
+  const sx=SCOPE_GRID_COLUMNS/grid.columns,sy=SCOPE_GRID_ROWS/grid.rows;
+  const offset=shape==='hex'&&(row%2)?0.5:0;
+  const x=(column+offset)*sx,y=row*sy;
+  if(shape==='hex'){
+    return `<polygon class="${cssClass}" points="${x+sx*.25},${y} ${x+sx*.75},${y} ${x+sx},${y+sy*.5} ${x+sx*.75},${y+sy} ${x+sx*.25},${y+sy} ${x},${y+sy*.5}"/>`;
+  }
+  return `<rect class="${cssClass}" x="${x}" y="${y}" width="${sx}" height="${sy}"/>`;
+}
+function regionSelectionSvg(){
+  const shape=normalizeRegionGridShape(regionGridShape),existing=[],selected=[];
+  const tier=currentRegionTierIndex();
   for(const region of regionCatalog){
     if(Math.trunc(Number(region?.tierIndex)||0)!==tier)continue;
-    for(const cell of Array.isArray(region?.selectedCells)?region.selectedCells:[]){
-      const key=Math.trunc(Number(cell));if(key<0||key>=REGION_GRID_COLUMNS*REGION_GRID_ROWS)continue;
-      if(!map.has(key))map.set(key,[]);
-      map.get(key).push(String(region?.name||'Region'));
+    for(const raw of Array.isArray(region?.selectedCells)?region.selectedCells:[]){
+      const cell=Math.trunc(Number(raw));if(cell<0)continue;
+      existing.push(regionOverlayFigure(cell,normalizeRegionGridShape(region?.gridShape||shape),region,'existing'));
     }
   }
-  return map;
+  for(const cell of regionSelectedCells)selected.push(regionOverlayFigure(cell,shape,null,'selected'));
+  const gridPattern=shape==='hex'
+    ? `<pattern id="region-grid-pattern" width="1.5" height="1" patternUnits="userSpaceOnUse"><path d="M.25 0H.75L1 .5.75 1H.25L0 .5Z" fill="none" stroke="rgba(177,202,214,.18)" stroke-width=".035"/></pattern>`
+    : `<pattern id="region-grid-pattern" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1 0H0V1" fill="none" stroke="rgba(177,202,214,.18)" stroke-width=".035"/></pattern>`;
+  return `<svg viewBox="0 0 ${SCOPE_GRID_COLUMNS} ${SCOPE_GRID_ROWS}" preserveAspectRatio="none" aria-hidden="true"><defs>${gridPattern}</defs><rect width="100%" height="100%" fill="url(#region-grid-pattern)"/><g class="existing-cells">${existing.join('')}</g><g class="selected-cells">${selected.join('')}</g></svg>`;
 }
 function ensureRegionSelectionOverlay(){
   if(!REGION_DEFINER)return null;
   if(regionSelectionOverlay?.isConnected)return regionSelectionOverlay;
-  const overlay=document.createElement('div');overlay.className='region-definition-grid square';overlay.setAttribute('aria-label','Region definition grid');overlay.setAttribute('role','grid');
-  for(let cell=0;cell<REGION_GRID_COLUMNS*REGION_GRID_ROWS;cell++){
-    const button=document.createElement('button');button.type='button';button.className='region-definition-cell';button.dataset.cell=String(cell);
-    const column=cell%REGION_GRID_COLUMNS,row=Math.floor(cell/REGION_GRID_COLUMNS);
-    button.setAttribute('aria-label',`Region tile X ${column+1}, Y ${row+1}`);
-    button.setAttribute('role','gridcell');
-    button.addEventListener('pointerdown',event=>{if(keyboardMode==='Select'&&regionSelectionEnabled){event.preventDefault();event.stopPropagation()}});
-    button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleRegionCell(cell)});
-    overlay.appendChild(button);
-  }
+  const overlay=document.createElement('div');
+  overlay.className='region-definition-grid square';
+  overlay.setAttribute('aria-label',`Region definition grid, ${SCOPE_GRID_COLUMNS} by ${SCOPE_GRID_ROWS}`);
+  overlay.setAttribute('role','grid');
+  overlay.tabIndex=0;
+  overlay.addEventListener('pointerdown',event=>{
+    if(keyboardMode==='Select'&&regionSelectionEnabled&&regionClaimPhase==='select'){event.preventDefault();event.stopPropagation()}
+  });
+  overlay.addEventListener('click',event=>{
+    if(keyboardMode!=='Select'||!regionSelectionEnabled||regionClaimPhase!=='select'||READ_ONLY)return;
+    event.preventDefault();event.stopPropagation();
+    const rect=overlay.getBoundingClientRect();if(rect.width<1||rect.height<1)return;
+    const nx=clamp((event.clientX-rect.left)/rect.width,0,.999999);
+    const ny=clamp((event.clientY-rect.top)/rect.height,0,.999999);
+    toggleRegionCell(regionCellFromPoint(nx,ny,regionGridShape));
+  });
   world.appendChild(overlay);regionSelectionOverlay=overlay;updateRegionSelectionOverlay();return overlay;
 }
 function updateRegionSelectionOverlay(){
@@ -2354,27 +2412,13 @@ function updateRegionSelectionOverlay(){
   overlay.classList.toggle('hex',regionGridShape==='hex');
   overlay.dataset.tier=String(currentRegionTierIndex());
   overlay.dataset.gridShape=regionGridShape;
+  overlay.dataset.columns=String(SCOPE_GRID_COLUMNS);
+  overlay.dataset.rows=String(SCOPE_GRID_ROWS);
   overlay.setAttribute('aria-hidden',String(!active&&!regionCropPreview));
-  const existing=regionCellsForTier(),cellWidth=100/REGION_GRID_COLUMNS,cellHeight=100/REGION_GRID_ROWS;
-  for(const button of overlay.children){
-    const cell=Math.trunc(Number(button.dataset.cell)),row=regionCellRow(cell),column=regionCellColumn(cell);
-    const selected=regionSelectedCells.has(cell),names=existing.get(cell)||[];
-    button.classList.toggle('selected',selected);
-    button.classList.toggle('existing',names.length>0);
-    button.setAttribute('aria-selected',String(selected));
-    button.title=names.length?`Existing: ${names.join(', ')}`:'';
-    if(regionGridShape==='hex'){
-      button.style.left=`${(column+(row%2?0.5:0))*cellWidth}%`;
-      button.style.top=`${row*cellHeight}%`;
-      button.style.width=`${cellWidth*1.02}%`;
-      button.style.height=`${cellHeight*1.08}%`;
-    }else{
-      button.style.left='';button.style.top='';button.style.width='';button.style.height='';
-    }
-  }
+  overlay.innerHTML=regionSelectionSvg();
   stage.classList.toggle('region-crop-preview',!!regionCropPreview);
 }
-function regionNameInput(){
+function regionNameInput(){function regionNameInput(){
   const input=document.createElement('input');input.type='text';input.className='region-name-input';input.maxLength=80;input.value=regionNameDraft;input.placeholder='Region name';input.setAttribute('aria-label','Region name');
   input.addEventListener('input',()=>{regionNameDraft=input.value.slice(0,80)});
   input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();createRegionDefinition()}});
@@ -2401,49 +2445,49 @@ function syncClaimedRegionOutline(region){
     regionClaimOutline.setAttribute('aria-hidden','true');
     world.appendChild(regionClaimOutline);
   }
-  regionClaimOutline.style.left=`${(bounds.minX/REGION_GRID_COLUMNS)*100}%`;
-  regionClaimOutline.style.top=`${(bounds.minY/REGION_GRID_ROWS)*100}%`;
-  regionClaimOutline.style.width=`${(bounds.width/REGION_GRID_COLUMNS)*100}%`;
-  regionClaimOutline.style.height=`${(bounds.height/REGION_GRID_ROWS)*100}%`;
+  regionClaimOutline.style.left=`${(bounds.minX/bounds.columns)*100}%`;
+  regionClaimOutline.style.top=`${(bounds.minY/bounds.rows)*100}%`;
+  regionClaimOutline.style.width=`${(bounds.width/bounds.columns)*100}%`;
+  regionClaimOutline.style.height=`${(bounds.height/bounds.rows)*100}%`;
   regionClaimOutline.dataset.label=String(region?.name||'YOUR CLAIM').toUpperCase();
 }
-function clearClaimedRegionCrop(refit=true){
+function clearClaimedRegionCrop(refit=true){function clearClaimedRegionCrop(refit=true){
   if(!REGION_DEFINER)return;
   regionClaimedRegion=null;pendingClaimedRegionId='';syncClaimedRegionOutline(null);
   clearRegionMask(refit);
 }
 function regionMaskSvg(region){
   const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
-  const shape=normalizeRegionGridShape(region?.gridShape||regionGridShape);
+  const shape=normalizeRegionGridShape(region?.gridShape||regionGridShape),grid=regionGridDimensions(region);
   const figures=[];
   for(const cell of cells){
-    const row=regionCellRow(cell),column=regionCellColumn(cell);
+    const row=regionCellRow(cell,region),column=regionCellColumn(cell,region);
     if(shape==='hex'){
       const x=column+(row%2?0.5:0),y=row;
       figures.push(`<polygon points="${x+0.25},${y} ${x+0.75},${y} ${x+1},${y+0.5} ${x+0.75},${y+1} ${x+0.25},${y+1} ${x},${y+0.5}" fill="white"/>`);
     }else figures.push(`<rect x="${column}" y="${row}" width="1" height="1" fill="white"/>`);
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${REGION_GRID_COLUMNS} ${REGION_GRID_ROWS}" preserveAspectRatio="none">${figures.join('')}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${grid.columns} ${grid.rows}" preserveAspectRatio="none">${figures.join('')}</svg>`;
 }
 function regionClaimBounds(region){
   const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
   if(!cells.length)return null;
-  const shape=normalizeRegionGridShape(region?.gridShape||regionGridShape);
+  const shape=normalizeRegionGridShape(region?.gridShape||regionGridShape),grid=regionGridDimensions(region);
   let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
   for(const cell of cells){
-    const row=regionCellRow(cell),column=regionCellColumn(cell),offset=shape==='hex'&&(row%2)?0.5:0;
+    const row=regionCellRow(cell,region),column=regionCellColumn(cell,region),offset=shape==='hex'&&(row%2)?0.5:0;
     minX=Math.min(minX,column+offset);maxX=Math.max(maxX,column+offset+1);
     minY=Math.min(minY,row);maxY=Math.max(maxY,row+1);
   }
-  minX=clamp(minX,0,REGION_GRID_COLUMNS);maxX=clamp(maxX,0,REGION_GRID_COLUMNS);
-  minY=clamp(minY,0,REGION_GRID_ROWS);maxY=clamp(maxY,0,REGION_GRID_ROWS);
-  return{minX,minY,maxX,maxY,width:Math.max(1,maxX-minX),height:Math.max(1,maxY-minY)};
+  minX=clamp(minX,0,grid.columns);maxX=clamp(maxX,0,grid.columns);
+  minY=clamp(minY,0,grid.rows);maxY=clamp(maxY,0,grid.rows);
+  return{minX,minY,maxX,maxY,width:Math.max(1,maxX-minX),height:Math.max(1,maxY-minY),columns:grid.columns,rows:grid.rows};
 }
 function fitClaimedRegion(region){
   const bounds=regionClaimBounds(region);if(!bounds||!naturalWidth||!naturalHeight)return;
   suspendRegionEnhancement();
-  const r=stage.getBoundingClientRect(),cropX=(bounds.minX/REGION_GRID_COLUMNS)*naturalWidth,cropY=(bounds.minY/REGION_GRID_ROWS)*naturalHeight;
-  const cropW=(bounds.width/REGION_GRID_COLUMNS)*naturalWidth,cropH=(bounds.height/REGION_GRID_ROWS)*naturalHeight;
+  const r=stage.getBoundingClientRect(),cropX=(bounds.minX/bounds.columns)*naturalWidth,cropY=(bounds.minY/bounds.rows)*naturalHeight;
+  const cropW=(bounds.width/bounds.columns)*naturalWidth,cropH=(bounds.height/bounds.rows)*naturalHeight;
   const tiltHeight=cropH*Math.cos(15*Math.PI/180);
   scale=Math.min(r.width/Math.max(cropW,1),r.height/Math.max(tiltHeight,1))*.92;
   scale=clamp(scale,MIN_VIEW_SCALE,Math.max(maxScale,scale));
@@ -2456,11 +2500,11 @@ function claimedRegionFitScale(region){
   const bounds=regionClaimBounds(region);if(!bounds||!naturalWidth||!naturalHeight)return 0;
   const r=stage.getBoundingClientRect();
   if(r.width<=0||r.height<=0)return 0;
-  const cropW=(bounds.width/REGION_GRID_COLUMNS)*naturalWidth,cropH=(bounds.height/REGION_GRID_ROWS)*naturalHeight;
+  const cropW=(bounds.width/bounds.columns)*naturalWidth,cropH=(bounds.height/bounds.rows)*naturalHeight;
   const tiltHeight=cropH*Math.cos(15*Math.PI/180);
   return Math.min(r.width/Math.max(cropW,1),r.height/Math.max(tiltHeight,1))*.92;
 }
-function syncClaimedRegionContextMask(){
+function syncClaimedRegionContextMask(){function syncClaimedRegionContextMask(){
   if(!REGION_DEFINER||!regionClaimedRegion||!regionClaimMaskUrl)return;
   const focusScale=claimedRegionFitScale(regionClaimedRegion);
   if(!(focusScale>0))return;
@@ -3756,6 +3800,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.
 
 function showAllParallax(){
   if(REGION_DEFINER)return false;
+  externalSpatialScope='WORLD';externalSpatialNodeId='';externalSpatialPath='';
   viewerTier='all';
   viewerLayer=9;
   restorePassedFullFrames();
@@ -3766,16 +3811,19 @@ function showAllParallax(){
 }
 
 function setExternalDepth(raw={}){
-  externalSpatialScope=normalizeSpatialScope(raw.scope||externalSpatialScope);
+  const nextScope=normalizeSpatialScope(raw.scope||externalSpatialScope),scopeChanged=nextScope!==externalSpatialScope;
+  externalSpatialScope=nextScope;
   externalSpatialNodeId=String(raw.spatialNodeId||'');
   externalSpatialPath=String(raw.spatialPath||'');
   const tier=clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(tier).key;
   viewerLayer=Math.max(0,Math.trunc(Number(raw.layer)||0));
   restorePassedFullFrames(tier);
-  updateTierButton();renderTierMenu();applyTransform();renderKeyboardKeys();
+  updateTierButton();renderTierMenu();
+  if(scopeChanged)fitMap();else applyTransform();
+  renderKeyboardKeys();
 }
-async function placeExternalAsset(raw={}){
+async function placeExternalAsset(raw={}){async function placeExternalAsset(raw={}){
   if(READ_ONLY)return false;
   const src=String(raw.url||'').trim();
   if(!src)return false;

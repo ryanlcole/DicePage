@@ -182,3 +182,45 @@ def test_endemar_root_requires_explicit_endemar_zone_identity():
     assert "function layerZoneIdentity(item)" in prototype
     assert "worldBuilderSourceLayersForCurrentDeed(allSourceLayers,true)" in prototype
     assert "identity==='endemar'||(!strictIdentity&&!identity)" in prototype
+
+
+def test_mmo_deed_grid_is_separate_from_recursive_300_cell_scope_geometry():
+    cube = text("WorldSession.DefaultCube.cs")
+    land = text("WorldSession.MmoLand.cs")
+    regions = text("WorldSession.Regions.cs")
+    host = text("Components/RegionDefinerWorkspace.razor")
+    prototype = text("wwwroot/prototype/prototype.js")
+
+    assert "public const int MmoParcelGridColumns = 30;" in land
+    assert "public const int MmoParcelGridRows = 30;" in land
+    assert "public const int DefaultCubeWidthCells = 30;" in cube
+    assert "public const int DefaultWorldWidthCells = 300;" in cube
+    assert "public const int SpatialScopeGridColumns = DefaultWorldWidthCells;" in cube
+    assert "public const int SpatialScopeGridRows = DefaultWorldHeightCells;" in cube
+    assert "public const int SpatialScopeZoomFactor = DefaultWorldWidthCells / DefaultCubeWidthCells;" in cube
+    assert 'public const string SpatialWorldCoordinateSpace = "world-grid-300-v2";' in cube
+    assert "SpatialScopeGridColumns * SpatialScopeGridRows" in regions
+    assert "CoordinateSpace: SpatialWorldCoordinateSpace" in regions
+    assert "gridColumns=WorldSession.SpatialScopeGridColumns" in host
+    assert "gridRows=WorldSession.SpatialScopeGridRows" in host
+    assert "const SCOPE_GRID_COLUMNS=300;" in prototype
+    assert "const SCOPE_GRID_ROWS=300;" in prototype
+    assert "const VIEWER_WINDOW_GRID_COLUMNS=30;" in prototype
+    assert "const VIEWER_WINDOW_GRID_ROWS=30;" in prototype
+
+
+def test_zoom_crosses_recursive_scope_every_ten_viewer_windows():
+    prototype = text("wwwroot/prototype/prototype.js")
+
+    assert "const SCOPE_TRANSITION_Z_LAYERS=LAYERS_PER_TIER;" in prototype
+    assert "const SCOPE_ZOOM_FACTOR=SCOPE_GRID_COLUMNS/VIEWER_WINDOW_GRID_COLUMNS;" in prototype
+    assert "REGION:SCOPE_ZOOM_FACTOR" in prototype
+    assert "LOCAL:SCOPE_ZOOM_FACTOR*SCOPE_ZOOM_FACTOR" in prototype
+    assert "INSTANCE:SCOPE_ZOOM_FACTOR*SCOPE_ZOOM_FACTOR*SCOPE_ZOOM_FACTOR" in prototype
+    assert "const SCOPE_VIEW_ANGLE=Object.freeze({WORLD:0,REGION:15,LOCAL:30,INSTANCE:45});" in prototype
+    assert "const SCOPE_DEPTH_PREFIX=Object.freeze({WORLD:'Z',REGION:'R',LOCAL:'L',INSTANCE:'I'});" in prototype
+    assert "function zoomScopeSteps()" in prototype
+    assert "return SCOPE_ORDER[Math.min(SCOPE_ORDER.length-1,base+zoomScopeSteps())];" in prototype
+    assert "rotateX(${angle}deg)" in prototype
+    assert "rist:spatial-scope-change" in prototype
+    assert "const MAX_VIEW_ZOOM_RATIO=2048;" in prototype

@@ -44,6 +44,13 @@ public sealed partial class WorldSession
     public string RegionDirectoryKey => $"{WorldStoragePrefix}/regions/index.json";
     public string RegionLocalSaveKey => $"rist.regions.v1.{WorldId}";
 
+    static bool UsesSpatialScopeGrid(WorldRegion region) =>
+        string.Equals(region.CoordinateSpace, SpatialWorldCoordinateSpace, StringComparison.OrdinalIgnoreCase);
+    static int RegionGridColumnsFor(WorldRegion region) =>
+        UsesSpatialScopeGrid(region) ? SpatialScopeGridColumns : GridColumns;
+    static int RegionGridRowsFor(WorldRegion region) =>
+        UsesSpatialScopeGrid(region) ? SpatialScopeGridRows : GridRows;
+
     public async Task LoadRegionsAsync()
     {
         var requestedActiveRegionId = _activeRegionId;
@@ -283,14 +290,14 @@ public sealed partial class WorldSession
             : sourceLayerOffsets.Where(x => x >= 0 && x < LayersPerTier).Distinct().Order().ToList();
         var sourceLayerSet = sourceLayers.ToHashSet();
         var cells = selectedCells
-            .Where(x => x >= 0 && x < GridColumns * GridRows)
+            .Where(x => x >= 0 && x < SpatialScopeGridColumns * SpatialScopeGridRows)
             .Distinct()
             .Order()
             .ToList();
         if (cells.Count == 0) throw new InvalidOperationException("Select at least one world tile for the region.");
 
-        var columns = cells.Select(x => x % GridColumns).ToList();
-        var rows = cells.Select(x => x / GridColumns).ToList();
+        var columns = cells.Select(x => x % SpatialScopeGridColumns).ToList();
+        var rows = cells.Select(x => x / SpatialScopeGridColumns).ToList();
         var minColumn = columns.Min();
         var maxColumn = columns.Max();
         var minRow = rows.Min();
@@ -316,11 +323,11 @@ public sealed partial class WorldSession
             GridShape: gridShape,
             OwnerUserId: auth.Profile?.UserId?.Trim() ?? "",
             ParentNodeId: $"world:{WorldId}",
-            CoordinateSpace: "world-normalized-v1",
-            CanonicalMinX: minColumn / (double)GridColumns,
-            CanonicalMinY: minRow / (double)GridRows,
-            CanonicalMaxX: (maxColumn + 1) / (double)GridColumns,
-            CanonicalMaxY: (maxRow + 1) / (double)GridRows,
+            CoordinateSpace: SpatialWorldCoordinateSpace,
+            CanonicalMinX: minColumn / (double)SpatialScopeGridColumns,
+            CanonicalMinY: minRow / (double)SpatialScopeGridRows,
+            CanonicalMaxX: (maxColumn + 1) / (double)SpatialScopeGridColumns,
+            CanonicalMaxY: (maxRow + 1) / (double)SpatialScopeGridRows,
             CanonicalZMin: (tierIndex * LayersPerTier) + (sourceLayers.Count > 0 ? sourceLayers.Min() : 0),
             CanonicalZMax: (tierIndex * LayersPerTier) + (sourceLayers.Count > 0 ? sourceLayers.Max() + 1 : LayersPerTier));
 
@@ -345,10 +352,11 @@ public sealed partial class WorldSession
         var originalColumn = region.MinColumn + localColumn;
         var originalRow = region.MinRow + localRow;
         var selected = region.SelectedCells.ToHashSet();
+        var regionColumns = RegionGridColumnsFor(region);
         for (var row = originalRow; row < originalRow + footprint; row++)
         for (var column = originalColumn; column < originalColumn + footprint; column++)
         {
-            if (column > region.MaxColumn || row > region.MaxRow || !selected.Contains(row * GridColumns + column)) return false;
+            if (column > region.MaxColumn || row > region.MaxRow || !selected.Contains(row * regionColumns + column)) return false;
         }
 
         var width = footprint / (double)region.Width;
@@ -465,12 +473,12 @@ public sealed partial class WorldSession
 
     static bool TileTouchesSelectedWorldCells(TileItem tile, HashSet<int> selected)
     {
-        var column = Math.Clamp((int)Math.Floor(tile.X * GridColumns), 0, GridColumns - 1);
-        var row = Math.Clamp((int)Math.Floor(tile.Y * GridRows), 0, GridRows - 1);
-        var footprint = Math.Clamp((int)Math.Round(1.0 / Math.Max(tile.PlacementZoom, 1.0 / 300.0)), 1, 300);
-        for (var y = row; y < Math.Min(GridRows, row + footprint); y++)
-        for (var x = column; x < Math.Min(GridColumns, column + footprint); x++)
-            if (selected.Contains(y * GridColumns + x)) return true;
+        var column = Math.Clamp((int)Math.Floor(tile.X * SpatialScopeGridColumns), 0, SpatialScopeGridColumns - 1);
+        var row = Math.Clamp((int)Math.Floor(tile.Y * SpatialScopeGridRows), 0, SpatialScopeGridRows - 1);
+        var footprint = Math.Clamp((int)Math.Round(1.0 / Math.Max(tile.PlacementZoom, 1.0 / SpatialScopeGridColumns)), 1, SpatialScopeGridColumns);
+        for (var y = row; y < Math.Min(SpatialScopeGridRows, row + footprint); y++)
+        for (var x = column; x < Math.Min(SpatialScopeGridColumns, column + footprint); x++)
+            if (selected.Contains(y * SpatialScopeGridColumns + x)) return true;
         return false;
     }
 }

@@ -18,6 +18,20 @@ public sealed partial class WorldSession
     public const int DefaultWorldCubesDown = DefaultWorldHeightCells / DefaultCubeHeightCells;
     public const long DefaultWorldTileCapacity = (long)DefaultWorldWidthCells * DefaultWorldHeightCells;
 
+    // Every recursive authoring scope uses the full 300 x 300 coordinate field.
+    // The 30 x 30 cube is the viewer window; the MMO deed grid is a separate
+    // ownership/navigation surface. A scope transition therefore occurs every
+    // 10 viewer-window widths: 300 / 30 = 10.
+    public const int SpatialScopeGridColumns = DefaultWorldWidthCells;
+    public const int SpatialScopeGridRows = DefaultWorldHeightCells;
+    public const int SpatialScopeTransitionLayers = LayersPerTier;
+    public const int SpatialScopeZoomFactor = DefaultWorldWidthCells / DefaultCubeWidthCells;
+    public const int WorldViewAngleDegrees = 0;
+    public const int RegionViewAngleDegrees = 15;
+    public const int LocalViewAngleDegrees = 30;
+    public const int InstanceViewAngleDegrees = 45;
+    public const string SpatialWorldCoordinateSpace = "world-grid-300-v2";
+
     // Starting authoring raster for every user's surface world. This is a presentation
     // boundary only; recursive world identity/coordinates remain independent of pixels.
     public const int DefaultSurfaceWorldWidthPixels = 2048;
