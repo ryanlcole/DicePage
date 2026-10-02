@@ -108,7 +108,8 @@ def test_all_zones_keep_pre_controller_compact_placement_geometry():
     assert "function presentationDepthForTier(tier)" in prototype
     assert "const depth=presentationDepthForTier(entry.tier);" in prototype
     assert "const depth=presentationDepthForTier(item.tier);" in prototype
-    assert "world.style.transform=REGION_DEFINER" in prototype
+    assert "const spatialScope=currentSpatialScope(),angle=currentSpatialViewAngle();" in prototype
+    assert "rotateX(${angle}deg)" in prototype
     assert "TIER_REST_X_PER_LAYER" not in prototype
     assert "TIER_REST_Y_PER_LAYER" not in prototype
     assert "allParallaxRestOffset" not in prototype
