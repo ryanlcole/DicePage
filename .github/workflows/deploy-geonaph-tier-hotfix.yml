@@ -88,6 +88,8 @@ jobs:
           grep -Fq "const depth=presentationDepthForTier(entry.tier);" /tmp/live-prototype.js
           grep -Fq "const depth=presentationDepthForTier(item.tier);" /tmp/live-prototype.js
           grep -Fq "const fullDeedFrame=geonaphSeaLevelMap;" /tmp/live-prototype.js
+          grep -Fq "if(raw?.fullFrame===true||looksLikeWholeMapAsset(raw))return'deed-frame';" /tmp/live-prototype.js
+          grep -Fq "const worldVisible=(BASE_WORLD_ASSETS.length>0||!DEED_REGION_ID)" /tmp/live-prototype.js
           grep -Fq "const SCOPE_GRID_COLUMNS=300;" /tmp/live-prototype.js
           grep -Fq "const VIEWER_WINDOW_GRID_COLUMNS=30;" /tmp/live-prototype.js
           grep -Fq "const SCOPE_VIEW_ANGLE=Object.freeze({WORLD:0,REGION:15,LOCAL:30,INSTANCE:45});" /tmp/live-prototype.js

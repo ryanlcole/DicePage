@@ -84,8 +84,9 @@ def test_whole_map_assets_keep_one_deed_frame_across_tiers():
     controller = text("Components/UniversalInterface.razor")
 
     assert "function looksLikeWholeMapAsset(raw)" in prototype
-    assert "raw?.fullFrame===true||looksLikeWholeMapAsset(raw)" not in prototype
+    assert "if(raw?.placementRole==='deed-frame'||raw?.fullDeedFrame===true)return'deed-frame';" in prototype
     assert "if(raw?.mmoSurface===true&&raw?.frameLock===true)return'deed-frame';" in prototype
+    assert "if(raw?.fullFrame===true||looksLikeWholeMapAsset(raw))return'deed-frame';" in prototype
     assert "const fullDeedFrame=geonaphSeaLevelMap;" in prototype
     assert "placementRole:fullDeedFrame?'deed-frame':'layer'" in prototype
     assert "size:clamp(Number(raw.scale)||1,.01,20)" in prototype
@@ -127,6 +128,16 @@ def test_geonaph_tier_top_surfaces_keep_semantic_depth_but_use_compact_presentat
     assert "sceneZ:(asset.tier*LAYERS_PER_TIER)+asset.layer" in prototype
     assert "return{surface:1,highlands:index>=1?1:0,mountains:index>=2?1:0};" in prototype
     assert "const depth=presentationDepthForTier(entry.tier);" in prototype
+
+
+
+
+
+def test_selected_geonaph_deed_keeps_its_canonical_zone_planes_visible():
+    prototype = text("wwwroot/prototype/prototype.js")
+
+    assert "const worldVisible=(BASE_WORLD_ASSETS.length>0||!DEED_REGION_ID)" in prototype
+    assert "const worldVisible=!DEED_REGION_ID&&" not in prototype
 
 
 def test_returning_to_endemar_home_restores_fitted_parallax_overview():

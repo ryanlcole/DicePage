@@ -1271,9 +1271,12 @@ function looksLikeWholeMapAsset(raw){
 }
 function storedPlacementRole(raw){
   if(raw?.placementRole==='world-map'||raw?.fullWorld===true)return'world-map';
-  // All zones use the same historical adjustable placement model. Only the
-  // system-owned locked MMO sea-level surface remains a deed-frame.
+  // Preserve explicit/full-zone artwork at the deed's own viewer size. This is
+  // representation metadata, not a zone-specific exception: Endemar, Geonaph,
+  // and every other deed use the same placement interpretation.
+  if(raw?.placementRole==='deed-frame'||raw?.fullDeedFrame===true)return'deed-frame';
   if(raw?.mmoSurface===true&&raw?.frameLock===true)return'deed-frame';
+  if(raw?.fullFrame===true||looksLikeWholeMapAsset(raw))return'deed-frame';
   return'layer';
 }
 function customWorldMap(){return userLayers.find(isWorldMapItem)||null}
@@ -1714,7 +1717,11 @@ function applyParallax(){
   }));
   for(const entry of builtins){
     const sourceVisible=!REGION_DEFINER||(entry.tier<=currentRegionTierIndex()&&regionSourceLayerVisible(entry.tier,entry.layer));
-    const worldVisible=!DEED_REGION_ID&&(spatialScope==='WORLD'||(spatialScope==='REGION'&&!regionEnhanceActive));
+    // A selected deed is now the viewer's entire coordinate universe. Do not
+    // hide that deed's canonical base planes merely because it has an MMO
+    // region id; the 30x30 deed map ended when the user entered this zone.
+    const worldVisible=(BASE_WORLD_ASSETS.length>0||!DEED_REGION_ID)
+      &&(spatialScope==='WORLD'||(spatialScope==='REGION'&&!regionEnhanceActive));
     entry.node.style.opacity=worldVisible&&layerReady[entry.key]&&sourceVisible?String(clamp(Number(entry.alpha)||0,0,1)):'0';
     const depth=presentationDepthForTier(entry.tier);
     const panStrength=depth*.055;
