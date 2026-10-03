@@ -71,7 +71,8 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.match(info,/filter:brightness\(\.58\) saturate\(\.42\) contrast\(1\.22\)/);
   assert.match(info,/class="signature-card-foil"/);
   assert.match(info,/\.signature-card-foil\{[^}]*background-color:rgba\(102,111,120,\.08\)[^}]*opacity:\.62/);
-  assert.match(info,/\.signature-card-shine\{[^}]*rgba\(0,0,0,\.78\)[^}]*mix-blend-mode:multiply[^}]*opacity:\.82/);
+  assert.match(info,/\.signature-card-shine\{[^}]*radial-gradient\(ellipse at calc\(var\(--shine-x\) - 8%\)[^}]*repeating-radial-gradient[^}]*mix-blend-mode:multiply[^}]*opacity:\.76[^}]*filter:blur\(1\.2px\)/);
+  assert.match(info,/\.signature-card-shine\{[^}]*translate3d\(calc\(var\(--px\) \* 5px\),calc\(var\(--py\) \* 5px\),60px\) scale\(1\.03\)/);
   assert.doesNotMatch(info,/\.signature-card-shine\{[^}]*rgba\(255,255,255,\.55\)/);
   assert.match(info,/\.signature-card-foil\{[^}]*translate3d\(calc\(var\(--px\) \* 4px\),calc\(var\(--py\) \* 4px\),54px\)/);
   assert.match(info,/\.signature-card-shine\{position:absolute;z-index:8/);
