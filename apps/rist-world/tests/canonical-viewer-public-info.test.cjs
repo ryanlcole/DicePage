@@ -71,8 +71,9 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.match(info,/filter:brightness\(\.58\) saturate\(\.42\) contrast\(1\.22\)/);
   assert.match(info,/class="signature-card-foil"/);
   assert.match(info,/\.signature-card-foil\{[^}]*background-color:rgba\(102,111,120,\.08\)[^}]*opacity:\.62/);
-  assert.match(info,/\.signature-card-shine\{[^}]*radial-gradient\(ellipse at calc\(var\(--shine-x\) - 8%\)[^}]*repeating-radial-gradient[^}]*mix-blend-mode:multiply[^}]*opacity:\.76[^}]*filter:blur\(1\.2px\)/);
-  assert.match(info,/\.signature-card-shine\{[^}]*translate3d\(calc\(var\(--px\) \* 2\.5px\),calc\(var\(--py\) \* 2\.5px\),60px\) scale\(1\.026\)/);
+  assert.match(info,/\.signature-card-shine\{[^}]*linear-gradient\(118deg[^}]*linear-gradient\(73deg[^}]*background-repeat:no-repeat[^}]*mix-blend-mode:multiply[^}]*opacity:\.64[^}]*filter:blur\(2\.1px\)/);
+  assert.match(info,/\.signature-card-shine\{[^}]*translate3d\(calc\(var\(--smoke-px\) \* 3\.2px\),calc\(var\(--smoke-py\) \* 3\.2px\),60px\) scale\(1\.024\)/);
+  assert.match(info,/--smoke-px:0;--smoke-py:0;--smoke-x:50%;--smoke-y:50%/);
   assert.doesNotMatch(info,/\.signature-card-shine\{[^}]*rgba\(255,255,255,\.55\)/);
   assert.match(info,/\.signature-card-foil\{[^}]*translate3d\(calc\(var\(--px\) \* 3px\),calc\(var\(--py\) \* 3px\),54px\)/);
   assert.match(info,/\.signature-card-shine\{position:absolute;z-index:8/);
@@ -90,6 +91,10 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.match(info,/signatureCard\.style\.setProperty\('--py',iy\.toFixed\(4\)\)/);
   assert.match(info,/signatureCard\.style\.setProperty\('--ry',\(nx\*tilt\)\.toFixed\(2\)\+'deg'\)/);
   assert.match(info,/signatureCard\.style\.setProperty\('--shine-x',\(\(ix\+1\)\*50\)\.toFixed\(1\)\+'%'\)/);
+  assert.match(info,/signatureCard\.style\.setProperty\('--smoke-px',nx\.toFixed\(4\)\)/);
+  assert.match(info,/signatureCard\.style\.setProperty\('--smoke-py',ny\.toFixed\(4\)\)/);
+  assert.match(info,/signatureCard\.style\.setProperty\('--smoke-x',\(\(nx\+1\)\*50\)\.toFixed\(1\)\+'%'\)/);
+  assert.match(info,/signatureCard\.style\.setProperty\('--smoke-y',\(\(ny\+1\)\*50\)\.toFixed\(1\)\+'%'\)/);
   assert.match(info,/requestAnimationFrame\(idleTilt\)/);
   assert.match(info,/DeviceOrientationEvent\.requestPermission/);
   assert.match(info,/function orientationAxes\(event\)/);
