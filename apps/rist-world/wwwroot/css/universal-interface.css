@@ -2778,7 +2778,7 @@ body.rist-viewer-overlays-off .universal-shell .viewer-readout{
  left:8px!important;
  right:8px!important;
  display:grid!important;
- grid-template-columns:repeat(8,minmax(0,1fr))!important;
+ grid-template-columns:repeat(11,minmax(0,1fr))!important;
  gap:3px!important;
  box-sizing:border-box!important;
  padding:3px!important;
@@ -2803,6 +2803,10 @@ body.rist-viewer-overlays-off .universal-shell .viewer-readout{
  white-space:nowrap!important;
  text-align:center!important;
  touch-action:manipulation!important;
+}
+.viewer-menu-bar button:disabled{
+ opacity:.42!important;
+ filter:saturate(.55)!important;
 }
 .viewer-menu-bar button:active,
 .viewer-menu-bar button:focus-visible{
