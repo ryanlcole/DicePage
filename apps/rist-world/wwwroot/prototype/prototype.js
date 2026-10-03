@@ -51,9 +51,11 @@ const TIERS=Object.freeze(Array.from({length:TIER_COUNT},(_,index)=>{
     glyph:preset?.glyph||'◇'
   });
 }));
-const BASE_WORLD_ASSETS=Object.freeze(IS_GEONAPH_SEED?[
-  // The canonical Geonaph tier maps are the top surfaces of their tiers.
-  // Their scene addresses are therefore 9, 19, and 29: exactly ten layers apart.
+const BASE_WORLD_ASSETS=Object.freeze(IS_ENDEMAR_SEED?[
+  // These three legacy-named CDN images are Endemar representations. The
+  // storage path/filename still says "geonaph" for compatibility, but path is
+  // representation metadata, never zone identity. Their scene addresses are
+  // 9, 19, and 29: exactly ten layers apart.
   Object.freeze({key:'surface',tier:0,layer:TIER_TOP_LAYER,file:'geonaph_full_static_canonical_surface_v001.png',representationFile:'geonaph_full_static_canonical_surface_v002.png'}),
   Object.freeze({key:'highlands',tier:1,layer:TIER_TOP_LAYER,file:'geonaph_full_static_highlands_rivers_v001.png',representationFile:'geonaph_full_static_highlands_rivers_v002.png'}),
   Object.freeze({key:'mountains',tier:2,layer:TIER_TOP_LAYER,file:'geonaph_full_static_mountain_volcanic_archipelago_v001.png',representationFile:'geonaph_full_static_mountain_volcanic_archipelago_v002.png'})
@@ -70,7 +72,7 @@ const baseWorldAssetRepresentationUrl=asset=>{
 const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1.'+(WORLD_ID||'prototype');
 const UPSCALE_KEY='rist.worldbuilder.upscale.v1.'+(WORLD_ID||WORLD_SEED||'prototype');
 const tierNames=(()=>{try{return JSON.parse(localStorage.getItem(TIER_NAMES_KEY)||'{}')||{}}catch{return{}}})();
-let upscaleEnabled=(()=>{try{const saved=localStorage.getItem(UPSCALE_KEY);return saved===null?IS_GEONAPH_SEED:saved==='on'}catch{return IS_GEONAPH_SEED}})();
+let upscaleEnabled=(()=>{try{const saved=localStorage.getItem(UPSCALE_KEY);return saved===null?IS_ENDEMAR_SEED:saved==='on'}catch{return IS_ENDEMAR_SEED}})();
 const upscaleCache=new Map();
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
@@ -640,6 +642,30 @@ function editableSelectedItem(){
 async function runViewerEditCommand(command){
   command=String(command||'').trim().toLowerCase();
   if(READ_ONLY)return 'Viewer is read only.';
+
+  if(command==='select'){
+    keyboardMode='Select';
+    personalFolderType=null;
+    userLayers.forEach(refreshUserImage);
+    renderKeyboardTabs();renderKeyboardKeys();
+    return 'Select tool active. Tap an existing asset to select it.';
+  }
+
+  if(command==='edit'){
+    const item=editableSelectedItem();
+    if(!item)return 'Select an editable item before editing.';
+    keyboardMode=item.kind==='label'?'Labels':'Image';
+    userLayers.forEach(refreshUserImage);
+    renderKeyboardTabs();renderKeyboardKeys();
+    return 'Editing '+String(item.name||item.text||item.assetId||'selected item')+'. Drag it to move it; use the asset controls for size, rotation, opacity, tier, and layer.';
+  }
+
+  if(command==='delete'){
+    const item=editableSelectedItem();
+    if(!item)return 'Select an editable item before deleting.';
+    const label=String(item.name||item.text||item.assetId||'selected item');
+    return await deleteSelectedContent()?'Deleted '+label+'.':'Delete could not be saved.';
+  }
 
   if(command==='copy'){
     const item=editableSelectedItem();
@@ -1443,7 +1469,7 @@ function refreshUserLabel(item){
   item.node.style.left=`${item.x*naturalWidth}px`;
   item.node.style.top=`${item.y*naturalHeight}px`;
   item.node.style.opacity=String(item.renderOpacity??item.opacity??1);
-  item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item?'none':'auto');
+  item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item&&keyboardMode!=='Select'?'none':'auto');
   item.node.dataset.committed=item.committed?'true':'false';
   item.node.dataset.anchor='world';
   item.node.dataset.presentationOffsetX=String(Number(item.offsetX)||0);
@@ -1541,7 +1567,7 @@ function renderLabelsKeyboard(){
     toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selected.tier<=0&&selected.layer<=0),
     toolKey('LAYER +',`L${pos.layer}`,()=>moveSelectedLayer(1),selected.tier>=TIERS.length-1&&selected.layer>=9),
     toolKey('NEW','label',()=>{deselectUserImage(false);renderKeyboardKeys()}),
-    toolKey('DELETE','label',removeSelectedImage)
+    toolKey('DELETE','label',()=>void deleteSelectedContent())
   );
 }
 function refreshUserImage(item){
@@ -1559,7 +1585,7 @@ function refreshUserImage(item){
   if(isWorldMapItem(item)){
     item.node.style.left='0';item.node.style.top='0';item.node.style.width='100%';item.node.style.height='100%';
     item.node.style.maxWidth='none';item.node.style.maxHeight='none';item.node.style.objectFit='fill';
-    item.node.style.pointerEvents='none';item.node.style.transform='none';item.node.style.transformOrigin='0 0';return;
+    item.node.style.pointerEvents=(!READ_ONLY&&!item.sourceLocked&&keyboardMode==='Select')?'auto':'none';item.node.style.transform='none';item.node.style.transformOrigin='0 0';return;
   }
   if(isFullDeedFrameItem(item)){
     const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
@@ -1572,13 +1598,13 @@ function refreshUserImage(item){
     // A deed-frame is authored against the deed/world extent. Fit it to that
     // exact frame so every tier shares one scale and one origin.
     item.node.style.objectFit='fill';
-    item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item?'none':'auto');
+    item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item&&keyboardMode!=='Select'?'none':'auto');
     item.node.style.transformOrigin='50% 50%';
     item.node.style.transform=`translate3d(${(offsetX+px).toFixed(2)}px,${(offsetY+py).toFixed(2)}px,0) rotate(${Number(item.rotation)||0}deg) scale(${size})`;return;
   }
   item.node.style.width='12%';item.node.style.height='auto';item.node.style.maxWidth='';item.node.style.maxHeight='';item.node.style.objectFit='';
   item.node.style.left=`${item.x*naturalWidth}px`;item.node.style.top=`${item.y*naturalHeight}px`;
-  item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item?'none':'auto');
+  item.node.style.pointerEvents=item.sourceLocked?'none':(item.committed&&selectedImage!==item&&keyboardMode!=='Select'?'none':'auto');
   item.node.style.transformOrigin='50% 50%';
   const px=Number(item.parallaxX)||0,py=Number(item.parallaxY)||0;
   item.node.style.transform=`translate(-50%,-50%) translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0) rotate(${item.rotation}deg) scale(${item.size})`;
@@ -1630,9 +1656,29 @@ function removeSelectedImage(){
   if(READ_ONLY)return;if(!selectedImage)return;
   if(selectedImage.sourceLocked){announce('This map content is outside your Region Definer edit permission.');return}
   const doomed=selectedImage,index=userLayers.indexOf(doomed);stopSpriteMotion(doomed);doomed.node.remove();if(index>=0)userLayers.splice(index,1);selectedImage=null;publishWorldBuilderSelectionContext();updateLayerOrder();applyParallax();renderKeyboardKeys();announce('Placed content removed from the layer stack.')}
+async function deleteSelectedContent(){
+  if(READ_ONLY){announce('World reference mode is view only.');return false}
+  const item=editableSelectedItem();
+  if(!item){announce('Select an editable item before deleting.');return false}
+  const before=editableLayerSnapshot(),label=String(item.name||item.text||item.assetId||'selected item');
+  removeSelectedImage();
+  if(!await saveEditedSnapshotOrRollback(before)){
+    announce('Delete was rolled back because the canonical save failed.');
+    return false;
+  }
+  announce(`Deleted ${label}.`);
+  return true;
+}
 function beginImageDrag(event,item){
-  if(READ_ONLY||item?.sourceLocked||isWorldMapItem(item))return;
+  if(READ_ONLY||item?.sourceLocked)return;
   if(event.pointerType==='mouse'&&event.button!==0)return;
+  if(keyboardMode==='Select'){
+    event.preventDefault();event.stopPropagation();
+    selectUserImage(item);
+    announce(`Selected ${String(item.name||item.text||item.assetId||'placed content')}. Choose Edit to modify it or Delete to remove it.`);
+    return;
+  }
+  if(isWorldMapItem(item))return;
   if(item?.committed&&selectedImage!==item)return;
   event.preventDefault();event.stopPropagation();selectUserImage(item);item.node.setPointerCapture?.(event.pointerId);
   suspendRegionEnhancement();
@@ -2102,8 +2148,18 @@ async function applyCanonicalWorldBuilderSnapshot(state,options={}){
   if(stateWorldId&&stateWorldId!==String(WORLD_ID||''))return{loaded:false,sourceLayers:[],tierImages:[],hydration:Promise.resolve(0)};
 
   const allSourceLayers=Array.isArray(state.userLayers)?state.userLayers:[];
-  const sourceLayers=regionMode?allSourceLayers:worldBuilderSourceLayersForCurrentDeed(allSourceLayers,true);
-  const tierImages=regionMode
+  const activeRegionId=regionMode?String(options.activeRegionId||'').trim():'';
+  const stateSeed=String(state.worldSeed||'').trim().toLowerCase();
+  const sourceLayers=regionMode&&activeRegionId
+    ? allSourceLayers.filter(raw=>{
+        if(String(raw?.regionId||'').trim()!==activeRegionId)return false;
+        const identity=layerZoneIdentity(raw);
+        return !identity||identity===WORLD_SEED||identity===DEED_ZONE_ID;
+      })
+    : regionMode?allSourceLayers:worldBuilderSourceLayersForCurrentDeed(allSourceLayers,true);
+  // Existing deed editors never inherit another zone's shared tier images.
+  // A new Region Definer claim may still use the world planes as read-only reference.
+  const tierImages=regionMode&&(!activeRegionId||!stateSeed||stateSeed===WORLD_SEED)
     ? (Array.isArray(state.tierImages)?state.tierImages.map(String).filter(Boolean):[])
     : [];
   const sourcePixelWidth=Math.max(1,Math.trunc(regionSourceNumber(state.sourcePixelWidth,SURFACE_WORLD_PIXELS)));
@@ -2117,7 +2173,6 @@ async function applyCanonicalWorldBuilderSnapshot(state,options={}){
 
   if(regionMode){
     const revision=Math.trunc(Number(options.revision)||canonicalHydrationRevision);
-    const activeRegionId=String(options.activeRegionId||'').trim();
     const hydration=hydrateCanonicalRegionLayers(sourceLayers,activeRegionId,revision);
     return{loaded:true,sourceLayers,tierImages,hydration};
   }
@@ -3368,7 +3423,7 @@ function openSpriteLibraryFolder(folder){spriteLibraryFolder=folder;spriteLibrar
 function closeSpriteLibraryFolder(){spriteLibraryFolder=null;spriteLibraryPage=0;renderKeyboardKeys();announce('Sprite folders.')}
 function setTool(name){toolMode=name;announce(`${name} tool selected. Prototype tool mode changes controls only; world truth is not altered.`);renderKeyboardKeys()}
 function renderKeyboardTabs(){RistViewerInput.preserveFocus(keyboardTabs,renderKeyboardTabsContent,keyboardToggle)}
-function renderKeyboardTabsContent(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.setAttribute('data-focus-key',mode);b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{if(mode!==keyboardMode)personalFolderType=null;keyboardMode=mode;renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
+function renderKeyboardTabsContent(){const modes=keyboardModes();if(!modes.includes(keyboardMode))keyboardMode=modes[0];keyboardTabs.replaceChildren();modes.forEach(mode=>{const b=document.createElement('button');b.type='button';b.role='tab';b.setAttribute('data-focus-key',mode);b.textContent=mode;b.classList.toggle('active',mode===keyboardMode);b.setAttribute('aria-selected',String(mode===keyboardMode));b.addEventListener('click',()=>{if(mode!==keyboardMode)personalFolderType=null;keyboardMode=mode;userLayers.forEach(refreshUserImage);renderKeyboardTabs();renderKeyboardKeys();announce(`${mode} keyboard opened.`)});keyboardTabs.append(b)})}
 function renderKeyboardKeys(){RistViewerInput.preserveFocus(keyboardKeys,renderKeyboardKeysContent,keyboardToggle)}
 function renderKeyboardKeysContent(){
   if(!keyboardKeys)return;
@@ -3515,7 +3570,7 @@ function renderKeyboardKeysContent(){
         toolKey('OP +','opacity',()=>{selectedImage.opacity=clamp(selectedImage.opacity+.1,.1,1);refreshUserImage(selectedImage)}),
         toolKey(selectedImage.transparent?'TRANS ✓':'TRANS','background',()=>{selectedImage.transparent=!selectedImage.transparent;refreshUserImage(selectedImage);renderKeyboardKeys()}),
         toolKey('MY IMAGES','Personal folder',()=>{deselectUserImage(false);openPersonalFolder('Images')}),
-        toolKey('DELETE','world map',removeSelectedImage)
+        toolKey('DELETE','world map',()=>void deleteSelectedContent())
       );return;
     }
     const pos=selectedPositionSummary(selectedImage);
@@ -3536,17 +3591,19 @@ function renderKeyboardKeysContent(){
       toolKey('LAYER −',`L${pos.layer}`,()=>moveSelectedLayer(-1),selectedImage.tier<=0&&selectedImage.layer<=0),
       toolKey('LAYER +',`L${pos.layer}`,()=>moveSelectedLayer(1),selectedImage.tier>=TIERS.length-1&&selectedImage.layer>=9),
       toolKey('MY IMAGES','Personal folder',()=>{deselectUserImage(false);openPersonalFolder('Images')}),
-      toolKey('DELETE','image',removeSelectedImage)
+      toolKey('DELETE','image',()=>void deleteSelectedContent())
     );return;
   }
   if(keyboardMode==='Select'){
     if(REGION_DEFINER){renderRegionSelectKeyboard();return}
     const items=selectablePlacedContent();
     keyboardKeys.append(
-      toolKey('‹','previous image',()=>cyclePlacedSelection(-1),!items.length),
-      toolKey('›','next image',()=>cyclePlacedSelection(1),!items.length),
+      readoutKey('SELECT','tap existing content on the map'),
+      toolKey('‹','previous asset',()=>cyclePlacedSelection(-1),!items.length),
+      toolKey('›','next asset',()=>cyclePlacedSelection(1),!items.length),
       placedContentSelect(),
-      toolKey('EDIT','selected content',()=>{if(!selectedImage)return;keyboardMode=selectedImage.kind==='label'?'Labels':'Image';renderKeyboardTabs();renderKeyboardKeys();announce(`${selectedImage.kind==='label'?'Label':'Image'} editing controls opened.`)},!selectedImage),
+      toolKey('EDIT','selected content',()=>{if(!selectedImage)return;keyboardMode=selectedImage.kind==='label'?'Labels':'Image';userLayers.forEach(refreshUserImage);renderKeyboardTabs();renderKeyboardKeys();announce(`${selectedImage.kind==='label'?'Label':'Image'} editing controls opened.`)},!selectedImage),
+      toolKey('DELETE','selected content',()=>void deleteSelectedContent(),!selectedImage),
       toolKey('CLEAR','selection',()=>deselectUserImage(true),!selectedImage)
     );return;
   }
