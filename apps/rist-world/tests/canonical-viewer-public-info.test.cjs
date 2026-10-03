@@ -72,8 +72,8 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.match(info,/\.signature-card-layer\{[^}]*transform-origin:50% 50%/);
   assert.match(info,/class="signature-card-foil"/);
   assert.match(info,/\.signature-card-foil\{[^}]*background-color:rgba\(102,111,120,\.08\)[^}]*opacity:\.62/);
-  assert.match(info,/\.signature-card-shine\{[^}]*linear-gradient\(118deg[^}]*linear-gradient\(73deg[^}]*background-repeat:no-repeat[^}]*mix-blend-mode:multiply[^}]*opacity:\.64[^}]*filter:blur\(2\.1px\)/);
-  assert.match(info,/\.signature-card-shine\{[^}]*translate3d\(calc\(var\(--smoke-px\) \* 3\.2px\),calc\(var\(--smoke-py\) \* 3\.2px\),60px\) scale\(\.974\)/);
+  assert.match(info,/\.signature-card-shine\{[^}]*linear-gradient\(136deg[^}]*linear-gradient\(22deg[^}]*linear-gradient\(158deg[^}]*linear-gradient\(172deg[^}]*background-repeat:no-repeat[^}]*mix-blend-mode:multiply[^}]*opacity:\.62[^}]*filter:blur\(2\.35px\)/);
+  assert.match(info,/\.signature-card-shine\{[^}]*background-size:19% 9%,38% 11%,38% 11%,15% 25%,18% 28%,26% 8%,22% 7%,18% 6%,13% 5%[^}]*translate3d\(calc\(var\(--smoke-px\) \* 3\.2px\),calc\(var\(--smoke-py\) \* 3\.2px\),60px\) scale\(\.974\)/);
   assert.match(info,/--smoke-px:0;--smoke-py:0;--smoke-x:50%;--smoke-y:50%/);
   assert.doesNotMatch(info,/\.signature-card-shine\{[^}]*rgba\(255,255,255,\.55\)/);
   assert.match(info,/\.signature-card-foil\{[^}]*translate3d\(calc\(var\(--px\) \* 3px\),calc\(var\(--py\) \* 3px\),54px\) scale\(\.978\)/);
