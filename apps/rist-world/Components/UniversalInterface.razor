@@ -331,6 +331,9 @@
    <nav class="viewer-menu-bar" role="toolbar" aria-label="Viewer editing and navigation">
     <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("back")' aria-label="Back">BACK</button>
     <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("world-home")' aria-label="World Home — show all layers and parallax">WORLD HOME</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("select")' aria-label="Select an existing placed asset">SELECT</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("edit")' aria-label="Edit the selected placed asset" disabled="@(!HasWorldBuilderSelection)">EDIT</button>
+    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("delete")' aria-label="Delete the selected placed asset" disabled="@(!HasWorldBuilderSelection)">DELETE</button>
     <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("undo")' aria-label="Undo">UNDO</button>
     <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("cut")' aria-label="Cut selected item">CUT</button>
     <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("copy")' aria-label="Copy selected item">COPY</button>
