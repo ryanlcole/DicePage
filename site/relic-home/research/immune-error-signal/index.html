@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Immune Error Signal | ReLiC Public Research</title>
+<meta name="description" content="A public, reproducible computational hypothesis screen using cBioPortal cancer data.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://relicgamemaster.com/research/immune-error-signal/">
+<link rel="stylesheet" href="/relic-home.css?v=20260828-polish2">
+<style>
+main{max-width:980px;margin:0 auto;padding:42px 20px 80px}.hero,.card{border:1px solid rgba(224,197,141,.25);border-radius:16px;background:rgba(9,22,28,.88);padding:24px}.hero h1{margin:.1em 0 .25em;font:700 clamp(2.2rem,7vw,4.8rem)/.95 Georgia,"Times New Roman",serif;color:#f0dfbb}.eyebrow{letter-spacing:.15em;text-transform:uppercase;font-size:.75rem;font-weight:800;color:#88bac9}.lede,.card p,.card li{color:#b9c5c7;line-height:1.6}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}.wide{grid-column:1/-1}.card h2{margin-top:0;color:#ead9b5;font-family:Georgia,"Times New Roman",serif}.status{display:inline-block;padding:6px 9px;border:1px solid rgba(136,186,201,.35);border-radius:999px;color:#bcd7dd;font:800 .75rem/1 system-ui}.flow{font-family:ui-monospace,Menlo,Consolas,monospace;color:#e8d6af;overflow-wrap:anywhere}.links{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.links a{display:inline-flex;min-height:44px;align-items:center;padding:9px 14px;border-radius:10px;border:1px solid rgba(224,197,141,.4);color:#f3e5c8;text-decoration:none}.warning{border-left:4px solid #e0c58d;padding-left:14px}.small{font-size:.88rem;color:#91a5a8}@media(max-width:720px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}}
+</style>
+</head>
+<body>
+<header class="site-header"><nav aria-label="Primary navigation"><a href="/">Home</a><a href="/Game/index.html">Shaelvien</a><a href="/relic/">AI</a><a href="/relicquery/">Knowledge</a><a href="/store/">Store</a></nav></header>
+<main>
+<section class="hero">
+<p class="eyebrow">ReLiC public research · computational hypothesis screen</p>
+<h1>Immune Error Signal</h1>
+<p class="lede">Can molecular signals associated with abnormal/stressed-cell visibility and danger context help explain when cytotoxic immune activity appears stronger in tumors? This public experiment tests that narrow association against existing cancer data without touching a patient, cell, or treatment.</p>
+<span class="status">PUBLIC · REPRODUCIBLE · NON-INTERVENTIONAL</span>
+<div class="links">
+<a href="https://github.com/ryanlcole/DicePage/actions/workflows/relic-immune-error-signal.yml">View public runs</a>
+<a href="https://github.com/ryanlcole/DicePage/tree/live-alpha-rist-blazor-world/research/immune-error-signal">Inspect code</a>
+<a href="https://www.cbioportal.org/study/summary?id=skcm_tcga_pan_can_atlas_2018">Source dataset</a>
+</div>
+</section>
+
+<section class="grid">
+<article class="card wide">
+<h2>The hypothesis</h2>
+<p class="flow">anomaly visibility + danger context → stronger cytotoxic immune association?</p>
+<p>The screen uses TCGA PanCancer Atlas melanoma RNA-seq exposed through cBioPortal. It asks whether a predefined expression signature for immune-visible stress/anomaly signals correlates with a predefined cytotoxic-immune signature.</p>
+</article>
+
+<article class="card">
+<h2>Visibility signals</h2>
+<ul><li>MICA, MICB, ULBP1/2/3</li><li>HLA-A/B/C and B2M</li><li>CALR, HMGB1, IFNB1 and CXCL10 as danger-context expression proxies</li></ul>
+</article>
+
+<article class="card">
+<h2>Immune readout</h2>
+<ul><li>CD8A</li><li>NKG7 and GNLY</li><li>GZMB and PRF1</li><li>IFNG</li></ul>
+<p class="small">The analysis also records an immune-evasion signature using CD274, IDO1 and LGALS9.</p>
+</article>
+
+<article class="card wide warning">
+<h2>What a positive result would not mean</h2>
+<p>It would not establish that the proposed signals caused immune recognition, that changing them would treat cancer, or that a cure has been found. Bulk RNA-seq mixes tumor and immune cells. CALR/HMGB1 transcript abundance also does not prove immunogenic-cell-death signaling. A useful association would be a reason for independent researchers to test a more specific hypothesis, not a treatment instruction.</p>
+</article>
+
+<article class="card wide">
+<h2>Open method</h2>
+<p>The public GitHub Actions job queries cBioPortal read-only, calculates standardized expression signatures, reports Spearman correlations with bootstrap confidence intervals, applies false-discovery-rate correction to the planned comparisons, and publishes the exact result bundle as a workflow artifact.</p>
+<p class="small">ReLiC classification: HYPOTHESIS until evidence is produced; observational association if reproduced; never promoted to therapeutic fact without appropriate biological and clinical evidence.</p>
+</article>
+</section>
+</main>
+</body>
+</html>

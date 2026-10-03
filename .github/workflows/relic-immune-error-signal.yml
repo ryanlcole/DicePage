@@ -1,0 +1,52 @@
+name: ReLiC Immune Error Signal Screen
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'research/immune-error-signal/**'
+      - '.github/workflows/relic-immune-error-signal.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-computational-screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install analysis dependencies
+        run: python -m pip install --disable-pip-version-check pandas numpy scipy requests
+
+      - name: Run public cBioPortal screen
+        run: python research/immune-error-signal/run_analysis.py --out research/immune-error-signal/out
+
+      - name: Publish result summary to this public workflow run
+        if: always()
+        shell: bash
+        run: |
+          if [ -f research/immune-error-signal/out/results.md ]; then
+            cat research/immune-error-signal/out/results.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## ReLiC Immune Error Signal Screen" >> "$GITHUB_STEP_SUMMARY"
+            echo "The computational screen did not produce results.md. Inspect the job log." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload reproducible result bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relic-immune-error-signal-results
+          path: research/immune-error-signal/out/
+          if-no-files-found: warn
+          retention-days: 90

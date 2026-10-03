@@ -313,7 +313,7 @@ jobs:
           set -euo pipefail
           DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
           URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
-          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/relic/*' '/relicquery/*' '/store/*' '/kickstarter/*' '/Game/*' '/perceiver/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/relic/*' '/relicquery/*' '/research/*' '/store/*' '/kickstarter/*' '/Game/*' '/perceiver/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
@@ -334,6 +334,10 @@ jobs:
           grep -q 'One mind.' /tmp/relic-ai.html
           grep -q 'id="mind-form"' /tmp/relic-ai.html
           grep -q 'https://relicgamemaster.com/mcp' /tmp/relic-ai.html
+          grep -q '/research/immune-error-signal/' /tmp/relic-ai.html
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-research.html "${URL}research/immune-error-signal/"
+          grep -q 'Immune Error Signal' /tmp/relic-research.html
+          grep -q 'computational hypothesis screen' /tmp/relic-research.html
           grep -q 'AI suggestions never self-promote' /tmp/relic-ai.html
           grep -q 'PROPOSAL → COHERENCE → SAFETY TEST → HUMAN REVIEW → EXPLICIT PROMOTION' /tmp/relic-ai.html
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-ai-policy.json "${URL}Game/ai-policy.json"
