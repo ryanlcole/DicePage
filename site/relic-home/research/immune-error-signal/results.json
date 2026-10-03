@@ -1,0 +1,84 @@
+{
+  "analysis": "ReLiC Immune Error Signal Screen",
+  "publicRunId": 37091290273,
+  "publicRunUrl": "https://github.com/ryanlcole/DicePage/actions/runs/37091290273",
+  "artifactId": 11262620396,
+  "studyId": "skcm_tcga_pan_can_atlas_2018",
+  "expressionProfile": "skcm_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
+  "sampleCount": 443,
+  "classification": "association-supported-in-this-cohort",
+  "primary": {
+    "test": "visibility_plus_danger_vs_cytotoxic",
+    "spearmanRho": 0.683,
+    "bootstrap95CI": [
+      0.623,
+      0.732
+    ],
+    "pValue": 4.29e-62,
+    "fdrQ": 8.57e-62
+  },
+  "plannedCorrelations": [
+    {
+      "test": "anomaly_visibility_vs_cytotoxic",
+      "spearmanRho": 0.638,
+      "bootstrap95CI": [
+        0.575,
+        0.693
+      ],
+      "pValue": 4.89e-52,
+      "fdrQ": 6.52e-52,
+      "n": 443
+    },
+    {
+      "test": "danger_context_proxy_vs_cytotoxic",
+      "spearmanRho": 0.532,
+      "bootstrap95CI": [
+        0.452,
+        0.597
+      ],
+      "pValue": 1.12e-33,
+      "fdrQ": 1.12e-33,
+      "n": 443
+    },
+    {
+      "test": "visibility_plus_danger_vs_cytotoxic",
+      "spearmanRho": 0.683,
+      "bootstrap95CI": [
+        0.623,
+        0.732
+      ],
+      "pValue": 4.29e-62,
+      "fdrQ": 8.57e-62,
+      "n": 443
+    },
+    {
+      "test": "immune_evasion_vs_cytotoxic",
+      "spearmanRho": 0.891,
+      "bootstrap95CI": [
+        0.867,
+        0.909
+      ],
+      "pValue": 2.07e-153,
+      "fdrQ": 8.3e-153,
+      "n": 443
+    }
+  ],
+  "quartileComparison": {
+    "highN": 111,
+    "lowN": 111,
+    "highMedianCytotoxicScore": 0.89,
+    "lowMedianCytotoxicScore": -0.957,
+    "mannWhitneyP": 6.96e-32
+  },
+  "interpretation": [
+    "Exploratory observational association only.",
+    "The stronger immune-evasion correlation makes immune infiltration/shared inflammatory signaling a serious alternative explanation.",
+    "Bulk RNA-seq mixes tumor and immune-cell expression.",
+    "CALR/HMGB1 transcript abundance does not demonstrate extracellular release or immunogenic cell death.",
+    "No treatment efficacy or cure claim is supported."
+  ],
+  "sources": {
+    "cBioPortalStudy": "https://www.cbioportal.org/study/summary?id=skcm_tcga_pan_can_atlas_2018",
+    "cBioPortalApi": "https://www.cbioportal.org/api"
+  }
+}
