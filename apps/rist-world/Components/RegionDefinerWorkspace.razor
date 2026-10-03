@@ -88,7 +88,7 @@
    var access=(Session.HasTrustedWorldBuilderAuthority||Session.CanEditRegion(activeRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
    var regionFlow=activeRegion is null?"new":"existing";
    var regionId=Uri.EscapeDataString(activeRegion?.RegionId??"");
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20261001-zone-fill-endemar-2";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20261003-zone-identity-select-1";
   }
  }
 
