@@ -68,12 +68,14 @@ test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   assert.match(info,/class="signature-card-shine"/);
   assert.match(info,/class="signature-card-refractor"/);
   assert.match(info,/class="signature-card-chrome"/);
-  assert.match(info,/\.signature-card-layer\.frame\{[^}]*translateZ\(0\) scale\(1\)[^}]*filter:brightness\(\.58\) saturate\(\.42\) contrast\(1\.22\)/);
+  assert.match(info,/\.signature-card-layer\.frame\{[^}]*translateZ\(0\) scale\(1\)[^}]*filter:brightness\(\.42\) saturate\(\.28\) contrast\(1\.26\)/);
+  assert.match(info,/\.portrait-stage\{[^}]*#161d22[^}]*#070a0d[^}]*#010203/);
+  assert.match(info,/\.signature-card\{[^}]*background:#010203/);
   assert.match(info,/\.signature-card-layer\{[^}]*transform-origin:50% 50%/);
   assert.match(info,/class="signature-card-foil"/);
-  assert.match(info,/\.signature-card-foil\{[^}]*background-color:rgba\(102,111,120,\.08\)[^}]*opacity:\.62/);
-  assert.match(info,/\.signature-card-shine\{[^}]*linear-gradient\(136deg[^}]*linear-gradient\(22deg[^}]*linear-gradient\(158deg[^}]*linear-gradient\(172deg[^}]*background-repeat:no-repeat[^}]*mix-blend-mode:multiply[^}]*opacity:\.62[^}]*filter:blur\(2\.35px\)/);
-  assert.match(info,/\.signature-card-shine\{[^}]*background-size:19% 9%,38% 11%,38% 11%,15% 25%,18% 28%,26% 8%,22% 7%,18% 6%,13% 5%[^}]*translate3d\(calc\(var\(--smoke-px\) \* 3\.2px\),calc\(var\(--smoke-py\) \* 3\.2px\),60px\) scale\(\.974\)/);
+  assert.match(info,/\.signature-card-foil\{[^}]*background-color:rgba\(70,78,86,\.10\)[^}]*opacity:\.68/);
+  assert.match(info,/\.signature-card-shine\{[^}]*linear-gradient\(136deg[^}]*linear-gradient\(22deg[^}]*linear-gradient\(158deg[^}]*linear-gradient\(172deg[^}]*background-repeat:no-repeat[^}]*mix-blend-mode:multiply[^}]*opacity:\.78[^}]*filter:blur\(2\.8px\)/);
+  assert.match(info,/\.signature-card-shine\{[^}]*background-size:23% 12%,44% 15%,44% 15%,19% 31%,22% 34%,31% 11%,27% 10%,23% 9%,17% 8%[^}]*translate3d\(calc\(var\(--smoke-px\) \* 3\.2px\),calc\(var\(--smoke-py\) \* 3\.2px\),60px\) scale\(\.974\)/);
   assert.match(info,/--smoke-px:0;--smoke-py:0;--smoke-x:50%;--smoke-y:50%/);
   assert.doesNotMatch(info,/\.signature-card-shine\{[^}]*rgba\(255,255,255,\.55\)/);
   assert.match(info,/\.signature-card-foil\{[^}]*translate3d\(calc\(var\(--px\) \* 3px\),calc\(var\(--py\) \* 3px\),54px\) scale\(\.978\)/);
