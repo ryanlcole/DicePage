@@ -9,7 +9,7 @@ def test_spatial_title_handoff_is_loaded_after_canonical_viewer():
     prototype_pos = index.index("prototype.js?v=20261004-continuous-space-2")
     session_pos = index.index("spatial-selection-session.js?v=20261004-frozen-selection-3")
     handoff_pos = index.index("spatial-title-handoff.js?v=20261004-spatial-title-1")
-    depth_pos = index.index("spatial-depth-authority.js?v=20261004-parent-depth-2")
+    depth_pos = index.index("spatial-depth-authority.js?v=20261004-parent-depth-3")
     lock_pos = index.index("spatial-selector-lock.js?v=20261004-map-selector-lock-1")
     assert session_pos > prototype_pos
     assert handoff_pos > session_pos
@@ -95,6 +95,8 @@ def test_embedded_depth_is_a_read_only_mirror_of_parent_depth():
     assert "post('spatial-depth-change'" not in depth
     assert "const next=mirrorDepth(raw);" in external
     assert "return baseApi?.setExternalDepth?.(payload);" in external
+    assert "spatial-depth-authority-sync" in depth
+    assert "applyAuthoritySync" in depth
     assert "visibleTierIndices:[depth.tier]" in depth
     assert "visibleLayerOffsets:[depth.layer]" in depth
 
@@ -111,7 +113,8 @@ def test_deed_depth_box_and_allocation_share_authoritative_blazor_state():
     assert "AdjustSpatialDepthSemanticAsync" in partial
     assert "AdvanceSpatialDepthSemanticAsync" in partial
     assert "BeginWorldBuilderSpatialDepthControlAsync" in partial
-    assert "await SyncWorldBuilderDepthAsync();" in partial
+    begin = partial[partial.index("public async Task<bool> BeginWorldBuilderSpatialDepthControlAsync()") : partial.index("public async Task EndWorldBuilderSpatialDepthControlAsync()")]
+    assert begin.index("await InvokeAsync(StateHasChanged);") < begin.index("await SyncWorldBuilderDepthAsync();")
     assert "_ = tier;" in partial
     assert "_ = layer;" in partial
     assert "await AdjustSpatialDepthSemanticAsync(direction);" in semantics
@@ -120,6 +123,7 @@ def test_deed_depth_box_and_allocation_share_authoritative_blazor_state():
     assert '"EndWorldBuilderSpatialDepthControlAsync"' in bridge
     assert '"GetWorldBuilderDepthAuthorityAsync"' in bridge
     assert '"ReceiveWorldBuilderSpatialDepthAsync"' in bridge
+    assert 'type:"spatial-depth-authority-sync"' in bridge
 
 
 def test_gm_spatial_flow_saves_directly_without_self_approval_request():
