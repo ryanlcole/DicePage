@@ -41,6 +41,16 @@
            title="Shaelvien World Builder viewer"
            loading="eager"
            allow="fullscreen"></iframe>
+   @if(_regionDefinerOpen)
+   {
+    <RegionDefinerWorkspace @ref="_regionDefinerWorkspace"
+                            EmbeddedController="true"
+                            NewRegionFlow="@_regionDefinerNewFlow"
+                            SeedOverride="@RegionDefinerSeed"
+                            OnControllerState="HandleRegionDefinerControllerStateAsync"
+                            OnStartMenu="CloseRegionDefinerAsync"
+                            OnHome="CloseRegionDefinerAsync" />
+   }
   </div>
 
   @if(_stage==Stage.MmoMap)
@@ -576,6 +586,10 @@
  int _builderChainIndex;
  int _requestedBuilderChainIndex;
  int _spatialSelectIndex;
+ RegionDefinerWorkspace? _regionDefinerWorkspace;
+ RegionDefinerControllerState? _regionDefinerState;
+ bool _regionDefinerOpen;
+ bool _regionDefinerNewFlow;
  bool _spatialDefinitionActive;
  string _pendingSpatialName="";
  string _pendingSpatialInspectionReason="";
@@ -922,18 +936,21 @@
  string CurrentBuilderScope=>BuilderChain[Math.Clamp(_builderChainIndex,0,BuilderChain.Length-1)];
  string CurrentBuilderSuite=>BuilderSuiteNames[Math.Clamp(_builderChainIndex,0,BuilderSuiteNames.Length-1)];
 
+ IReadOnlyList<WorldRegion> CurrentRegionOptions=>Session.Regions.OrderBy(region=>region.Name,StringComparer.OrdinalIgnoreCase).ToList();
  IReadOnlyList<WorldSpatialNode> CurrentSpatialOptions=>CurrentBuilderScope switch
  {
-  "REGION"=>Session.SpatialRegions,
   "LOCAL"=>Session.LocalsForActiveSpatialRegion,
   "INSTANCE"=>Session.InstancesForActiveLocal,
   _=>Array.Empty<WorldSpatialNode>()
  };
- int SpatialOptionCount=>CurrentSpatialOptions.Count+1;
+ int SpatialOptionCount=>CurrentBuilderScope=="REGION"?CurrentRegionOptions.Count+1:CurrentSpatialOptions.Count+1;
  int SpatialOptionIndex=>Math.Clamp(_spatialSelectIndex,0,Math.Max(0,SpatialOptionCount-1));
- bool SpatialOptionIsNew=>SpatialOptionIndex>=CurrentSpatialOptions.Count;
- WorldSpatialNode? CurrentSpatialOption=>SpatialOptionIsNew?null:CurrentSpatialOptions[SpatialOptionIndex];
- string CurrentSpatialSelectionLabel=>CurrentSpatialOption?.Name?.Trim().ToUpperInvariant()??$"NEW {CurrentBuilderScope}";
+ bool SpatialOptionIsNew=>CurrentBuilderScope=="REGION"?SpatialOptionIndex>=CurrentRegionOptions.Count:SpatialOptionIndex>=CurrentSpatialOptions.Count;
+ WorldRegion? CurrentRegionOption=>CurrentBuilderScope=="REGION"&&!SpatialOptionIsNew?CurrentRegionOptions[SpatialOptionIndex]:null;
+ WorldSpatialNode? CurrentSpatialOption=>CurrentBuilderScope=="REGION"||SpatialOptionIsNew?null:CurrentSpatialOptions[SpatialOptionIndex];
+ string CurrentSpatialSelectionLabel=>CurrentBuilderScope=="REGION"
+  ?CurrentRegionOption?.Name?.Trim().ToUpperInvariant()??"NEW REGION"
+  :CurrentSpatialOption?.Name?.Trim().ToUpperInvariant()??$"NEW {CurrentBuilderScope}";
  string CurrentSpatialNodeId=>CurrentBuilderScope switch
  {
   "REGION"=>Session.ActiveSpatialRegion?.NodeId??"",
@@ -995,6 +1012,17 @@
    return string.IsNullOrWhiteSpace(text)?"NO CONTEXT SAVED":Shorten(text,92);
   }
  }
+ string RegionDefinerSeed
+ {
+  get
+  {
+   if(!Session.IsGeonaphWorld)return "empty";
+   if(string.Equals(_selectedDeedKind,"SHAELVIEN_ORIGIN",StringComparison.OrdinalIgnoreCase))return "endemar";
+   if(string.Equals(_selectedDeedName,WorldSession.GeonaphZoneDisplayName,StringComparison.OrdinalIgnoreCase))return "geonaph";
+   return "empty";
+  }
+ }
+
  string WorldBuilderViewerSrc
  {
   get
@@ -1061,7 +1089,7 @@
   Stage.ContextSelect=>1,
   Stage.GameMasterHub=>WorldChoices.Length,
   Stage.GameMasterScope=>Scopes.Length,
-  Stage.SpatialSelect=>_spatialDefinitionActive?1:SpatialOptionCount,
+  Stage.SpatialSelect=>_regionDefinerOpen?1:SpatialOptionCount,
   Stage.SoftwareHub=>SoftwareCapabilities.Length,
   Stage.ControlSettings=>SemanticSettingFields.Length,
   Stage.WorldHome=>1,
@@ -1105,13 +1133,13 @@
    &&(_stage!=Stage.BrowsePlace||_browseCursorActive);
  string AnalogModeLabel=>_stage==Stage.Environment&&_universalStartRevealed
   ?"LEGACY"
-  :_spatialDefinitionActive
-   ?"HEX"
+  :_stage==Stage.SpatialSelect&&_regionDefinerOpen
+   ?(_regionDefinerState?.GridShape?.ToUpperInvariant()??"HEX")
   :_stage==Stage.MmoMap
    ?MmoAnalogMode
    :CursorMode?"CURSOR":"BUTTONS";
- string AnalogModeAriaLabel=>_spatialDefinitionActive
-  ?"Move the focused region hex. Press Select to toggle the focused hex."
+ string AnalogModeAriaLabel=>_stage==Stage.SpatialSelect&&_regionDefinerOpen
+  ?"Pan the original Region Definer. Press Select to toggle the cell at viewer center. Touch this button to change grid shape."
   :_stage==Stage.Environment&&_universalStartRevealed
    ?"Open Legacy GM archive import"
   :_stage==Stage.MmoMap
@@ -1173,7 +1201,7 @@
   Stage.PathSelect=>IsShaelvienDeedHome?"BUILD":"GAMEMASTER PATH",
   Stage.ContextSelect=>"NAVIGATION",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
-  Stage.SpatialSelect=>_spatialDefinitionActive?"REGION SELECTOR":$"SELECT {CurrentBuilderScope}",
+  Stage.SpatialSelect=>_regionDefinerOpen?"REGION SELECTOR":$"SELECT {CurrentBuilderScope}",
   Stage.ControlSettings=>SemanticSettingField,
   Stage.WorldHome=>"WORLD HOME",
   Stage.WorldBuilderTier or Stage.WorldBuilderLayer=>"DEPTH",
@@ -1200,8 +1228,8 @@
   Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
   Stage.ContextSelect=>"BACK",
   Stage.GameMasterScope=>CurrentScope,
-  Stage.SpatialSelect=>_spatialDefinitionActive
-   ?(_spatialSelectionCount>0?$"SAVE REGION · {_spatialSelectionCount}":"SELECT HEXES")
+  Stage.SpatialSelect=>_regionDefinerOpen
+   ?((_regionDefinerState?.SelectedCount??0)>0?$"SAVE REGION · {_regionDefinerState!.SelectedCount}":"SELECT REGION")
    :CurrentSpatialSelectionLabel,
   Stage.WorldHome=>"CHOOSE TIER",
   Stage.ControlSettings=>"BACK",
@@ -1358,8 +1386,8 @@
   Stage.PathSelect=>IsShaelvienDeedHome?"WORLD BUILDER":CurrentGameMasterPath,
   Stage.ContextSelect=>"BACK",
   Stage.GameMasterHub=>CurrentWorld,
-  Stage.SpatialSelect=>_spatialDefinitionActive
-   ?(_spatialSelectionCount>0?$"SAVE REGION · {_spatialSelectionCount}":"SELECT HEXES")
+  Stage.SpatialSelect=>_regionDefinerOpen
+   ?((_regionDefinerState?.SelectedCount??0)>0?$"SAVE REGION · {_regionDefinerState!.SelectedCount}":"SELECT REGION")
    :CurrentSpatialSelectionLabel,
   Stage.WorldHome=>"CHOOSE TIER",
   Stage.SoftwareHub=>CurrentSoftware,
@@ -1404,9 +1432,9 @@
   Stage.PathSelect=>IsShaelvienDeedHome?"TOUCH · BUILD":"SLIDE ↑↓ · TOUCH PATH",
   Stage.ContextSelect=>"TOUCH · BACK",
   Stage.GameMasterHub=>"TOUCH · SELECT WORLD",
-  Stage.SpatialSelect=>_spatialDefinitionActive
-   ?(_spatialSelectionCount>0?"TOUCH · SAVE REGION":"TOUCH MAP · SELECT")
-   :SpatialOptionIsNew?$"TOUCH · CREATE {CurrentBuilderScope}":"TOUCH · SELECT",
+  Stage.SpatialSelect=>_regionDefinerOpen
+   ?((_regionDefinerState?.SelectedCount??0)>0?"TOUCH · NAME + SAVE":"TOUCH MAP · SELECT")
+   :SpatialOptionIsNew?"TOUCH · OPEN REGION DEFINER":"TOUCH · OPEN",
   Stage.SoftwareHub=>"TOUCH · SELECT TOOL",
   Stage.ControlSettings=>"SLIDE ↑↓ · TOUCH BACK",
   Stage.WorldHome=>"TOUCH · TIERS",
@@ -1454,9 +1482,9 @@
   Stage.ContextSelect=>$"CONTEXT · {_selectedDeedName.ToUpperInvariant()}",
   Stage.GameMasterHub=>"GAMEMASTER · WORLD SELECTOR",
   Stage.GameMasterScope=>"GAMEMASTER SUITE",
-  Stage.SpatialSelect=>_spatialDefinitionActive
-   ?$"REGION · HEX SELECTOR · {_spatialSelectionCount} SELECTED"
-   :$"{CurrentBuilderScope} · SELECT BEFORE EDIT",
+  Stage.SpatialSelect=>_regionDefinerOpen
+   ?$"REGION · ORIGINAL DEFINER · {_regionDefinerState?.SelectedCount??0} SELECTED"
+   :$"{CurrentBuilderScope} · SELECT",
   Stage.SoftwareHub=>"SOFTWARE CAPABILITY ADAPTERS",
   Stage.ControlSettings=>$"CONTROLS · {SemanticSettingField}",
   Stage.WorldHome=>$"{CurrentBuilderSuite} · WORLD HOME",
@@ -1576,9 +1604,9 @@
   direction=Math.Sign(direction);
   if(direction==0)return;
   _yControl=Math.Clamp(direction*100,-100,100);
-  if(_stage==Stage.SpatialSelect&&_spatialDefinitionActive)
+  if(_stage==Stage.SpatialSelect&&_regionDefinerOpen)
   {
-   _=MoveSpatialSelectionCursorAsync(0,-direction);
+   _=StepRegionDefinerAsync("y",-direction);
    return;
   }
   if(CursorMode)
@@ -1606,9 +1634,9 @@
   direction=Math.Sign(direction);
   if(direction==0)return;
   _xControl=Math.Clamp(direction*100,-100,100);
-  if(_stage==Stage.SpatialSelect&&_spatialDefinitionActive)
+  if(_stage==Stage.SpatialSelect&&_regionDefinerOpen)
   {
-   _=MoveSpatialSelectionCursorAsync(direction,0);
+   _=StepRegionDefinerAsync("x",direction);
    return;
   }
   if(CursorMode)
@@ -2502,301 +2530,107 @@
  {
   var requested=Math.Clamp(index,0,BuilderChain.Length-1);
   if(!preserveRequestedDepth)_requestedBuilderChainIndex=requested;
-
-  // VIEW DEPTH != EDIT DEPTH. The requested editor stays locked until every
-  // parent object has been explicitly selected.
   var current=requested;
-  if(requested>=2&&Session.ActiveSpatialRegion is null)current=1;
-  else if(requested>=3&&Session.ActiveLocal is null)current=2;
-
-  _builderChainIndex=current;
-  _assetScope=CurrentBuilderScope;
-  _tier=0;
-  _layer=0;
-  _assetKind="IMAGE";
-  _assetKindIndex=0;
-  _artMethodIndex=0;
-  _artPhaseIndex=0;
-  _artToolIndex=0;
-  _assetSourceIndex=0;
-  _assetSource="GAME IMAGES";
-  _selectedAssetKey="";
-  _assetLoadError="";
-  _gameAssets.Clear();
-  _myAssets.Clear();
-
+  if(requested>=2&&Session.ActiveRegion is null)current=1;
+  _builderChainIndex=current;_assetScope=CurrentBuilderScope;_tier=0;_layer=0;
+  _assetKind="IMAGE";_assetKindIndex=0;_artMethodIndex=0;_artPhaseIndex=0;_artToolIndex=0;
+  _assetSourceIndex=0;_assetSource="GAME IMAGES";_selectedAssetKey="";_assetLoadError="";
+  _gameAssets.Clear();_myAssets.Clear();
   if(CurrentBuilderScope=="WORLD")
   {
-   _stage=Stage.WorldHome;
-   _message="World Home. All authored layers are shown together in parallax; choose Tier when you are ready to edit depth.";
-   _=ShowAllWorldLayersAsync();
-   return;
+   _stage=Stage.WorldHome;_message="World Home. All authored layers are shown together in parallax; choose Tier when ready.";_=ShowAllWorldLayersAsync();return;
   }
-
-  _stage=Stage.SpatialSelect;
-  SelectActiveSpatialOption();
-  _message=CurrentBuilderScope switch
+  if(CurrentBuilderScope=="REGION")
   {
-   "REGION"=>"Select a Region before editing its Tier or Layer.",
-   "LOCAL"=>"Select a Local inside the active Region before editing its Tier or Layer.",
-   "INSTANCE"=>"Select an Instance inside the active Local before editing its Tier or Layer.",
-   _=>$"Select {CurrentBuilderScope} before editing."
-  };
+   _stage=Stage.SpatialSelect;SelectActiveSpatialOption();
+   _message="Choose an existing Region or New Region. The established Region Definer remains the recursive viewer authority.";return;
+  }
+  if(!_regionDefinerOpen&&Session.ActiveRegion is not null)
+  {
+   _regionDefinerNewFlow=false;_regionDefinerState=null;_regionDefinerOpen=true;_=InvokeAsync(StateHasChanged);
+  }
+  _stage=Stage.WorldBuilderTier;
+  _message=$"{CurrentBuilderScope} continues inside {Session.ActiveRegion?.Name??"the active Region"} in the same recursive viewer. Choose Tier, then Layer.";
+  _=SyncWorldBuilderDepthAsync();
  }
 
  void SelectActiveSpatialOption()
  {
-  var activeId=CurrentBuilderScope switch
+  if(CurrentBuilderScope=="REGION")
   {
-   "REGION"=>Session.ActiveSpatialRegion?.NodeId??"",
-   "LOCAL"=>Session.ActiveLocal?.NodeId??"",
-   "INSTANCE"=>Session.ActiveInstance?.NodeId??"",
-   _=>""
-  };
-  if(string.IsNullOrWhiteSpace(activeId))
-  {
-   _spatialSelectIndex=Math.Max(0,CurrentSpatialOptions.Count);
-   return;
+   var activeId=Session.ActiveRegion?.RegionId??"";
+   if(string.IsNullOrWhiteSpace(activeId)){_spatialSelectIndex=CurrentRegionOptions.Count;return;}
+   var index=CurrentRegionOptions.ToList().FindIndex(region=>string.Equals(region.RegionId,activeId,StringComparison.Ordinal));
+   _spatialSelectIndex=index>=0?index:CurrentRegionOptions.Count;return;
   }
-  var index=CurrentSpatialOptions.ToList().FindIndex(node=>string.Equals(node.NodeId,activeId,StringComparison.Ordinal));
-  _spatialSelectIndex=index>=0?index:Math.Max(0,CurrentSpatialOptions.Count);
+  _spatialSelectIndex=Math.Max(0,CurrentSpatialOptions.Count);
  }
 
  async Task ActivateSpatialSelectionAsync()
  {
-  if(CurrentBuilderScope is not ("REGION" or "LOCAL" or "INSTANCE"))
+  if(CurrentBuilderScope!="REGION"){_stage=Stage.WorldBuilderTier;await SyncWorldBuilderDepthAsync();return;}
+  if(_regionDefinerOpen){await ActivateRegionDefinerPrimaryAsync();return;}
+  if(SpatialOptionIsNew)
   {
-   _stage=Stage.WorldBuilderTier;
-   await SyncWorldBuilderDepthAsync();
-   return;
+   var inspectionReason=_inspectionEditMode?RequireInspectionReason():"";
+   if(_inspectionEditMode&&string.IsNullOrWhiteSpace(inspectionReason)){_message="Enter a reason for this inspection edit before creating a new Region.";return;}
+   Session.SetActiveRegion("");
+   _regionDefinerNewFlow=true;_regionDefinerState=null;_regionDefinerOpen=true;_pendingSpatialInspectionReason=inspectionReason;
+   _message="Opening the established Region Definer on the same canonical map.";await InvokeAsync(StateHasChanged);return;
   }
-
-  if(CurrentBuilderScope=="LOCAL"&&Session.ActiveSpatialRegion is null)
-  {
-   BeginBuilderScope(1);
-   _message="Select a Region first. Local editing remains locked until then.";
-   return;
-  }
-  if(CurrentBuilderScope=="INSTANCE"&&Session.ActiveLocal is null)
-  {
-   BeginBuilderScope(2);
-   _message="Select a Local first. Instance editing remains locked until then.";
-   return;
-  }
-
-  try
-  {
-   WorldSpatialNode? node=null;
-   if(CurrentBuilderScope=="REGION"&&_spatialDefinitionActive)
-   {
-    node=await CommitPendingSpatialRegionAsync();
-    if(node is null)return;
-    BeginBuilderScope(2);
-    await SyncWorldBuilderDepthAsync();
-    _message=$"{node.Name} saved. Local view opened. Select or create a Local inside this Region.";
-    await InvokeAsync(StateHasChanged);
-    return;
-   }
-   else
-   {
-    node=CurrentSpatialOption;
-    if(SpatialOptionIsNew)
-    {
-     var inspectionReason=_inspectionEditMode?RequireInspectionReason():"";
-     if(_inspectionEditMode&&string.IsNullOrWhiteSpace(inspectionReason))
-     {
-      _message="Enter a reason for this inspection edit before creating a new spatial object.";
-      return;
-     }
-
-     if(CurrentBuilderScope=="REGION")
-     {
-      await BeginSpatialRegionDefinitionAsync(inspectionReason);
-      return;
-     }
-
-     var suggested=CurrentBuilderScope switch
-     {
-      "LOCAL"=>"New Local",
-      "INSTANCE"=>"New Instance",
-      _=>"New"
-     };
-     var name=await JS.InvokeAsync<string?>("prompt",$"Name this {CurrentBuilderScope.ToLowerInvariant()}",suggested);
-     name=(name??"").Trim();
-     if(name.Length==0)
-     {
-      _message=$"{CurrentBuilderScope} creation cancelled.";
-      return;
-     }
-
-     node=await Session.CreateSpatialNodeAsync(
-      CurrentBuilderScope,
-      name,
-      _inspectionEditMode,
-      inspectionReason);
-     if(_inspectionEditMode)
-     {
-      await RecordInspectionAuditAsync($"CREATE {CurrentBuilderScope}",inspectionReason);
-      ConsumeInspectionReason();
-     }
-    }
-    else if(node is not null)
-    {
-     switch(CurrentBuilderScope)
-     {
-      case "REGION":Session.SetActiveSpatialRegion(node.NodeId);break;
-      case "LOCAL":Session.SetActiveLocal(node.NodeId);break;
-      case "INSTANCE":Session.SetActiveInstance(node.NodeId);break;
-     }
-    }
-   }
-
-   if(node is null)return;
-   _spatialSelectIndex=CurrentSpatialOptions.ToList().FindIndex(item=>string.Equals(item.NodeId,node.NodeId,StringComparison.Ordinal));
-   if(_spatialSelectIndex<0)_spatialSelectIndex=0;
-
-   if(_requestedBuilderChainIndex>_builderChainIndex)
-   {
-    var completedScope=CurrentBuilderScope;
-    var completedName=node.Name;
-    BeginBuilderScope(_builderChainIndex+1,true);
-    _message=$"{completedScope} selected: {completedName}. Now select {CurrentBuilderScope}. Editing remains locked until the requested {_requestedBuilderChainIndex switch { 2=>"Local", 3=>"Instance", _=>CurrentBuilderScope }} object is selected.";
-    return;
-   }
-
-   _stage=Stage.WorldBuilderTier;
-   await SyncWorldBuilderDepthAsync();
-   _message=$"{CurrentBuilderScope} selected: {node.Name}. Editing is unlocked. Choose Tier, then Layer.";
-  }
-  catch(Exception ex)
-  {
-   Console.Error.WriteLine($"Spatial selection failed: {ex}");
-   _message=ex.Message;
-  }
+  var region=CurrentRegionOption;if(region is null)return;
+  Session.SetActiveRegion(region.RegionId);
+  _regionDefinerNewFlow=false;_regionDefinerState=null;_regionDefinerOpen=true;_stage=Stage.WorldBuilderTier;
+  _message=$"{region.Name} opened in the established recursive Region viewer. Choose Tier, then Layer.";await InvokeAsync(StateHasChanged);
  }
 
- async Task BeginSpatialRegionDefinitionAsync(string inspectionReason)
+ async Task ActivateRegionDefinerPrimaryAsync()
  {
-  if(_worldBuilderSourceModule is null)
+  if(_regionDefinerWorkspace is null)return;
+  var state=_regionDefinerState??await _regionDefinerWorkspace.GetControllerStateAsync();if(state is null)return;
+  if(string.Equals(state.Phase,"select",StringComparison.OrdinalIgnoreCase))
   {
-   _message="The map selector is still loading. Touch New Region again when the map is ready.";
+   if(state.SelectedCount<=0){_message="Select at least one Region cell on the map first.";return;}
+   var name=await JS.InvokeAsync<string?>("prompt","Name this region","New Region");name=(name??"").Trim();
+   if(name.Length==0){_message="Region save cancelled. The Region Definer selection is unchanged.";return;}
+   _message=$"Saving {name} through the established Region Definer…";await _regionDefinerWorkspace.PrimaryAsync(name);return;
+  }
+  await _regionDefinerWorkspace.PrimaryAsync();
+ }
+ async Task StepRegionDefinerAsync(string axis,int direction){if(_regionDefinerWorkspace is not null)await _regionDefinerWorkspace.StepAsync(axis,direction);}
+ async Task SelectRegionDefinerAsync(){if(_regionDefinerWorkspace is not null)await _regionDefinerWorkspace.SelectAsync();}
+ async Task ToggleRegionDefinerGridAsync(){if(_regionDefinerWorkspace is not null)await _regionDefinerWorkspace.ToggleGridAsync();}
+ async Task HandleRegionDefinerControllerStateAsync(RegionDefinerControllerState state)
+ {
+  _regionDefinerState=state;
+  if(state.ExitRequested){await CloseRegionDefinerAsync();return;}
+  if(_regionDefinerNewFlow&&string.Equals(state.Phase,"saved",StringComparison.OrdinalIgnoreCase)&&Session.ActiveRegion is { } savedRegion&&_stage==Stage.SpatialSelect)
+  {
+   if(_inspectionEditMode&&!string.IsNullOrWhiteSpace(_pendingSpatialInspectionReason))
+   {
+    await RecordInspectionAuditAsync("CREATE REGION",_pendingSpatialInspectionReason);ConsumeInspectionReason();_pendingSpatialInspectionReason="";
+   }
+   _builderChainIndex=2;_requestedBuilderChainIndex=2;_assetScope="LOCAL";_tier=0;_layer=0;_stage=Stage.WorldBuilderTier;
+   _message=$"{savedRegion.Name} saved by the original Region Definer. Continuing into Local inside the same recursive viewer.";
+   await InvokeAsync(StateHasChanged);
+   if(_regionDefinerWorkspace is not null)await _regionDefinerWorkspace.SetDepthAsync(_tier,_layer,"LOCAL",savedRegion.RegionId,$"{savedRegion.RegionId}/local");
    return;
   }
-
-  var started=await _worldBuilderSourceModule.InvokeAsync<bool>(
-   "beginSpatialSelection",
-   _worldBuilderFrame,
-   new { kind="REGION",gridShape="hex",columns=30,rows=30 });
-  if(!started)
-  {
-   _message="The map selector is still loading. Touch New Region again when the map is ready.";
-   return;
-  }
-
-  _pendingSpatialName="";
-  _pendingSpatialInspectionReason=inspectionReason;
-  _spatialDefinitionActive=true;
-  _spatialSelectionCount=0;
-  _spatialSelectionGridShape="hex";
-  _message="Region selector active. Zoom or pan to the area, select the hexes, then touch Save Region to name and save it.";
+  if((_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer)&&_regionDefinerWorkspace is not null)
+   await _regionDefinerWorkspace.SetDepthAsync(_tier,_layer,CurrentBuilderScope,CurrentSpatialNodeId,CurrentSpatialPath);
   await InvokeAsync(StateHasChanged);
  }
-
- async Task<WorldSpatialNode?> CommitPendingSpatialRegionAsync()
+ async Task CloseRegionDefinerAsync()
  {
-  if(!_spatialDefinitionActive||_worldBuilderSourceModule is null)return null;
-
-  var selection=await _worldBuilderSourceModule.InvokeAsync<SpatialSelectionSnapshot?>(
-   "getSpatialSelection",
-   _worldBuilderFrame);
-  if(selection is null||selection.SelectedCells is null||selection.SelectedCells.Length==0)
-  {
-   _message="Select at least one hex for the Region before saving.";
-   return null;
-  }
-
-  var name=await JS.InvokeAsync<string?>("prompt","Name this region","New Region");
-  name=(name??"").Trim();
-  if(name.Length==0)
-  {
-   _message="Region save cancelled. Your selected hexes are still active.";
-   return null;
-  }
-  _pendingSpatialName=name;
-
-  var node=await Session.CreateSpatialNodeAsync(
-   "REGION",
-   name,
-   _inspectionEditMode,
-   _pendingSpatialInspectionReason,
-   selection.SelectedCells,
-   selection.GridShape,
-   selection.Columns,
-   selection.Rows);
-
-  if(_inspectionEditMode)
-  {
-   await RecordInspectionAuditAsync("CREATE REGION",_pendingSpatialInspectionReason);
-   ConsumeInspectionReason();
-  }
-
-  Session.SetActiveSpatialRegion(node.NodeId);
-  try{await _worldBuilderSourceModule.InvokeVoidAsync("finishSpatialSelection",_worldBuilderFrame);}catch(JSException){}
-  _spatialDefinitionActive=false;
-  _pendingSpatialName="";
-  _pendingSpatialInspectionReason="";
-  _spatialSelectionCount=0;
-  _spatialSelectionGridShape=selection.GridShape;
-  return node;
+  _regionDefinerOpen=false;_regionDefinerNewFlow=false;_regionDefinerState=null;_pendingSpatialInspectionReason="";
+  if(_builderChainIndex>1)_builderChainIndex=1;
+  _assetScope=CurrentBuilderScope;_stage=Stage.SpatialSelect;SelectActiveSpatialOption();
+  _message="Returned to Region selection. The canonical World Builder underneath was never replaced.";await InvokeAsync(StateHasChanged);
  }
-
- async Task CancelPendingSpatialRegionAsync()
- {
-  if(_worldBuilderSourceModule is not null)
-  {
-   try{await _worldBuilderSourceModule.InvokeVoidAsync("cancelSpatialSelection",_worldBuilderFrame);}catch(JSException){}
-  }
-  _spatialDefinitionActive=false;
-  _pendingSpatialName="";
-  _pendingSpatialInspectionReason="";
-  _spatialSelectionCount=0;
-  _spatialSelectionGridShape="hex";
-  _message="Region selection cancelled. No Region was created.";
-  await InvokeAsync(StateHasChanged);
- }
-
- async Task MoveSpatialSelectionCursorAsync(int columnDelta,int rowDelta)
- {
-  if(!_spatialDefinitionActive||_worldBuilderSourceModule is null)return;
-  try{await _worldBuilderSourceModule.InvokeVoidAsync("moveSpatialSelectionCursor",_worldBuilderFrame,columnDelta,rowDelta);}catch(JSException){}
- }
-
- async Task ToggleSpatialSelectionCursorAsync()
- {
-  if(!_spatialDefinitionActive||_worldBuilderSourceModule is null)return;
-  try{await _worldBuilderSourceModule.InvokeVoidAsync("toggleSpatialSelectionCursor",_worldBuilderFrame);}catch(JSException){}
- }
-
  void BackFromSpatialSelection()
  {
-  if(_spatialDefinitionActive)
-  {
-   _=CancelPendingSpatialRegionAsync();
-   return;
-  }
-  if(CurrentBuilderScope=="INSTANCE")
-  {
-   BeginBuilderScope(2);
-   return;
-  }
-  if(CurrentBuilderScope=="LOCAL")
-  {
-   BeginBuilderScope(1);
-   return;
-  }
-  _stage=Stage.GameMasterScope;
-  _scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));
-  _message="Returned to the GameMaster suite selector.";
+  if(_regionDefinerOpen){_=CloseRegionDefinerAsync();return;}
+  _stage=Stage.GameMasterScope;_scopeIndex=Math.Clamp(_builderChainIndex,0,Math.Min(3,Scopes.Length-1));_message="Returned to the GameMaster suite selector.";
  }
 
  void LoadGameAssets()
@@ -4184,6 +4018,10 @@
   {
    CycleMmoAnalogMode();
    return;
+  }
+  if(_stage==Stage.SpatialSelect&&_regionDefinerOpen)
+  {
+   await ToggleRegionDefinerGridAsync();_message=$"Region Definer grid: {_regionDefinerState?.GridShape?.ToUpperInvariant()??"HEX"}.";return;
   }
 
   if(CursorMode)

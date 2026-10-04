@@ -204,9 +204,9 @@ public partial class UniversalInterface
 
     async Task SelectSemanticAsync()
     {
-        if (_stage == Stage.SpatialSelect && _spatialDefinitionActive)
+        if (_stage == Stage.SpatialSelect && _regionDefinerOpen)
         {
-            await ToggleSpatialSelectionCursorAsync();
+            await SelectRegionDefinerAsync();
             return;
         }
 
