@@ -250,9 +250,11 @@
     :Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
    var access=Session.CanEditRegion(activeRegion)||Session.HasWorldBuilderEditAuthority?"edit":"view";
    var embedded=ViewerOnly?"&embedded-controller=1":"";
-   var regionId=Uri.EscapeDataString(activeRegion?.RegionId??"");
-   var parcelId=Uri.EscapeDataString(activeRegion?.ParcelId??"");
-   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&regionId={regionId}&parcelId={parcelId}&renderer=20261004-continuous-space-1{embedded}";
+   var deedId=Uri.EscapeDataString(activeParcel?.ParcelId??"");
+   var deedName=Uri.EscapeDataString(activeParcel?.DisplayName??"");
+   var deedRegionId=Uri.EscapeDataString(activeRegion?.RegionId??"");
+   var deedZone=Uri.EscapeDataString(isGeonaph?"geonaph":"");
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&deedId={deedId}&deedName={deedName}&deedRegionId={deedRegionId}&deedZone={deedZone}&renderer=20261004-continuous-space-2{embedded}";
   }
  }
 
