@@ -2761,11 +2761,16 @@ function clearClaimedRegionCrop(refit=true){
   regionClaimedRegion=null;pendingClaimedRegionId='';syncClaimedRegionOutline(null);
   clearRegionMask(refit);
 }
-const REGION_HEX_WIDTH_OVERSCAN=1.02;
-const REGION_HEX_HEIGHT_OVERSCAN=1.08;
+const REGION_HEX_HEIGHT_RATIO=4/3;
+const REGION_HEX_SEAM_OVERLAP=1.004;
 function regionHexPolygonPoints(x,y,width=1,height=1){
-  const w=width*REGION_HEX_WIDTH_OVERSCAN,h=height*REGION_HEX_HEIGHT_OVERSCAN;
-  return `${x+w*.25},${y} ${x+w*.75},${y} ${x+w},${y+h*.5} ${x+w*.75},${y+h} ${x+w*.25},${y+h} ${x},${y+h*.5}`;
+  // Preserve the old row/column cell centers, but use pointy-top geometry whose
+  // 3/4-height row step exactly matches the saved one-row spacing. A tiny centered
+  // overscan prevents Safari antialias seams without changing cell identity.
+  const cx=x+(width/2),cy=y+(height/2);
+  const w=width*REGION_HEX_SEAM_OVERLAP,h=height*REGION_HEX_HEIGHT_RATIO*REGION_HEX_SEAM_OVERLAP;
+  const left=cx-(w/2),top=cy-(h/2),right=cx+(w/2),bottom=cy+(h/2);
+  return `${cx},${top} ${right},${top+h*.25} ${right},${top+h*.75} ${cx},${bottom} ${left},${top+h*.75} ${left},${top+h*.25}`;
 }
 function regionMaskSvg(region){
   const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
@@ -2788,7 +2793,12 @@ function regionClaimBounds(region){
   for(const cell of cells){
     const row=regionCellRow(cell,region),column=regionCellColumn(cell,region),offset=shape==='hex'&&(row%2)?0.5:0;
     minX=Math.min(minX,column+offset);maxX=Math.max(maxX,column+offset+1);
-    minY=Math.min(minY,row);maxY=Math.max(maxY,row+1);
+    if(shape==='hex'){
+      const halfExtra=((REGION_HEX_HEIGHT_RATIO*REGION_HEX_SEAM_OVERLAP)-1)/2;
+      minY=Math.min(minY,row-halfExtra);maxY=Math.max(maxY,row+1+halfExtra);
+    }else{
+      minY=Math.min(minY,row);maxY=Math.max(maxY,row+1);
+    }
   }
   minX=clamp(minX,0,grid.columns);maxX=clamp(maxX,0,grid.columns);
   minY=clamp(minY,0,grid.rows);maxY=clamp(maxY,0,grid.rows);
