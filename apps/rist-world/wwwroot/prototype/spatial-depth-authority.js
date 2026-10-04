@@ -58,6 +58,18 @@ function setExternalDepth(raw={}){
   return baseApi?.setExternalDepth?.(payload);
 }
 
+function applyAuthoritySync(raw={}){
+  if(!active)return false;
+  const snapshot=baseApi?.getSpatialSelection?.()||{};
+  return setExternalDepth({
+    tier:raw.tier,
+    layer:raw.layer,
+    scope:String(snapshot.scope||'WORLD'),
+    spatialNodeId:String(snapshot.parentSpatialNodeId||''),
+    spatialPath:String(snapshot.spatialPath||'')
+  });
+}
+
 function getSpatialSelection(){
   const snapshot=baseApi?.getSpatialSelection?.();
   if(!snapshot||!active)return snapshot;
@@ -86,6 +98,15 @@ function cancelSpatialSelection(){
   cleanup();
   return result;
 }
+
+window.addEventListener('message',event=>{
+  if(event.origin!==location.origin||event.source!==host)return;
+  const data=event.data;
+  if(!data||data.source!=='shaelvien-worldbuilder-host'||data.type!=='spatial-depth-authority-sync')return;
+  const result=data.result&&typeof data.result==='object'?data.result:{};
+  if(result.canEdit===false)return;
+  applyAuthoritySync(result);
+},false);
 
 window.ShaelvienPrototype=Object.freeze({
   ...baseApi,
