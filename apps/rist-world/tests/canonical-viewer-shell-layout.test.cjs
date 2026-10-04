@@ -282,7 +282,7 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
   assert.match(prototype,/nearestAllowedRegionCell\(regionCell,allowed,regionGridShape,regionClaimedRegion\)/);
   assert.match(prototypeCss,/\.viewer-grid-overlay/);
   assert.doesNotMatch(prototypeCss,/repeating-linear-gradient\(0deg,rgba\(178,221,236,\.045\)/);
-  assert.match(prototypeIndex,/prototype\.css\?v=20261004-continuous-space-1/);
+  assert.match(prototypeIndex,/prototype\.css\?v=20261004-continuous-space-2/);
   assert.match(prototypeIndex,/prototype\.js\?v=[0-9]{8}-[a-z0-9-]+/i);
   assert.match(index,/start-menu\.js\?v=20260928-grid-density-1/);
   assert.match(index,/universal-interface\.css\?v=20261003-zone-identity-select-1/);
