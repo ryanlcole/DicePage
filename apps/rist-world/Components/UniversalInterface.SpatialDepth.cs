@@ -48,6 +48,80 @@ public partial class UniversalInterface
         layer = Math.Clamp(layer, 0, SpatialMaxLayerForTier(tier));
     }
 
+    bool IsSpatialDepthSemanticStage =>
+        _spatialDefinitionActive && _stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
+
+    async Task<bool> AdjustSpatialDepthSemanticAsync(int direction)
+    {
+        if (!IsSpatialDepthSemanticStage || !CanDirectEditSpatialDepth)
+            return false;
+
+        direction = Math.Sign(direction);
+        if (direction == 0)
+            return true;
+
+        if (_stage == Stage.WorldBuilderTier)
+        {
+            _tier = Math.Clamp(_tier + direction, 0, SpatialMaxTierIndex);
+            _layer = Math.Clamp(_layer, 0, SpatialMaxLayerForTier(_tier));
+            _message = $"Tier {_tier}. Deed Layer {_layer} remains within this tier.";
+        }
+        else
+        {
+            _layer = Math.Clamp(_layer + direction, 0, SpatialMaxLayerForTier(_tier));
+            _message = $"Layer {_layer} on Tier {_tier}.";
+        }
+
+        await SyncWorldBuilderDepthAsync();
+        await InvokeAsync(StateHasChanged);
+        return true;
+    }
+
+    async Task<bool> AdvanceSpatialDepthSemanticAsync()
+    {
+        if (!IsSpatialDepthSemanticStage || !CanDirectEditSpatialDepth)
+            return false;
+
+        if (_stage == Stage.WorldBuilderTier)
+        {
+            _stage = Stage.WorldBuilderLayer;
+            _message = $"Tier {_tier} selected. Choose Layer on the same left display.";
+        }
+        else
+        {
+            _stage = Stage.WorldHome;
+            _message = $"Deed depth set to Tier {_tier}, Layer {_layer}. Select the X/Y hexes, then use Save Area on the left display.";
+        }
+
+        await SyncWorldBuilderDepthAsync();
+        await InvokeAsync(StateHasChanged);
+        return true;
+    }
+
+    [JSInvokable]
+    public async Task<bool> BeginWorldBuilderSpatialDepthControlAsync()
+    {
+        if (!CanDirectEditSpatialDepth)
+            return false;
+
+        ClampSpatialDepth(ref _tier, ref _layer);
+        _spatialDefinitionActive = true;
+        _stage = Stage.WorldBuilderTier;
+        _message = $"Deed depth · Tier {_tier}. The parent semantic left display is authoritative; X/Y selection remains frozen to the visible map.";
+        await SyncWorldBuilderDepthAsync();
+        await InvokeAsync(StateHasChanged);
+        return true;
+    }
+
+    [JSInvokable]
+    public async Task EndWorldBuilderSpatialDepthControlAsync()
+    {
+        if (_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer)
+            _stage = Stage.WorldHome;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
     [JSInvokable]
     public Task<object> GetWorldBuilderDepthAuthorityAsync()
     {
@@ -71,13 +145,11 @@ public partial class UniversalInterface
     [JSInvokable]
     public async Task ReceiveWorldBuilderSpatialDepthAsync(int tier, int layer)
     {
-        if (!CanDirectEditSpatialDepth)
-            return;
-
-        ClampSpatialDepth(ref tier, ref layer);
-        _tier = tier;
-        _layer = layer;
-        _message = $"Deed depth: Tier {_tier}, Layer {_layer}. X/Y selection remains locked to the chosen map area.";
-        await InvokeAsync(StateHasChanged);
+        // Compatibility only. The embedded viewer is a representation and may
+        // not write parent Tier/Layer state. Reassert the parent-owned depth so
+        // an older cached viewer cannot become an independent editing authority.
+        _ = tier;
+        _ = layer;
+        await SyncWorldBuilderDepthAsync();
     }
 }
