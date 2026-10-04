@@ -23,6 +23,8 @@ The World Builder is a dedicated studio workspace for constructing the physical-
 - Legacy RegionDefiner records remain readable, but entering a Region/deed must not replace the canonical World Builder with a second editor.
 - A deed requester selects the requested X/Y footprint. The requester does not grant their own Tier/Layer entitlement.
 - A GM/editor with deed authority allocates the authoritative Tier/Layer slice. During direct GM editing, Tier/Layer controls are available inside the frozen selection view and the save does not require a self-approval request.
+- During frozen GM deed selection, the normal Tier/Layer depth box remains visible and must display the same authoritative Tier/Layer state that will be persisted with the selected boundary.
+- Tier/Layer allocation during deed selection belongs on the existing **left semantic display** using the established Tier → Layer → Save progression. It must not appear as a floating map popup.
 - A non-GM deed request may carry the currently viewed depth as request context, but the GM may change that depth before approval.
 
 ## GM construction grid authority
