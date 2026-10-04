@@ -60,10 +60,15 @@ def test_regions_can_nest_and_instance_is_a_scene_boundary_not_local_requirement
     assert "lineage, not containment proof" in create
 
 
-def test_saving_selection_focuses_into_bounded_space_without_mutating_coordinates():
+def test_saving_selection_hides_outside_space_and_focuses_without_mutating_coordinates():
     prototype = (ROOT / "wwwroot/prototype/prototype.js").read_text(encoding="utf-8")
 
-    assert "function focusSpatialSelection()" in prototype
+    assert "function spatialSelectionMaskSvg(snapshot)" in prototype
+    assert "function applySpatialSelectionFocus(snapshot)" in prototype
+    assert "stage.dataset.cropMode='spatial-selection-focus'" in prototype
+    assert "function focusSpatialSelection(snapshot=spatialSelectionSnapshot())" in prototype
     assert "finishSpatialSelection(focus=true)" in prototype
+    assert "Everything outside that space is hidden until World Home." in prototype
     assert "World coordinates and spatial identity are unchanged." in prototype
+    assert "clearSpatialDefinitionFocus();" in prototype[prototype.index("function showAllParallax()"):prototype.index("function setExternalDepth")]
     assert "scale=clamp(nextScale" in prototype
