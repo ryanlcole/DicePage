@@ -25,6 +25,7 @@ The World Builder is a dedicated studio workspace for constructing the physical-
 - A GM/editor with deed authority allocates the authoritative Tier/Layer slice. During direct GM editing, Tier/Layer controls are available inside the frozen selection view and the save does not require a self-approval request.
 - During frozen GM deed selection, the normal Tier/Layer depth box remains visible and must display the same authoritative Tier/Layer state that will be persisted with the selected boundary.
 - Tier/Layer allocation during deed selection belongs on the existing **left semantic display** using the established Tier → Layer → Save progression. It must not appear as a floating map popup.
+- Beginning a frozen selection must never write its pre-selection renderer snapshot back over the authoritative parent Tier/Layer state. The selection waits for parent authority first; only then may the left semantic display alter depth.
 - A non-GM deed request may carry the currently viewed depth as request context, but the GM may change that depth before approval.
 
 ## GM construction grid authority
