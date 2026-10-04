@@ -62,3 +62,25 @@ def test_saved_boundary_title_returns_to_existing_label_editor_for_font_and_posi
     assert "input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'" in script
     assert "editor.placeholder='Edit title text'" in script
     assert "Title selected; adjust font and position" in script
+
+
+def test_viewer_only_seeds_new_placements_not_region_or_existing_object_selection():
+    prototype = (ROOT / "wwwroot/prototype/prototype.js").read_text(encoding="utf-8")
+    handoff = (ROOT / "wwwroot/prototype/spatial-title-handoff.js").read_text(encoding="utf-8")
+
+    # New content may use the current viewer center as its initial placement hint.
+    image_start = prototype[prototype.index("function openImageUpload()"):prototype.index("function fileDataUrl")]
+    tile_start = prototype[prototype.index("function placeLibraryTile(asset)"):prototype.index("function libraryTileKey")]
+    assert "viewerCenterPosition()" in image_start
+    assert "viewerCenterPosition()" in tile_start
+
+    # Existing content is selected by its actual placed object; no viewer-center lookup
+    # is allowed in that selection path.
+    existing = prototype[prototype.index("function beginImageDrag(event,item)"):prototype.index("function moveImageDrag")]
+    assert "selectUserImage(item)" in existing
+    assert "viewerCenterPosition()" not in existing
+
+    # Region identity is derived from map-space hexes/layers, not viewer-center placement.
+    assert "world.appendChild(overlay)" in handoff
+    assert "overlay.dataset.coordinateSpace='world-map'" in handoff
+    assert "viewerCenterPosition" not in handoff
