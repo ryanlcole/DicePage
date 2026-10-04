@@ -3156,14 +3156,6 @@
  string SavedViewerAssetStyle(SavedViewerAsset asset)
   =>$"--saved-x:{asset.X}px;--saved-y:{asset.Y}px;--saved-scale:{asset.Scale:0.00};--saved-rotate:{asset.Rotation}deg;--saved-tier:{asset.Tier};--saved-layer:{asset.Layer};";
 
- sealed record SpatialSelectionSnapshot(
-  bool Active,
-  string Kind,
-  string GridShape,
-  int Columns,
-  int Rows,
-  int[] SelectedCells);
-
  sealed record ControllerWorldOption(
   string Id,
   string Name,
