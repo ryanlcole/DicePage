@@ -703,6 +703,7 @@ public partial class UniversalInterface
 
         ControllerWorldOption selected;
         EndemarHierarchySetupResult? endemarSetup = null;
+        string endemarSetupError = "";
         if (MmoSelectedIsEndemar)
         {
             selected = new ControllerWorldOption(
@@ -718,10 +719,13 @@ public partial class UniversalInterface
             }
             catch (Exception ex)
             {
-                _message = string.IsNullOrWhiteSpace(ex.Message)
+                // Hierarchy preparation is additive setup, never an edit gate.
+                // Endemar must remain editable even if old Region metadata is
+                // temporarily unavailable or a hierarchy save fails.
+                endemarSetupError = string.IsNullOrWhiteSpace(ex.Message)
                     ? "Endemar hierarchy could not be prepared."
                     : ex.Message;
-                return;
+                Session.SetActiveRegion("");
             }
         }
         else if (MmoSelectedParcel is { } parcel)
@@ -811,11 +815,13 @@ public partial class UniversalInterface
         _stage = Stage.PathSelect;
         _pathIndex = 0;
         _pathMenuIndex = 0;
-        _message = endemarSetup is null
-            ? $"Edit · {_selectedDeedName}. World Builder is on the left; Context is on the right."
-            : endemarSetup.CityMetadataCreated
-                ? $"Edit · Endemar. Existing {endemarSetup.Region.Name} was reused; {endemarSetup.City.Name} is now the active Local. No Region or city map was recreated."
-                : $"Edit · Endemar. {endemarSetup.Region.Name} → {endemarSetup.City.Name} is active in the existing recursive hierarchy.";
+        _message = !string.IsNullOrWhiteSpace(endemarSetupError)
+            ? $"Edit · Endemar. World Builder remains editable. Hierarchy setup is pending: {endemarSetupError}"
+            : endemarSetup is null
+                ? $"Edit · {_selectedDeedName}. World Builder is on the left; Context is on the right."
+                : endemarSetup.CityMetadataCreated
+                    ? $"Edit · Endemar. Existing {endemarSetup.Region.Name} was reused; {endemarSetup.City.Name} is now the active Local. No Region or city map was recreated."
+                    : $"Edit · Endemar. {endemarSetup.Region.Name} → {endemarSetup.City.Name} is active in the existing recursive hierarchy.";
         await InvokeAsync(StateHasChanged);
     }
 

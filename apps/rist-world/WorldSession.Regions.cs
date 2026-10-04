@@ -201,8 +201,11 @@ public sealed partial class WorldSession
 
     public async Task<EndemarHierarchySetupResult> PrepareEndemarThroughCityAsync()
     {
-        if (!HasTrustedWorldBuilderAuthority)
-            throw new UnauthorizedAccessException("World Builder authority is required to prepare Endemar.");
+        // Endemar edit authority deliberately includes ownership of the canonical
+        // Geonaph deed. Match the deed-map authority contract instead of requiring
+        // the narrower world-membership flag and accidentally locking the owner out.
+        if (!HasTrustedWorldBuilderAuthority && !OwnsCanonicalGeonaphZone)
+            throw new UnauthorizedAccessException("Endemar edit authority is required to prepare its hierarchy.");
         if (!HasActiveWorld)
             throw new InvalidOperationException("Choose Shaelvien before preparing Endemar.");
 
@@ -549,6 +552,13 @@ public sealed partial class WorldSession
     {
         if (region is null) return false;
         if (HasTrustedWorldBuilderAuthority) return true;
+
+        // Sumaria is Endemar's persisted Region. The same canonical Geonaph deed
+        // ownership that unlocks Endemar on the MMO map must also authorize this
+        // Region record; otherwise hierarchy metadata saves fail after Edit opens.
+        if (OwnsCanonicalGeonaphZone
+            && string.Equals(region.Name, EndemarRegionDisplayName, StringComparison.OrdinalIgnoreCase))
+            return true;
 
         var userId = auth.Profile?.UserId?.Trim() ?? "";
         if (userId.Length > 0 && string.Equals(region.OwnerUserId, userId, StringComparison.Ordinal))
