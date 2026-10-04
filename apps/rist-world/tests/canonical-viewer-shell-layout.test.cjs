@@ -459,7 +459,9 @@ test('zoom hands representation from World to Region Local and Instance',()=>{
   assert.match(prototype,/REGION:SCOPE_ZOOM_FACTOR/);
   assert.match(prototype,/LOCAL:SCOPE_ZOOM_FACTOR\*SCOPE_ZOOM_FACTOR/);
   assert.match(prototype,/INSTANCE:SCOPE_ZOOM_FACTOR\*SCOPE_ZOOM_FACTOR\*SCOPE_ZOOM_FACTOR/);
-  assert.doesNotMatch(prototype,/SCOPE_VIEW_ANGLE/);\n  assert.match(prototype,/function currentSpatialViewAngle\(\)\{return viewAngle\}/);\n  assert.match(prototype,/function setViewAngle\(/);
+  assert.doesNotMatch(prototype,/SCOPE_VIEW_ANGLE/);
+  assert.match(prototype,/function currentSpatialViewAngle\(\)\{return viewAngle\}/);
+  assert.match(prototype,/function setViewAngle\(/);
   assert.match(prototype,/const SCOPE_DEPTH_PREFIX=Object\.freeze\(\{WORLD:'Z',REGION:'R',LOCAL:'L',INSTANCE:'I'\}\);/);
   assert.match(prototype,/function zoomScopeSteps\(\)/);
   assert.match(prototype,/return SCOPE_ORDER\[Math\.min\(SCOPE_ORDER\.length-1,base\+zoomScopeSteps\(\)\)\];/);
