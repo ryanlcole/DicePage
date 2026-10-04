@@ -9,7 +9,7 @@ def test_spatial_title_handoff_is_loaded_after_canonical_viewer():
     prototype_pos = index.index("prototype.js?v=20261004-continuous-space-2")
     session_pos = index.index("spatial-selection-session.js?v=20261004-frozen-selection-3")
     handoff_pos = index.index("spatial-title-handoff.js?v=20261004-spatial-title-1")
-    depth_pos = index.index("spatial-depth-authority.js?v=20261004-parent-depth-1")
+    depth_pos = index.index("spatial-depth-authority.js?v=20261004-parent-depth-2")
     lock_pos = index.index("spatial-selector-lock.js?v=20261004-map-selector-lock-1")
     assert session_pos > prototype_pos
     assert handoff_pos > session_pos
