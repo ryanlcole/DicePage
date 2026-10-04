@@ -850,7 +850,7 @@
   _selectedDeedRegionId=option.Parcel?.RegionId?.Trim()??"";
   _viewerSpatialScope="WORLD";
   _viewerSpatialZoomRatio=1;
-  _viewerSpatialViewAngle=0;
+  // World Home changes spatial resolution, not the user's camera angle.
   _viewerSpatialDepthPrefix="Z";
   _pathIndex=0;
   _pathMenuIndex=0;
@@ -3116,7 +3116,7 @@
   _browseCursorActive=false;
   _stage=Stage.WorldHome;
   await ShowAllWorldLayersAsync();
-  _message=message??"World Home. All authored layers and parallax are visible. Choose Tier to isolate editing depth.";
+  _message=message??"World Home. All authored space is visible again; pan or zoom to another place, then Select Area.";
   await InvokeAsync(StateHasChanged);
  }
 
