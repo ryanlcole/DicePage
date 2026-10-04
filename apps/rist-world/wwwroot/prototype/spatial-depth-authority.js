@@ -20,6 +20,7 @@ const context={
 
 let maxHeight=Math.max(1,Math.trunc(Number(query.get('maxHeight'))||1));
 let active=false;
+let authorityReady=false;
 let mode='tier';
 let depth={tier:0,layer:0};
 let parentObserver=null;
@@ -36,7 +37,6 @@ function selection(){return baseApi?.getSpatialSelection?.()||null}
 function selectedCount(){const cells=selection()?.selectedCells;return Array.isArray(cells)?cells.length:0}
 function leftButton(){return host.document?.querySelector('.control-display-left')||null}
 function leftSlider(){return host.document?.querySelector('.display-slider-left')||null}
-function depthPip(){return host.document?.querySelector('.depth-pip')||null}
 function overlay(){return document.querySelector('.spatial-selection-grid.active')}
 function live(message){const node=document.getElementById('live');if(node)node.textContent=String(message||'')}
 
@@ -49,19 +49,6 @@ function clampDepth(){
   depth.layer=clamp(Math.trunc(Number(depth.layer)||0),0,maxLayerForTier(depth.tier));
 }
 
-function syncDepthBox(){
-  const pip=depthPip();
-  if(!pip)return;
-  pip.dataset.authoritativeTier=String(depth.tier);
-  pip.dataset.authoritativeLayer=String(depth.layer);
-  const header=pip.querySelector('header span');
-  if(header&&header.textContent!==`TIER ${depth.tier} · LAYER ${depth.layer}`)header.textContent=`TIER ${depth.tier} · LAYER ${depth.layer}`;
-  const footer=[...pip.querySelectorAll('footer span')];
-  if(footer[0]&&footer[0].textContent!==`T${depth.tier}`)footer[0].textContent=`T${depth.tier}`;
-  if(footer[1]&&footer[1].textContent!==`L${depth.layer}`)footer[1].textContent=`L${depth.layer}`;
-  pip.setAttribute('aria-label',`Current deed depth Tier ${depth.tier}, Layer ${depth.layer}`);
-}
-
 function syncLeftDisplay(){
   if(!active)return;
   const button=leftButton();
@@ -72,7 +59,10 @@ function syncLeftDisplay(){
   const count=selectedCount();
 
   let eyebrowText='DEPTH',labelText='',promptText='';
-  if(mode==='tier'){
+  if(!authorityReady){
+    labelText='LOADING';
+    promptText='WAIT FOR AUTHORITY';
+  }else if(mode==='tier'){
     labelText=`TIER ${depth.tier}`;
     promptText=maxTierIndex()>0?'SLIDE ↑↓ · TOUCH LAYER':'TIER FIXED · TOUCH LAYER';
   }else if(mode==='layer'){
@@ -90,15 +80,10 @@ function syncLeftDisplay(){
   button.setAttribute('aria-label',`Left display button: ${labelText}`);
   const slider=leftSlider();
   if(slider)slider.setAttribute('aria-label',mode==='save'?'Left display. Touch to name and save the selected area.':'Left display. Slide up or down to change deed depth, then touch to continue.');
-  syncDepthBox();
 }
 
-function notifyDepth(){
-  post('spatial-depth-change',{tier:depth.tier,layer:depth.layer});
-}
-
-function applyDepth({announce=true}={}){
-  if(!active)return false;
+function applyViewerDepth({announce=true}={}){
+  if(!active||!authorityReady)return false;
   clampDepth();
   const snapshot=selection()||{};
   try{
@@ -110,14 +95,17 @@ function applyDepth({announce=true}={}){
       spatialPath:String(snapshot.spatialPath||'')
     });
   }catch{}
-  notifyDepth();
   syncLeftDisplay();
   if(announce)live(`Tier ${depth.tier}, Layer ${depth.layer}. The deed X/Y selection remains locked.`);
   return true;
 }
 
+function commitDepth(){
+  post('spatial-depth-change',{tier:depth.tier,layer:depth.layer});
+}
+
 function changeDepth(delta){
-  if(!active||mode==='save')return false;
+  if(!active||!authorityReady||mode==='save')return false;
   delta=Math.sign(Number(delta)||0);
   if(!delta)return false;
   if(mode==='tier'){
@@ -126,11 +114,13 @@ function changeDepth(delta){
   }else{
     depth.layer=clamp(depth.layer+delta,0,maxLayerForTier(depth.tier));
   }
-  return applyDepth();
+  applyViewerDepth();
+  commitDepth();
+  return true;
 }
 
 function advanceMode(){
-  if(!active)return;
+  if(!active||!authorityReady)return;
   if(mode==='tier')mode='layer';
   else if(mode==='layer')mode='save';
   syncLeftDisplay();
@@ -173,18 +163,18 @@ function beginSpatialSelection(raw={}){
   };
   clampDepth();
   active=true;
+  authorityReady=false;
   mode='tier';
-  applyDepth({announce:false});
   startUiObservers();
   syncLeftDisplay();
   requestAuthority();
-  live(`Select deed hexes at Tier ${depth.tier}, Layer ${depth.layer}. Depth is controlled from the left display; no popup is used.`);
+  live('Loading authoritative deed depth. X/Y selection remains locked to the chosen map area.');
   return started;
 }
 
 function getSpatialSelection(){
   const snapshot=baseApi?.getSpatialSelection?.();
-  if(!snapshot||!active)return snapshot;
+  if(!snapshot||!active||!authorityReady)return snapshot;
   return{
     ...snapshot,
     tierIndex:depth.tier,
@@ -196,8 +186,10 @@ function getSpatialSelection(){
 function cleanup(){
   stopUiObservers();
   active=false;
+  authorityReady=false;
   pointerStart=null;
   suppressNextClick=false;
+  authorityRequestId='';
 }
 
 function finishSpatialSelection(focus=true){
@@ -245,6 +237,12 @@ host.document?.addEventListener('click',event=>{
     event.stopImmediatePropagation();
     return;
   }
+  if(!authorityReady){
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    live('Waiting for authoritative deed depth.');
+    return;
+  }
   if(mode==='save'){
     if(selectedCount()>0)return;
     event.preventDefault();
@@ -285,11 +283,20 @@ window.addEventListener('message',event=>{
   if(!data||data.source!=='shaelvien-worldbuilder-host'||data.type!=='spatial-depth-authority')return;
   if(String(data.requestId||'')!==authorityRequestId)return;
   const result=data.result&&typeof data.result==='object'?data.result:{};
-  if(result.canEdit===false)return;
-  const nextMax=Math.max(1,Math.trunc(Number(result.maxHeight)||maxHeight));
-  maxHeight=nextMax;
+  if(result.canEdit===false){
+    live('This deed depth is not editable with the current authority.');
+    cleanup();
+    return;
+  }
+  maxHeight=Math.max(1,Math.trunc(Number(result.maxHeight)||maxHeight));
+  depth={
+    tier:Math.max(0,Math.trunc(Number(result.tier)||0)),
+    layer:Math.max(0,Math.trunc(Number(result.layer)||0))
+  };
   clampDepth();
-  if(active)applyDepth({announce:false});
+  authorityReady=true;
+  applyViewerDepth({announce:false});
+  live(`Select deed hexes at Tier ${depth.tier}, Layer ${depth.layer}. Depth is controlled from the left display; no popup is used.`);
 },false);
 
 window.ShaelvienPrototype=Object.freeze({
