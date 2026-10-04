@@ -204,6 +204,12 @@ public partial class UniversalInterface
 
     async Task SelectSemanticAsync()
     {
+        if (_spatialDefinitionActive)
+        {
+            await ToggleWorldBuilderSpatialSelectionAsync();
+            return;
+        }
+
         if (_stage == Stage.SpatialSelect && _regionDefinerOpen)
         {
             await SelectRegionDefinerAsync();
