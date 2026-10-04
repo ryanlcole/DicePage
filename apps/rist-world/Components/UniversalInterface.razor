@@ -1103,10 +1103,10 @@
   :CursorAvailable
    &&!_analogButtonMode
    &&(_stage!=Stage.BrowsePlace||_browseCursorActive);
- string AnalogModeLabel=>_spatialDefinitionActive
-  ?"HEX"
-  :_stage==Stage.Environment&&_universalStartRevealed
-   ?"LEGACY"
+ string AnalogModeLabel=>_stage==Stage.Environment&&_universalStartRevealed
+  ?"LEGACY"
+  :_spatialDefinitionActive
+   ?"HEX"
   :_stage==Stage.MmoMap
    ?MmoAnalogMode
    :CursorMode?"CURSOR":"BUTTONS";
@@ -3076,8 +3076,8 @@
      selectedCells=region.SelectedCells??[]
     };
    }
-   await _worldBuilderSourceModule.InvokeVoidAsync(
-    "setDepth",_worldBuilderFrame,_tier,_layer,CurrentBuilderScope,CurrentSpatialNodeId,CurrentSpatialPath,spatialDefinition);
+   await _worldBuilderSourceModule.InvokeVoidAsync("setDepth",_worldBuilderFrame,_tier,_layer,CurrentBuilderScope,CurrentSpatialNodeId,CurrentSpatialPath);
+   await _worldBuilderSourceModule.InvokeVoidAsync("setSpatialDefinition",_worldBuilderFrame,spatialDefinition);
   }
   catch(JSException){}
  }

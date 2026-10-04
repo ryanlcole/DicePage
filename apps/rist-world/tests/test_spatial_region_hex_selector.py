@@ -46,5 +46,7 @@ def test_saved_region_footprint_returns_to_viewer_when_region_is_selected():
     host = (ROOT / "wwwroot/worldbuilder-source-host.js").read_text(encoding="utf-8")
     assert "spatialDefinition=new" in component
     assert "selectedCells=region.SelectedCells??[]" in component
-    assert "spatialDefinition=null" in host
-    assert "showSpatialRegionDefinition(raw.spatialDefinition)" in prototype
+    assert "export function setSpatialDefinition" in host
+    assert '"setSpatialDefinition"' in component
+    assert "function setSpatialDefinition(raw=null)" in prototype
+    assert "showSpatialRegionDefinition(raw)" in prototype

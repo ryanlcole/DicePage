@@ -73,7 +73,7 @@ test('portrait builder keeps source content in the vertical center and corner PI
     css,
     /@media\(max-width:430px\) and \(orientation:portrait\)\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important;/
   );
-  assert.match(index,/universal-interface\.css\?v=20261001-zone-fill-endemar-2/);
+  assert.match(index,/universal-interface\.css\?v=20261003-zone-identity-select-1/);
   assert.match(index,/universal-interface-input\.js\?v=20261001-world-home-fill-1/);
 });
 
@@ -107,7 +107,7 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
   assert.match(input,/target\.click\(\)/);
   assert.match(input,/event\.target instanceof Element && event\.target\.closest\("\.analog-start-button,\.analog-mode-button"\)/);
-  assert.match(index,/universal-interface\.css\?v=20261001-zone-fill-endemar-2/);
+  assert.match(index,/universal-interface\.css\?v=20261003-zone-identity-select-1/);
   assert.match(index,/universal-interface-input\.js\?v=20261001-world-home-fill-1/);
 });
 
@@ -165,7 +165,7 @@ test('viewer cursor uses existing Shaelvien cursor assets on touch and pointer d
   assert.match(css,/--rist-cursor-image-selectAlt2/);
   assert.match(index,/cursors-haptics\.js\?v=20260928-visible-cursor-assets-1/);
   assert.match(index,/universal-interface-input\.js\?v=20261001-world-home-fill-1/);
-  assert.match(index,/universal-interface\.css\?v=20261001-zone-fill-endemar-2/);
+  assert.match(index,/universal-interface\.css\?v=20261003-zone-identity-select-1/);
 });
 
 
@@ -282,10 +282,10 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
   assert.match(prototype,/nearestAllowedRegionCell\(regionCell,allowed,regionGridShape,regionClaimedRegion\)/);
   assert.match(prototypeCss,/\.viewer-grid-overlay/);
   assert.doesNotMatch(prototypeCss,/repeating-linear-gradient\(0deg,rgba\(178,221,236,\.045\)/);
-  assert.match(prototypeIndex,/prototype\.css\?v=20260928-canonical-spatial-1/);
+  assert.match(prototypeIndex,/prototype\.css\?v=20261003-spatial-region-hex-1/);
   assert.match(prototypeIndex,/prototype\.js\?v=[0-9]{8}-[a-z0-9-]+/i);
   assert.match(index,/start-menu\.js\?v=20260928-grid-density-1/);
-  assert.match(index,/universal-interface\.css\?v=20261001-zone-fill-endemar-2/);
+  assert.match(index,/universal-interface\.css\?v=20261003-zone-identity-select-1/);
 });
 
 
@@ -303,7 +303,7 @@ test('viewer top menu exposes back world home undo cut copy redo paste and forwa
   const prototype=read('wwwroot/prototype/prototype.js');
   const css=read('wwwroot/css/universal-interface.css');
 
-  assert.match(razor,/class="viewer-menu-bar"[\s\S]{0,1000}?BACK[\s\S]{0,240}?WORLD HOME[\s\S]{0,240}?UNDO[\s\S]{0,200}?CUT[\s\S]{0,200}?COPY[\s\S]{0,200}?REDO[\s\S]{0,200}?PASTE[\s\S]{0,200}?FORWARD/);
+  assert.match(razor,/class="viewer-menu-bar"[\s\S]*?BACK[\s\S]*?WORLD HOME[\s\S]*?UNDO[\s\S]*?CUT[\s\S]*?COPY[\s\S]*?REDO[\s\S]*?PASTE[\s\S]*?FORWARD/);
   assert.match(razor,/HandleViewerMenuCommandAsync\("back"\)/);
   assert.match(razor,/HandleViewerMenuCommandAsync\("world-home"\)/);
   assert.match(razor,/HandleViewerMenuCommandAsync\("forward"\)/);

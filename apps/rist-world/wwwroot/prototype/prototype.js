@@ -3993,12 +3993,14 @@ function setExternalDepth(raw={}){
   const tier=clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(tier).key;
   viewerLayer=Math.max(0,Math.trunc(Number(raw.layer)||0));
-  if(nextScope==='REGION'&&raw.spatialDefinition)showSpatialRegionDefinition(raw.spatialDefinition);
-  else if(!spatialSelectionActive)hideSpatialRegionDefinition();
   restorePassedFullFrames(tier);
   updateTierButton();renderTierMenu();
   if(scopeChanged)fitMap();else applyTransform();
   renderKeyboardKeys();
+}
+function setSpatialDefinition(raw=null){
+  if(externalSpatialScope==='REGION'&&raw)showSpatialRegionDefinition(raw);
+  else if(!spatialSelectionActive)hideSpatialRegionDefinition();
 }
 async function placeExternalAsset(raw={}){
   if(READ_ONLY)return false;
@@ -4068,6 +4070,7 @@ window.ShaelvienPrototype=Object.freeze({
   editCommand:runViewerEditCommand,
   showAllParallax,
   setExternalDepth,
+  setSpatialDefinition,
   beginSpatialSelection,
   getSpatialSelection,
   finishSpatialSelection,

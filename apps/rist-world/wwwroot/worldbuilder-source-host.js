@@ -86,10 +86,17 @@ export async function showAllParallax(frame){
   return fn()!==false;
 }
 
-export function setDepth(frame,tier,layer,scope,spatialNodeId="",spatialPath="",spatialDefinition=null){
+export function setDepth(frame,tier,layer,scope,spatialNodeId="",spatialPath=""){
   const fn=frame?.contentWindow?.ShaelvienPrototype?.setExternalDepth;
   if(typeof fn!=="function")return false;
-  fn({tier,layer,scope,spatialNodeId,spatialPath,spatialDefinition});
+  fn({tier,layer,scope,spatialNodeId,spatialPath});
+  return true;
+}
+
+export function setSpatialDefinition(frame,spatialDefinition=null){
+  const fn=frame?.contentWindow?.ShaelvienPrototype?.setSpatialDefinition;
+  if(typeof fn!=="function")return false;
+  fn(spatialDefinition);
   return true;
 }
 
