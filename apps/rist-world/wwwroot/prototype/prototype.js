@@ -2177,7 +2177,8 @@ function ensureSpatialSelectionOverlay(){
 }
 function beginSpatialSelection(raw={}){
   if(READ_ONLY||REGION_DEFINER)return false;
-  clearSpatialDefinitionFocus();
+  // Keep the current saved boundary mask while selecting a deeper or
+  // overlapping area. World Home explicitly clears the focus mask.
   const requestedKind=String(raw.kind||currentSpatialScope()||'REGION').toUpperCase();
   const kind=requestedKind==='INSTANCE'?'INSTANCE':requestedKind==='LOCAL'?'LOCAL':'REGION';
   spatialSelectionPreviousGrid={shape:viewerGridMode,columns:viewerGridColumns,rows:viewerGridRows};
@@ -2189,8 +2190,44 @@ function beginSpatialSelection(raw={}){
   publishSpatialSelectionChange();announce(`${kind.charAt(0)+kind.slice(1).toLowerCase()} selector active on the visible map. Touch or drag across cells, or use arrows and Enter.`);return true;
 }
 function getSpatialSelection(){return spatialSelectionSnapshot()}
-function focusSpatialSelection(){
-  const snapshot=spatialSelectionSnapshot();if(!snapshot.selectedCells.length)return false;
+function spatialSelectionMaskSvg(snapshot){
+  if(!snapshot||!Array.isArray(snapshot.selectedCells)||!snapshot.selectedCells.length)return '';
+  const columns=Math.max(1,Number(snapshot.columns)||spatialSelectionColumns),rows=Math.max(1,Number(snapshot.rows)||spatialSelectionRows);
+  const shape=String(snapshot.gridShape||spatialSelectionGridShape).toLowerCase()==='square'?'square':'hex';
+  const viewWidth=shape==='hex'?columns+.5:columns;
+  const minX=clamp(Number(snapshot.viewMinX)||0,0,1),minY=clamp(Number(snapshot.viewMinY)||0,0,1);
+  const maxX=clamp(Number(snapshot.viewMaxX)||1,minX,1),maxY=clamp(Number(snapshot.viewMaxY)||1,minY,1);
+  const mapPoint=(ux,uy)=>({
+    x:(minX+(clamp(ux/viewWidth,0,1)*(maxX-minX)))*1000,
+    y:(minY+(clamp(uy/rows,0,1)*(maxY-minY)))*1000
+  });
+  const figures=[];
+  for(const raw of snapshot.selectedCells){
+    const cell=clamp(Math.trunc(Number(raw)||0),0,(columns*rows)-1),row=Math.floor(cell/columns),column=cell%columns;
+    if(shape==='hex'){
+      const offset=row%2?.5:0,x0=column+offset,y0=row;
+      const local=[[x0+.25,y0],[x0+.75,y0],[x0+1,y0+.5],[x0+.75,y0+1],[x0+.25,y0+1],[x0,y0+.5]];
+      figures.push(`<polygon points="${local.map(([px,py])=>{const p=mapPoint(px,py);return `${p.x},${p.y}`}).join(' ')}" fill="white"/>`);
+    }else{
+      const a=mapPoint(column,row),b=mapPoint(column+1,row+1);
+      figures.push(`<rect x="${a.x}" y="${a.y}" width="${Math.max(.1,b.x-a.x)}" height="${Math.max(.1,b.y-a.y)}" fill="white"/>`);
+    }
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="none">${figures.join('')}</svg>`;
+}
+function applySpatialSelectionFocus(snapshot){
+  if(REGION_DEFINER)return false;
+  const svg=spatialSelectionMaskSvg(snapshot);if(!svg)return false;
+  const url=`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
+  world.style.maskImage=url;world.style.webkitMaskImage=url;
+  world.style.maskSize='100% 100%';world.style.webkitMaskSize='100% 100%';
+  world.style.maskRepeat='no-repeat';world.style.webkitMaskRepeat='no-repeat';
+  stage.dataset.cropMode='spatial-selection-focus';
+  stage.dataset.spatialFocus=String(snapshot.kind||'REGION').toLowerCase();
+  return true;
+}
+function focusSpatialSelection(snapshot=spatialSelectionSnapshot()){
+  if(!snapshot.selectedCells.length)return false;
   const r=stage.getBoundingClientRect(),angle=currentSpatialViewAngle(),cos=Math.max(.12,Math.cos(angle*Math.PI/180));
   const minX=snapshot.canonicalMinX*naturalWidth,minY=snapshot.canonicalMinY*naturalHeight,maxX=snapshot.canonicalMaxX*naturalWidth,maxY=snapshot.canonicalMaxY*naturalHeight;
   const width=Math.max(1,maxX-minX),height=Math.max(1,maxY-minY),nextScale=Math.min(r.width/width,r.height/Math.max(1,height*cos))*.94;
@@ -2201,11 +2238,11 @@ function focusSpatialSelection(){
 }
 function finishSpatialSelection(focus=true){
   if(!spatialSelectionActive)return false;
-  const count=spatialSelectedCells.size,kind=spatialSelectionKind||'REGION';
-  if(focus&&count)focusSpatialSelection();
+  const snapshot=spatialSelectionSnapshot(),count=snapshot.selectedCells.length,kind=spatialSelectionKind||'REGION';
+  if(focus&&count){applySpatialSelectionFocus(snapshot);focusSpatialSelection(snapshot)}
   spatialSelectionActive=false;spatialSelectionPointerId=null;spatialTouchPointers.clear();spatialTouchStart=null;spatialTouchPinchStart=null;spatialTouchHadPinch=false;
   spatialSelectedCells.clear();renderSpatialSelectionOverlay();publishSpatialSelectionChange();
-  announce(`${kind.charAt(0)+kind.slice(1).toLowerCase()} saved from ${count} visible ${spatialSelectionGridShape} cells. The viewer is focused on that space.`);
+  announce(`${kind.charAt(0)+kind.slice(1).toLowerCase()} saved from ${count} visible ${spatialSelectionGridShape} cells. Everything outside that space is hidden until World Home.`);
   return true;
 }
 function cancelSpatialSelection(){spatialSelectionActive=false;spatialSelectionPointerId=null;spatialTouchPointers.clear();spatialTouchStart=null;spatialTouchPinchStart=null;spatialTouchHadPinch=false;spatialSelectedCells.clear();if(spatialSelectionPreviousGrid)applyViewerGridMode(spatialSelectionPreviousGrid.shape,false,spatialSelectionPreviousGrid.columns,spatialSelectionPreviousGrid.rows);spatialSelectionPreviousGrid=null;renderSpatialSelectionOverlay();publishSpatialSelectionChange();announce('Region selection cancelled.');return true}
@@ -4190,6 +4227,8 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!tierMenu.
 
 function showAllParallax(){
   if(REGION_DEFINER)return false;
+  clearSpatialDefinitionFocus();
+  delete stage.dataset.spatialFocus;
   externalSpatialScope='WORLD';externalSpatialNodeId='';externalSpatialPath='';
   viewerTier='all';
   viewerLayer=9;
