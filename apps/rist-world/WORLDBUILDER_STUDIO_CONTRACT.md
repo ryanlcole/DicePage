@@ -21,6 +21,9 @@ The World Builder is a dedicated studio workspace for constructing the physical-
 - `ParentNodeId` records lineage/focus context; it is not proof that two boundary geometries cannot overlap.
 - `Instance` is the semantic transition to a scene/simulation boundary. It is not required to be a child of a hard-coded Local level and is not defined by one fixed physical distance.
 - Legacy RegionDefiner records remain readable, but entering a Region/deed must not replace the canonical World Builder with a second editor.
+- A deed requester selects the requested X/Y footprint. The requester does not grant their own Tier/Layer entitlement.
+- A GM/editor with deed authority allocates the authoritative Tier/Layer slice. During direct GM editing, Tier/Layer controls are available inside the frozen selection view and the save does not require a self-approval request.
+- A non-GM deed request may carry the currently viewed depth as request context, but the GM may change that depth before approval.
 
 ## GM construction grid authority
 
