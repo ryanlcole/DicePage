@@ -26,8 +26,6 @@ function messageMatchesCurrentFrame(frame,data){
   for(const field of fields){
     const expected=String(current[field]||"");
     const actual=String(data?.[field]||"");
-    // When the current iframe is deed-scoped, an older script that emits no
-    // identity is stale by definition and must not control parent navigation.
     if(expected&&actual!==expected)return false;
     if(!expected&&actual)return false;
   }
@@ -51,15 +49,9 @@ async function waitForPrototype(frame,timeoutMs=3000){
 }
 
 export async function placeAsset(frame,payload){
-  // Re-announce the host before every canonical commit. If attach() happened
-  // before the iframe finished booting, its first bridge-ready message could
-  // have been missed and saves would otherwise appear to do nothing.
   post(frame,{type:"bridge-ready"});
   const api=await waitForPrototype(frame);
   if(!api)return false;
-
-  // Give the child one event turn to accept bridge-ready before its save path
-  // checks worldSourceHostReady.
   await new Promise(resolve=>setTimeout(resolve,50));
   const fn=api.placeExternalAsset;
   if(typeof fn!=="function")return false;
@@ -173,6 +165,20 @@ export function attach(frame,dotnet){
         post(frame,worldSource
           ?{type:"world-source",worldSource}
           :{type:"world-source-missing"});
+        return;
+      }
+      if(data.type==="spatial-depth-authority-request"){
+        if(!messageMatchesCurrentFrame(frame,data))return;
+        const requestId=String(data.requestId||"");
+        const result=await dotnet.invokeMethodAsync("GetWorldBuilderDepthAuthorityAsync");
+        post(frame,{type:"spatial-depth-authority",requestId,result});
+        return;
+      }
+      if(data.type==="spatial-depth-change"){
+        if(!messageMatchesCurrentFrame(frame,data))return;
+        const tier=Number.isFinite(Number(data.tier))?Math.max(0,Math.trunc(Number(data.tier))):0;
+        const layer=Number.isFinite(Number(data.layer))?Math.max(0,Math.trunc(Number(data.layer))):0;
+        await dotnet.invokeMethodAsync("ReceiveWorldBuilderSpatialDepthAsync",tier,layer);
         return;
       }
       if(data.type==="selection-context"){
