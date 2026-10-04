@@ -1778,18 +1778,19 @@ function applyParallax(){
     const worldVisible=(BASE_WORLD_ASSETS.length>0||!DEED_REGION_ID)
       &&(spatialScope==='WORLD'||(spatialScope==='REGION'&&!regionEnhanceActive));
     entry.node.style.opacity=worldVisible&&layerReady[entry.key]&&sourceVisible?String(clamp(Number(entry.alpha)||0,0,1)):'0';
-    const depth=REGION_DEFINER&&regionClaimedRegion?0:presentationDepthForTier(entry.tier);
-    const panStrength=depth*.055;
-    const tiltStrength=depth===0?0:.42+(depth*.78);
+    const depth=presentationDepthForTier(entry.tier);
+    const renderedDepth=REGION_DEFINER&&regionClaimedRegion?0:depth;
+    const panStrength=renderedDepth*.055;
+    const tiltStrength=renderedDepth===0?0:.42+(renderedDepth*.78);
     const px=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
     const py=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     entry.node.dataset.parallaxX=px.toFixed(4);entry.node.dataset.parallaxY=py.toFixed(4);
     entry.node.style.transform=`translate3d(${px.toFixed(2)}px,${py.toFixed(2)}px,0)`;
   }
   for(const item of userLayers){
-    // A new/unsaved placement must stay visible even when its target tier is hidden,
-    // otherwise it looks as if upload failed. Canonical lower tiers remain visible
-    // as read-only context while Region Definer edits the selected tier.
+    // A new/unsaved placement must stay visible even when its target tier is hidden.
+    // Once a Region is saved, only its chosen cropped World source is inherited;
+    // the surrounding World and unrelated source tiers are no longer context.
     const regionTier=currentRegionTierIndex();
     const regionalLayerVisible=!item.canonicalSource||regionSourceLayerVisible(item.tier,item.layer);
     const itemScope=normalizeSpatialScope(item.scope||'WORLD');
@@ -1812,10 +1813,12 @@ function applyParallax(){
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
-    // Presentation is compact and identical across zones. Semantic tier/layer
-    // identity remains unchanged in the saved world source.
-    const depth=REGION_DEFINER&&regionClaimedRegion&&item.canonicalSource?0:presentationDepthForTier(item.tier);
-    const panStrength=depth*.022,tiltStrength=depth*.48;
+    // Presentation is compact everywhere. A claimed Region flattens inherited
+    // World source to its own base tier; Region-authored higher tiers can add
+    // parallax later without mutating the source World layer identity.
+    const depth=presentationDepthForTier(item.tier);
+    const renderedDepth=REGION_DEFINER&&regionClaimedRegion&&item.canonicalSource?0:depth;
+    const panStrength=renderedDepth*.022,tiltStrength=renderedDepth*.48;
     item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
     item.parallaxY=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);

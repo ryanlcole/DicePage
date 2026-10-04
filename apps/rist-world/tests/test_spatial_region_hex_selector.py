@@ -71,7 +71,8 @@ def test_saved_region_is_hard_cropped_and_world_source_is_flat_until_region_tier
     assert "function claimedRegionSourceLayerSet()" in prototype
     assert "viewerTier=tierByIndex(0).key" in prototype
     assert "entry.tier===regionSourceTier" in prototype
-    assert "item.canonicalSource?0:presentationDepthForTier(item.tier)" in prototype
+    assert "const depth=presentationDepthForTier(item.tier);" in prototype
+    assert "const renderedDepth=REGION_DEFINER&&regionClaimedRegion&&item.canonicalSource?0:depth;" in prototype
     assert "flattened as Region base Tier 1" in prototype
 
 
