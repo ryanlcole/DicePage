@@ -3,7 +3,7 @@
 @inject WorldSession Session
 @inject IJSRuntime JS
 
-<div class="region-definer-host"
+<div class="region-definer-host @(EmbeddedController?"embedded-controller-host":"")"
      data-world-id="@Session.WorldId"
      data-world-name="@Session.WorldDisplayName"
      aria-label="Region Definer">
@@ -50,6 +50,10 @@
 
  [Parameter] public EventCallback OnStartMenu { get; set; }
  [Parameter] public EventCallback OnHome { get; set; }
+ [Parameter] public EventCallback<RegionDefinerControllerState> OnControllerState { get; set; }
+ [Parameter] public bool EmbeddedController { get; set; }
+ [Parameter] public bool NewRegionFlow { get; set; }
+ [Parameter] public string SeedOverride { get; set; } = "";
 
  string BuilderSrc
  {
@@ -61,14 +65,14 @@
    // fantasy-fiction bootstrap; Geonaph is Truth/Hybrid and must hydrate only from
    // its own database-backed region/history layers. Legacy geonaph asset paths do
    // not grant Endemar content to the Geonaph zone.
-   var activeRegion=Session.ActiveRegion;
+   var activeRegion=NewRegionFlow?null:Session.ActiveRegion;
    var activeParcel=string.IsNullOrWhiteSpace(activeRegion?.ParcelId)
     ?null
     :Session.MmoParcels.FirstOrDefault(parcel=>string.Equals(parcel.ParcelId,activeRegion!.ParcelId,StringComparison.Ordinal));
    var isEndemar=Session.IsGeonaphWorld&&string.IsNullOrWhiteSpace(activeRegion?.ParcelId);
    var isGeonaph=activeParcel is not null
     &&string.Equals(activeParcel.DisplayName,WorldSession.GeonaphZoneDisplayName,StringComparison.OrdinalIgnoreCase);
-   var seed=isEndemar?"endemar":isGeonaph?"geonaph":"empty";
+   var seed=!string.IsNullOrWhiteSpace(SeedOverride)?SeedOverride.Trim().ToLowerInvariant():isEndemar?"endemar":isGeonaph?"geonaph":"empty";
    var surfacePixels=activeRegion?.ParcelPixelWidth>0
     ? activeRegion.ParcelPixelWidth
     : Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
@@ -86,9 +90,10 @@
      ?WorldSession.GeonaphTruthMode
      :"UNSPECIFIED";
    var access=(Session.HasTrustedWorldBuilderAuthority||Session.CanEditRegion(activeRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
-   var regionFlow=activeRegion is null?"new":"existing";
-   var regionId=Uri.EscapeDataString(activeRegion?.RegionId??"");
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}&renderer=20261003-zone-identity-select-1";
+   var regionFlow=NewRegionFlow?"new":activeRegion is null?"new":"existing";
+   var regionId=Uri.EscapeDataString(NewRegionFlow?"":activeRegion?.RegionId??"");
+   var embedded=EmbeddedController?"&embedded-controller=1":"";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}{embedded}&renderer=20261004-controller-reuse-regiondefiner-1";
   }
  }
 
@@ -98,7 +103,7 @@
 
   // Attach the canonical-map bridge before loading region/claim metadata.
   // Viewer rendering must never wait on permission metadata or MMO claim refresh.
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20260920-region-entry-2");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20261004-controller-adapter-1");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
@@ -108,6 +113,11 @@
    if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
    await Session.LoadRegionsAsync();
    await _module.InvokeVoidAsync("refresh",_frame,_self);
+   if(EmbeddedController)
+   {
+    if(NewRegionFlow)await _module.InvokeVoidAsync("enterControllerRegionSelection",_frame);
+    else await _module.InvokeVoidAsync("publishControllerState",_frame);
+   }
   }
   catch
   {
@@ -119,6 +129,64 @@
  public async Task RequestHomeFromPrototypeAsync()
  {
   if(OnHome.HasDelegate)await OnHome.InvokeAsync();
+ }
+
+ [JSInvokable]
+ public async Task ReceiveControllerStateAsync(string phase,int selectedCount,string gridShape,int tierIndex,bool pending,bool exitRequested,string regionId,string regionName)
+ {
+  if(OnControllerState.HasDelegate)
+   await OnControllerState.InvokeAsync(new RegionDefinerControllerState(phase,selectedCount,gridShape,tierIndex,pending,exitRequested,regionId,regionName));
+ }
+
+ public async Task<RegionDefinerControllerState?> GetControllerStateAsync()
+ {
+  if(_module is null)return null;
+  try{return await _module.InvokeAsync<RegionDefinerControllerState?>("getControllerState",_frame);}catch(JSException){return null;}
+ }
+ public async Task<RegionDefinerControllerState?> PrimaryAsync(string name="")
+ {
+  if(_module is null)return null;
+  try{return await _module.InvokeAsync<RegionDefinerControllerState?>("controllerPrimary",_frame,name);}catch(JSException){return null;}
+ }
+ public async Task<RegionDefinerControllerState?> BackAsync()
+ {
+  if(_module is null)return null;
+  try{return await _module.InvokeAsync<RegionDefinerControllerState?>("controllerBack",_frame);}catch(JSException){return null;}
+ }
+ public async Task<bool> StepAsync(string axis,int direction)
+ {
+  if(_module is null)return false;
+  try{return await _module.InvokeAsync<bool>("controllerStep",_frame,axis,direction);}catch(JSException){return false;}
+ }
+ public async Task<bool> SelectAsync()
+ {
+  if(_module is null)return false;
+  try{return await _module.InvokeAsync<bool>("controllerSelect",_frame);}catch(JSException){return false;}
+ }
+ public async Task<bool> ToggleGridAsync()
+ {
+  if(_module is null)return false;
+  try{return await _module.InvokeAsync<bool>("controllerToggleGrid",_frame);}catch(JSException){return false;}
+ }
+ public async Task<bool> SetDepthAsync(int tier,int layer,string scope,string spatialNodeId="",string spatialPath="")
+ {
+  if(_module is null)return false;
+  try{return await _module.InvokeAsync<bool>("setDepth",_frame,tier,layer,scope,spatialNodeId,spatialPath);}catch(JSException){return false;}
+ }
+ public async Task<bool> PlaceAssetAsync(object payload)
+ {
+  if(_module is null)return false;
+  try{return await _module.InvokeAsync<bool>("placeAsset",_frame,payload);}catch(JSException){return false;}
+ }
+ public async Task<string> EditCommandAsync(string command)
+ {
+  if(_module is null)return "Region viewer editing tools are still loading.";
+  try{return await _module.InvokeAsync<string>("editCommand",_frame,command);}catch(JSException){return "Region viewer editing tools are still loading.";}
+ }
+ public async Task<bool> ShowAllParallaxAsync()
+ {
+  if(_module is null)return false;
+  try{return await _module.InvokeAsync<bool>("showAllParallax",_frame);}catch(JSException){return false;}
  }
 
  [JSInvokable]

@@ -146,7 +146,7 @@ const spatialTouchPointers=new Map();
 let spatialTouchStart=null,spatialTouchPinchStart=null,spatialTouchHadPinch=false;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
-let regionGridShape='square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
+let regionGridShape=REGION_DEFINER&&EMBEDDED_CONTROLLER?'hex':'square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
 let regionWorldSourceMeta=null;
 let regionClaimMaskUrl='';
 const regionWorldSourceTiles=[];
@@ -974,7 +974,7 @@ function zoomScopeSteps(){
   return clamp(Math.floor((Math.log(ratio)/Math.log(SCOPE_ZOOM_FACTOR))+1e-9),0,SCOPE_ORDER.length-1);
 }
 function currentSpatialScope(){
-  if(REGION_DEFINER)return'REGION';
+  if(REGION_DEFINER&&!EMBEDDED_CONTROLLER)return'REGION';
   const base=spatialScopeIndex(externalSpatialScope);
   return SCOPE_ORDER[Math.min(SCOPE_ORDER.length-1,base+zoomScopeSteps())];
 }
@@ -2640,6 +2640,62 @@ function updateRegionSelectionOverlay(){
   overlay.setAttribute('aria-hidden',String(!active&&!regionCropPreview));
   overlay.innerHTML=regionSelectionSvg();
   stage.classList.toggle('region-crop-preview',!!regionCropPreview);
+  if(EMBEDDED_CONTROLLER)publishRegionControllerState();
+}
+function getRegionControllerState(exitRequested=false){
+  return{phase:String(regionClaimPhase||'idle'),selectedCount:regionSelectedCells.size,gridShape:normalizeRegionGridShape(regionGridShape),tierIndex:currentRegionTierIndex(),pending:!!regionCreatePending,exitRequested:!!exitRequested,regionId:String(regionClaimedRegion?.id||pendingClaimedRegionId||''),regionName:String(regionClaimedRegion?.name||regionNameDraft||'')};
+}
+function publishRegionControllerState(exitRequested=false){
+  const state=getRegionControllerState(exitRequested);
+  if(REGION_DEFINER&&EMBEDDED_CONTROLLER)postRegionMessage('controller-state',{state});
+  return state;
+}
+function enterRegionController(){
+  if(!REGION_DEFINER||!EMBEDDED_CONTROLLER)return false;
+  externalSpatialScope='REGION';regionGridShape='hex';
+  if(regionClaimPhase==='tier-preview')chooseRegionClaimTier(currentRegionTierIndex());
+  else{updateRegionSelectionOverlay();applyTransform()}
+  publishRegionControllerState();return true;
+}
+function regionControllerPrimary(name=''){
+  if(!REGION_DEFINER||!EMBEDDED_CONTROLLER)return getRegionControllerState();
+  name=String(name||'').trim();
+  if(regionClaimPhase==='tier-preview'){chooseRegionClaimTier(currentRegionTierIndex());return getRegionControllerState()}
+  if(regionClaimPhase==='select'){
+    if(!regionSelectedCells.size){announce('Select at least one region tile first.');return getRegionControllerState()}
+    previewRegionCrop();
+    if(name){regionNameDraft=name;createRegionDefinition()}
+    return getRegionControllerState();
+  }
+  if(regionClaimPhase==='crop'){
+    if(name){regionNameDraft=name;createRegionDefinition()}
+    return getRegionControllerState();
+  }
+  return getRegionControllerState();
+}
+function regionControllerBack(){
+  if(!REGION_DEFINER||!EMBEDDED_CONTROLLER)return getRegionControllerState(true);
+  if(regionClaimPhase==='crop'){returnToRegionSelection();return getRegionControllerState()}
+  return publishRegionControllerState(true);
+}
+function regionControllerStep(axis,direction){
+  if(!REGION_DEFINER||!EMBEDDED_CONTROLLER)return false;
+  direction=Math.sign(Number(direction)||0);if(!direction)return false;
+  if(regionClaimPhase==='tier-preview'&&String(axis).toLowerCase()==='x'){stepRegionTierPreview(direction);publishRegionControllerState();return true}
+  if(regionClaimPhase==='select'||regionClaimPhase==='crop'){
+    const step=Math.max(18,Math.min(stage.clientWidth,stage.clientHeight)*.06);
+    if(String(axis).toLowerCase()==='x')x-=direction*step;else y+=direction*step;
+    applyTransform();return true;
+  }
+  return false;
+}
+function regionControllerSelect(){
+  if(!REGION_DEFINER||!EMBEDDED_CONTROLLER||regionClaimPhase!=='select'||READ_ONLY)return false;
+  const point=viewerCenterPosition();toggleRegionCell(regionCellFromPoint(point.x,point.y,regionGridShape));return true;
+}
+function regionControllerToggleGrid(){
+  if(!REGION_DEFINER||!EMBEDDED_CONTROLLER)return false;
+  cycleRegionGridShape();publishRegionControllerState();return true;
 }
 function regionNameInput(){
   const input=document.createElement('input');input.type='text';input.className='region-name-input';input.maxLength=80;input.value=regionNameDraft;input.placeholder='Region name';input.setAttribute('aria-label','Region name');
@@ -4141,6 +4197,14 @@ window.ShaelvienPrototype=Object.freeze({
   showAllParallax,
   setExternalDepth,
   setSpatialDefinition,
+  enterRegionController,
+  getRegionControllerState,
+  publishRegionControllerState,
+  regionControllerPrimary,
+  regionControllerBack,
+  regionControllerStep,
+  regionControllerSelect,
+  regionControllerToggleGrid,
   beginSpatialSelection,
   getSpatialSelection,
   finishSpatialSelection,

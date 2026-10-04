@@ -4,6 +4,20 @@ function post(frame,message){
   try{frame?.contentWindow?.postMessage({source:"shaelvien-regiondefiner-host",...message},location.origin)}catch{}
 }
 
+async function waitForPrototype(frame,timeoutMs=3000){
+  const started=Date.now();
+  while(Date.now()-started<timeoutMs){
+    const api=frame?.contentWindow?.ShaelvienPrototype;
+    if(api)return api;
+    await new Promise(resolve=>setTimeout(resolve,50));
+  }
+  return null;
+}
+async function callPrototype(frame,name,...args){
+  const api=await waitForPrototype(frame),fn=api?.[name];
+  if(typeof fn!=="function")return null;
+  return await fn(...args);
+}
 async function sendState(frame,dotnet){
   try{
     const worldSource=await dotnet.invokeMethodAsync("GetWorldSourceForPrototype");
@@ -19,9 +33,19 @@ async function sendState(frame,dotnet){
   }
 }
 
-export async function refresh(frame,dotnet){
-  await sendState(frame,dotnet);
-}
+export async function refresh(frame,dotnet){await sendState(frame,dotnet)}
+export async function enterControllerRegionSelection(frame){return (await callPrototype(frame,"enterRegionController"))!==false}
+export async function publishControllerState(frame){return await callPrototype(frame,"publishRegionControllerState")}
+export async function getControllerState(frame){return await callPrototype(frame,"getRegionControllerState")}
+export async function controllerPrimary(frame,name=""){return await callPrototype(frame,"regionControllerPrimary",String(name||""))}
+export async function controllerBack(frame){return await callPrototype(frame,"regionControllerBack")}
+export async function controllerStep(frame,axis,direction){return (await callPrototype(frame,"regionControllerStep",String(axis||""),Math.sign(Number(direction)||0)))!==false}
+export async function controllerSelect(frame){return (await callPrototype(frame,"regionControllerSelect"))!==false}
+export async function controllerToggleGrid(frame){return (await callPrototype(frame,"regionControllerToggleGrid"))!==false}
+export async function setDepth(frame,tier,layer,scope,spatialNodeId="",spatialPath=""){return (await callPrototype(frame,"setExternalDepth",{tier,layer,scope,spatialNodeId,spatialPath}))!==false}
+export async function placeAsset(frame,payload){return (await callPrototype(frame,"placeExternalAsset",payload||{}))!==false}
+export async function editCommand(frame,command){const result=await callPrototype(frame,"editCommand",String(command||"").toLowerCase());return typeof result==="string"?result:""}
+export async function showAllParallax(frame){return (await callPrototype(frame,"showAllParallax"))!==false}
 
 export function detach(frame){
   const existing=bridges.get(frame);
@@ -43,6 +67,11 @@ export function attach(frame,dotnet){
       }
       if(data.type==="ready"){
         await sendState(frame,dotnet);
+        return;
+      }
+      if(data.type==="controller-state"){
+        const state=data.state&&typeof data.state==="object"?data.state:{};
+        await dotnet.invokeMethodAsync("ReceiveControllerStateAsync",String(state.phase||"idle"),Math.max(0,Math.trunc(Number(state.selectedCount)||0)),String(state.gridShape||"hex"),Math.max(0,Math.trunc(Number(state.tierIndex)||0)),state.pending===true,state.exitRequested===true,String(state.regionId||""),String(state.regionName||""));
         return;
       }
       if(data.type==="request-claim"){
