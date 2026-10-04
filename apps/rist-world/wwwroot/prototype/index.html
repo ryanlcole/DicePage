@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#05080b" />
   <title>Shaelvien World Builder</title>
-  <link rel="stylesheet" href="./prototype.css?v=20261003-spatial-region-hex-1" />
+  <link rel="stylesheet" href="./prototype.css?v=20261004-continuous-space-1" />
 </head>
 <body>
 <main class="shell" aria-label="Shaelvien World Builder">
@@ -38,7 +38,8 @@
         <header><strong>SETTINGS</strong><button id="viewerSettingsClose" type="button" aria-label="Close settings">×</button></header>
         <p id="viewerShortcuts">Focus the map with Tab or click its background. Arrow keys pan (Shift for larger steps), + / = and − zoom, F fits the map, T opens tiers, S settings, K the tool keyboard, and U image upload when editing is allowed. Escape closes panels. Tab moves to controls; Enter or Space activates buttons.</p>
         <button id="settingsFit" type="button" aria-label="Fit map to screen"><span aria-hidden="true">⛶</span><strong aria-hidden="true">View</strong></button>
-        <button id="settingsResetTilt" type="button"><span aria-hidden="true">⌁</span><strong>Reset Tilt</strong></button>
+        <button id="settingsResetTilt" type="button"><span aria-hidden="true">⌁</span><strong>Reset Device Tilt</strong></button>
+        <label class="viewer-angle-setting" for="viewAngleSelect"><span>VIEW ANGLE</span><select id="viewAngleSelect" aria-label="World Builder view angle"><option value="0">Top · 0°</option><option value="15">Shallow · 15°</option><option value="30">Depth · 30°</option><option value="45">Steep · 45°</option></select><small>Changes perspective only. World coordinates stay fixed.</small></label>
         <button id="settingsUpscale" type="button" aria-pressed="false" aria-label="Enable two times high resolution rendering"><span aria-hidden="true">2×</span><strong id="settingsUpscaleLabel">Upscale</strong></button>
         <button id="settingsStartMenu" type="button"><span aria-hidden="true">⌂</span><strong>Start Menu</strong></button>
       </div>
@@ -89,6 +90,6 @@
   </section>
 </main>
 <script src="./viewer-input.js?v=20260920-desktop-input-1"></script>
-<script src="./prototype.js?v=20261004-region-hard-crop-grid-2"></script>
+<script src="./prototype.js?v=20261004-continuous-space-1"></script>
 </body>
 </html>
