@@ -2068,11 +2068,27 @@
      _=ShowAllWorldLayersAsync();
      _message="Returned to World Home with all layers and parallax visible.";
     }
+    else if(CurrentBuilderScope=="INSTANCE"&&_regionDefinerOpen)
+    {
+     _builderChainIndex=2;
+     _assetScope="LOCAL";
+     _stage=Stage.WorldBuilderTier;
+     _=SyncWorldBuilderDepthAsync();
+     _message="Returned from Instance to Local in the same recursive viewer.";
+    }
+    else if(CurrentBuilderScope=="LOCAL"&&_regionDefinerOpen)
+    {
+     _builderChainIndex=1;
+     _assetScope="REGION";
+     _stage=Stage.WorldBuilderTier;
+     _=SyncWorldBuilderDepthAsync();
+     _message="Returned from Local to Region in the same recursive viewer.";
+    }
     else
     {
      _stage=Stage.SpatialSelect;
      SelectActiveSpatialOption();
-     _message=$"Returned to {CurrentBuilderScope} selection. {CurrentSpatialSelectionLabel}.";
+     _message=$"Returned to Region selection. {CurrentSpatialSelectionLabel}.";
     }
     break;
    case Stage.WorldBuilderLayer:
@@ -2835,7 +2851,7 @@
    _message="The selected asset has no usable source URL.";
    return false;
   }
-  if(_worldBuilderSourceModule is null)
+  if(_worldBuilderSourceModule is null&&!(_regionDefinerOpen&&_regionDefinerWorkspace is not null))
   {
    _message="The canonical World Builder bridge is not ready yet.";
    return false;
@@ -2843,10 +2859,7 @@
 
   try
   {
-   var committed=await _worldBuilderSourceModule.InvokeAsync<bool>(
-    "placeAsset",
-    _worldBuilderFrame,
-    new
+   var payload=new
     {
      key=_selectedAssetKey,
      assetId=_selectedAssetKey,
@@ -2863,7 +2876,10 @@
      rotation=_assetRotation,
      offsetX=_assetX,
      offsetY=_assetY
-    });
+    };
+   var committed=_regionDefinerOpen&&_regionDefinerWorkspace is not null
+    ?await _regionDefinerWorkspace.PlaceAssetAsync(payload)
+    :await _worldBuilderSourceModule!.InvokeAsync<bool>("placeAsset",_worldBuilderFrame,payload);
    if(!committed)
    {
     _message="The canonical World Builder did not commit the placement.";
@@ -2899,6 +2915,11 @@
 
  async Task ShowAllWorldLayersAsync()
  {
+  if(_regionDefinerOpen&&_regionDefinerWorkspace is not null)
+  {
+   await _regionDefinerWorkspace.ShowAllParallaxAsync();
+   return;
+  }
   if(_worldBuilderSourceModule is null)return;
   try
   {
@@ -2909,22 +2930,15 @@
 
  async Task SyncWorldBuilderDepthAsync()
  {
+  if(_regionDefinerOpen&&_regionDefinerWorkspace is not null)
+  {
+   await _regionDefinerWorkspace.SetDepthAsync(_tier,_layer,CurrentBuilderScope,CurrentSpatialNodeId,CurrentSpatialPath);
+   return;
+  }
   if(_worldBuilderSourceModule is null)return;
   try
   {
-   object? spatialDefinition=null;
-   if((CurrentBuilderScope is "REGION" or "LOCAL")&&Session.ActiveSpatialRegion is { } region)
-   {
-    spatialDefinition=new
-    {
-     gridShape=region.GridShape,
-     columns=region.GridColumns,
-     rows=region.GridRows,
-     selectedCells=region.SelectedCells??[]
-    };
-   }
    await _worldBuilderSourceModule.InvokeVoidAsync("setDepth",_worldBuilderFrame,_tier,_layer,CurrentBuilderScope,CurrentSpatialNodeId,CurrentSpatialPath);
-   await _worldBuilderSourceModule.InvokeVoidAsync("setSpatialDefinition",_worldBuilderFrame,spatialDefinition);
   }
   catch(JSException){}
  }
@@ -3355,7 +3369,9 @@
 
   try
   {
-   var result=await _worldBuilderSourceModule.InvokeAsync<string>("editCommand",_worldBuilderFrame,command);
+   var result=_regionDefinerOpen&&_regionDefinerWorkspace is not null
+    ?await _regionDefinerWorkspace.EditCommandAsync(command)
+    :await _worldBuilderSourceModule.InvokeAsync<string>("editCommand",_worldBuilderFrame,command);
    _message=string.IsNullOrWhiteSpace(result)?$"{command.ToUpperInvariant()} completed.":result;
   }
   catch(Exception ex)
