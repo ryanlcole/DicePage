@@ -16,29 +16,24 @@ def test_shaelvien_deeds_expand_only_across_flat_sides():
     assert "not yet connected to the claim frontier" in gate
 
 
-def test_gamemaster_root_matches_worldbuilder_context_contract():
+def test_gamemaster_worldbuilder_enters_one_continuous_space():
     component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
 
     assert 'GameMasterPaths=["WORLD BUILDER","CONTEXT"]' in component
-    assert 'Scopes=["WORLD","REGION","LOCAL","INSTANCE","CAMPAIGN"]' in component
-    assert 'ContextPath=["HISTORY","LORE","TRUTH"]' in component
-    assert 'WorldBuilderPath=["WORLD","REGION","LOCAL","INSTANCE","CAMPAIGN"]' in component
+    begin = component[component.index("void BeginGameMasterPath()"):component.index("void SelectArtMethod()")]
+    assert "_stage=Stage.WorldHome;" in begin
+    assert "World Builder is one continuous space." in begin
+    assert "Stage.GameMasterScope" not in begin
 
 
-def test_region_boundary_then_local_instance_continue_recursively():
+def test_zoom_scope_is_resolution_not_a_separate_editor():
     component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
-    region = (ROOT / "Components/RegionDefinerWorkspace.razor").read_text(encoding="utf-8")
 
-    assert "SpatialSelect" in component
-    assert "Session.SetActiveRegion" in component
-    assert "Session.CreateRegionAsync" in region
-    assert "if(requested>=2&&Session.ActiveRegion is null)current=1;" in component
-    assert 'CurrentBuilderScope=="REGION"' in component
-    assert "Local and Instance" in component
-    assert "_regionDefinerOpen=true" in component
-    assert "_regionDefinerWorkspace.SetDepthAsync" in component
-    assert "Returned from Instance to Local in the same recursive viewer." in component
-    assert "Returned from Local to Region in the same recursive viewer." in component
+    begin = component[component.index("void BeginBuilderScope"):component.index("void SelectActiveSpatialOption")]
+    assert "resolution label, not a separate editor" in begin
+    assert "_regionDefinerOpen=true" not in begin
+    assert "_stage=Stage.SpatialSelect" not in begin
+    assert "_stage=Stage.WorldHome" in begin
 
 
 def test_selected_spatial_identity_is_persisted_with_assets():
@@ -47,7 +42,7 @@ def test_selected_spatial_identity_is_persisted_with_assets():
     prototype = (ROOT / "wwwroot/prototype/prototype.js").read_text(encoding="utf-8")
 
     assert "spatialNodeId=CurrentSpatialNodeId" in component
-    assert "spatialPath=CurrentSpatialPath" in component
+    assert "Session.ActiveSpatialRegion?.NodeId" in component
     assert 'setDepth(frame,tier,layer,scope,spatialNodeId="",spatialPath="")' in bridge
     assert "spatialNodeId:String(item.spatialNodeId||'')" in prototype
     assert "spatialPath:String(item.spatialPath||'')" in prototype
@@ -61,8 +56,6 @@ def test_owner_inspect_and_account_world_list_are_separate_from_claiming():
     workflow = (REPO / ".github/workflows/deploy-rist-platform.yml").read_text(encoding="utf-8")
     discord = (REPO / "infra/aws/rist-discord-storage.yml").read_text(encoding="utf-8")
 
-    # Deed-selector authority is server-derived. Client display/config state must
-    # never manufacture owner/developer capability.
     assert "Session.TrustedPlatformOwner" in component
     assert "Session.TrustedPlatformDeveloper" in component
     assert '"__endemar__"' in component
@@ -72,15 +65,11 @@ def test_owner_inspect_and_account_world_list_are_separate_from_claiming():
     assert "profile?.PlatformOwner == true" in authority
     assert '"access.developer"' in authority
 
-    # Discord auth and platform deployment must derive the owner from the same
-    # stable UUIDv5 mapping so a stale repository variable cannot hide Inspect.
     formula = 'uuid.uuid5(uuid.NAMESPACE_URL, "rist:discord:" + discord_id)'
     assert formula in workflow
     assert formula in discord
     assert 'OWNER_USER_ID="$DERIVED_OWNER_USER_ID"' in workflow
 
-    # Inline Inspect keeps MANAGE as the right-side action but can hand the
-    # selected deed into the normal audited World Builder.
     assert "OpenMmoInspectEditorAsync" in mmo
     assert "_inspectionEditMode = true;" in mmo
     assert "_stage = Stage.PathSelect;" in mmo
