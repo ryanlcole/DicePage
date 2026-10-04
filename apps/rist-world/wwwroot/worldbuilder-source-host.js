@@ -167,6 +167,16 @@ export function attach(frame,dotnet){
           :{type:"world-source-missing"});
         return;
       }
+      if(data.type==="spatial-depth-control-begin"){
+        if(!messageMatchesCurrentFrame(frame,data))return;
+        await dotnet.invokeMethodAsync("BeginWorldBuilderSpatialDepthControlAsync");
+        return;
+      }
+      if(data.type==="spatial-depth-control-end"){
+        if(!messageMatchesCurrentFrame(frame,data))return;
+        await dotnet.invokeMethodAsync("EndWorldBuilderSpatialDepthControlAsync");
+        return;
+      }
       if(data.type==="spatial-depth-authority-request"){
         if(!messageMatchesCurrentFrame(frame,data))return;
         const requestId=String(data.requestId||"");
