@@ -235,6 +235,24 @@ public partial class UniversalInterface
     {
         actionId = (actionId ?? "").Trim().ToLowerInvariant();
 
+        // Frozen deed selection still uses the normal parent semantic controller.
+        // The iframe only mirrors the depth selected here; it never owns or
+        // rewrites the left display and it cannot mutate _tier/_layer.
+        if (_spatialDefinitionActive && (_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer))
+        {
+            if (actionId == UniversalSemanticControls.Action.NavigateY)
+            {
+                await AdjustSpatialDepthSemanticAsync(direction);
+                return;
+            }
+
+            if (actionId is UniversalSemanticControls.Action.Secondary or UniversalSemanticControls.Action.Inspect)
+            {
+                await AdvanceSpatialDepthSemanticAsync();
+                return;
+            }
+        }
+
         switch (actionId)
         {
             case UniversalSemanticControls.Action.NavigateX:
@@ -337,8 +355,12 @@ public partial class UniversalInterface
                 await DispatchSemanticActionAsync(UniversalSemanticControls.Action.NavigateY, direction);
                 break;
             case "left-slider":
-                if (_stage == Stage.MmoMap) CycleMmoLeftOption(direction);
-                else ApplyY(direction);
+                if (_spatialDefinitionActive && (_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer))
+                    await AdjustSpatialDepthSemanticAsync(direction);
+                else if (_stage == Stage.MmoMap)
+                    CycleMmoLeftOption(direction);
+                else
+                    ApplyY(direction);
                 break;
             case "right-slider":
                 if (_stage == Stage.MmoMap) CycleMmoRightOption(direction);
