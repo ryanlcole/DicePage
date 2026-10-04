@@ -19,6 +19,9 @@ const context={
 
 let active=false;
 let depth={tier:0,layer:0};
+let settleFrame=0;
+let settleTimer=0;
+let depthSyncSerial=0;
 
 function post(type,extra={}){
   try{host.postMessage({source:'shaelvien-worldbuilder',type,...context,...extra},location.origin)}catch{}
@@ -32,8 +35,44 @@ function mirrorDepth(raw={}){
   return depth;
 }
 
+function cancelDepthSettlement(){
+  if(settleFrame)cancelAnimationFrame(settleFrame);
+  if(settleTimer)clearTimeout(settleTimer);
+  settleFrame=0;
+  settleTimer=0;
+}
+
+function applyBaseDepth(payload){
+  return baseApi?.setExternalDepth?.(payload);
+}
+
+function settleDepth(payload){
+  cancelDepthSettlement();
+  const serial=++depthSyncSerial;
+  const apply=()=>{
+    if(!active||serial!==depthSyncSerial)return false;
+    return applyBaseDepth(payload);
+  };
+
+  settleFrame=requestAnimationFrame(()=>{
+    apply();
+    settleFrame=requestAnimationFrame(()=>{
+      settleFrame=0;
+      apply();
+    });
+  });
+  settleTimer=setTimeout(()=>{
+    settleTimer=0;
+    apply();
+  },120);
+}
+
 function beginSpatialSelection(raw={}){
-  const started=baseApi?.beginSpatialSelection?.(raw);
+  // The frozen visible viewport stays identical, but the selection mesh is
+  // deliberately coarse enough for touch: 10×10 rather than 30×30 makes
+  // each hex about three times wider/taller over the same map window.
+  const options={...raw,gridShape:'hex',columns:10,rows:10};
+  const started=baseApi?.beginSpatialSelection?.(options);
   if(!started)return started;
 
   const snapshot=baseApi?.getSpatialSelection?.()||{};
@@ -55,7 +94,13 @@ function beginSpatialSelection(raw={}){
 function setExternalDepth(raw={}){
   const next=mirrorDepth(raw);
   const payload={...raw,tier:next.tier,layer:next.layer};
-  return baseApi?.setExternalDepth?.(payload);
+  const result=applyBaseDepth(payload);
+  // Selection startup installs the frozen-map wrappers immediately after the
+  // first render. Reassert the same parent-owned depth after those frames so
+  // the initial picture cannot remain on a stale top parallax tier until the
+  // user moves the Tier control.
+  if(active)settleDepth(payload);
+  return result;
 }
 
 function applyAuthoritySync(raw={}){
@@ -82,6 +127,8 @@ function getSpatialSelection(){
 }
 
 function cleanup(){
+  cancelDepthSettlement();
+  depthSyncSerial++;
   if(!active)return;
   active=false;
   post('spatial-depth-control-end');
@@ -117,5 +164,9 @@ window.ShaelvienPrototype=Object.freeze({
   cancelSpatialSelection
 });
 
-window.addEventListener('pagehide',()=>{active=false},{once:true});
+window.addEventListener('pagehide',()=>{
+  cancelDepthSettlement();
+  depthSyncSerial++;
+  active=false;
+},{once:true});
 })();
