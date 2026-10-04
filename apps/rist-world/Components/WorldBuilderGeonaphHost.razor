@@ -3,13 +3,7 @@
 @inject WorldSession Session
 @inject IJSRuntime JS
 
-@if(_enterParcel)
-{
- <RegionDefinerWorkspace OnStartMenu="OnStartMenu" OnHome="OnHome" />
-}
-else
-{
- <div class="geonaph-worldbuilder-host" data-world-id="@Session.WorldId" data-world-name="@Session.WorldDisplayName" aria-label="World Builder">
+<div class="geonaph-worldbuilder-host" data-world-id="@Session.WorldId" data-world-name="@Session.WorldDisplayName" aria-label="World Builder">
   <iframe
    @ref="_frame"
    class="geonaph-worldbuilder-frame"
@@ -126,7 +120,6 @@ else
    </section>
   }
  </div>
-}
 
 <style>
  .geonaph-worldbuilder-host{box-sizing:border-box;position:absolute;inset:0;z-index:2147481000;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:#05090c;contain:layout size}
@@ -158,7 +151,6 @@ else
  bool _claimOpen;
  bool _permissionsOpen;
  bool _busy;
- bool _enterParcel;
  int _selectedCell=-1;
  string _worldName="";
  string _delegateUserId="";
@@ -230,22 +222,43 @@ else
   {
    var worldId=Uri.EscapeDataString(Session.WorldId??"");
    var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
-   // The Shaelvien root editor represents Endemar. Geonaph is a separate deed/zone
-   // and is never bootstrapped through this root seed.
-   var seed=Session.IsGeonaphWorld?"endemar":"empty";
-   var surfacePixels=Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
-   var maxHeight=Session.IsGeonaphWorld?WorldSession.EndemarMaxHeight:WorldSession.LayersPerTier;
-   var truthMode=Session.IsGeonaphWorld?WorldSession.EndemarTruthMode:"UNSPECIFIED";
-   var surfacePolicy=Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
-   var access=Session.HasWorldBuilderEditAuthority?"edit":"view";
+   // Entering a parcel changes the active spatial identity, not the editor.
+   // Endemar, Geonaph, and every claimed deed stay in this same viewer.
+   var activeRegion=Session.ActiveRegion;
+   var activeParcel=string.IsNullOrWhiteSpace(activeRegion?.ParcelId)
+    ?null
+    :Session.MmoParcels.FirstOrDefault(parcel=>string.Equals(parcel.ParcelId,activeRegion!.ParcelId,StringComparison.Ordinal));
+   var isEndemar=Session.IsGeonaphWorld&&string.IsNullOrWhiteSpace(activeRegion?.ParcelId);
+   var isGeonaph=activeParcel is not null
+    &&string.Equals(activeParcel.DisplayName,WorldSession.GeonaphZoneDisplayName,StringComparison.OrdinalIgnoreCase);
+   var seed=!Session.IsGeonaphWorld?"empty":isEndemar?"endemar":isGeonaph?"geonaph":"empty";
+   var surfacePixels=activeRegion?.ParcelPixelWidth>0
+    ?activeRegion.ParcelPixelWidth
+    :Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
+   var maxHeight=isEndemar
+    ?WorldSession.EndemarMaxHeight
+    :activeRegion?.MaxHeight>0
+     ?activeRegion.MaxHeight
+     :Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
+   var truthMode=isEndemar
+    ?WorldSession.EndemarTruthMode
+    :isGeonaph
+     ?WorldSession.GeonaphTruthMode
+     :"UNSPECIFIED";
+   var surfacePolicy=!string.IsNullOrWhiteSpace(activeRegion?.ParcelId)
+    ?"mmo-parcel"
+    :Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
+   var access=Session.CanEditRegion(activeRegion)||Session.HasWorldBuilderEditAuthority?"edit":"view";
    var embedded=ViewerOnly?"&embedded-controller=1":"";
-   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&renderer=20261003-zone-identity-select-1{embedded}";
+   var regionId=Uri.EscapeDataString(activeRegion?.RegionId??"");
+   var parcelId=Uri.EscapeDataString(activeRegion?.ParcelId??"");
+   return $"/Game/prototype/index.html?live-worldbuilder=1&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&regionId={regionId}&parcelId={parcelId}&renderer=20261004-continuous-space-1{embedded}";
   }
  }
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
-  if(!firstRender||_enterParcel||_sourceBridgeAttached)return;
+  if(!firstRender||_sourceBridgeAttached)return;
   _sourceModule=await JS.InvokeAsync<IJSObjectReference>("import","./worldbuilder-source-host.js?v=20260920-canonical-roleplay-1");
   _sourceSelf=DotNetObjectReference.Create(this);
   await _sourceModule.InvokeVoidAsync("attach",_frame,_sourceSelf);
@@ -297,15 +310,8 @@ else
     await Session.RefreshMmoLandAsync();
     await Session.LoadRegionsAsync();
 
-    // The landing page chooses the MMO world inside Shaelvien. Preserve that
-    // nested selection when opening Worldbuilder instead of falling back to the
-    // Shaelvien/Endemar root every time.
-    if(Session.ActiveRegion is { ParcelId.Length:>0 } activeRegion)
-    {
-     var selected=Session.MmoParcels.FirstOrDefault(parcel=>
-      string.Equals(parcel.ParcelId,activeRegion.ParcelId,StringComparison.Ordinal));
-     _enterParcel=selected is not null&&Session.CanAccessMmoParcel(selected);
-    }
+    // Preserve whichever deed/region the landing page selected. The same
+    // World Builder iframe resolves that identity through BuilderSrc.
    }
   }
   finally{_loading=false;}
@@ -346,7 +352,7 @@ else
   }
   _claimOpen=false;
   _permissionsOpen=false;
-  _enterParcel=true;
+  await InvokeAsync(StateHasChanged);
  }
 
  async Task SavePermissionAsync()
