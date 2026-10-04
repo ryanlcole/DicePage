@@ -2591,6 +2591,11 @@
    {
     node=await CommitPendingSpatialRegionAsync();
     if(node is null)return;
+    BeginBuilderScope(2);
+    await SyncWorldBuilderDepthAsync();
+    _message=$"{node.Name} saved. Local view opened. Select or create a Local inside this Region.";
+    await InvokeAsync(StateHasChanged);
+    return;
    }
    else
    {
@@ -2604,9 +2609,14 @@
       return;
      }
 
+     if(CurrentBuilderScope=="REGION")
+     {
+      await BeginSpatialRegionDefinitionAsync(inspectionReason);
+      return;
+     }
+
      var suggested=CurrentBuilderScope switch
      {
-      "REGION"=>"New Region",
       "LOCAL"=>"New Local",
       "INSTANCE"=>"New Instance",
       _=>"New"
@@ -2616,12 +2626,6 @@
      if(name.Length==0)
      {
       _message=$"{CurrentBuilderScope} creation cancelled.";
-      return;
-     }
-
-     if(CurrentBuilderScope=="REGION")
-     {
-      await BeginSpatialRegionDefinitionAsync(name,inspectionReason);
       return;
      }
 
@@ -2671,7 +2675,7 @@
   }
  }
 
- async Task BeginSpatialRegionDefinitionAsync(string name,string inspectionReason)
+ async Task BeginSpatialRegionDefinitionAsync(string inspectionReason)
  {
   if(_worldBuilderSourceModule is null)
   {
@@ -2689,12 +2693,12 @@
    return;
   }
 
-  _pendingSpatialName=name;
+  _pendingSpatialName="";
   _pendingSpatialInspectionReason=inspectionReason;
   _spatialDefinitionActive=true;
   _spatialSelectionCount=0;
   _spatialSelectionGridShape="hex";
-  _message=$"{name}: hex grid active. Touch or drag across hexes, or use the analog and Select. Touch the left display again after at least one hex is selected.";
+  _message="Region selector active. Zoom or pan to the area, select the hexes, then touch Save Region to name and save it.";
   await InvokeAsync(StateHasChanged);
  }
 
@@ -2711,9 +2715,18 @@
    return null;
   }
 
+  var name=await JS.InvokeAsync<string?>("prompt","Name this region","New Region");
+  name=(name??"").Trim();
+  if(name.Length==0)
+  {
+   _message="Region save cancelled. Your selected hexes are still active.";
+   return null;
+  }
+  _pendingSpatialName=name;
+
   var node=await Session.CreateSpatialNodeAsync(
    "REGION",
-   _pendingSpatialName,
+   name,
    _inspectionEditMode,
    _pendingSpatialInspectionReason,
    selection.SelectedCells,
@@ -3066,7 +3079,7 @@
   try
   {
    object? spatialDefinition=null;
-   if(CurrentBuilderScope=="REGION"&&Session.ActiveSpatialRegion is { } region)
+   if(CurrentBuilderScope is "REGION" or "LOCAL"&&Session.ActiveSpatialRegion is { } region)
    {
     spatialDefinition=new
     {

@@ -43,6 +43,503 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: live-alpha-rist-blazor-world
+          fetch-depth: 2
+
+      - name: Detect frontend infrastructure changes
+        id: deployment_scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          infrastructure=false
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "workflow_run" ]; then
+            infrastructure=true
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            before="${{ github.event.before }}"
+            if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
+              infrastructure=true
+            else
+              changed="$(git diff --name-only "$before" "${{ github.sha }}" || true)"
+              if printf '%s\n' "$changed" | grep -Eq '^(infra/aws/rist-frontend\.yml|infra/aws/bootstrap-secure-deploy-roles\.sh)
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Prepare public data
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYDEPS="$RUNNER_TEMP/rist-pydeps"
+          rm -rf "$PYDEPS"
+          python -m pip install --disable-pip-version-check --target "$PYDEPS" Pillow==11.3.0
+          PYTHONPATH="$PYDEPS${PYTHONPATH:+:$PYTHONPATH}" python apps/rist-world/prepare_public_data.py
+
+      - name: Verify authenticated launch contract
+        run: python apps/rist-world/tests/authenticated_launch_contract_check.py
+
+      - name: Verify canonical viewer input
+        run: |
+          npm install --prefix "$RUNNER_TEMP/rist-viewer-tests" --no-audit --no-fund jsdom@26.1.0
+          node --check apps/rist-world/wwwroot/prototype/prototype.js
+          NODE_PATH="$RUNNER_TEMP/rist-viewer-tests/node_modules" node --test apps/rist-world/tests/canonical-viewer-*.test.cjs
+
+      - name: Verify private canonical source isolation
+        run: dotnet run --project apps/rist-world/tests/private-source/PrivateSourceTests.csproj -c Release
+
+      - name: Build RIST WORLD
+        run: dotnet publish apps/rist-world/RistWorld.csproj -c Release -o build/rist
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve optional ReLiC MCP origins
+        shell: bash
+        run: |
+          set -euo pipefail
+          MCP_RUNTIME_URL=""
+          MCP_AUTH_URL=""
+          if aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" >/dev/null 2>&1; then
+            MCP_API_URL=$(aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" \
+              --query "Stacks[0].Outputs[?OutputKey=='RelicMcpApiBaseUrl'].OutputValue | [0]" \
+              --output text 2>/dev/null || true)
+            MCP_RUNTIME_URL="$MCP_API_URL"
+            MCP_AUTH_URL="$MCP_API_URL"
+          fi
+          if [ "$MCP_RUNTIME_URL" = "None" ]; then MCP_RUNTIME_URL=""; fi
+          if [ "$MCP_AUTH_URL" = "None" ]; then MCP_AUTH_URL=""; fi
+          MCP_RUNTIME_DOMAIN=$(printf '%s' "$MCP_RUNTIME_URL" | sed -E 's#^https?://##; s#/$##')
+          MCP_AUTH_DOMAIN=$(printf '%s' "$MCP_AUTH_URL" | sed -E 's#^https?://##; s#/$##')
+          echo "MCP_RUNTIME_DOMAIN=$MCP_RUNTIME_DOMAIN" >> "$GITHUB_ENV"
+          echo "MCP_AUTH_DOMAIN=$MCP_AUTH_DOMAIN" >> "$GITHUB_ENV"
+          if [ -n "$MCP_RUNTIME_DOMAIN" ] && [ -n "$MCP_AUTH_DOMAIN" ]; then
+            echo "ReLiC MCP production-domain routing will be enabled."
+          else
+            echo "::warning::ReLiC MCP origin outputs are not deployed yet; frontend will remain safe without MCP routing. A successful external-AI deployment will trigger this workflow again."
+          fi
+
+      - name: Wait for required AWS artwork
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            assets/ui/map-pin.svg
+            assets/ui/icons/door.svg
+            assets/ui/icons/mode.svg
+            assets/ui/icons/assets.svg
+            assets/ui/icons/browse.svg
+            assets/ui/icons/role.svg
+            assets/ui/icons/grid.svg
+            assets/ui/icons/scale.svg
+            assets/ui/icons/save.svg
+            assets/ui/icons/load.svg
+            assets/spritesheets/magic-coins.webp
+          )
+          for path in "${required[@]}"; do
+            echo "Waiting for CDN asset: $path"
+            curl --fail --location --retry 18 --retry-delay 5 --retry-all-errors --output /dev/null "${ASSET_BASE_URL}${path}"
+          done
+          for path in assets/ui/mmo-toggle.webp assets/ui/sandbox-toggle.webp; do
+            if ! curl --fail --location --retry 2 --retry-delay 2 --output /dev/null "${ASSET_BASE_URL}${path}"; then
+              echo "::warning::Optional world-toggle artwork unavailable: $path"
+            fi
+          done
+
+      - name: Validate frontend stack
+        if: steps.deployment_scope.outputs.infrastructure == 'true'
+        run: aws cloudformation validate-template --template-body file://infra/aws/rist-frontend.yml >/dev/null
+
+      - name: Enforce learned CloudFront cache-behavior constraint
+        if: steps.deployment_scope.outputs.infrastructure == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -q '^[[:space:]]*OrderedCacheBehaviors:' infra/aws/rist-frontend.yml; then
+            echo "::error::Known ReLiC deployment regression: CloudFormation AWS::CloudFront::Distribution uses CacheBehaviors, not OrderedCacheBehaviors."
+            exit 1
+          fi
+          grep -q '^[[:space:]]*CacheBehaviors:' infra/aws/rist-frontend.yml
+          echo "Known CloudFront MCP routing regression is guarded."
+
+      - name: Deploy protected frontend origin and CloudFront through execution role
+        if: steps.deployment_scope.outputs.infrastructure == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! aws cloudformation deploy \
+            --template-file infra/aws/rist-frontend.yml \
+            --stack-name "$FRONTEND_STACK" \
+            --region "$AWS_REGION" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --parameter-overrides \
+              DomainName="$PRODUCTION_DOMAIN" \
+              CertificateArn="$PRODUCTION_CERTIFICATE_ARN" \
+              McpRuntimeOriginDomainName="${MCP_RUNTIME_DOMAIN:-}" \
+              McpAuthOriginDomainName="${MCP_AUTH_DOMAIN:-}" \
+            --no-fail-on-empty-changeset; then
+            echo "CloudFormation deployment failed. Recent failed resource events:"
+            aws cloudformation describe-stack-events \
+              --stack-name "$FRONTEND_STACK" \
+              --query "StackEvents[?contains(ResourceStatus, 'FAILED')].[Timestamp,LogicalResourceId,ResourceType,ResourceStatusReason]" \
+              --output table || true
+            exit 1
+          fi
+
+      - name: Inject deployed authority and translation endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          if aws cloudformation describe-stacks --stack-name "$PLATFORM_STACK" >/dev/null 2>&1; then
+            API=$(aws cloudformation describe-stacks --stack-name "$PLATFORM_STACK" --query "Stacks[0].Outputs[?OutputKey=='AuthorityApiBaseUrl'].OutputValue" --output text)
+            WS=$(aws cloudformation describe-stacks --stack-name "$PLATFORM_STACK" --query "Stacks[0].Outputs[?OutputKey=='RealtimeWebSocketUrl'].OutputValue" --output text)
+            if [ -n "$API" ] && [ "$API" != "None" ]; then
+              printf '{"apiBaseUrl":"%s","realtimeUrl":"%s"}\n' "$API" "$WS" > build/rist/wwwroot/authority-config.json
+            fi
+          fi
+
+          TRANSLATION_API=""
+          for attempt in $(seq 1 30); do
+            if aws cloudformation describe-stacks --stack-name "$TRANSLATION_STACK" >/dev/null 2>&1; then
+              STATUS=$(aws cloudformation describe-stacks --stack-name "$TRANSLATION_STACK" --query 'Stacks[0].StackStatus' --output text)
+              if [[ "$STATUS" == *"COMPLETE" ]]; then
+                TRANSLATION_API=$(aws cloudformation describe-stacks --stack-name "$TRANSLATION_STACK" --query "Stacks[0].Outputs[?OutputKey=='TranslationApiBaseUrl'].OutputValue" --output text)
+                if [ -n "$TRANSLATION_API" ] && [ "$TRANSLATION_API" != "None" ]; then
+                  break
+                fi
+              fi
+            fi
+            echo "Waiting for $TRANSLATION_STACK translation endpoint ($attempt/30)..."
+            sleep 5
+          done
+          printf '{"apiBaseUrl":"%s"}\n' "$TRANSLATION_API" > build/rist/wwwroot/translation-config.json
+          if [ -z "$TRANSLATION_API" ]; then
+            echo "::warning::Translation stack is not available yet; UI will remain in source language until the next frontend deployment."
+          else
+            echo "Translation endpoint injected."
+          fi
+
+      - name: Publish company site, game, and Launcher to private S3 origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
+
+          # Keep prior fingerprinted Blazor resources during live development. A client may
+          # still have an older boot manifest in its browser cache; deleting those hashes
+          # turns the SPA fallback HTML into a JavaScript MIME error. New assets are
+          # published first and index.html is promoted last.
+          aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Game/" \
+            --exclude 'index.html' \
+            --exclude 'Launcher/*' \
+            --exclude 'assets/shaelvien/*' \
+            --cache-control 'public,max-age=0,must-revalidate' \
+            --only-show-errors
+
+          # Boot manifests are authorities, not immutable assets. Always revalidate them.
+          if [ -f build/rist/wwwroot/_framework/blazor.boot.json ]; then
+            aws s3 cp build/rist/wwwroot/_framework/blazor.boot.json "s3://${BUCKET}/Game/_framework/blazor.boot.json" \
+              --cache-control 'no-cache,no-store,must-revalidate' \
+              --content-type 'application/json' \
+              --only-show-errors
+          fi
+
+          aws s3 cp build/rist/wwwroot/index.html "s3://${BUCKET}/Game/index.html" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'text/html; charset=utf-8' \
+            --only-show-errors
+          aws s3 cp build/rist/wwwroot/authority-config.json "s3://${BUCKET}/Game/authority-config.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
+          aws s3 cp build/rist/wwwroot/translation-config.json "s3://${BUCKET}/Game/translation-config.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
+          aws s3 cp build/rist/wwwroot/translation-config.json "s3://${BUCKET}/translation-config.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json' \
+            --only-show-errors
+
+          aws s3 sync build/rist/wwwroot/Launcher/ "s3://${BUCKET}/Launcher/" \
+            --delete \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --only-show-errors
+
+          # Perceiver is archived source, not a published surface. The site sync is
+          # intentionally non-destructive, so remove the old production prefix explicitly.
+          aws s3 rm "s3://${BUCKET}/perceiver/" --recursive --only-show-errors || true
+
+          # Kickstarter preparation data is internal planning material, not a public
+          # website surface. Keep the repository source for later database migration,
+          # but remove any previously published static prefix.
+          aws s3 rm "s3://${BUCKET}/kickstarter/" --recursive --only-show-errors || true
+
+          aws s3 sync site/relic-home/ "s3://${BUCKET}/" \
+            --exclude 'index.html' \
+            --exclude 'kickstarter/*' \
+            --exclude 'relic-story-tileset-primary.jpeg' \
+            --exclude 'relic-story-1.jpg' \
+            --exclude 'relic-story-2.jpg' \
+            --exclude 'relic-story-3.jpg' \
+            --exclude 'relic-story-4.jpg' \
+            --exclude 'relic-story-5.jpg' \
+            --exclude 'relic-story-6.jpg' \
+            --cache-control 'public,max-age=3600' \
+            --only-show-errors
+
+          # Play and the Blazor app share one canonical account-service configuration.
+          # Publish the canonical Game config into the legacy /Play surface instead of
+          # tracking a second first-party source copy.
+          aws s3 cp apps/rist-world/wwwroot/auth-config.json "s3://${BUCKET}/Play/auth-config.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json; charset=utf-8' \
+            --only-show-errors
+          aws s3 cp site/relic-home/index.html "s3://${BUCKET}/index.html" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'text/html; charset=utf-8' \
+            --only-show-errors
+          aws s3 cp site/relic-home/store/index.html "s3://${BUCKET}/store/index.html" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'text/html; charset=utf-8' \
+            --only-show-errors
+          aws s3 cp site/relic-home/store/catalog.json "s3://${BUCKET}/store/catalog.json" \
+            --cache-control 'no-cache,no-store,must-revalidate' \
+            --content-type 'application/json; charset=utf-8' \
+            --only-show-errors
+
+      - name: Verify The Sunken Tundra asset pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          for asset in \
+            00-abyss-floor.webp \
+            01-vent-currents.webp \
+            02-floating-ruins.webp \
+            03-biolume-gardens.webp \
+            04-current-fauna.webp \
+            05-shallow-shelf.webp \
+            06-sea-surface.webp \
+            manifest.json; do
+            curl --fail --location --retry 6 --retry-delay 3 --output /dev/null \
+              "https://relicgamemaster.com/Game/assets/zones/sunken-tundra/$asset"
+          done
+          echo "The Sunken Tundra zone artwork is published."
+
+      - name: Invalidate and verify AWS frontend surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          DIST=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendDistributionId'].OutputValue" --output text)
+          URL=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBaseUrl'].OutputValue" --output text)
+          INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths '/index.html' '/relic/*' '/relicquery/*' '/research/*' '/store/*' '/kickstarter/*' '/Game/*' '/perceiver/*' '/translation-config.json' --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-home.html "$URL"
+          grep -q 'Game Now' /tmp/relic-home.html
+          grep -q 'ReLiCGameMaster' /tmp/relic-home.html
+          grep -q 'site-language' /tmp/relic-home.html
+          grep -q 'href="/store/"' /tmp/relic-home.html
+          grep -q 'href="/relic/">AI</a>' /tmp/relic-home.html
+          grep -q 'Meet the team' /tmp/relic-home.html
+          grep -q 'href="/Game/info.html?signature=jeyrusal"' /tmp/relic-home.html
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-info.html "${URL}Game/info.html"
+          grep -q 'Software Contributors' /tmp/relic-info.html
+          grep -q 'OpenAI / ChatGPT' /tmp/relic-info.html
+          grep -q 'Amazon Web Services' /tmp/relic-info.html
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-ai.html "${URL}relic/"
+          grep -q 'One mind.' /tmp/relic-ai.html
+          grep -q 'id="mind-form"' /tmp/relic-ai.html
+          grep -q 'https://relicgamemaster.com/mcp' /tmp/relic-ai.html
+          grep -q '/research/immune-error-signal/' /tmp/relic-ai.html
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-research.html "${URL}research/immune-error-signal/"
+          grep -q 'Immune Error Signal' /tmp/relic-research.html
+          grep -q 'computational hypothesis screen' /tmp/relic-research.html
+          grep -q 'AI suggestions never self-promote' /tmp/relic-ai.html
+          grep -q 'PROPOSAL → COHERENCE → SAFETY TEST → HUMAN REVIEW → EXPLICIT PROMOTION' /tmp/relic-ai.html
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-ai-policy.json "${URL}Game/ai-policy.json"
+          python - <<'PY'
+          import json
+          with open('/tmp/relic-ai-policy.json', encoding='utf-8') as handle:
+              policy = json.load(handle)
+          rule = policy.get('aiSuggestedRules') or {}
+          assert rule.get('aiMayPropose') is True, rule
+          assert rule.get('maySelfPromoteToCanonPolicyRuleOrAuthority') is False, rule
+          assert rule.get('promotionRequiresAuthorizedHumanDecision') is True, rule
+          assert 'explicit-promotion' in (rule.get('requiredReviewPath') or []), rule
+          PY
+          if grep -q 'href="/kickstarter/' /tmp/relic-home.html; then
+            echo "Unpublished Kickstarter preparation link is still present on the public home page."
+            exit 1
+          fi
+          if grep -qi '/perceiver/' /tmp/relic-home.html; then
+            echo "Unpublished Perceiver link is still present on the public home page."
+            exit 1
+          fi
+          if curl --silent --show-error --location --output /tmp/perceiver-unpublished.html "${URL}perceiver/index.html"; then
+            if grep -q 'CINEMATIC PARALLAX TUNING' /tmp/perceiver-unpublished.html; then
+              echo "Unpublished Perceiver prototype is still publicly reachable."
+              exit 1
+            fi
+          fi
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-store.html "${URL}store/index.html"
+          grep -q 'ReLiC Creator Store' /tmp/relic-store.html
+          grep -q 'data-creator-invite-form' /tmp/relic-store.html
+          if curl --fail --location --retry 2 --retry-delay 2 --output /tmp/relic-store-route.html "${URL}store/"; then
+            if ! grep -q 'ReLiC Creator Store' /tmp/relic-store-route.html; then
+              echo "::warning::/store/ still resolves through the homepage fallback; canonical /store/index.html is healthy."
+            fi
+          else
+            echo "::warning::/store/ route is unavailable; canonical /store/index.html is healthy."
+          fi
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-store-catalog.json "${URL}store/catalog.json"
+          grep -q '"invitationsIssued": false' /tmp/relic-store-catalog.json
+          grep -q '"products": \[\]' /tmp/relic-store-catalog.json
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-membership.html "${URL}store/membership.html"
+          grep -q 'Standard Roleplayer' /tmp/relic-membership.html
+          grep -q 'CHECKOUT NOT ACTIVE' /tmp/relic-membership.html
+          grep -q 'complimentary-access' /tmp/relic-membership.html
+
+          if curl --silent --show-error --location --output /tmp/kickstarter-unpublished.html "${URL}kickstarter/index.html"; then
+            if grep -q 'Assumption-driven subscription projection' /tmp/kickstarter-unpublished.html; then
+              echo "Unpublished Kickstarter preparation page is still publicly reachable."
+              exit 1
+            fi
+          fi
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-index.html "${URL}Game/index.html"
+          grep -q 'ReLiCGameMaster RIST WORLD' /tmp/rist-index.html
+          grep -q 'rist-plc.js' /tmp/rist-index.html
+          grep -q 'ui-language.js' /tmp/rist-index.html
+          grep -q 'world-context-ticker.js' /tmp/rist-index.html
+          grep -q 'home-slider-shell.js' /tmp/rist-index.html
+          grep -q 'css/home-slider-shell.css' /tmp/rist-index.html
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/worldbuilder-z-axis.js "${URL}Game/worldbuilder-z-axis.js"
+          grep -q 'export function attach' /tmp/worldbuilder-z-axis.js
+          Z_TYPE=$(curl --fail --silent --show-error --location --head "${URL}Game/worldbuilder-z-axis.js" | tr -d '\r' | awk -F': ' 'tolower($1)=="content-type"{print tolower($2); exit}')
+          [[ "$Z_TYPE" == *javascript* ]] || { echo "World Builder module has invalid MIME type: $Z_TYPE"; exit 1; }
+
+          FRAMEWORK_SRC=$(grep -oE 'src="_framework/[^"]+\.js"' /tmp/rist-index.html | head -n1 | cut -d'"' -f2)
+          test -n "$FRAMEWORK_SRC"
+          FRAMEWORK_TYPE=$(curl --fail --silent --show-error --location --head "${URL}Game/${FRAMEWORK_SRC}" | tr -d '\r' | awk -F': ' 'tolower($1)=="content-type"{print tolower($2); exit}')
+          [[ "$FRAMEWORK_TYPE" == *javascript* ]] || { echo "Blazor framework loader has invalid MIME type: $FRAMEWORK_TYPE ($FRAMEWORK_SRC)"; exit 1; }
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/home-slider-shell.js "${URL}Game/home-slider-shell.js"
+          grep -q 'HOME_ID' /tmp/home-slider-shell.js
+          grep -q "makeButton('Chat','chat')" /tmp/home-slider-shell.js
+          grep -q "makeButton('Custom','custom')" /tmp/home-slider-shell.js
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/home-slider-shell.css "${URL}Game/css/home-slider-shell.css"
+          grep -q 'rist-app-home-slider' /tmp/home-slider-shell.css
+          grep -q 'rist-app-slider-button' /tmp/home-slider-shell.css
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/ui-language.js "${URL}Game/ui-language.js"
+          grep -q 'window.RistUiLanguage' /tmp/ui-language.js
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/translation-config.json "${URL}translation-config.json"
+          grep -q 'apiBaseUrl' /tmp/translation-config.json
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/rist-plc.js "${URL}Game/rist-plc.js"
+          grep -q 'window.RistPLC' /tmp/rist-plc.js
+          grep -q "interaction:'shell'" /tmp/rist-plc.js
+
+          curl --fail --location --retry 6 --retry-delay 5 --output /tmp/launcher-index.html "${URL}Launcher/index.html"
+          grep -q 'ReLiC Release Launcher' /tmp/launcher-index.html
+          grep -q 'QAStaging' /tmp/launcher-index.html
+
+          STORY_MISSING=0
+          for i in 1 2 3 4 5 6; do
+            if ! curl --fail --location --retry 2 --retry-delay 2 --output "/tmp/relic-story-${i}.jpg" "${URL}relic-story-${i}.jpg"; then
+              echo "::warning::Persistent story scene relic-story-${i}.jpg is missing from the production origin."
+              STORY_MISSING=1
+              continue
+            fi
+            if [ ! -s "/tmp/relic-story-${i}.jpg" ]; then
+              echo "::warning::Persistent story scene relic-story-${i}.jpg is empty in the production origin."
+              STORY_MISSING=1
+            fi
+          done
+
+          if [ -n "${MCP_RUNTIME_DOMAIN:-}" ] && [ -n "${MCP_AUTH_DOMAIN:-}" ]; then
+            curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors \
+              -H 'content-type: application/json' \
+              -H 'accept: application/json, text/event-stream' \
+              -H 'mcp-protocol-version: 2025-11-25' \
+              --data '{"jsonrpc":"2.0","id":91,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"production-domain-smoke","version":"1"}}}' \
+              "https://${PRODUCTION_DOMAIN}/mcp" > /tmp/relic-mcp-production.json
+            python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-mcp-production.json'))
+          assert (data.get('result') or {}).get('serverInfo',{}).get('name') == 'relic-canon', data
+          print('ReLiC MCP production route verified.')
+          PY
+            curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors \
+              "https://${PRODUCTION_DOMAIN}/.well-known/oauth-protected-resource" > /tmp/relic-mcp-protected-resource.json
+            curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors \
+              -H 'content-type: application/json' \
+              -H 'accept: application/json, text/event-stream' \
+              -H 'mcp-protocol-version: 2025-11-25' \
+              --data '{"jsonrpc":"2.0","id":92,"method":"tools/list","params":{}}' \
+              "https://${PRODUCTION_DOMAIN}/mcp" > /tmp/relic-mcp-tools.json
+            curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors \
+              -H 'content-type: application/json' \
+              -H 'accept: application/json, text/event-stream' \
+              -H 'mcp-protocol-version: 2025-11-25' \
+              --data '{"jsonrpc":"2.0","id":93,"method":"skills/list","params":{}}' \
+              "https://${PRODUCTION_DOMAIN}/mcp" > /tmp/relic-mcp-skills.json
+            python - <<'PY'
+          import json
+          data=json.load(open('/tmp/relic-mcp-protected-resource.json'))
+          assert data.get('resource') == 'https://relicgamemaster.com/mcp', data
+          assert data.get('authorization_servers') == ['https://relicgamemaster.com'], data
+          assert {'relic.read','relic.write'}.issubset(set(data.get('scopes_supported') or [])), data
+          tools=json.load(open('/tmp/relic-mcp-tools.json'))
+          listed=(tools.get('result') or {}).get('tools') or []
+          names={tool.get('name') for tool in listed}
+          expected={'relic_context','relic_validate','relic_canon','relic_health','relic_project_search','relic_project_fetch','relic_profile','relic_recall','relic_identify','relic_observe','relic_trace','relic_translate','relic_imagine','relic_remember','relic_relate','relic_instantiate','relic_transition'}
+          assert expected.issubset(names), (expected-names,names)
+          context=next(tool for tool in listed if tool.get('name') == 'relic_context')
+          recall=next(tool for tool in listed if tool.get('name') == 'relic_recall')
+          profile=next(tool for tool in listed if tool.get('name') == 'relic_profile')
+          assert (context.get('securitySchemes') or [{}])[0].get('type') == 'noauth', context
+          assert (recall.get('securitySchemes') or [{}])[0].get('type') == 'oauth2', recall
+          assert 'repeated context reconstruction' in recall.get('description',''), recall
+          assert (profile.get('_meta') or {}).get('openai/profile') is True, profile
+          schema=profile.get('outputSchema') or {}
+          assert schema.get('required') == ['id'], profile
+          assert schema.get('additionalProperties') is False, profile
+          assert set((schema.get('properties') or {}).keys()) == {'id','name'}, profile
+          skills=json.load(open('/tmp/relic-mcp-skills.json'))
+          skill_list=(skills.get('result') or {}).get('skills') or []
+          assert len(skill_list) == 1, skills
+          assert skill_list[0].get('frontmatter',{}).get('name') == 'relic-grounding', skills
+          assert (skill_list[0].get('resources') or [{}])[0].get('digest','').startswith('sha256:'), skills
+          print('ReLiC OAuth, profile contract, tool metadata, and grounding skill verified.')
+          PY
+          fi
+
+          echo "ReLiCGameMaster home verified at $URL"
+          echo "ReLiC Creator Store verified at ${URL}store/index.html"
+          echo "Membership facts verified at ${URL}store/membership.html"
+          echo "Kickstarter preparation surface is unpublished."
+          echo "RIST WORLD + framework MIME verified at ${URL}Game/index.html"
+          echo "Launcher verified at ${URL}Launcher/index.html"
+          if [ "$STORY_MISSING" -eq 0 ]; then
+            echo "ReLiC story scenes verified at ${URL}relic-story-{1..6}.jpg"
+          else
+            echo "Persistent story media needs restoration, but application deployment is healthy."
+          fi
+; then
+                infrastructure=true
+              fi
+            fi
+          fi
+          echo "infrastructure=$infrastructure" >> "$GITHUB_OUTPUT"
+          echo "Frontend infrastructure deployment required: $infrastructure"
 
       - uses: actions/setup-dotnet@v5
         with:

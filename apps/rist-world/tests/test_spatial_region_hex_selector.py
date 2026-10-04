@@ -6,13 +6,16 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_new_recursive_region_opens_hex_map_selector_before_authoritative_create():
     component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
     assert 'if(CurrentBuilderScope=="REGION"&&_spatialDefinitionActive)' in component
-    assert 'await BeginSpatialRegionDefinitionAsync(name,inspectionReason);' in component
+    assert 'await BeginSpatialRegionDefinitionAsync(inspectionReason);' in component
     assert '"beginSpatialSelection"' in component
     assert 'gridShape="hex"' in component
     assert 'columns=30' in component
     assert 'rows=30' in component
     assert 'selection.SelectedCells' in component
     assert 'CommitPendingSpatialRegionAsync' in component
+    assert component.index('selection.SelectedCells.Length==0') < component.index('"prompt","Name this region","New Region"')
+    assert 'BeginBuilderScope(2);' in component
+    assert 'Local view opened. Select or create a Local inside this Region.' in component
 
 
 def test_world_spatial_region_geometry_is_persisted_with_the_recursive_node():
@@ -32,6 +35,9 @@ def test_embedded_worldbuilder_exposes_touch_keyboard_and_analog_region_selectio
     assert "spatialSelectionGridShape='hex'" in prototype
     assert "pointerdown" in prototype
     assert "pointermove" in prototype
+    assert "const spatialTouchPointers=new Map()" in prototype
+    assert "spatialTouchPinchStart" in prototype
+    assert "spatialTouchStart.moved" in prototype
     assert "event.key==='ArrowUp'" in prototype
     assert "toggleSpatialSelectionCursor" in prototype
     assert "spatial-selection-change" in prototype
@@ -50,3 +56,6 @@ def test_saved_region_footprint_returns_to_viewer_when_region_is_selected():
     assert '"setSpatialDefinition"' in component
     assert "function setSpatialDefinition(raw=null)" in prototype
     assert "showSpatialRegionDefinition(raw)" in prototype
+    assert "applySpatialDefinitionFocus(raw)" in prototype
+    assert "requestAnimationFrame(()=>fitClaimedRegion(raw))" in prototype
+    assert 'CurrentBuilderScope is "REGION" or "LOCAL"' in component

@@ -193,5 +193,4 @@ jobs:
 
           gh workflow run code-index.yml --ref live-alpha-rist-blazor-world -f verify_only=true
           gh workflow run compliance-guardrails.yml --ref live-alpha-rist-blazor-world
-          gh workflow run deploy-rist-frontend-aws.yml --ref live-alpha-rist-blazor-world
-          gh workflow run deploy-live-alpha-public.yml --ref live-alpha-rist-blazor-world
+          echo "Deployment remains owned by the original source push. Governance metadata commits do not launch duplicate production deploys."

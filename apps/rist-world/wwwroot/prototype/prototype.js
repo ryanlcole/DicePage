@@ -142,6 +142,8 @@ const storedGridMode=key=>{try{return String(localStorage.getItem(key)||'square'
 let viewerGridMode=storedGridMode(VIEWER_GRID_PREF),assetGridMode=storedGridMode(ASSET_GRID_PREF),viewerGridColumns=VIEWER_WINDOW_GRID_COLUMNS,viewerGridRows=VIEWER_WINDOW_GRID_ROWS,assetGridColumns=SCOPE_GRID_COLUMNS,assetGridRows=SCOPE_GRID_ROWS,viewerGridOverlay=null,externalSpatialScope='WORLD',externalSpatialNodeId='',externalSpatialPath='';
 const spatialSelectedCells=new Set();
 let spatialSelectionOverlay=null,spatialSelectionActive=false,spatialSelectionKind='',spatialSelectionGridShape='hex',spatialSelectionColumns=VIEWER_WINDOW_GRID_COLUMNS,spatialSelectionRows=VIEWER_WINDOW_GRID_ROWS,spatialSelectionFocusCell=0,spatialSelectionPointerId=null,spatialSelectionPaintValue=true,spatialSelectionPreviousGrid=null;
+const spatialTouchPointers=new Map();
+let spatialTouchStart=null,spatialTouchPinchStart=null,spatialTouchHadPinch=false;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
 let regionGridShape='square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
@@ -2044,15 +2046,62 @@ function ensureSpatialSelectionOverlay(){
   if(spatialSelectionOverlay?.isConnected)return spatialSelectionOverlay;
   const overlay=document.createElement('div');overlay.className='spatial-selection-grid';overlay.hidden=true;overlay.tabIndex=0;overlay.setAttribute('role','grid');
   overlay.addEventListener('pointerdown',event=>{
-    if(!spatialSelectionActive)return;event.preventDefault();event.stopPropagation();
-    const cell=spatialSelectionCellFromPoint(event.clientX,event.clientY);spatialSelectionPointerId=event.pointerId;spatialSelectionPaintValue=!spatialSelectedCells.has(cell);
-    overlay.setPointerCapture?.(event.pointerId);setSpatialSelectionCell(cell,spatialSelectionPaintValue);
+    if(!spatialSelectionActive)return;
+    event.preventDefault();event.stopPropagation();
+    overlay.setPointerCapture?.(event.pointerId);
+    if(event.pointerType==='touch'){
+      spatialTouchPointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+      if(spatialTouchPointers.size===1){
+        spatialTouchHadPinch=false;
+        spatialTouchStart={pointerId:event.pointerId,x:event.clientX,y:event.clientY,cameraX:x,cameraY:y,moved:false};
+        spatialTouchPinchStart=null;
+      }else if(spatialTouchPointers.size===2){
+        const[a,b]=[...spatialTouchPointers.values()],r=stage.getBoundingClientRect(),cx=(a.x+b.x)/2-r.left,cy=(a.y+b.y)/2-r.top,d=Math.hypot(a.x-b.x,a.y-b.y)||1;
+        spatialTouchHadPinch=true;spatialTouchStart=null;
+        spatialTouchPinchStart={distance:d,scale,worldX:(cx-x)/scale,worldY:(cy-y)/scale};
+      }
+      return;
+    }
+    const cell=spatialSelectionCellFromPoint(event.clientX,event.clientY);
+    spatialSelectionPointerId=event.pointerId;spatialSelectionPaintValue=!spatialSelectedCells.has(cell);
+    setSpatialSelectionCell(cell,spatialSelectionPaintValue);
   });
   overlay.addEventListener('pointermove',event=>{
-    if(!spatialSelectionActive||spatialSelectionPointerId!==event.pointerId)return;event.preventDefault();event.stopPropagation();
-    const cell=spatialSelectionCellFromPoint(event.clientX,event.clientY);if(cell!==spatialSelectionFocusCell)setSpatialSelectionCell(cell,spatialSelectionPaintValue);
+    if(!spatialSelectionActive)return;
+    if(event.pointerType==='touch'){
+      if(!spatialTouchPointers.has(event.pointerId))return;
+      event.preventDefault();event.stopPropagation();
+      spatialTouchPointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+      if(spatialTouchPointers.size===1&&spatialTouchStart){
+        const dx=event.clientX-spatialTouchStart.x,dy=event.clientY-spatialTouchStart.y;
+        if(Math.hypot(dx,dy)>8)spatialTouchStart.moved=true;
+        if(spatialTouchStart.moved){x=spatialTouchStart.cameraX+dx;y=spatialTouchStart.cameraY+dy;applyTransform();scheduleRegionEnhancement()}
+      }else if(spatialTouchPointers.size===2&&spatialTouchPinchStart){
+        const[a,b]=[...spatialTouchPointers.values()],r=stage.getBoundingClientRect(),cx=(a.x+b.x)/2-r.left,cy=(a.y+b.y)/2-r.top,d=Math.hypot(a.x-b.x,a.y-b.y)||1;
+        scale=clamp(spatialTouchPinchStart.scale*(d/spatialTouchPinchStart.distance),MIN_VIEW_SCALE,maxScale);
+        x=cx-spatialTouchPinchStart.worldX*scale;y=cy-spatialTouchPinchStart.worldY*scale;applyTransform();scheduleRegionEnhancement();
+      }
+      return;
+    }
+    if(spatialSelectionPointerId!==event.pointerId)return;
+    event.preventDefault();event.stopPropagation();
+    const cell=spatialSelectionCellFromPoint(event.clientX,event.clientY);
+    if(cell!==spatialSelectionFocusCell)setSpatialSelectionCell(cell,spatialSelectionPaintValue);
   });
-  const endPointer=event=>{if(spatialSelectionPointerId!==event.pointerId)return;if(overlay.hasPointerCapture?.(event.pointerId))overlay.releasePointerCapture(event.pointerId);spatialSelectionPointerId=null};
+  const endPointer=event=>{
+    if(event.pointerType==='touch'){
+      const wasSingle=spatialTouchPointers.size===1,start=spatialTouchStart;
+      spatialTouchPointers.delete(event.pointerId);
+      if(wasSingle&&start&&start.pointerId===event.pointerId&&!start.moved&&!spatialTouchHadPinch)toggleSpatialSelectionCell(spatialSelectionCellFromPoint(event.clientX,event.clientY));
+      if(spatialTouchPointers.size<2)spatialTouchPinchStart=null;
+      if(!spatialTouchPointers.size){spatialTouchStart=null;spatialTouchHadPinch=false;scheduleRegionEnhancement(45)}
+      if(overlay.hasPointerCapture?.(event.pointerId))overlay.releasePointerCapture(event.pointerId);
+      return;
+    }
+    if(spatialSelectionPointerId!==event.pointerId)return;
+    if(overlay.hasPointerCapture?.(event.pointerId))overlay.releasePointerCapture(event.pointerId);
+    spatialSelectionPointerId=null;
+  };
   overlay.addEventListener('pointerup',endPointer);overlay.addEventListener('pointercancel',endPointer);
   overlay.addEventListener('keydown',event=>{
     if(!spatialSelectionActive)return;
@@ -2066,6 +2115,7 @@ function ensureSpatialSelectionOverlay(){
 }
 function beginSpatialSelection(raw={}){
   if(READ_ONLY||REGION_DEFINER)return false;
+  clearSpatialDefinitionFocus();
   const kind=String(raw.kind||'REGION').toUpperCase();if(kind!=='REGION')return false;
   spatialSelectionPreviousGrid={shape:viewerGridMode,columns:viewerGridColumns,rows:viewerGridRows};
   spatialSelectionKind='REGION';spatialSelectionGridShape=String(raw.gridShape||'hex').toLowerCase()==='square'?'square':'hex';
@@ -2077,7 +2127,7 @@ function beginSpatialSelection(raw={}){
 }
 function getSpatialSelection(){return spatialSelectionSnapshot()}
 function finishSpatialSelection(){if(!spatialSelectionActive)return false;spatialSelectionActive=false;spatialSelectionPointerId=null;renderSpatialSelectionOverlay();publishSpatialSelectionChange();announce(`Region footprint saved with ${spatialSelectedCells.size} selected ${spatialSelectionGridShape} cells.`);return true}
-function cancelSpatialSelection(){spatialSelectionActive=false;spatialSelectionPointerId=null;spatialSelectedCells.clear();if(spatialSelectionPreviousGrid)applyViewerGridMode(spatialSelectionPreviousGrid.shape,false,spatialSelectionPreviousGrid.columns,spatialSelectionPreviousGrid.rows);spatialSelectionPreviousGrid=null;renderSpatialSelectionOverlay();publishSpatialSelectionChange();announce('Region selection cancelled.');return true}
+function cancelSpatialSelection(){spatialSelectionActive=false;spatialSelectionPointerId=null;spatialTouchPointers.clear();spatialTouchStart=null;spatialTouchPinchStart=null;spatialTouchHadPinch=false;spatialSelectedCells.clear();if(spatialSelectionPreviousGrid)applyViewerGridMode(spatialSelectionPreviousGrid.shape,false,spatialSelectionPreviousGrid.columns,spatialSelectionPreviousGrid.rows);spatialSelectionPreviousGrid=null;renderSpatialSelectionOverlay();publishSpatialSelectionChange();announce('Region selection cancelled.');return true}
 function moveSpatialSelectionCursor(columnDelta,rowDelta){
   if(!spatialSelectionActive)return false;
   const row=spatialSelectionCellRow(spatialSelectionFocusCell),column=spatialSelectionCellColumn(spatialSelectionFocusCell);
@@ -2661,7 +2711,8 @@ function fitClaimedRegion(region){
   suspendRegionEnhancement();
   const r=stage.getBoundingClientRect(),cropX=(bounds.minX/bounds.columns)*naturalWidth,cropY=(bounds.minY/bounds.rows)*naturalHeight;
   const cropW=(bounds.width/bounds.columns)*naturalWidth,cropH=(bounds.height/bounds.rows)*naturalHeight;
-  const tiltHeight=cropH*Math.cos(15*Math.PI/180);
+  const angle=REGION_DEFINER?15:(SCOPE_VIEW_ANGLE[externalSpatialScope]||15);
+  const tiltHeight=cropH*Math.cos(angle*Math.PI/180);
   scale=Math.min(r.width/Math.max(cropW,1),r.height/Math.max(tiltHeight,1))*.92;
   scale=clamp(scale,MIN_VIEW_SCALE,Math.max(maxScale,scale));
   const centerX=cropX+(cropW/2),centerY=cropY+(cropH/2);
@@ -3998,9 +4049,28 @@ function setExternalDepth(raw={}){
   if(scopeChanged)fitMap();else applyTransform();
   renderKeyboardKeys();
 }
+function clearSpatialDefinitionFocus(){
+  if(REGION_DEFINER)return;
+  world.style.maskImage='none';world.style.webkitMaskImage='none';
+  world.style.maskSize='';world.style.webkitMaskSize='';
+  world.style.maskRepeat='';world.style.webkitMaskRepeat='';
+  stage.dataset.cropMode='world-context';
+}
+function applySpatialDefinitionFocus(raw){
+  if(REGION_DEFINER||!raw||!regionClaimBounds(raw))return false;
+  const svg=regionMaskSvg(raw),url=`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
+  world.style.maskImage=url;world.style.webkitMaskImage=url;
+  world.style.maskSize='100% 100%';world.style.webkitMaskSize='100% 100%';
+  world.style.maskRepeat='no-repeat';world.style.webkitMaskRepeat='no-repeat';
+  stage.dataset.cropMode='spatial-local';
+  requestAnimationFrame(()=>fitClaimedRegion(raw));
+  return true;
+}
 function setSpatialDefinition(raw=null){
-  if(externalSpatialScope==='REGION'&&raw)showSpatialRegionDefinition(raw);
-  else if(!spatialSelectionActive)hideSpatialRegionDefinition();
+  if(externalSpatialScope==='REGION'&&raw){clearSpatialDefinitionFocus();showSpatialRegionDefinition(raw);return}
+  if(externalSpatialScope==='LOCAL'&&raw){hideSpatialRegionDefinition();applySpatialDefinitionFocus(raw);return}
+  if(!spatialSelectionActive)hideSpatialRegionDefinition();
+  clearSpatialDefinitionFocus();
 }
 async function placeExternalAsset(raw={}){
   if(READ_ONLY)return false;
