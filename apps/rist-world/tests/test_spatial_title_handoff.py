@@ -7,9 +7,11 @@ def test_spatial_title_handoff_is_loaded_after_canonical_viewer():
     index = (ROOT / "wwwroot/prototype/index.html").read_text(encoding="utf-8")
 
     prototype_pos = index.index("prototype.js?v=20261004-continuous-space-2")
+    session_pos = index.index("spatial-selection-session.js?v=20261004-frozen-selection-1")
     handoff_pos = index.index("spatial-title-handoff.js?v=20261004-spatial-title-1")
     lock_pos = index.index("spatial-selector-lock.js?v=20261004-map-selector-lock-1")
-    assert handoff_pos > prototype_pos
+    assert session_pos > prototype_pos
+    assert handoff_pos > session_pos
     assert lock_pos > handoff_pos
 
 
@@ -27,9 +29,40 @@ def test_hex_selection_is_anchored_to_visible_world_map_layers_not_viewer_stage(
     assert "visibleLayerOffsets:[...anchor.visibleLayerOffsets]" in script
 
 
+def test_select_area_freezes_exact_preselection_viewport_before_selector_starts():
+    session = (ROOT / "wwwroot/prototype/spatial-selection-session.js").read_text(encoding="utf-8")
+
+    pre = session.index("const preSelection=baseApi?.getSpatialSelection?.();")
+    start = session.index("const started=baseApi?.beginSpatialSelection?.(raw);")
+    assert pre < start
+    assert "const preCamera=captureCameraVisual();" in session
+    assert "const preWindow=freezeWindow(preSelection,raw);" in session
+    assert "frozenWindow=preWindow;" in session
+    assert "cameraVisual=preCamera;" in session
+    assert "startCameraVisualLock();" in session
+    assert "requestAnimationFrame(restoreCameraVisual);" in session
+    assert "viewMinX:frozenWindow.viewMinX" in session
+    assert "viewMaxY:frozenWindow.viewMaxY" in session
+
+
+def test_spatial_editing_hides_map_chrome_without_hiding_semantic_controller():
+    session = (ROOT / "wwwroot/prototype/spatial-selection-session.js").read_text(encoding="utf-8")
+
+    assert ".universal-shell.spatial-map-selecting .depth-pip" in session
+    assert ".universal-shell.spatial-map-selecting .viewer-compass" in session
+    assert ".universal-shell.spatial-map-selecting .viewer-legend" in session
+    assert ".universal-shell.spatial-map-selecting .asset-context-pip" in session
+    assert ".universal-shell.spatial-map-selecting .viewer-reticle" in session
+    assert ".viewer-menu-bar" not in session
+    assert "shell?.classList.toggle('spatial-map-selecting',!!active);" in session
+    assert "setParentEditFocus(true);" in session
+    assert "setParentEditFocus(false);" in session
+
+
 def test_camera_is_only_a_lens_during_active_hex_selection():
     handoff = (ROOT / "wwwroot/prototype/spatial-title-handoff.js").read_text(encoding="utf-8")
     lock = (ROOT / "wwwroot/prototype/spatial-selector-lock.js").read_text(encoding="utf-8")
+    session = (ROOT / "wwwroot/prototype/spatial-selection-session.js").read_text(encoding="utf-8")
 
     assert "lockSelectorControls()" in handoff
     assert "const ids=['zoomIn','zoomOut','fit','settingsFit','tierToggle']" in handoff
@@ -40,6 +73,8 @@ def test_camera_is_only_a_lens_during_active_hex_selection():
     assert "if(event.pointerType==='touch')blockTouchCameraMove(event);" in lock
     assert "document.addEventListener('touchmove',blockTouchCameraMove" in lock
     assert "['+','=','-','_','f','t']" in lock
+    assert "new MutationObserver" in session
+    assert "restoreCameraVisual()" in session
 
 
 def test_spatial_name_uses_text_editor_and_requires_enter_instead_of_browser_prompt():
