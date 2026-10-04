@@ -204,6 +204,12 @@ public partial class UniversalInterface
 
     async Task SelectSemanticAsync()
     {
+        if (_stage == Stage.SpatialSelect && _spatialDefinitionActive)
+        {
+            await ToggleSpatialSelectionCursorAsync();
+            return;
+        }
+
         if ((_stage == Stage.BrowsePlace || _stage == Stage.MmoMap) && CursorMode)
         {
             await ActivateBrowseCursorTargetAsync();

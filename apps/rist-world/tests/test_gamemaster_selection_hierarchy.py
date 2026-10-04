@@ -41,6 +41,10 @@ def test_region_local_instance_are_selection_first():
     assert "CreateSpatialNodeAsync" in regions
     assert 'kind is not ("REGION" or "LOCAL" or "INSTANCE")' in regions
     assert "List<WorldSpatialNode>? SpatialNodes = null" in regions
+    assert 'string GridShape = "hex"' in regions
+    assert "int GridColumns = 30" in regions
+    assert "int GridRows = 30" in regions
+    assert "List<int>? SelectedCells = null" in regions
 
 
 def test_selected_spatial_identity_is_persisted_with_assets():

@@ -140,6 +140,8 @@ const VIEWER_GRID_PREF='rist.viewer.grid.v1';
 const ASSET_GRID_PREF='rist.asset.grid.v1';
 const storedGridMode=key=>{try{return String(localStorage.getItem(key)||'square').toLowerCase()==='hex'?'hex':'square'}catch{return'square'}};
 let viewerGridMode=storedGridMode(VIEWER_GRID_PREF),assetGridMode=storedGridMode(ASSET_GRID_PREF),viewerGridColumns=VIEWER_WINDOW_GRID_COLUMNS,viewerGridRows=VIEWER_WINDOW_GRID_ROWS,assetGridColumns=SCOPE_GRID_COLUMNS,assetGridRows=SCOPE_GRID_ROWS,viewerGridOverlay=null,externalSpatialScope='WORLD',externalSpatialNodeId='',externalSpatialPath='';
+const spatialSelectedCells=new Set();
+let spatialSelectionOverlay=null,spatialSelectionActive=false,spatialSelectionKind='',spatialSelectionGridShape='hex',spatialSelectionColumns=VIEWER_WINDOW_GRID_COLUMNS,spatialSelectionRows=VIEWER_WINDOW_GRID_ROWS,spatialSelectionFocusCell=0,spatialSelectionPointerId=null,spatialSelectionPaintValue=true,spatialSelectionPreviousGrid=null;
 const regionSelectedCells=new Set();
 let regionCatalog=[],regionSelectionOverlay=null,regionSelectionEnabled=false,regionNameDraft='',regionCreatePending=false;
 let regionGridShape='square',regionClaimPhase=REGION_DEFINER&&REGION_FLOW==='new'?'tier-preview':'idle',regionCropPreview=false,regionClaimedRegion=null,pendingClaimedRegionId=REQUESTED_REGION_ID;
@@ -1983,6 +1985,115 @@ function applyAssetGridMode(value,persist=false,columns=assetGridColumns,rows=as
     selectedImage.x=point.x;selectedImage.y=point.y;refreshUserImage(selectedImage);publishWorldBuilderSelectionContext(selectedImage);
   }
 }
+function spatialSelectionCellRow(cell){return Math.floor(cell/spatialSelectionColumns)}
+function spatialSelectionCellColumn(cell){return cell%spatialSelectionColumns}
+function spatialSelectionCellPolygon(cell){
+  const row=spatialSelectionCellRow(cell),column=spatialSelectionCellColumn(cell);
+  if(spatialSelectionGridShape==='hex'){
+    const x=column+(row%2?0.5:0),y=row,w=1,h=1;
+    return `${x+w*.25},${y} ${x+w*.75},${y} ${x+w},${y+h*.5} ${x+w*.75},${y+h} ${x+w*.25},${y+h} ${x},${y+h*.5}`;
+  }
+  return null;
+}
+function spatialSelectionCellFromPoint(clientX,clientY){
+  const overlay=ensureSpatialSelectionOverlay(),rect=overlay.getBoundingClientRect();
+  if(!(rect.width>0&&rect.height>0))return 0;
+  const nx=clamp((clientX-rect.left)/rect.width,0,.999999),ny=clamp((clientY-rect.top)/rect.height,0,.999999);
+  const row=clamp(Math.floor(ny*spatialSelectionRows),0,spatialSelectionRows-1);
+  if(spatialSelectionGridShape==='hex'){
+    const units=nx*(spatialSelectionColumns+.5),offset=row%2?.5:0;
+    const column=clamp(Math.floor(units-offset),0,spatialSelectionColumns-1);
+    return row*spatialSelectionColumns+column;
+  }
+  const column=clamp(Math.floor(nx*spatialSelectionColumns),0,spatialSelectionColumns-1);
+  return row*spatialSelectionColumns+column;
+}
+function spatialSelectionSnapshot(){
+  return{active:spatialSelectionActive,kind:spatialSelectionKind||'REGION',gridShape:spatialSelectionGridShape,columns:spatialSelectionColumns,rows:spatialSelectionRows,selectedCells:[...spatialSelectedCells].sort((a,b)=>a-b)};
+}
+function publishSpatialSelectionChange(){postWorldBuilderHostMessage('spatial-selection-change',{selection:{active:spatialSelectionActive,count:spatialSelectedCells.size,gridShape:spatialSelectionGridShape}})}
+function spatialSelectionSvg(){
+  const selected=[...spatialSelectedCells].sort((a,b)=>a-b),parts=[],viewWidth=spatialSelectionGridShape==='hex'?spatialSelectionColumns+.5:spatialSelectionColumns;
+  for(const cell of selected){
+    const row=spatialSelectionCellRow(cell),column=spatialSelectionCellColumn(cell);
+    if(spatialSelectionGridShape==='hex')parts.push(`<polygon class="selected" points="${spatialSelectionCellPolygon(cell)}"/>`);
+    else parts.push(`<rect class="selected" x="${column}" y="${row}" width="1" height="1"/>`);
+  }
+  const focus=clamp(spatialSelectionFocusCell,0,(spatialSelectionColumns*spatialSelectionRows)-1),row=spatialSelectionCellRow(focus),column=spatialSelectionCellColumn(focus);
+  if(spatialSelectionActive){
+    if(spatialSelectionGridShape==='hex')parts.push(`<polygon class="focus" points="${spatialSelectionCellPolygon(focus)}"/>`);
+    else parts.push(`<rect class="focus" x="${column}" y="${row}" width="1" height="1"/>`);
+  }
+  return `<svg viewBox="0 0 ${viewWidth} ${spatialSelectionRows}" preserveAspectRatio="none" aria-hidden="true"><g>${parts.join('')}</g></svg>`;
+}
+function renderSpatialSelectionOverlay(){
+  const overlay=ensureSpatialSelectionOverlay();
+  overlay.hidden=!spatialSelectionActive&&!spatialSelectedCells.size;
+  overlay.classList.toggle('active',spatialSelectionActive);overlay.classList.toggle('defined',!spatialSelectionActive&&spatialSelectedCells.size>0);
+  overlay.dataset.shape=spatialSelectionGridShape;overlay.innerHTML=spatialSelectionSvg();
+  overlay.setAttribute('aria-label',`Region ${spatialSelectionGridShape} selector. ${spatialSelectedCells.size} cells selected. Use arrow keys to move the focus and Space or Enter to toggle a cell.`);
+  stage.classList.toggle('spatial-region-selecting',spatialSelectionActive);
+}
+function setSpatialSelectionCell(cell,value){
+  cell=clamp(Math.trunc(Number(cell)||0),0,(spatialSelectionColumns*spatialSelectionRows)-1);spatialSelectionFocusCell=cell;
+  if(value)spatialSelectedCells.add(cell);else spatialSelectedCells.delete(cell);
+  renderSpatialSelectionOverlay();publishSpatialSelectionChange();
+}
+function toggleSpatialSelectionCell(cell=spatialSelectionFocusCell){cell=clamp(Math.trunc(Number(cell)||0),0,(spatialSelectionColumns*spatialSelectionRows)-1);setSpatialSelectionCell(cell,!spatialSelectedCells.has(cell))}
+function ensureSpatialSelectionOverlay(){
+  if(spatialSelectionOverlay?.isConnected)return spatialSelectionOverlay;
+  const overlay=document.createElement('div');overlay.className='spatial-selection-grid';overlay.hidden=true;overlay.tabIndex=0;overlay.setAttribute('role','grid');
+  overlay.addEventListener('pointerdown',event=>{
+    if(!spatialSelectionActive)return;event.preventDefault();event.stopPropagation();
+    const cell=spatialSelectionCellFromPoint(event.clientX,event.clientY);spatialSelectionPointerId=event.pointerId;spatialSelectionPaintValue=!spatialSelectedCells.has(cell);
+    overlay.setPointerCapture?.(event.pointerId);setSpatialSelectionCell(cell,spatialSelectionPaintValue);
+  });
+  overlay.addEventListener('pointermove',event=>{
+    if(!spatialSelectionActive||spatialSelectionPointerId!==event.pointerId)return;event.preventDefault();event.stopPropagation();
+    const cell=spatialSelectionCellFromPoint(event.clientX,event.clientY);if(cell!==spatialSelectionFocusCell)setSpatialSelectionCell(cell,spatialSelectionPaintValue);
+  });
+  const endPointer=event=>{if(spatialSelectionPointerId!==event.pointerId)return;if(overlay.hasPointerCapture?.(event.pointerId))overlay.releasePointerCapture(event.pointerId);spatialSelectionPointerId=null};
+  overlay.addEventListener('pointerup',endPointer);overlay.addEventListener('pointercancel',endPointer);
+  overlay.addEventListener('keydown',event=>{
+    if(!spatialSelectionActive)return;
+    const row=spatialSelectionCellRow(spatialSelectionFocusCell),column=spatialSelectionCellColumn(spatialSelectionFocusCell);let nextRow=row,nextColumn=column;
+    if(event.key==='ArrowUp')nextRow--;else if(event.key==='ArrowDown')nextRow++;else if(event.key==='ArrowLeft')nextColumn--;else if(event.key==='ArrowRight')nextColumn++;
+    else if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleSpatialSelectionCell();return}else return;
+    event.preventDefault();nextRow=clamp(nextRow,0,spatialSelectionRows-1);nextColumn=clamp(nextColumn,0,spatialSelectionColumns-1);
+    spatialSelectionFocusCell=nextRow*spatialSelectionColumns+nextColumn;renderSpatialSelectionOverlay();
+  });
+  world.appendChild(overlay);spatialSelectionOverlay=overlay;return overlay;
+}
+function beginSpatialSelection(raw={}){
+  if(READ_ONLY||REGION_DEFINER)return false;
+  const kind=String(raw.kind||'REGION').toUpperCase();if(kind!=='REGION')return false;
+  spatialSelectionPreviousGrid={shape:viewerGridMode,columns:viewerGridColumns,rows:viewerGridRows};
+  spatialSelectionKind='REGION';spatialSelectionGridShape=String(raw.gridShape||'hex').toLowerCase()==='square'?'square':'hex';
+  spatialSelectionColumns=clamp(Math.trunc(Number(raw.columns)||VIEWER_WINDOW_GRID_COLUMNS),1,64);spatialSelectionRows=clamp(Math.trunc(Number(raw.rows)||VIEWER_WINDOW_GRID_ROWS),1,64);
+  spatialSelectionFocusCell=Math.floor(spatialSelectionRows/2)*spatialSelectionColumns+Math.floor(spatialSelectionColumns/2);
+  spatialSelectedCells.clear();spatialSelectionActive=true;applyViewerGridMode(spatialSelectionGridShape,false,spatialSelectionColumns,spatialSelectionRows);
+  renderSpatialSelectionOverlay();const overlay=ensureSpatialSelectionOverlay();try{overlay.focus({preventScroll:true})}catch{overlay.focus()}
+  publishSpatialSelectionChange();announce('Region hex selector active. Touch or drag across cells, or use arrows and Enter.');return true;
+}
+function getSpatialSelection(){return spatialSelectionSnapshot()}
+function finishSpatialSelection(){if(!spatialSelectionActive)return false;spatialSelectionActive=false;spatialSelectionPointerId=null;renderSpatialSelectionOverlay();publishSpatialSelectionChange();announce(`Region footprint saved with ${spatialSelectedCells.size} selected ${spatialSelectionGridShape} cells.`);return true}
+function cancelSpatialSelection(){spatialSelectionActive=false;spatialSelectionPointerId=null;spatialSelectedCells.clear();if(spatialSelectionPreviousGrid)applyViewerGridMode(spatialSelectionPreviousGrid.shape,false,spatialSelectionPreviousGrid.columns,spatialSelectionPreviousGrid.rows);spatialSelectionPreviousGrid=null;renderSpatialSelectionOverlay();publishSpatialSelectionChange();announce('Region selection cancelled.');return true}
+function moveSpatialSelectionCursor(columnDelta,rowDelta){
+  if(!spatialSelectionActive)return false;
+  const row=spatialSelectionCellRow(spatialSelectionFocusCell),column=spatialSelectionCellColumn(spatialSelectionFocusCell);
+  const nextRow=clamp(row+Math.trunc(Number(rowDelta)||0),0,spatialSelectionRows-1),nextColumn=clamp(column+Math.trunc(Number(columnDelta)||0),0,spatialSelectionColumns-1);
+  spatialSelectionFocusCell=nextRow*spatialSelectionColumns+nextColumn;renderSpatialSelectionOverlay();return true;
+}
+function toggleSpatialSelectionCursor(){if(!spatialSelectionActive)return false;toggleSpatialSelectionCell(spatialSelectionFocusCell);return true}
+function showSpatialRegionDefinition(raw){
+  if(!raw||typeof raw!=='object'){hideSpatialRegionDefinition();return}
+  spatialSelectionKind='REGION';spatialSelectionGridShape=String(raw.gridShape||'hex').toLowerCase()==='square'?'square':'hex';
+  spatialSelectionColumns=clamp(Math.trunc(Number(raw.columns)||VIEWER_WINDOW_GRID_COLUMNS),1,64);spatialSelectionRows=clamp(Math.trunc(Number(raw.rows)||VIEWER_WINDOW_GRID_ROWS),1,64);
+  spatialSelectionActive=false;spatialSelectedCells.clear();const max=spatialSelectionColumns*spatialSelectionRows;
+  for(const value of Array.isArray(raw.selectedCells)?raw.selectedCells:[]){const cell=Math.trunc(Number(value));if(Number.isInteger(cell)&&cell>=0&&cell<max)spatialSelectedCells.add(cell)}
+  applyViewerGridMode(spatialSelectionGridShape,false,spatialSelectionColumns,spatialSelectionRows);renderSpatialSelectionOverlay();
+}
+function hideSpatialRegionDefinition(){if(spatialSelectionActive)return;spatialSelectedCells.clear();renderSpatialSelectionOverlay()}
 function configuredGridCellCenter(row,column,shape,columns,rows){
   const offset=shape==='hex'&&(row%2)?0.5:0;
   return{x:clamp((column+0.5+offset)/columns,0,1),y:clamp((row+0.5)/rows,0,1)};
@@ -3882,6 +3993,8 @@ function setExternalDepth(raw={}){
   const tier=clamp(Math.trunc(Number(raw.tier)||0),0,TIERS.length-1);
   viewerTier=tierByIndex(tier).key;
   viewerLayer=Math.max(0,Math.trunc(Number(raw.layer)||0));
+  if(nextScope==='REGION'&&raw.spatialDefinition)showSpatialRegionDefinition(raw.spatialDefinition);
+  else if(!spatialSelectionActive)hideSpatialRegionDefinition();
   restorePassedFullFrames(tier);
   updateTierButton();renderTierMenu();
   if(scopeChanged)fitMap();else applyTransform();
@@ -3955,6 +4068,12 @@ window.ShaelvienPrototype=Object.freeze({
   editCommand:runViewerEditCommand,
   showAllParallax,
   setExternalDepth,
+  beginSpatialSelection,
+  getSpatialSelection,
+  finishSpatialSelection,
+  cancelSpatialSelection,
+  moveSpatialSelectionCursor,
+  toggleSpatialSelectionCursor,
   tiers:TIERS,
   baseLayers:BASE_WORLD_ASSETS,
   getViewerState:()=>({

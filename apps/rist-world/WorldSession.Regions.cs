@@ -195,7 +195,11 @@ public sealed partial class WorldSession
         string kind,
         string name,
         bool inspectionEdit = false,
-        string inspectionReason = "")
+        string inspectionReason = "",
+        IEnumerable<int>? selectedCells = null,
+        string gridShape = "hex",
+        int gridColumns = 30,
+        int gridRows = 30)
     {
         var authorityRegion = ActiveRegion
             ?? throw new InvalidOperationException("Select a Shaelvien world before creating a spatial depth.");
@@ -209,6 +213,17 @@ public sealed partial class WorldSession
         name = (name ?? "").Trim();
         if (name.Length == 0) throw new InvalidOperationException($"Enter a {kind.ToLowerInvariant()} name.");
         if (name.Length > 80) throw new InvalidOperationException("Spatial names must be 80 characters or fewer.");
+
+        gridShape = string.Equals(gridShape, "square", StringComparison.OrdinalIgnoreCase) ? "square" : "hex";
+        gridColumns = Math.Clamp(gridColumns, 1, 64);
+        gridRows = Math.Clamp(gridRows, 1, 64);
+        var spatialCells = (selectedCells ?? [])
+            .Where(cell => cell >= 0 && cell < gridColumns * gridRows)
+            .Distinct()
+            .Order()
+            .ToList();
+        if (kind == "REGION" && selectedCells is not null && spatialCells.Count == 0)
+            throw new InvalidOperationException("Select at least one map cell for the Region.");
 
         string parentNodeId = kind switch
         {
@@ -227,7 +242,11 @@ public sealed partial class WorldSession
             Name: name,
             ParentNodeId: parentNodeId,
             CreatedAtUtc: now,
-            UpdatedAtUtc: now);
+            UpdatedAtUtc: now,
+            GridShape: kind == "REGION" ? gridShape : "",
+            GridColumns: kind == "REGION" ? gridColumns : 0,
+            GridRows: kind == "REGION" ? gridRows : 0,
+            SelectedCells: kind == "REGION" ? spatialCells : null);
 
         var nodes = (authorityRegion.SpatialNodes ?? []).ToList();
         nodes.Add(node);
@@ -528,7 +547,11 @@ public sealed record WorldSpatialNode(
     string ParentNodeId,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
-    string Description = "");
+    string Description = "",
+    string GridShape = "hex",
+    int GridColumns = 30,
+    int GridRows = 30,
+    List<int>? SelectedCells = null);
 
 public sealed record RegionOverlayTile(
     string Id,

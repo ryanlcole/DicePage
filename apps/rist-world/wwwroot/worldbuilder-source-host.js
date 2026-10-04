@@ -86,11 +86,54 @@ export async function showAllParallax(frame){
   return fn()!==false;
 }
 
-export function setDepth(frame,tier,layer,scope,spatialNodeId="",spatialPath=""){
+export function setDepth(frame,tier,layer,scope,spatialNodeId="",spatialPath="",spatialDefinition=null){
   const fn=frame?.contentWindow?.ShaelvienPrototype?.setExternalDepth;
   if(typeof fn!=="function")return false;
-  fn({tier,layer,scope,spatialNodeId,spatialPath});
+  fn({tier,layer,scope,spatialNodeId,spatialPath,spatialDefinition});
   return true;
+}
+
+export async function beginSpatialSelection(frame,options={}){
+  post(frame,{type:"bridge-ready"});
+  const api=await waitForPrototype(frame);
+  const fn=api?.beginSpatialSelection;
+  if(typeof fn!=="function")return false;
+  return fn(options||{})!==false;
+}
+
+export async function getSpatialSelection(frame){
+  const api=await waitForPrototype(frame);
+  const fn=api?.getSpatialSelection;
+  if(typeof fn!=="function")return null;
+  return fn();
+}
+
+export async function finishSpatialSelection(frame){
+  const api=await waitForPrototype(frame);
+  const fn=api?.finishSpatialSelection;
+  if(typeof fn!=="function")return false;
+  return fn()!==false;
+}
+
+export async function cancelSpatialSelection(frame){
+  const api=await waitForPrototype(frame);
+  const fn=api?.cancelSpatialSelection;
+  if(typeof fn!=="function")return false;
+  return fn()!==false;
+}
+
+export async function moveSpatialSelectionCursor(frame,columnDelta,rowDelta){
+  const api=await waitForPrototype(frame);
+  const fn=api?.moveSpatialSelectionCursor;
+  if(typeof fn!=="function")return false;
+  return fn(columnDelta,rowDelta)!==false;
+}
+
+export async function toggleSpatialSelectionCursor(frame){
+  const api=await waitForPrototype(frame);
+  const fn=api?.toggleSpatialSelectionCursor;
+  if(typeof fn!=="function")return false;
+  return fn()!==false;
 }
 
 export function reload(frame,worldSource){
@@ -150,6 +193,19 @@ export function attach(frame,dotnet){
             Number.isFinite(Number(spatial.zoomRatio))?Number(spatial.zoomRatio):1,
             Number.isFinite(Number(spatial.angle))?Math.trunc(Number(spatial.angle)):0,
             String(spatial.depthPrefix||"Z")
+          );
+        }catch{}
+        return;
+      }
+      if(data.type==="spatial-selection-change"){
+        if(!messageMatchesCurrentFrame(frame,data))return;
+        const selection=data.selection&&typeof data.selection==="object"?data.selection:{};
+        try{
+          await dotnet.invokeMethodAsync(
+            "ReceiveWorldBuilderSpatialSelectionStateAsync",
+            selection.active===true,
+            Number.isFinite(Number(selection.count))?Math.max(0,Math.trunc(Number(selection.count))):0,
+            String(selection.gridShape||"hex")
           );
         }catch{}
         return;
