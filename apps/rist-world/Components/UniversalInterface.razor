@@ -953,14 +953,14 @@
   :CurrentSpatialOption?.Name?.Trim().ToUpperInvariant()??$"NEW {CurrentBuilderScope}";
  string CurrentSpatialNodeId=>CurrentBuilderScope switch
  {
-  "REGION"=>Session.ActiveSpatialRegion?.NodeId??"",
-  "LOCAL"=>Session.ActiveLocal?.NodeId??"",
-  "INSTANCE"=>Session.ActiveInstance?.NodeId??"",
+  "REGION"=>Session.ActiveRegion?.RegionId??"",
+  "LOCAL"=>Session.ActiveLocal?.NodeId??Session.ActiveRegion?.RegionId??"",
+  "INSTANCE"=>Session.ActiveInstance?.NodeId??Session.ActiveLocal?.NodeId??Session.ActiveRegion?.RegionId??"",
   _=>""
  };
  string CurrentSpatialPath=>string.Join("/",new[]
  {
-  Session.ActiveSpatialRegion?.NodeId,
+  Session.ActiveRegion?.RegionId,
   Session.ActiveLocal?.NodeId,
   Session.ActiveInstance?.NodeId
  }.Where(value=>!string.IsNullOrWhiteSpace(value)));
@@ -971,7 +971,10 @@
    var labels=new List<string>();
    if(!string.IsNullOrWhiteSpace(_selectedDeedName))labels.Add(_selectedDeedName);
    else if(CurrentPathWorld is not null)labels.Add(CurrentPathWorld.Name);
-   if(Session.ActiveSpatialRegion is not null)labels.Add(Session.ActiveSpatialRegion.Name);
+   if(Session.ActiveRegion is not null)labels.Add(Session.ActiveRegion.Name);
+   if(Session.ActiveSpatialRegion is not null
+      && !string.Equals(Session.ActiveSpatialRegion.Name,Session.ActiveRegion?.Name,StringComparison.OrdinalIgnoreCase))
+    labels.Add(Session.ActiveSpatialRegion.Name);
    if(Session.ActiveLocal is not null)labels.Add(Session.ActiveLocal.Name);
    if(Session.ActiveInstance is not null)labels.Add(Session.ActiveInstance.Name);
    return string.Join(" → ",labels);
@@ -2566,7 +2569,9 @@
    _regionDefinerNewFlow=false;_regionDefinerState=null;_regionDefinerOpen=true;_=InvokeAsync(StateHasChanged);
   }
   _stage=Stage.WorldBuilderTier;
-  _message=$"{CurrentBuilderScope} continues inside {Session.ActiveRegion?.Name??"the active Region"} in the same recursive viewer. Choose Tier, then Layer.";
+  _message=CurrentBuilderScope=="LOCAL"&&Session.ActiveLocal is not null
+   ?$"Local · {Session.ActiveLocal.Name} continues inside {Session.ActiveRegion?.Name??"the active Region"} in the same recursive viewer. Choose Tier, then Layer."
+   :$"{CurrentBuilderScope} continues inside {Session.ActiveRegion?.Name??"the active Region"} in the same recursive viewer. Choose Tier, then Layer.";
   _=SyncWorldBuilderDepthAsync();
  }
 

@@ -11,6 +11,9 @@ public sealed partial class WorldSession
     string _activeLocalId = "";
     string _activeInstanceId = "";
 
+    public const string EndemarRegionDisplayName = "Sumaria";
+    public const string EndemarCityDisplayName = "The Great City of Atsumaritas";
+
     public IReadOnlyList<WorldRegion> Regions => _regions;
     public WorldRegion? ActiveRegion => _regions.FirstOrDefault(x => string.Equals(x.RegionId, _activeRegionId, StringComparison.Ordinal));
     public IReadOnlyList<WorldSpatialNode> ActiveSpatialNodes => ActiveRegion?.SpatialNodes ?? [];
@@ -27,11 +30,12 @@ public sealed partial class WorldSession
         .Where(x => string.Equals(x.Kind, "REGION", StringComparison.OrdinalIgnoreCase))
         .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
         .ToList();
-    public IReadOnlyList<WorldSpatialNode> LocalsForActiveSpatialRegion => ActiveSpatialRegion is null
+    string ActiveLocalParentId => ActiveSpatialRegion?.NodeId ?? ActiveRegion?.RegionId ?? "";
+    public IReadOnlyList<WorldSpatialNode> LocalsForActiveSpatialRegion => string.IsNullOrWhiteSpace(ActiveLocalParentId)
         ? []
         : ActiveSpatialNodes
             .Where(x => string.Equals(x.Kind, "LOCAL", StringComparison.OrdinalIgnoreCase)
-                && string.Equals(x.ParentNodeId, ActiveSpatialRegion.NodeId, StringComparison.Ordinal))
+                && string.Equals(x.ParentNodeId, ActiveLocalParentId, StringComparison.Ordinal))
             .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
     public IReadOnlyList<WorldSpatialNode> InstancesForActiveLocal => ActiveLocal is null
@@ -113,10 +117,13 @@ public sealed partial class WorldSession
                     && string.Equals(x.Kind, "REGION", StringComparison.OrdinalIgnoreCase))
                     ? requestedSpatialRegionId
                     : "";
+                var requestedLocalParentId = !string.IsNullOrWhiteSpace(_activeSpatialRegionId)
+                    ? _activeSpatialRegionId
+                    : _activeRegionId;
                 _activeLocalId = nodes.Any(x =>
                     string.Equals(x.NodeId, requestedLocalId, StringComparison.Ordinal)
                     && string.Equals(x.Kind, "LOCAL", StringComparison.OrdinalIgnoreCase)
-                    && string.Equals(x.ParentNodeId, _activeSpatialRegionId, StringComparison.Ordinal))
+                    && string.Equals(x.ParentNodeId, requestedLocalParentId, StringComparison.Ordinal))
                     ? requestedLocalId
                     : "";
                 _activeInstanceId = nodes.Any(x =>
@@ -167,11 +174,12 @@ public sealed partial class WorldSession
 
     public void SetActiveLocal(string nodeId)
     {
-        if (ActiveSpatialRegion is null) return;
+        var parentId = ActiveLocalParentId;
+        if (string.IsNullOrWhiteSpace(parentId)) return;
         var node = ActiveSpatialNodes.FirstOrDefault(x =>
             string.Equals(x.NodeId, nodeId, StringComparison.Ordinal)
             && string.Equals(x.Kind, "LOCAL", StringComparison.OrdinalIgnoreCase)
-            && string.Equals(x.ParentNodeId, ActiveSpatialRegion.NodeId, StringComparison.Ordinal));
+            && string.Equals(x.ParentNodeId, parentId, StringComparison.Ordinal));
         if (node is null) return;
         var changed = !string.Equals(_activeLocalId, node.NodeId, StringComparison.Ordinal);
         _activeLocalId = node.NodeId;
@@ -189,6 +197,85 @@ public sealed partial class WorldSession
         if (node is null) return;
         _activeInstanceId = node.NodeId;
         Notify();
+    }
+
+    public async Task<EndemarHierarchySetupResult> PrepareEndemarThroughCityAsync()
+    {
+        if (!HasTrustedWorldBuilderAuthority)
+            throw new UnauthorizedAccessException("World Builder authority is required to prepare Endemar.");
+        if (!HasActiveWorld)
+            throw new InvalidOperationException("Choose Shaelvien before preparing Endemar.");
+
+        // Reuse the old persisted Region. Never synthesize a replacement Sumaria:
+        // the point of this setup is to continue working in the existing Region.
+        var region = _regions.FirstOrDefault(item =>
+            string.Equals(item.Name, EndemarRegionDisplayName, StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrWhiteSpace(item.ParcelId))
+            ?? _regions.FirstOrDefault(item =>
+                string.Equals(item.Name, EndemarRegionDisplayName, StringComparison.OrdinalIgnoreCase));
+
+        if (region is null)
+            throw new InvalidOperationException(
+                $"Existing Endemar Region '{EndemarRegionDisplayName}' was not found. No replacement Region was created.");
+
+        _activeRegionId = region.RegionId;
+        _activeSpatialRegionId = "";
+        _activeLocalId = "";
+        _activeInstanceId = "";
+
+        var nodes = (region.SpatialNodes ?? []).ToList();
+        var city = nodes.FirstOrDefault(node =>
+            string.Equals(node.Kind, "LOCAL", StringComparison.OrdinalIgnoreCase)
+            && IsAtsumaritasName(node.Name));
+
+        var createdCityMetadata = false;
+        if (city is null)
+        {
+            // This is hierarchy metadata only. RegionDefiner continues to render
+            // the old Region-owned map/art; no city map or Region is recreated.
+            var now = DateTimeOffset.UtcNow;
+            city = new WorldSpatialNode(
+                NodeId: NewSpatialNodeId("LOCAL", EndemarCityDisplayName),
+                Kind: "LOCAL",
+                Name: EndemarCityDisplayName,
+                ParentNodeId: region.RegionId,
+                CreatedAtUtc: now,
+                UpdatedAtUtc: now,
+                GridShape: "",
+                GridColumns: 0,
+                GridRows: 0,
+                SelectedCells: null);
+            nodes.Add(city);
+
+            var index = _regions.FindIndex(item => string.Equals(item.RegionId, region.RegionId, StringComparison.Ordinal));
+            if (index < 0)
+                throw new InvalidOperationException("The existing Sumaria Region record is unavailable.");
+
+            region = region with { SpatialNodes = nodes, UpdatedAtUtc = now };
+            _regions[index] = region;
+            createdCityMetadata = true;
+            await SaveRegionsAsync();
+        }
+
+        // If the old city metadata already lived beneath a legacy nested REGION
+        // node, preserve that lineage instead of rewriting it.
+        var legacyParentRegion = nodes.FirstOrDefault(node =>
+            string.Equals(node.Kind, "REGION", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(node.NodeId, city.ParentNodeId, StringComparison.Ordinal));
+        _activeSpatialRegionId = legacyParentRegion?.NodeId ?? "";
+        _activeLocalId = city.NodeId;
+        _activeInstanceId = "";
+
+        Notify();
+        return new EndemarHierarchySetupResult(region, city, createdCityMetadata);
+    }
+
+    static bool IsAtsumaritasName(string? name)
+    {
+        var value = (name ?? "").Trim();
+        return string.Equals(value, EndemarCityDisplayName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Great City of Atsumaritas", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Atsumaritas", StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task<WorldSpatialNode> CreateSpatialNodeAsync(
@@ -229,8 +316,8 @@ public sealed partial class WorldSession
         {
             "REGION" => authorityRegion.RegionId,
             "LOCAL" when ActiveSpatialRegion is not null => ActiveSpatialRegion.NodeId,
+            "LOCAL" => authorityRegion.RegionId,
             "INSTANCE" when ActiveLocal is not null => ActiveLocal.NodeId,
-            "LOCAL" => throw new InvalidOperationException("Select a Region before creating a Local."),
             "INSTANCE" => throw new InvalidOperationException("Select a Local before creating an Instance."),
             _ => authorityRegion.RegionId
         };
@@ -539,6 +626,11 @@ public sealed record WorldRegion(
     [JsonIgnore] public int Width => Math.Max(1, MaxColumn - MinColumn + 1);
     [JsonIgnore] public int Height => Math.Max(1, MaxRow - MinRow + 1);
 }
+
+public sealed record EndemarHierarchySetupResult(
+    WorldRegion Region,
+    WorldSpatialNode City,
+    bool CityMetadataCreated);
 
 public sealed record WorldSpatialNode(
     string NodeId,

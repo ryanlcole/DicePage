@@ -702,6 +702,7 @@ public partial class UniversalInterface
         await Session.LoadRegionsAsync();
 
         ControllerWorldOption selected;
+        EndemarHierarchySetupResult? endemarSetup = null;
         if (MmoSelectedIsEndemar)
         {
             selected = new ControllerWorldOption(
@@ -711,6 +712,17 @@ public partial class UniversalInterface
                 null,
                 null);
             Session.SetActiveRegion("");
+            try
+            {
+                endemarSetup = await Session.PrepareEndemarThroughCityAsync();
+            }
+            catch (Exception ex)
+            {
+                _message = string.IsNullOrWhiteSpace(ex.Message)
+                    ? "Endemar hierarchy could not be prepared."
+                    : ex.Message;
+                return;
+            }
         }
         else if (MmoSelectedParcel is { } parcel)
         {
@@ -787,7 +799,11 @@ public partial class UniversalInterface
         _stage = Stage.PathSelect;
         _pathIndex = 0;
         _pathMenuIndex = 0;
-        _message = $"Edit · {_selectedDeedName}. World Builder is on the left; Context is on the right.";
+        _message = endemarSetup is null
+            ? $"Edit · {_selectedDeedName}. World Builder is on the left; Context is on the right."
+            : endemarSetup.CityMetadataCreated
+                ? $"Edit · Endemar. Existing {endemarSetup.Region.Name} was reused; {endemarSetup.City.Name} is now the active Local. No Region or city map was recreated."
+                : $"Edit · Endemar. {endemarSetup.Region.Name} → {endemarSetup.City.Name} is active in the existing recursive hierarchy.";
         await InvokeAsync(StateHasChanged);
     }
 
