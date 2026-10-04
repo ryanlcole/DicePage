@@ -170,6 +170,10 @@ def main() -> None:
     require(host, 'var seed=!Session.IsGeonaphWorld?"empty":isEndemar?"endemar":isGeonaph?"geonaph":"empty";', "continuous builder must choose representation from active spatial identity without collapsing Endemar and Geonaph")
     forbid(host, "<RegionDefinerWorkspace", "entering a deed must not replace the continuous World Builder with a second editor")
     require(host, "worldId={worldId}", "builder must receive selected world identity")
+    require(host, "deedId={deedId}", "builder must receive selected deed identity")
+    require(host, "deedName={deedName}", "builder must receive selected deed display identity")
+    require(host, "deedRegionId={deedRegionId}", "builder must receive region authority for deed-scoped save/filter behavior")
+    require(host, "deedZone={deedZone}", "builder must receive explicit zone identity when one exists")
 
     # Ticker is world-scoped and absent before world choice.
     require(ticker, "@if(Session.HasActiveWorld)", "ticker must stay hidden until a world is active")
