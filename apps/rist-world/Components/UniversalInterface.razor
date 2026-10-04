@@ -3079,7 +3079,7 @@
   try
   {
    object? spatialDefinition=null;
-   if(CurrentBuilderScope is "REGION" or "LOCAL"&&Session.ActiveSpatialRegion is { } region)
+   if((CurrentBuilderScope is "REGION" or "LOCAL")&&Session.ActiveSpatialRegion is { } region)
    {
     spatialDefinition=new
     {

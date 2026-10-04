@@ -1,0 +1,101 @@
+name: Deploy RIST Frontend Infrastructure to AWS
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Deploy RIST External AI Defensive Runtime
+    types:
+      - completed
+    branches:
+      - live-alpha-rist-blazor-world
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'infra/aws/rist-frontend.yml'
+      - 'infra/aws/bootstrap-secure-deploy-roles.sh'
+      - '.github/workflows/deploy-rist-frontend-infrastructure.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  CFN_EXECUTION_ROLE_ARN: arn:aws:iam::797661578124:role/ReLiC-CloudFormation-Execution
+  FRONTEND_STACK: rist-frontend
+  EXTERNAL_AI_STACK: rist-external-ai
+  PRODUCTION_DOMAIN: relicgamemaster.com
+  PRODUCTION_CERTIFICATE_ARN: arn:aws:acm:us-east-1:797661578124:certificate/e25800ef-28bc-43e3-8b75-aaefc0528375
+
+jobs:
+  deploy-infrastructure:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve optional ReLiC MCP origins
+        shell: bash
+        run: |
+          set -euo pipefail
+          MCP_RUNTIME_URL=""
+          MCP_AUTH_URL=""
+          if aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" >/dev/null 2>&1; then
+            MCP_API_URL=$(aws cloudformation describe-stacks --stack-name "$EXTERNAL_AI_STACK" \
+              --query "Stacks[0].Outputs[?OutputKey=='RelicMcpApiBaseUrl'].OutputValue | [0]" \
+              --output text 2>/dev/null || true)
+            MCP_RUNTIME_URL="$MCP_API_URL"
+            MCP_AUTH_URL="$MCP_API_URL"
+          fi
+          if [ "$MCP_RUNTIME_URL" = "None" ]; then MCP_RUNTIME_URL=""; fi
+          if [ "$MCP_AUTH_URL" = "None" ]; then MCP_AUTH_URL=""; fi
+          MCP_RUNTIME_DOMAIN=$(printf '%s' "$MCP_RUNTIME_URL" | sed -E 's#^https?://##; s#/$##')
+          MCP_AUTH_DOMAIN=$(printf '%s' "$MCP_AUTH_URL" | sed -E 's#^https?://##; s#/$##')
+          echo "MCP_RUNTIME_DOMAIN=$MCP_RUNTIME_DOMAIN" >> "$GITHUB_ENV"
+          echo "MCP_AUTH_DOMAIN=$MCP_AUTH_DOMAIN" >> "$GITHUB_ENV"
+
+      - name: Validate frontend stack
+        run: aws cloudformation validate-template --template-body file://infra/aws/rist-frontend.yml >/dev/null
+
+      - name: Enforce learned CloudFront cache-behavior constraint
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -q '^[[:space:]]*OrderedCacheBehaviors:' infra/aws/rist-frontend.yml; then
+            echo "::error::Known ReLiC deployment regression: CloudFormation AWS::CloudFront::Distribution uses CacheBehaviors, not OrderedCacheBehaviors."
+            exit 1
+          fi
+          grep -q '^[[:space:]]*CacheBehaviors:' infra/aws/rist-frontend.yml
+
+      - name: Deploy protected frontend origin and CloudFront
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! aws cloudformation deploy \
+            --template-file infra/aws/rist-frontend.yml \
+            --stack-name "$FRONTEND_STACK" \
+            --region "$AWS_REGION" \
+            --role-arn "$CFN_EXECUTION_ROLE_ARN" \
+            --parameter-overrides \
+              DomainName="$PRODUCTION_DOMAIN" \
+              CertificateArn="$PRODUCTION_CERTIFICATE_ARN" \
+              McpRuntimeOriginDomainName="${MCP_RUNTIME_DOMAIN:-}" \
+              McpAuthOriginDomainName="${MCP_AUTH_DOMAIN:-}" \
+            --no-fail-on-empty-changeset; then
+            aws cloudformation describe-stack-events \
+              --stack-name "$FRONTEND_STACK" \
+              --query "StackEvents[?contains(ResourceStatus, 'FAILED')].[Timestamp,LogicalResourceId,ResourceType,ResourceStatusReason]" \
+              --output table || true
+            exit 1
+          fi
