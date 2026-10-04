@@ -51,15 +51,25 @@ jobs:
         run: |
           set -euo pipefail
           infrastructure=false
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "workflow_run" ]; then
+          event_name="${{ github.event_name }}"
+          if [ "$event_name" = "workflow_dispatch" ] || [ "$event_name" = "workflow_run" ]; then
             infrastructure=true
-          elif [ "${{ github.event_name }}" = "push" ]; then
+          elif [ "$event_name" = "push" ]; then
             before="${{ github.event.before }}"
             if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
               infrastructure=true
             else
               changed="$(git diff --name-only "$before" "${{ github.sha }}" || true)"
-              if printf '%s\n' "$changed" | grep -Eq '^(infra/aws/rist-frontend\.yml|infra/aws/bootstrap-secure-deploy-roles\.sh)
+              if printf '%s\n' "$changed" | grep -Fqx 'infra/aws/rist-frontend.yml' || \
+                 printf '%s\n' "$changed" | grep -Fqx 'infra/aws/bootstrap-secure-deploy-roles.sh'; then
+                infrastructure=true
+              fi
+            fi
+          fi
+          echo "infrastructure=$infrastructure" >> "$GITHUB_OUTPUT"
+          echo "Frontend infrastructure deployment required: $infrastructure"
+
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
