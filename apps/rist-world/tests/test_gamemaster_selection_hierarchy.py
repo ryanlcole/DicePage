@@ -25,26 +25,20 @@ def test_gamemaster_root_matches_worldbuilder_context_contract():
     assert 'WorldBuilderPath=["WORLD","REGION","LOCAL","INSTANCE","CAMPAIGN"]' in component
 
 
-def test_region_local_instance_are_selection_first():
+def test_region_boundary_then_local_instance_continue_recursively():
     component = (ROOT / "Components/UniversalInterface.razor").read_text(encoding="utf-8")
-    regions = (ROOT / "WorldSession.Regions.cs").read_text(encoding="utf-8")
+    region = (ROOT / "Components/RegionDefinerWorkspace.razor").read_text(encoding="utf-8")
 
     assert "SpatialSelect" in component
-    assert "Select a Region before editing its Tier or Layer." in component
-    assert "Select a Local inside the active Region before editing its Tier or Layer." in component
-    assert "Select an Instance inside the active Local before editing its Tier or Layer." in component
-    assert "VIEW DEPTH != EDIT DEPTH" in component
-    assert "if(requested>=2&&Session.ActiveSpatialRegion is null)current=1;" in component
-    assert "else if(requested>=3&&Session.ActiveLocal is null)current=2;" in component
-    assert "_requestedBuilderChainIndex>_builderChainIndex" in component
-    assert "BeginBuilderScope(_builderChainIndex+1,true);" in component
-    assert "CreateSpatialNodeAsync" in regions
-    assert 'kind is not ("REGION" or "LOCAL" or "INSTANCE")' in regions
-    assert "List<WorldSpatialNode>? SpatialNodes = null" in regions
-    assert 'string GridShape = "hex"' in regions
-    assert "int GridColumns = 30" in regions
-    assert "int GridRows = 30" in regions
-    assert "List<int>? SelectedCells = null" in regions
+    assert "Session.SetActiveRegion" in component
+    assert "Session.CreateRegionAsync" in region
+    assert "if(requested>=2&&Session.ActiveRegion is null)current=1;" in component
+    assert 'CurrentBuilderScope=="REGION"' in component
+    assert "Local and Instance" in component
+    assert "_regionDefinerOpen=true" in component
+    assert "_regionDefinerWorkspace.SetDepthAsync" in component
+    assert "Returned from Instance to Local in the same recursive viewer." in component
+    assert "Returned from Local to Region in the same recursive viewer." in component
 
 
 def test_selected_spatial_identity_is_persisted_with_assets():

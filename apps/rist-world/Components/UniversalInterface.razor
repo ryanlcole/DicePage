@@ -2624,7 +2624,9 @@
   {
    if(_inspectionEditMode&&!string.IsNullOrWhiteSpace(_pendingSpatialInspectionReason))
    {
-    await RecordInspectionAuditAsync("CREATE REGION",_pendingSpatialInspectionReason);ConsumeInspectionReason();_pendingSpatialInspectionReason="";
+    var inspectionReason=_pendingSpatialInspectionReason;
+    await RecordInspectionAuditAsync($"CREATE {CurrentBuilderScope}",inspectionReason);
+    ConsumeInspectionReason();_pendingSpatialInspectionReason="";
    }
    _builderChainIndex=2;_requestedBuilderChainIndex=2;_assetScope="LOCAL";_tier=0;_layer=0;_stage=Stage.WorldBuilderTier;
    _message=$"{savedRegion.Name} saved by the original Region Definer. Continuing into Local inside the same recursive viewer.";
