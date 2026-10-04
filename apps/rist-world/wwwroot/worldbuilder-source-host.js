@@ -169,7 +169,15 @@ export function attach(frame,dotnet){
       }
       if(data.type==="spatial-depth-control-begin"){
         if(!messageMatchesCurrentFrame(frame,data))return;
-        await dotnet.invokeMethodAsync("BeginWorldBuilderSpatialDepthControlAsync");
+        const activated=await dotnet.invokeMethodAsync("BeginWorldBuilderSpatialDepthControlAsync");
+        if(activated){
+          // Explicitly echo the parent-owned value back after the parent has
+          // rendered its Tier state. This closes the Select Area startup race
+          // where the iframe could still be portraying the previously topmost
+          // parallax tier until the user moved the semantic control once.
+          const result=await dotnet.invokeMethodAsync("GetWorldBuilderDepthAuthorityAsync");
+          post(frame,{type:"spatial-depth-authority-sync",result});
+        }
         return;
       }
       if(data.type==="spatial-depth-control-end"){
