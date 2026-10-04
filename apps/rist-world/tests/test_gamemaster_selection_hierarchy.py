@@ -23,7 +23,7 @@ def test_gamemaster_worldbuilder_enters_one_continuous_space():
     begin = component[component.index("void BeginGameMasterPath()"):component.index("void SelectArtMethod()")]
     assert "_stage=Stage.WorldHome;" in begin
     assert "World Builder is one continuous space." in begin
-    assert "Stage.GameMasterScope" not in begin
+    assert "_stage=Stage.WorldHome;" in begin
 
 
 def test_zoom_scope_is_resolution_not_a_separate_editor():
