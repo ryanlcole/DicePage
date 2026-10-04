@@ -8,7 +8,9 @@ def test_spatial_title_handoff_is_loaded_after_canonical_viewer():
 
     prototype_pos = index.index("prototype.js?v=20261004-continuous-space-2")
     handoff_pos = index.index("spatial-title-handoff.js?v=20261004-spatial-title-1")
+    lock_pos = index.index("spatial-selector-lock.js?v=20261004-map-selector-lock-1")
     assert handoff_pos > prototype_pos
+    assert lock_pos > handoff_pos
 
 
 def test_hex_selection_is_anchored_to_visible_world_map_layers_not_viewer_stage():
@@ -26,13 +28,18 @@ def test_hex_selection_is_anchored_to_visible_world_map_layers_not_viewer_stage(
 
 
 def test_camera_is_only_a_lens_during_active_hex_selection():
-    script = (ROOT / "wwwroot/prototype/spatial-title-handoff.js").read_text(encoding="utf-8")
+    handoff = (ROOT / "wwwroot/prototype/spatial-title-handoff.js").read_text(encoding="utf-8")
+    lock = (ROOT / "wwwroot/prototype/spatial-selector-lock.js").read_text(encoding="utf-8")
 
-    assert "lockSelectorControls()" in script
-    assert "const ids=['zoomIn','zoomOut','fit','settingsFit','tierToggle']" in script
-    assert "blockCameraMutationWhileSelecting" in script
-    assert "stage?.addEventListener('wheel'" in script
-    assert "releaseSelectorFromMap()" in script
+    assert "lockSelectorControls()" in handoff
+    assert "const ids=['zoomIn','zoomOut','fit','settingsFit','tierToggle']" in handoff
+    assert "blockCameraMutationWhileSelecting" in handoff
+    assert "stage?.addEventListener('wheel'" in handoff
+    assert "releaseSelectorFromMap()" in handoff
+    assert ".spatial-selection-grid.active[data-coordinate-space=\"world-map\"]" in lock
+    assert "if(event.pointerType==='touch')blockTouchCameraMove(event);" in lock
+    assert "document.addEventListener('touchmove',blockTouchCameraMove" in lock
+    assert "['+','=','-','_','f','t']" in lock
 
 
 def test_spatial_name_uses_text_editor_and_requires_enter_instead_of_browser_prompt():
