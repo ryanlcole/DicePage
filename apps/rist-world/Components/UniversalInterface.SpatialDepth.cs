@@ -108,8 +108,13 @@ public partial class UniversalInterface
         _spatialDefinitionActive = true;
         _stage = Stage.WorldBuilderTier;
         _message = $"Deed depth · Tier {_tier}. The parent semantic left display is authoritative; X/Y selection remains frozen to the visible map.";
-        await SyncWorldBuilderDepthAsync();
+
+        // Render the authoritative Tier state first, then push that exact value
+        // into the embedded representation. This prevents Select Area from
+        // briefly retaining the previously visible top parallax tier while the
+        // left semantic display has already moved to Tier 0.
         await InvokeAsync(StateHasChanged);
+        await SyncWorldBuilderDepthAsync();
         return true;
     }
 
