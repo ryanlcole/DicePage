@@ -9,7 +9,7 @@ def test_spatial_title_handoff_is_loaded_after_canonical_viewer():
     prototype_pos = index.index("prototype.js?v=20261004-continuous-space-2")
     session_pos = index.index("spatial-selection-session.js?v=20261004-frozen-selection-3")
     handoff_pos = index.index("spatial-title-handoff.js?v=20261004-spatial-title-1")
-    depth_pos = index.index("spatial-depth-authority.js?v=20261004-left-depth-2")
+    depth_pos = index.index("spatial-depth-authority.js?v=20261004-left-depth-3")
     lock_pos = index.index("spatial-selector-lock.js?v=20261004-map-selector-lock-1")
     assert session_pos > prototype_pos
     assert handoff_pos > session_pos
@@ -77,6 +77,24 @@ def test_gm_depth_uses_left_semantic_display_not_a_map_popup():
     assert "spatial-depth-authority-request" in depth
     assert "spatial-selection-depth-panel" not in session
     assert "GM DEED DEPTH" not in session
+
+
+def test_selection_waits_for_parent_depth_authority_before_changing_depth():
+    depth = (ROOT / "wwwroot/prototype/spatial-depth-authority.js").read_text(encoding="utf-8")
+
+    begin = depth[depth.index("function beginSpatialSelection(raw={})"):depth.index("function getSpatialSelection()")]
+    authority = depth[depth.index("window.addEventListener('message'"):depth.index("window.ShaelvienPrototype=Object.freeze")]
+
+    assert "authorityReady=false;" in begin
+    assert "requestAuthority();" in begin
+    assert "commitDepth();" not in begin
+    assert "applyViewerDepth(" not in begin
+    assert "WAIT FOR AUTHORITY" in depth
+    assert "tier:Math.max(0,Math.trunc(Number(result.tier)||0))" in authority
+    assert "layer:Math.max(0,Math.trunc(Number(result.layer)||0))" in authority
+    assert "authorityReady=true;" in authority
+    assert "function syncDepthBox()" not in depth
+    assert "querySelector('.depth-pip')" not in depth
 
 
 def test_deed_depth_box_and_allocation_share_authoritative_blazor_state():
