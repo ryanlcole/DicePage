@@ -165,7 +165,10 @@ def main() -> None:
     # seed while Geonaph remains a distinct deed/zone with its own truth boundary.
     require(router, '<WorldBuilderGeonaphHost OnStartMenu="OnStartMenu" OnHome="OnHome" />', "all worlds must use the universal builder host and return Home without reloading Press Start")
     forbid(router, '<WorldBuilderStudio OnStartMenu="OnStartMenu" />', "normal worlds must not route to a second builder")
-    require(host, 'var seed=Session.IsGeonaphWorld?"endemar":"empty";', "Shaelvien root must seed Endemar without collapsing Geonaph into it")
+    require(host, "var isEndemar=Session.IsGeonaphWorld&&string.IsNullOrWhiteSpace(activeRegion?.ParcelId);", "Shaelvien root must keep Endemar identity explicit")
+    require(host, "WorldSession.GeonaphZoneDisplayName", "Geonaph must remain a distinct deed identity")
+    require(host, 'var seed=!Session.IsGeonaphWorld?"empty":isEndemar?"endemar":isGeonaph?"geonaph":"empty";', "continuous builder must choose representation from active spatial identity without collapsing Endemar and Geonaph")
+    forbid(host, "<RegionDefinerWorkspace", "entering a deed must not replace the continuous World Builder with a second editor")
     require(host, "worldId={worldId}", "builder must receive selected world identity")
 
     # Ticker is world-scoped and absent before world choice.
