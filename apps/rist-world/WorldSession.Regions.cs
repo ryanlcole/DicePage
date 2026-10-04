@@ -189,11 +189,12 @@ public sealed partial class WorldSession
 
     public void SetActiveInstance(string nodeId)
     {
-        if (ActiveLocal is null) return;
+        // Instance is a scene boundary, not a mandatory child of Local. Legacy
+        // Local -> Instance records remain valid, while new scenes may be
+        // declared directly inside any currently editable spatial boundary.
         var node = ActiveSpatialNodes.FirstOrDefault(x =>
             string.Equals(x.NodeId, nodeId, StringComparison.Ordinal)
-            && string.Equals(x.Kind, "INSTANCE", StringComparison.OrdinalIgnoreCase)
-            && string.Equals(x.ParentNodeId, ActiveLocal.NodeId, StringComparison.Ordinal));
+            && string.Equals(x.Kind, "INSTANCE", StringComparison.OrdinalIgnoreCase));
         if (node is null) return;
         _activeInstanceId = node.NodeId;
         Notify();
@@ -289,7 +290,23 @@ public sealed partial class WorldSession
         IEnumerable<int>? selectedCells = null,
         string gridShape = "hex",
         int gridColumns = 30,
-        int gridRows = 30)
+        int gridRows = 30,
+        string parentNodeId = "",
+        IEnumerable<int>? canonicalCells = null,
+        double viewMinX = 0,
+        double viewMinY = 0,
+        double viewMaxX = 1,
+        double viewMaxY = 1,
+        double canonicalMinX = 0,
+        double canonicalMinY = 0,
+        double canonicalMaxX = 1,
+        double canonicalMaxY = 1,
+        string resolutionScope = "WORLD",
+        double viewZoomRatio = 1,
+        int viewAngle = 0,
+        int tierIndex = 0,
+        IEnumerable<int>? visibleTierIndices = null,
+        IEnumerable<int>? visibleLayerOffsets = null)
     {
         var authorityRegion = ActiveRegion
             ?? throw new InvalidOperationException("Select a Shaelvien world before creating a spatial depth.");
@@ -312,18 +329,33 @@ public sealed partial class WorldSession
             .Distinct()
             .Order()
             .ToList();
-        if (kind == "REGION" && selectedCells is not null && spatialCells.Count == 0)
-            throw new InvalidOperationException("Select at least one map cell for the Region.");
+        if (selectedCells is not null && spatialCells.Count == 0)
+            throw new InvalidOperationException("Select at least one visible map cell for the spatial boundary.");
 
-        string parentNodeId = kind switch
-        {
-            "REGION" => authorityRegion.RegionId,
-            "LOCAL" when ActiveSpatialRegion is not null => ActiveSpatialRegion.NodeId,
-            "LOCAL" => authorityRegion.RegionId,
-            "INSTANCE" when ActiveLocal is not null => ActiveLocal.NodeId,
-            "INSTANCE" => throw new InvalidOperationException("Select a Local before creating an Instance."),
-            _ => authorityRegion.RegionId
-        };
+        // Spatial meaning is not a rigid REGION -> LOCAL -> INSTANCE tree.
+        // Preserve an explicit focused parent when supplied, otherwise attach
+        // to the deepest currently focused boundary. Geometry may still overlap
+        // siblings or parents; ParentNodeId is lineage, not containment proof.
+        parentNodeId = (parentNodeId ?? "").Trim();
+        if (parentNodeId.Length == 0)
+            parentNodeId = ActiveInstance?.NodeId
+                ?? ActiveLocal?.NodeId
+                ?? ActiveSpatialRegion?.NodeId
+                ?? authorityRegion.RegionId;
+
+        static double Unit(double value) => Math.Clamp(double.IsFinite(value) ? value : 0, 0, 1);
+        viewMinX = Unit(viewMinX); viewMinY = Unit(viewMinY);
+        viewMaxX = Math.Max(viewMinX, Unit(viewMaxX)); viewMaxY = Math.Max(viewMinY, Unit(viewMaxY));
+        canonicalMinX = Unit(canonicalMinX); canonicalMinY = Unit(canonicalMinY);
+        canonicalMaxX = Math.Max(canonicalMinX, Unit(canonicalMaxX)); canonicalMaxY = Math.Max(canonicalMinY, Unit(canonicalMaxY));
+        resolutionScope = (resolutionScope ?? "WORLD").Trim().ToUpperInvariant();
+        if (resolutionScope is not ("WORLD" or "REGION" or "LOCAL" or "INSTANCE")) resolutionScope = "WORLD";
+        viewZoomRatio = double.IsFinite(viewZoomRatio) ? Math.Max(1, viewZoomRatio) : 1;
+        viewAngle = Math.Clamp(viewAngle, 0, 89);
+        tierIndex = Math.Max(0, tierIndex);
+        var visibleTiers = (visibleTierIndices ?? [tierIndex]).Where(x => x >= 0).Distinct().Order().ToList();
+        var visibleLayers = (visibleLayerOffsets ?? Enumerable.Range(0, LayersPerTier)).Where(x => x >= 0 && x < LayersPerTier).Distinct().Order().ToList();
+        var canonicalCellList = (canonicalCells ?? []).Where(x => x >= 0 && x < SpatialScopeGridColumns * SpatialScopeGridRows).Distinct().Order().ToList();
 
         var now = DateTimeOffset.UtcNow;
         var node = new WorldSpatialNode(
@@ -333,10 +365,26 @@ public sealed partial class WorldSession
             ParentNodeId: parentNodeId,
             CreatedAtUtc: now,
             UpdatedAtUtc: now,
-            GridShape: kind == "REGION" ? gridShape : "",
-            GridColumns: kind == "REGION" ? gridColumns : 0,
-            GridRows: kind == "REGION" ? gridRows : 0,
-            SelectedCells: kind == "REGION" ? spatialCells : null);
+            GridShape: gridShape,
+            GridColumns: gridColumns,
+            GridRows: gridRows,
+            SelectedCells: spatialCells,
+            CanonicalCells: canonicalCellList,
+            ViewMinX: viewMinX,
+            ViewMinY: viewMinY,
+            ViewMaxX: viewMaxX,
+            ViewMaxY: viewMaxY,
+            CanonicalMinX: canonicalMinX,
+            CanonicalMinY: canonicalMinY,
+            CanonicalMaxX: canonicalMaxX,
+            CanonicalMaxY: canonicalMaxY,
+            ResolutionScope: resolutionScope,
+            ViewZoomRatio: viewZoomRatio,
+            ViewAngle: viewAngle,
+            TierIndex: tierIndex,
+            VisibleTierIndices: visibleTiers,
+            VisibleLayerOffsets: visibleLayers,
+            SceneBoundary: kind == "INSTANCE");
 
         var nodes = (authorityRegion.SpatialNodes ?? []).ToList();
         nodes.Add(node);
@@ -384,7 +432,28 @@ public sealed partial class WorldSession
         return $"{kind.ToLowerInvariant()}-{segment}-{Guid.NewGuid():N}";
     }
 
-    public async Task<WorldRegion> CreateRegionAsync(string name, IEnumerable<int> selectedCells, int tierIndex = 0, IEnumerable<int>? sourceLayerOffsets = null, string gridShape = "square")
+    public async Task<WorldRegion> CreateRegionAsync(
+        string name,
+        IEnumerable<int> selectedCells,
+        int tierIndex = 0,
+        IEnumerable<int>? sourceLayerOffsets = null,
+        string gridShape = "square",
+        IEnumerable<int>? boundaryCells = null,
+        int boundaryGridColumns = 30,
+        int boundaryGridRows = 30,
+        double viewMinX = 0,
+        double viewMinY = 0,
+        double viewMaxX = 1,
+        double viewMaxY = 1,
+        double canonicalMinX = double.NaN,
+        double canonicalMinY = double.NaN,
+        double canonicalMaxX = double.NaN,
+        double canonicalMaxY = double.NaN,
+        string resolutionScope = "WORLD",
+        double viewZoomRatio = 1,
+        int viewAngle = 0,
+        IEnumerable<int>? visibleTierIndices = null,
+        IEnumerable<int>? visibleLayerOffsets = null)
     {
         if (!HasTrustedWorldBuilderAuthority) throw new UnauthorizedAccessException("World Builder authority is required to define regions.");
         if (!HasActiveWorld) throw new InvalidOperationException("Choose a world before defining a region.");
@@ -411,6 +480,30 @@ public sealed partial class WorldSession
         var maxColumn = columns.Max();
         var minRow = rows.Min();
         var maxRow = rows.Max();
+        boundaryGridColumns = Math.Clamp(boundaryGridColumns, 1, 64);
+        boundaryGridRows = Math.Clamp(boundaryGridRows, 1, 64);
+        var boundaryCellList = (boundaryCells ?? [])
+            .Where(x => x >= 0 && x < boundaryGridColumns * boundaryGridRows)
+            .Distinct()
+            .Order()
+            .ToList();
+        static double Unit(double value) => Math.Clamp(double.IsFinite(value) ? value : 0, 0, 1);
+        viewMinX = Unit(viewMinX); viewMinY = Unit(viewMinY);
+        viewMaxX = Math.Max(viewMinX, Unit(viewMaxX)); viewMaxY = Math.Max(viewMinY, Unit(viewMaxY));
+        var fallbackMinX = minColumn / (double)SpatialScopeGridColumns;
+        var fallbackMinY = minRow / (double)SpatialScopeGridRows;
+        var fallbackMaxX = (maxColumn + 1) / (double)SpatialScopeGridColumns;
+        var fallbackMaxY = (maxRow + 1) / (double)SpatialScopeGridRows;
+        canonicalMinX = double.IsFinite(canonicalMinX) ? Unit(canonicalMinX) : fallbackMinX;
+        canonicalMinY = double.IsFinite(canonicalMinY) ? Unit(canonicalMinY) : fallbackMinY;
+        canonicalMaxX = double.IsFinite(canonicalMaxX) ? Math.Max(canonicalMinX, Unit(canonicalMaxX)) : fallbackMaxX;
+        canonicalMaxY = double.IsFinite(canonicalMaxY) ? Math.Max(canonicalMinY, Unit(canonicalMaxY)) : fallbackMaxY;
+        resolutionScope = (resolutionScope ?? "WORLD").Trim().ToUpperInvariant();
+        if (resolutionScope is not ("WORLD" or "REGION" or "LOCAL" or "INSTANCE")) resolutionScope = "WORLD";
+        viewZoomRatio = double.IsFinite(viewZoomRatio) ? Math.Max(1, viewZoomRatio) : 1;
+        viewAngle = Math.Clamp(viewAngle, 0, 89);
+        var visibleTiers = (visibleTierIndices ?? [tierIndex]).Where(x => x >= 0).Distinct().Order().ToList();
+        var visibleLayers = (visibleLayerOffsets ?? sourceLayers).Where(x => x >= 0 && x < LayersPerTier).Distinct().Order().ToList();
         // A region is authority/view metadata over the canonical world map.
         // It never stores a cropped or transformed copy of the map.
         var now = DateTimeOffset.UtcNow;
@@ -433,12 +526,24 @@ public sealed partial class WorldSession
             OwnerUserId: auth.Profile?.UserId?.Trim() ?? "",
             ParentNodeId: $"world:{WorldId}",
             CoordinateSpace: SpatialWorldCoordinateSpace,
-            CanonicalMinX: minColumn / (double)SpatialScopeGridColumns,
-            CanonicalMinY: minRow / (double)SpatialScopeGridRows,
-            CanonicalMaxX: (maxColumn + 1) / (double)SpatialScopeGridColumns,
-            CanonicalMaxY: (maxRow + 1) / (double)SpatialScopeGridRows,
+            CanonicalMinX: canonicalMinX,
+            CanonicalMinY: canonicalMinY,
+            CanonicalMaxX: canonicalMaxX,
+            CanonicalMaxY: canonicalMaxY,
             CanonicalZMin: (tierIndex * LayersPerTier) + (sourceLayers.Count > 0 ? sourceLayers.Min() : 0),
-            CanonicalZMax: (tierIndex * LayersPerTier) + (sourceLayers.Count > 0 ? sourceLayers.Max() + 1 : LayersPerTier));
+            CanonicalZMax: (tierIndex * LayersPerTier) + (sourceLayers.Count > 0 ? sourceLayers.Max() + 1 : LayersPerTier),
+            BoundaryCells: boundaryCellList,
+            BoundaryGridColumns: boundaryGridColumns,
+            BoundaryGridRows: boundaryGridRows,
+            ViewMinX: viewMinX,
+            ViewMinY: viewMinY,
+            ViewMaxX: viewMaxX,
+            ViewMaxY: viewMaxY,
+            ResolutionScope: resolutionScope,
+            ViewZoomRatio: viewZoomRatio,
+            ViewAngle: viewAngle,
+            VisibleTierIndices: visibleTiers,
+            VisibleLayerOffsets: visibleLayers);
 
         _regions.Add(region);
         _activeRegionId = region.RegionId;
@@ -631,7 +736,19 @@ public sealed record WorldRegion(
     int CanonicalZMin = 0,
     int CanonicalZMax = 0,
     string Description = "",
-    List<WorldSpatialNode>? SpatialNodes = null)
+    List<WorldSpatialNode>? SpatialNodes = null,
+    List<int>? BoundaryCells = null,
+    int BoundaryGridColumns = 0,
+    int BoundaryGridRows = 0,
+    double ViewMinX = 0,
+    double ViewMinY = 0,
+    double ViewMaxX = 1,
+    double ViewMaxY = 1,
+    string ResolutionScope = "WORLD",
+    double ViewZoomRatio = 1,
+    int ViewAngle = 0,
+    List<int>? VisibleTierIndices = null,
+    List<int>? VisibleLayerOffsets = null)
 {
     [JsonIgnore] public int Width => Math.Max(1, MaxColumn - MinColumn + 1);
     [JsonIgnore] public int Height => Math.Max(1, MaxRow - MinRow + 1);
@@ -653,7 +770,23 @@ public sealed record WorldSpatialNode(
     string GridShape = "hex",
     int GridColumns = 30,
     int GridRows = 30,
-    List<int>? SelectedCells = null);
+    List<int>? SelectedCells = null,
+    List<int>? CanonicalCells = null,
+    double ViewMinX = 0,
+    double ViewMinY = 0,
+    double ViewMaxX = 1,
+    double ViewMaxY = 1,
+    double CanonicalMinX = 0,
+    double CanonicalMinY = 0,
+    double CanonicalMaxX = 1,
+    double CanonicalMaxY = 1,
+    string ResolutionScope = "WORLD",
+    double ViewZoomRatio = 1,
+    int ViewAngle = 0,
+    int TierIndex = 0,
+    List<int>? VisibleTierIndices = null,
+    List<int>? VisibleLayerOffsets = null,
+    bool SceneBoundary = false);
 
 public sealed record RegionOverlayTile(
     string Id,
