@@ -764,6 +764,7 @@ public partial class UniversalInterface
         await Session.LoadRegionsAsync();
 
         ControllerWorldOption selected;
+        EndemarHierarchySetupResult? endemarSetup = null;
         if (MmoSelectedIsEndemar)
         {
             selected = new ControllerWorldOption(
@@ -773,6 +774,17 @@ public partial class UniversalInterface
                 null,
                 null);
             Session.SetActiveRegion("");
+            try
+            {
+                endemarSetup = await Session.PrepareEndemarThroughCityAsync();
+            }
+            catch (Exception ex)
+            {
+                _message = string.IsNullOrWhiteSpace(ex.Message)
+                    ? "Endemar hierarchy could not be prepared."
+                    : ex.Message;
+                return;
+            }
         }
         else if (MmoSelectedParcel is { } parcel)
         {
