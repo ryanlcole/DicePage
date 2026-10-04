@@ -133,7 +133,7 @@ test('World Builder shows the full Geonaph tier-layer stack while MMO stays flat
   assert.match(prototype,/geonaph_full_static_highlands_rivers_v002\.png/);
   assert.match(prototype,/geonaph_full_static_mountain_volcanic_archipelago_v002\.png/);
   assert.match(prototype,/viewerTier='all';\s*viewerLayer=9;/);
-  assert.match(interfaceRazor,/entryView=\{entryView\}.*renderer=20261004-continuous-space-1/);
+  assert.match(interfaceRazor,/entryView=\{entryView\}.*renderer=20261004-continuous-space-2/);
 
   assert.match(mmo,/if \(tier != 0\) continue;/);
   assert.match(mmo,/JsonBool\(item, "mmoSurface", false\)/);
