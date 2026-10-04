@@ -60,3 +60,26 @@ def test_old_regiondefiner_grid_remains_selection_geometry():
     assert "function regionOverlayFigure(" in prototype
     assert "const offset=shape==='hex'&&(row%2)?0.5:0;" in prototype
     assert "regionSelectedCells" in prototype
+
+
+def test_saved_region_is_hard_cropped_and_world_source_is_flat_until_region_tiers_exist():
+    prototype = (ROOT / "wwwroot/prototype/prototype.js").read_text(encoding="utf-8")
+
+    assert "stage.dataset.cropMode='hard-region-crop'" in prototype
+    assert "zooming out restores the surrounding" not in prototype
+    assert "function claimedRegionSourceTier()" in prototype
+    assert "function claimedRegionSourceLayerSet()" in prototype
+    assert "viewerTier=tierByIndex(0).key" in prototype
+    assert "entry.tier===regionSourceTier" in prototype
+    assert "item.canonicalSource?0:presentationDepthForTier(item.tier)" in prototype
+    assert "flattened as Region base Tier 1" in prototype
+
+
+def test_region_hex_mask_uses_same_old_seam_closing_geometry_as_selection():
+    prototype = (ROOT / "wwwroot/prototype/prototype.js").read_text(encoding="utf-8")
+
+    assert "const REGION_HEX_WIDTH_OVERSCAN=1.02;" in prototype
+    assert "const REGION_HEX_HEIGHT_OVERSCAN=1.08;" in prototype
+    assert "function regionHexPolygonPoints" in prototype
+    assert "regionHexPolygonPoints(x,y,sx,sy)" in prototype
+    assert "regionHexPolygonPoints(x,y)" in prototype

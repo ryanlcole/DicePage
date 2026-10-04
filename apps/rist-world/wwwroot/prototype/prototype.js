@@ -1757,25 +1757,30 @@ function applyParallax(){
   stage.dataset.spatialScope=spatialScope.toLowerCase();
   const dx=x-fitX,dy=y-fitY,mix=tierMix(),worldMap=customWorldMap();
   if(REGION_DEFINER)updateRegionWorldSourceVisibility();
+  const regionSourceTier=REGION_DEFINER&&regionClaimedRegion?claimedRegionSourceTier():null;
   const builtins=BASE_WORLD_ASSETS.map(asset=>({
     node:planeByKey[asset.key],
     key:asset.key,
     tier:asset.tier,
     layer:asset.layer,
     sceneZ:(asset.tier*LAYERS_PER_TIER)+asset.layer,
-    alpha:asset.key==='surface'?(worldMap?0:mix.surface):asset.key==='highlands'?mix.highlands:mix.mountains
+    alpha:REGION_DEFINER&&regionClaimedRegion
+      ?(asset.tier===regionSourceTier?1:0)
+      :asset.key==='surface'?(worldMap?0:mix.surface):asset.key==='highlands'?mix.highlands:mix.mountains
   }));
   for(const entry of builtins){
-    const sourceVisible=!REGION_DEFINER||(entry.tier<=currentRegionTierIndex()&&regionSourceLayerVisible(entry.tier,entry.layer));
+    const sourceVisible=!REGION_DEFINER||(regionClaimedRegion
+      ?entry.tier===regionSourceTier
+      :(entry.tier<=currentRegionTierIndex()&&regionSourceLayerVisible(entry.tier,entry.layer)));
     // A selected deed is now the viewer's entire coordinate universe. Do not
     // hide that deed's canonical base planes merely because it has an MMO
     // region id; the 30x30 deed map ended when the user entered this zone.
     const worldVisible=(BASE_WORLD_ASSETS.length>0||!DEED_REGION_ID)
       &&(spatialScope==='WORLD'||(spatialScope==='REGION'&&!regionEnhanceActive));
     entry.node.style.opacity=worldVisible&&layerReady[entry.key]&&sourceVisible?String(clamp(Number(entry.alpha)||0,0,1)):'0';
-    const depth=presentationDepthForTier(entry.tier);
+    const depth=REGION_DEFINER&&regionClaimedRegion?0:presentationDepthForTier(entry.tier);
     const panStrength=depth*.055;
-    const tiltStrength=.42+(depth*.78);
+    const tiltStrength=depth===0?0:.42+(depth*.78);
     const px=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
     const py=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
     entry.node.dataset.parallaxX=px.toFixed(4);entry.node.dataset.parallaxY=py.toFixed(4);
@@ -1800,14 +1805,16 @@ function applyParallax(){
       ||(itemScope==='WORLD'&&spatialScope!=='WORLD')
       ||(spatialScope==='REGION'&&!regionEnhanceActive&&itemScope==='WORLD');
     const visible=deedVisible&&zoneLayerVisible&&(REGION_DEFINER
-      ? (item.canonicalSource?item.tier<=regionTier:item.tier===regionTier)&&regionalLayerVisible
+      ? (item.canonicalSource
+          ?(regionClaimedRegion?claimedRegionSourceLayerVisible(item.tier,item.layer):item.tier<=regionTier&&regionalLayerVisible)
+          :item.tier===regionTier)
       : (!item.committed||scopeVisible)&&(viewerTier==='all'||!item.committed||item.tier===tierByKey(viewerTier).index));
     if(isWorldMapItem(item)){
       item.parallaxX=0;item.parallaxY=0;item.renderOpacity=visible&&!item.zoomPassed?item.opacity:0;refreshUserImage(item);continue;
     }
     // Presentation is compact and identical across zones. Semantic tier/layer
     // identity remains unchanged in the saved world source.
-    const depth=presentationDepthForTier(item.tier);
+    const depth=REGION_DEFINER&&regionClaimedRegion&&item.canonicalSource?0:presentationDepthForTier(item.tier);
     const panStrength=depth*.022,tiltStrength=depth*.48;
     item.parallaxX=((-dx*panStrength)+(tiltX*tiltStrength))/Math.max(scale,.00001);
     item.parallaxY=((-dy*panStrength)+(tiltY*tiltStrength))/Math.max(scale,.00001);
@@ -1830,7 +1837,11 @@ function updateReadouts(){
   const label=viewerTier==='all'?'All Parallax':tierLabel(tierByKey(viewerTier));
   const worldLabel=DISPLAY_WORLD_NAME?DISPLAY_WORLD_NAME+' world. ':'';
   const continentLabel=CONTINENT_NAME?` Continent ${CONTINENT_NAME}.`:'';
-  const regionalLayers=REGION_DEFINER?` Visible World layers ${[...regionWorldLayerSet()].sort((a,b)=>a-b).map(layer=>layer+1).join(', ')||'none'}.`:'';
+  const regionalLayers=REGION_DEFINER
+    ?regionClaimedRegion
+      ?` Cropped World source tier ${claimedRegionSourceTier()+1}, layers ${[...claimedRegionSourceLayerSet()].sort((a,b)=>a-b).map(layer=>layer+1).join(', ')||'none'}, flattened as Region base Tier 1.`
+      :` Visible World layers ${[...regionWorldLayerSet()].sort((a,b)=>a-b).map(layer=>layer+1).join(', ')||'none'}.`
+    :'';
   stage.setAttribute('aria-label',`Interactive tiered ${worldLabel}viewer.${continentLabel} ${spatialScope} scope, ${SCOPE_GRID_COLUMNS} by ${SCOPE_GRID_ROWS}, ${viewAngle} degree view. ${depthPrefix} tier ${viewerTier}, ${depthPrefix} layer ${viewerLayer}. ${label}. ${BASE_LAYER_COUNT+regionWorldSourceTiles.length+userLayers.length} total image layers.${regionalLayers} Surface authoring extent ${SURFACE_WORLD_PIXELS} by ${SURFACE_WORLD_PIXELS} pixels. Surface policy ${SURFACE_POLICY}.`);
 }
 function applyTransform(){
@@ -1949,7 +1960,7 @@ function viewerGridSvg(shape,columns=viewerGridColumns,rows=viewerGridRows){
     for(let row=0;row<rows;row++){
       for(let column=0;column<columns;column++){
         const x=column+(row%2?0.5:0),y=row;
-        polygons.push(`<polygon points="${x+w*.25},${y} ${x+w*.75},${y} ${x+w},${y+h*.5} ${x+w*.75},${y+h} ${x+w*.25},${y+h} ${x},${y+h*.5}"/>`);
+        polygons.push(`<polygon points="${regionHexPolygonPoints(x,y,w,h)}"/>`);
       }
     }
     return `<svg viewBox="0 0 ${columns+0.5} ${rows}" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="${stroke}" stroke-width=".035" vector-effect="non-scaling-stroke">${polygons.join('')}</g></svg>`;
@@ -2504,13 +2515,28 @@ async function renderRegionWorldSource(payload){
     stage.dataset.canonicalHydrationError=String(error?.message||error||'unknown error').slice(0,160);
   });
 }
+function claimedRegionSourceTier(){
+  return regionClaimedRegion
+    ?clamp(Math.trunc(Number(regionClaimedRegion.tierIndex)||0),0,TIERS.length-1)
+    :currentRegionTierIndex();
+}
+function claimedRegionSourceLayerSet(){
+  if(!regionClaimedRegion)return regionWorldLayerSet(currentRegionTierIndex());
+  const raw=Array.isArray(regionClaimedRegion.sourceLayerOffsets)?regionClaimedRegion.sourceLayerOffsets:[];
+  if(!raw.length)return regionWorldLayerSet(claimedRegionSourceTier());
+  return new Set(raw.map(Number).filter(value=>Number.isInteger(value)&&value>=0&&value<LAYERS_PER_TIER));
+}
+function claimedRegionSourceLayerVisible(tier,layer){
+  if(!regionClaimedRegion)return tier<=currentRegionTierIndex()&&regionSourceLayerVisible(tier,layer);
+  return tier===claimedRegionSourceTier()&&claimedRegionSourceLayerSet().has(clamp(Math.trunc(Number(layer)||0),0,LAYERS_PER_TIER-1));
+}
 function updateRegionWorldSourceVisibility(){
   if(!REGION_DEFINER)return;
-  const tier=currentRegionTierIndex();
-  if(regionWorldSourceOcean)regionWorldSourceOcean.style.opacity=regionWorldTierImages.length?(tier===0?'.18':'.08'):(tier===0?'1':'.32');
-  for(const item of regionWorldTierImages)item.node.style.opacity=item.tier<=tier?'1':'0';
+  const sourceTier=claimedRegionSourceTier(),claimed=!!regionClaimedRegion;
+  if(regionWorldSourceOcean)regionWorldSourceOcean.style.opacity=sourceTier===0&&!regionWorldTierImages.length?'1':'0';
+  for(const item of regionWorldTierImages)item.node.style.opacity=(claimed?item.tier===sourceTier:item.tier<=sourceTier)?'1':'0';
   for(const item of regionWorldSourceTiles){
-    const visible=item.tier<=tier&&regionSourceLayerVisible(item.tier,item.layer);
+    const visible=claimed?claimedRegionSourceLayerVisible(item.tier,item.layer):(item.tier<=sourceTier&&regionSourceLayerVisible(item.tier,item.layer));
     item.node.style.display=visible?'block':'none';
   }
 }
@@ -2584,7 +2610,7 @@ function regionOverlayFigure(cell,shape,region,cssClass){
   const offset=shape==='hex'&&(row%2)?0.5:0;
   const x=(column+offset)*sx,y=row*sy;
   if(shape==='hex'){
-    return `<polygon class="${cssClass}" points="${x+sx*.25},${y} ${x+sx*.75},${y} ${x+sx},${y+sy*.5} ${x+sx*.75},${y+sy} ${x+sx*.25},${y+sy} ${x},${y+sy*.5}"/>`;
+    return `<polygon class="${cssClass}" points="${regionHexPolygonPoints(x,y,sx,sy)}"/>`;
   }
   return `<rect class="${cssClass}" x="${x}" y="${y}" width="${sx}" height="${sy}"/>`;
 }
@@ -2735,6 +2761,12 @@ function clearClaimedRegionCrop(refit=true){
   regionClaimedRegion=null;pendingClaimedRegionId='';syncClaimedRegionOutline(null);
   clearRegionMask(refit);
 }
+const REGION_HEX_WIDTH_OVERSCAN=1.02;
+const REGION_HEX_HEIGHT_OVERSCAN=1.08;
+function regionHexPolygonPoints(x,y,width=1,height=1){
+  const w=width*REGION_HEX_WIDTH_OVERSCAN,h=height*REGION_HEX_HEIGHT_OVERSCAN;
+  return `${x+w*.25},${y} ${x+w*.75},${y} ${x+w},${y+h*.5} ${x+w*.75},${y+h} ${x+w*.25},${y+h} ${x},${y+h*.5}`;
+}
 function regionMaskSvg(region){
   const cells=Array.isArray(region?.selectedCells)?region.selectedCells.map(Number).filter(Number.isInteger):[];
   const shape=normalizeRegionGridShape(region?.gridShape||regionGridShape),grid=regionGridDimensions(region);
@@ -2743,8 +2775,8 @@ function regionMaskSvg(region){
     const row=regionCellRow(cell,region),column=regionCellColumn(cell,region);
     if(shape==='hex'){
       const x=column+(row%2?0.5:0),y=row;
-      figures.push(`<polygon points="${x+0.25},${y} ${x+0.75},${y} ${x+1},${y+0.5} ${x+0.75},${y+1} ${x+0.25},${y+1} ${x},${y+0.5}" fill="white"/>`);
-    }else figures.push(`<rect x="${column}" y="${row}" width="1" height="1" fill="white"/>`);
+      figures.push(`<polygon points="${regionHexPolygonPoints(x,y)}" fill="white"/>`);
+    }else figures.push(`<rect x="${column}" y="${row}" width="1.002" height="1.002" fill="white"/>`);
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${grid.columns} ${grid.rows}" preserveAspectRatio="none">${figures.join('')}</svg>`;
 }
@@ -2786,20 +2818,14 @@ function claimedRegionFitScale(region){
 }
 function syncClaimedRegionContextMask(){
   if(!REGION_DEFINER||!regionClaimedRegion||!regionClaimMaskUrl)return;
-  const focusScale=claimedRegionFitScale(regionClaimedRegion);
-  if(!(focusScale>0))return;
-  // Region Definer is a permission-scoped view of the same canonical world.
-  // Close work keeps the claim isolated; zooming out restores the surrounding
-  // world so the claimed zone remains visibly connected to Endemar.
-  const threshold=Math.max(minScale*2.5,focusScale*.48);
-  const focused=scale>threshold;
-  if(focused){
-    world.style.maskImage=regionClaimMaskUrl;world.style.webkitMaskImage=regionClaimMaskUrl;
-    stage.dataset.regionContext='region';stage.dataset.cropMode='visibility-mask';
-  }else{
-    world.style.maskImage='none';world.style.webkitMaskImage='none';
-    stage.dataset.regionContext='world';stage.dataset.cropMode='world-context';
-  }
+  // A saved Region is a real cropped working surface, not a zoom-dependent
+  // window back onto the parent World. Keep the Region footprint clipped at
+  // every zoom level; Back navigation is how the user returns to World.
+  world.style.maskImage=regionClaimMaskUrl;world.style.webkitMaskImage=regionClaimMaskUrl;
+  world.style.maskSize='100% 100%';world.style.webkitMaskSize='100% 100%';
+  world.style.maskRepeat='no-repeat';world.style.webkitMaskRepeat='no-repeat';
+  stage.dataset.regionContext='region';
+  stage.dataset.cropMode='hard-region-crop';
 }
 function applyRegionMask(region,cropMode='visibility-mask',saved=false){
   if(!REGION_DEFINER||!region)return false;
@@ -2824,7 +2850,8 @@ function applyClaimedRegionCrop(region){
   stage.classList.remove('region-tier-previewing','region-selection-only');
   regionGridShape=normalizeRegionGridShape(region.gridShape||regionGridShape);
   const savedTier=clamp(Math.trunc(Number(region.tierIndex)||0),0,TIERS.length-1);
-  viewerTier=tierByIndex(savedTier).key;viewerLayer=0;updateTierButton();renderTierMenu();updateRegionWorldSourceVisibility();
+  stage.dataset.regionSourceTier=String(savedTier);
+  viewerTier=tierByIndex(0).key;viewerLayer=0;updateTierButton();renderTierMenu();updateRegionWorldSourceVisibility();
   regionCropPreview=false;regionSelectionEnabled=false;syncClaimedRegionOutline(region);updateRegionSelectionOverlay();
   const editableExisting=REGION_FLOW==='existing'&&ACCESS_MODE==='edit';
   regionClaimPhase=editableExisting?'build':'saved';
