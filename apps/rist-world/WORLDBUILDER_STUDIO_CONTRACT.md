@@ -9,6 +9,19 @@ The World Builder is a dedicated studio workspace for constructing the physical-
 - At the default World Builder scale, the square construction surface is 30 cells across. Cell width determines cell height, so every construction cell remains a true square. A short viewport simply reveals fewer rows.
 - Viewer lock freezes camera/navigation input only. It must not lock placed tiles or prevent the GM from manipulating table contents.
 
+## Continuous spatial authority
+
+- World Builder is **one continuous spatial viewer/editor**. World, Region, and Local are resolution/context labels over the same space; they are not separate editors.
+- Normal authoring begins by navigating the existing world: pan/zoom to the desired place, activate Select, choose visible cells/layers, name the bounded space, save it, then continue navigating from the same viewer.
+- Zoom changes which spatial place value/resolution is being resolved. It must not replace the world, rewrite identity, or choose a camera angle.
+- Camera angle is independent presentation state. Top-down, 15°, 30°, 45°, rotation, device tilt, and parallax change representation only; canonical coordinates and spatial identity remain unchanged.
+- A flat world remains flat when tilted. Real visual depth comes from authored tiers/layers.
+- A tier contains ten logical layers. Any extra parallax separation drawn between tiers is a presentation gap only and must never become world distance, an extra layer, or persisted coordinates.
+- Named boundaries may be nested repeatedly and may geometrically overlap. A continent, country, time zone, state, county, district, city, or other named area can describe some of the same canonical coordinates without forcing a single rigid containment taxonomy.
+- `ParentNodeId` records lineage/focus context; it is not proof that two boundary geometries cannot overlap.
+- `Instance` is the semantic transition to a scene/simulation boundary. It is not required to be a child of a hard-coded Local level and is not defined by one fixed physical distance.
+- Legacy RegionDefiner records remain readable, but entering a Region/deed must not replace the canonical World Builder with a second editor.
+
 ## GM construction grid authority
 
 - The GM square construction grid is a separate presentation/tool overlay above the table.
