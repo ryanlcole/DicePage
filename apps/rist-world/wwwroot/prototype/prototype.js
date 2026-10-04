@@ -74,7 +74,7 @@ const UPSCALE_KEY='rist.worldbuilder.upscale.v1.'+(WORLD_ID||WORLD_SEED||'protot
 const VIEW_ANGLE_KEY='rist.worldbuilder.viewAngle.v1.'+(WORLD_ID||WORLD_SEED||'prototype');
 const tierNames=(()=>{try{return JSON.parse(localStorage.getItem(TIER_NAMES_KEY)||'{}')||{}}catch{return{}}})();
 let upscaleEnabled=(()=>{try{const saved=localStorage.getItem(UPSCALE_KEY);return saved===null?IS_ENDEMAR_SEED:saved==='on'}catch{return IS_ENDEMAR_SEED}})();
-let viewAngle=(()=>{try{const saved=Number(localStorage.getItem(VIEW_ANGLE_KEY));return [0,15,30,45].includes(saved)?saved:(REGION_DEFINER?15:0)}catch{return REGION_DEFINER?15:0}})();
+let viewAngle=(()=>{try{const raw=localStorage.getItem(VIEW_ANGLE_KEY);if(raw===null)return REGION_DEFINER?15:0;const saved=Number(raw);return [0,15,30,45].includes(saved)?saved:(REGION_DEFINER?15:0)}catch{return REGION_DEFINER?15:0}})();
 const upscaleCache=new Map();
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
