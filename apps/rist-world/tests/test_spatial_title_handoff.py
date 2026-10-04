@@ -7,9 +7,9 @@ def test_spatial_title_handoff_is_loaded_after_canonical_viewer():
     index = (ROOT / "wwwroot/prototype/index.html").read_text(encoding="utf-8")
 
     prototype_pos = index.index("prototype.js?v=20261004-continuous-space-2")
-    session_pos = index.index("spatial-selection-session.js?v=20261004-frozen-selection-2")
+    session_pos = index.index("spatial-selection-session.js?v=20261004-frozen-selection-3")
     handoff_pos = index.index("spatial-title-handoff.js?v=20261004-spatial-title-1")
-    depth_pos = index.index("spatial-depth-authority.js?v=20261004-gm-depth-1")
+    depth_pos = index.index("spatial-depth-authority.js?v=20261004-left-depth-2")
     lock_pos = index.index("spatial-selector-lock.js?v=20261004-map-selector-lock-1")
     assert session_pos > prototype_pos
     assert handoff_pos > session_pos
@@ -45,30 +45,53 @@ def test_select_area_freezes_exact_preselection_viewport_before_selector_starts(
     assert "viewMaxY:frozenWindow.viewMaxY" in session
 
 
-def test_spatial_editing_hides_map_chrome_without_hiding_semantic_controller():
+def test_spatial_editing_hides_map_chrome_but_keeps_authoritative_depth_box_visible():
     session = (ROOT / "wwwroot/prototype/spatial-selection-session.js").read_text(encoding="utf-8")
 
-    assert ".universal-shell.spatial-map-selecting .depth-pip" in session
     assert ".universal-shell.spatial-map-selecting .viewer-compass" in session
     assert ".universal-shell.spatial-map-selecting .viewer-legend" in session
     assert ".universal-shell.spatial-map-selecting .asset-context-pip" in session
     assert ".universal-shell.spatial-map-selecting .viewer-reticle" in session
+    assert ".universal-shell.spatial-map-selecting .depth-pip" in session
+    depth_rule = session[session.index(".universal-shell.spatial-map-selecting .depth-pip"):]
+    assert "opacity:1!important" in depth_rule
+    assert "visibility:visible!important" in depth_rule
     assert ".viewer-menu-bar" not in session
     assert "shell?.classList.toggle('spatial-map-selecting',!!active);" in session
 
 
-def test_gm_gets_tier_layer_controls_but_requester_does_not_allocate_depth():
-    session = (ROOT / "wwwroot/prototype/spatial-selection-session.js").read_text(encoding="utf-8")
+def test_gm_depth_uses_left_semantic_display_not_a_map_popup():
     depth = (ROOT / "wwwroot/prototype/spatial-depth-authority.js").read_text(encoding="utf-8")
+    session = (ROOT / "wwwroot/prototype/spatial-selection-session.js").read_text(encoding="utf-8")
 
-    assert "const canAllocateDepth=String(query.get('access')||'view').toLowerCase()==='edit';" in session
-    assert "GM DEED DEPTH" in session
-    assert "DIRECT GM EDIT" in session
-    assert "baseApi?.setExternalDepth?." in session
-    assert "A requester selects X/Y and submits" in session
-    assert "if(String(query.get('access')||'view').toLowerCase()!=='edit')return;" in depth
-    assert "visibleTierIndices:[depth.tier]" in depth
-    assert "visibleLayerOffsets:[depth.layer]" in depth
+    assert "String(query.get('access')||'view').toLowerCase()!=='edit'" in depth
+    assert "function leftButton(){return host.document?.querySelector('.control-display-left')" in depth
+    assert "mode='tier'" in depth
+    assert "mode='layer'" in depth
+    assert "mode='save'" in depth
+    assert "SLIDE ↑↓ · TOUCH LAYER" in depth
+    assert "SLIDE ↑↓ · TOUCH SAVE" in depth
+    assert "SAVE AREA · ${count}" in depth
+    assert "baseApi?.setExternalDepth?." in depth
+    assert "spatial-depth-change" in depth
+    assert "spatial-depth-authority-request" in depth
+    assert "spatial-selection-depth-panel" not in session
+    assert "GM DEED DEPTH" not in session
+
+
+def test_deed_depth_box_and_allocation_share_authoritative_blazor_state():
+    partial = (ROOT / "Components/UniversalInterface.SpatialDepth.cs").read_text(encoding="utf-8")
+    bridge = (ROOT / "wwwroot/worldbuilder-source-host.js").read_text(encoding="utf-8")
+
+    assert "parcel is { MaxHeight: > 0 }" in partial
+    assert "return Math.Max(1, parcel.MaxHeight);" in partial
+    assert "SpatialMaxTierIndex" in partial
+    assert "SpatialMaxLayerForTier" in partial
+    assert "ReceiveWorldBuilderSpatialDepthAsync" in partial
+    assert "_tier = tier;" in partial
+    assert "_layer = layer;" in partial
+    assert '"GetWorldBuilderDepthAuthorityAsync"' in bridge
+    assert '"ReceiveWorldBuilderSpatialDepthAsync"' in bridge
 
 
 def test_gm_spatial_flow_saves_directly_without_self_approval_request():
