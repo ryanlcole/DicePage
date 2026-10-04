@@ -101,7 +101,7 @@ test('Browse cursor and analog press target the thumbnail beneath the reticle',(
   assert.match(razor,/bool CursorAvailable=>!IsGameMasterMenuStage&&_stage!=Stage\.MmoMap&&(?:_stage!=Stage\.[A-Za-z]+&&)*_stage!=Stage\.SpatialSelect&&!IsPathDrivenStage&&LeftDisplayOptionCount<=1&&RightDisplayOptionCount<=1;/);
   assert.match(razor,/bool CursorMode=>_stage==Stage\.MmoMap[\s\S]{0,100}?MmoAnalogCursorMode[\s\S]{0,160}?CursorAvailable[\s\S]{0,120}?!_analogButtonMode/);
   assert.match(razor,/case Stage\.BrowsePlace:[\s\S]{0,360}?_browseCursorActive=true;[\s\S]{0,120}?_analogButtonMode=false;/);
-  assert.match(semantic,/SelectSemanticAsync\(\)[\s\S]{0,260}?Stage\.BrowsePlace[\s\S]{0,120}?Stage\.MmoMap[\s\S]{0,120}?CursorMode[\s\S]{0,120}?ActivateBrowseCursorTargetAsync\(\)/);
+  assert.match(semantic,/SelectSemanticAsync\(\)[\s\S]{0,700}?Stage\.BrowsePlace[\s\S]{0,120}?Stage\.MmoMap[\s\S]{0,120}?CursorMode[\s\S]{0,120}?ActivateBrowseCursorTargetAsync\(\)/);
   assert.match(input,/function activateCursorTarget\(\)/);
   assert.match(input,/document\.elementFromPoint/);
   assert.match(input,/\.asset-source-explorer \.linked-asset/);
@@ -185,7 +185,7 @@ test('analog center tap selects the asset currently under the cursor',()=>{
   assert.match(razor,/ReceiveSemanticHardwareInputAsync\(control,direction\)/);
   assert.match(semantic,/case "select":[\s\S]{0,180}?Action\.Select/);
   assert.match(semantic,/case UniversalSemanticControls\.Action\.Select:[\s\S]{0,120}?SelectSemanticAsync\(\)/);
-  assert.match(semantic,/SelectSemanticAsync\(\)[\s\S]{0,320}?CursorMode[\s\S]{0,120}?ActivateBrowseCursorTargetAsync\(\)/);
+  assert.match(semantic,/SelectSemanticAsync\(\)[\s\S]{0,700}?CursorMode[\s\S]{0,120}?ActivateBrowseCursorTargetAsync\(\)/);
 });
 
 
@@ -282,7 +282,7 @@ test('START Interface separates overlay viewer grid and asset grid',()=>{
   assert.match(prototype,/nearestAllowedRegionCell\(regionCell,allowed,regionGridShape,regionClaimedRegion\)/);
   assert.match(prototypeCss,/\.viewer-grid-overlay/);
   assert.doesNotMatch(prototypeCss,/repeating-linear-gradient\(0deg,rgba\(178,221,236,\.045\)/);
-  assert.match(prototypeIndex,/prototype\.css\?v=20261003-spatial-region-hex-1/);
+  assert.match(prototypeIndex,/prototype\.css\?v=20261004-continuous-space-1/);
   assert.match(prototypeIndex,/prototype\.js\?v=[0-9]{8}-[a-z0-9-]+/i);
   assert.match(index,/start-menu\.js\?v=20260928-grid-density-1/);
   assert.match(index,/universal-interface\.css\?v=20261003-zone-identity-select-1/);
@@ -459,7 +459,7 @@ test('zoom hands representation from World to Region Local and Instance',()=>{
   assert.match(prototype,/REGION:SCOPE_ZOOM_FACTOR/);
   assert.match(prototype,/LOCAL:SCOPE_ZOOM_FACTOR\*SCOPE_ZOOM_FACTOR/);
   assert.match(prototype,/INSTANCE:SCOPE_ZOOM_FACTOR\*SCOPE_ZOOM_FACTOR\*SCOPE_ZOOM_FACTOR/);
-  assert.match(prototype,/const SCOPE_VIEW_ANGLE=Object\.freeze\(\{WORLD:0,REGION:15,LOCAL:30,INSTANCE:45\}\);/);
+  assert.doesNotMatch(prototype,/SCOPE_VIEW_ANGLE/);\n  assert.match(prototype,/function currentSpatialViewAngle\(\)\{return viewAngle\}/);\n  assert.match(prototype,/function setViewAngle\(/);
   assert.match(prototype,/const SCOPE_DEPTH_PREFIX=Object\.freeze\(\{WORLD:'Z',REGION:'R',LOCAL:'L',INSTANCE:'I'\}\);/);
   assert.match(prototype,/function zoomScopeSteps\(\)/);
   assert.match(prototype,/return SCOPE_ORDER\[Math\.min\(SCOPE_ORDER\.length-1,base\+zoomScopeSteps\(\)\)\];/);
@@ -471,7 +471,7 @@ test('zoom hands representation from World to Region Local and Instance',()=>{
   assert.match(prototype,/itemScope===spatialScope/);
 });
 
-test('zoom scope trigger reaches the parent without changing edit scope',()=>{
+test('zoom scope trigger reaches the parent and updates resolution without coupling angle',()=>{
   const host=read('wwwroot/worldbuilder-source-host.js');
   const razor=read('Components/UniversalInterface.razor');
 
@@ -480,13 +480,10 @@ test('zoom scope trigger reaches the parent without changing edit scope',()=>{
   assert.match(host,/ReceiveWorldBuilderSpatialScopeAsync/);
   assert.match(razor,/data-spatial-scope="@_viewerSpatialScope"/);
   assert.match(razor,/public async Task ReceiveWorldBuilderSpatialScopeAsync/);
-  assert.match(razor,/"REGION"=>15/);
-  assert.match(razor,/"LOCAL"=>30/);
-  assert.match(razor,/"INSTANCE"=>45/);
-  assert.match(razor,/"REGION"=>"R"/);
-  assert.match(razor,/"LOCAL"=>"L"/);
-  assert.match(razor,/"INSTANCE"=>"I"/);
-  assert.doesNotMatch(razor,/ReceiveWorldBuilderSpatialScopeAsync[\s\S]{0,1400}?_builderChainIndex=/);
+  assert.match(razor,/_viewerSpatialViewAngle=Math\.Clamp\(angle,0,89\)/);
+  assert.match(razor,/_viewerSpatialDepthPrefix=string\.IsNullOrWhiteSpace\(depthPrefix\)\?"Z":depthPrefix\.Trim\(\)\.ToUpperInvariant\(\)/);
+  assert.doesNotMatch(razor,/ReceiveWorldBuilderSpatialScopeAsync[\s\S]{0,900}?"REGION"=>15/);
+  assert.match(razor,/ReceiveWorldBuilderSpatialScopeAsync[\s\S]{0,1400}?_builderChainIndex=scopeIndex/);
 });
 
 test('canonical placements retain their World Region Local or Instance scope',()=>{
