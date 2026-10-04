@@ -49,7 +49,7 @@ public partial class UniversalInterface
     }
 
     bool IsSpatialDepthSemanticStage =>
-        _spatialDefinitionActive && _stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer;
+        _spatialDefinitionActive && (_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer);
 
     async Task<bool> AdjustSpatialDepthSemanticAsync(int direction)
     {
