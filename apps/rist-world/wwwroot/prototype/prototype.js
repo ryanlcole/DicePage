@@ -71,14 +71,16 @@ const baseWorldAssetRepresentationUrl=asset=>{
 };
 const TIER_NAMES_KEY='rist.worldbuilder.tierNames.v1.'+(WORLD_ID||'prototype');
 const UPSCALE_KEY='rist.worldbuilder.upscale.v1.'+(WORLD_ID||WORLD_SEED||'prototype');
+const VIEW_ANGLE_KEY='rist.worldbuilder.viewAngle.v1.'+(WORLD_ID||WORLD_SEED||'prototype');
 const tierNames=(()=>{try{return JSON.parse(localStorage.getItem(TIER_NAMES_KEY)||'{}')||{}}catch{return{}}})();
 let upscaleEnabled=(()=>{try{const saved=localStorage.getItem(UPSCALE_KEY);return saved===null?IS_ENDEMAR_SEED:saved==='on'}catch{return IS_ENDEMAR_SEED}})();
+let viewAngle=(()=>{try{const saved=Number(localStorage.getItem(VIEW_ANGLE_KEY));return [0,15,30,45].includes(saved)?saved:(REGION_DEFINER?15:0)}catch{return REGION_DEFINER?15:0}})();
 const upscaleCache=new Map();
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imagePlacementRole=$('imagePlacementRole'),imagePlacementHint=$('imagePlacementHint'),imagePositionGrid=$('imagePositionGrid'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
+const stage=$('stage'),world=$('world'),surface=$('surfacePlane'),highlands=$('highlandsPlane'),mountains=$('mountainPlane'),loading=$('loading'),battle=$('battleInstance'),battleText=$('battleText'),keyboard=$('viewerKeyboard'),keyboardToggle=$('keyboardToggle'),persistentSave=$('persistentSave'),imageUploadToggle=$('imageUploadToggle'),tierToggle=$('tierToggle'),tierGlyph=$('tierGlyph'),tierMenu=$('tierMenu'),settingsToggle=$('settingsToggle'),viewerSettingsPanel=$('viewerSettingsPanel'),viewerSettingsClose=$('viewerSettingsClose'),settingsFit=$('settingsFit'),settingsResetTilt=$('settingsResetTilt'),viewAngleSelect=$('viewAngleSelect'),settingsUpscale=$('settingsUpscale'),settingsUpscaleLabel=$('settingsUpscaleLabel'),settingsStartMenu=$('settingsStartMenu'),imageUploadPanel=$('imageUploadPanel'),imageUploadClose=$('imageUploadClose'),imagePlacementRole=$('imagePlacementRole'),imagePlacementHint=$('imagePlacementHint'),imagePositionGrid=$('imagePositionGrid'),imageDropzone=$('imageDropzone'),imageBrowse=$('imageBrowse'),imageFile=$('imageFile'),imageX=$('imageX'),imageY=$('imageY'),imageTier=$('imageTier'),imageLayer=$('imageLayer'),imageTransparency=$('imageTransparency'),spriteUploadPanel=$('spriteUploadPanel'),spriteUploadClose=$('spriteUploadClose'),spriteDropzone=$('spriteDropzone'),spriteBrowse=$('spriteBrowse'),spriteFile=$('spriteFile'),spriteColumns=$('spriteColumns'),spriteRows=$('spriteRows'),spriteFps=$('spriteFps'),spriteFrameCount=$('spriteFrameCount'),keyboardTabs=$('keyboardTabs'),keyboardKeys=$('keyboardKeys'),live=$('live');
 if(EMBEDDED_CONTROLLER){
   stage.classList.add('embedded-controller');
   stage.dataset.embeddedController='true';
@@ -176,7 +178,7 @@ const regionMapSaveWaiters=new Map();
 const spriteTimers=new Map();
 const SCOPE_ORDER=Object.freeze(['WORLD','REGION','LOCAL','INSTANCE']);
 const SCOPE_DEPTH_PREFIX=Object.freeze({WORLD:'Z',REGION:'R',LOCAL:'L',INSTANCE:'I'});
-const SCOPE_VIEW_ANGLE=Object.freeze({WORLD:0,REGION:15,LOCAL:30,INSTANCE:45});
+const VIEW_ANGLES=Object.freeze([0,15,30,45]);
 const SCOPE_TRANSITION_Z_LAYERS=LAYERS_PER_TIER;
 const SCOPE_ZOOM_FACTOR=SCOPE_GRID_COLUMNS/VIEWER_WINDOW_GRID_COLUMNS;
 const SPATIAL_SCOPE_THRESHOLDS=Object.freeze({
@@ -978,7 +980,16 @@ function currentSpatialScope(){
   const base=spatialScopeIndex(externalSpatialScope);
   return SCOPE_ORDER[Math.min(SCOPE_ORDER.length-1,base+zoomScopeSteps())];
 }
-function currentSpatialViewAngle(){return SCOPE_VIEW_ANGLE[currentSpatialScope()]||0}
+function currentSpatialViewAngle(){return viewAngle}
+function setViewAngle(raw,{persist=true,announceChange=true}={}){
+  const requested=Number(raw),next=VIEW_ANGLES.reduce((best,value)=>Math.abs(value-requested)<Math.abs(best-requested)?value:best,VIEW_ANGLES[0]);
+  viewAngle=next;
+  if(viewAngleSelect)viewAngleSelect.value=String(next);
+  if(persist){try{localStorage.setItem(VIEW_ANGLE_KEY,String(next))}catch{}}
+  applyTransform();
+  if(announceChange)announce(`View angle ${next} degrees. World coordinates and spatial identity are unchanged.`);
+  return next;
+}
 function currentSpatialDepthPrefix(){return SCOPE_DEPTH_PREFIX[currentSpatialScope()]||'Z'}
 function regionDetailWanted(){
   if(REGION_DEFINER)return false;
@@ -2024,8 +2035,45 @@ function spatialSelectionCellFromPoint(clientX,clientY){
   const column=clamp(Math.floor(nx*spatialSelectionColumns),0,spatialSelectionColumns-1);
   return row*spatialSelectionColumns+column;
 }
+function spatialViewerWindow(){
+  const r=stage.getBoundingClientRect(),angle=currentSpatialViewAngle(),cos=Math.max(.12,Math.cos(angle*Math.PI/180));
+  const width=Math.max(naturalWidth,1),height=Math.max(naturalHeight,1),s=Math.max(scale,.00001);
+  const point=(sx,sy)=>({x:clamp(((sx-x)/s)/width,0,1),y:clamp(((sy-y)/(s*cos))/height,0,1)});
+  const a=point(0,0),b=point(r.width,r.height);
+  return{minX:Math.min(a.x,b.x),minY:Math.min(a.y,b.y),maxX:Math.max(a.x,b.x),maxY:Math.max(a.y,b.y)};
+}
+function spatialSelectionLocalBounds(){
+  if(!spatialSelectedCells.size)return null;
+  const viewWidth=spatialSelectionGridShape==='hex'?spatialSelectionColumns+.5:spatialSelectionColumns;
+  let minX=1,minY=1,maxX=0,maxY=0;
+  for(const cell of spatialSelectedCells){
+    const row=spatialSelectionCellRow(cell),column=spatialSelectionCellColumn(cell),offset=spatialSelectionGridShape==='hex'&&(row%2)?0.5:0;
+    minX=Math.min(minX,(column+offset)/viewWidth);maxX=Math.max(maxX,(column+offset+1)/viewWidth);
+    minY=Math.min(minY,row/spatialSelectionRows);maxY=Math.max(maxY,(row+1)/spatialSelectionRows);
+  }
+  return{minX:clamp(minX,0,1),minY:clamp(minY,0,1),maxX:clamp(maxX,0,1),maxY:clamp(maxY,0,1)};
+}
 function spatialSelectionSnapshot(){
-  return{active:spatialSelectionActive,kind:spatialSelectionKind||'REGION',gridShape:spatialSelectionGridShape,columns:spatialSelectionColumns,rows:spatialSelectionRows,selectedCells:[...spatialSelectedCells].sort((a,b)=>a-b)};
+  const selectedCells=[...spatialSelectedCells].sort((a,b)=>a-b),view=spatialViewerWindow(),local=spatialSelectionLocalBounds();
+  const mapPoint=(lx,ly)=>({x:view.minX+(lx*(view.maxX-view.minX)),y:view.minY+(ly*(view.maxY-view.minY))});
+  const selectedBounds=local?{a:mapPoint(local.minX,local.minY),b:mapPoint(local.maxX,local.maxY)}:{a:{x:view.minX,y:view.minY},b:{x:view.maxX,y:view.maxY}};
+  const viewWidth=spatialSelectionGridShape==='hex'?spatialSelectionColumns+.5:spatialSelectionColumns;
+  const canonicalCells=[...new Set(selectedCells.map(cell=>{
+    const row=spatialSelectionCellRow(cell),column=spatialSelectionCellColumn(cell),offset=spatialSelectionGridShape==='hex'&&(row%2)?0.5:0;
+    const p=mapPoint((column+offset+.5)/viewWidth,(row+.5)/spatialSelectionRows);
+    const cx=clamp(Math.floor(p.x*SCOPE_GRID_COLUMNS),0,SCOPE_GRID_COLUMNS-1),cy=clamp(Math.floor(p.y*SCOPE_GRID_ROWS),0,SCOPE_GRID_ROWS-1);
+    return cy*SCOPE_GRID_COLUMNS+cx;
+  }))].sort((a,b)=>a-b);
+  const currentTier=viewerTier==='all'?0:tierByKey(viewerTier).index;
+  return{
+    active:spatialSelectionActive,kind:spatialSelectionKind||'REGION',gridShape:spatialSelectionGridShape,columns:spatialSelectionColumns,rows:spatialSelectionRows,selectedCells,canonicalCells,
+    scope:currentSpatialScope(),zoomRatio:regionZoomRatio(),viewAngle:currentSpatialViewAngle(),
+    viewMinX:view.minX,viewMinY:view.minY,viewMaxX:view.maxX,viewMaxY:view.maxY,
+    canonicalMinX:selectedBounds.a.x,canonicalMinY:selectedBounds.a.y,canonicalMaxX:selectedBounds.b.x,canonicalMaxY:selectedBounds.b.y,
+    tierIndex:currentTier,visibleTierIndices:viewerTier==='all'?TIERS.map(t=>t.index):[currentTier],
+    visibleLayerOffsets:viewerTier==='all'?Array.from({length:LAYERS_PER_TIER},(_,i)=>i):[viewerLayer],
+    parentSpatialNodeId:externalSpatialNodeId||'',spatialPath:externalSpatialPath||''
+  };
 }
 function publishSpatialSelectionChange(){postWorldBuilderHostMessage('spatial-selection-change',{selection:{active:spatialSelectionActive,count:spatialSelectedCells.size,gridShape:spatialSelectionGridShape}})}
 function spatialSelectionSvg(){
@@ -2125,22 +2173,41 @@ function ensureSpatialSelectionOverlay(){
     event.preventDefault();nextRow=clamp(nextRow,0,spatialSelectionRows-1);nextColumn=clamp(nextColumn,0,spatialSelectionColumns-1);
     spatialSelectionFocusCell=nextRow*spatialSelectionColumns+nextColumn;renderSpatialSelectionOverlay();
   });
-  world.appendChild(overlay);spatialSelectionOverlay=overlay;return overlay;
+  stage.appendChild(overlay);spatialSelectionOverlay=overlay;return overlay;
 }
 function beginSpatialSelection(raw={}){
   if(READ_ONLY||REGION_DEFINER)return false;
   clearSpatialDefinitionFocus();
-  const kind=String(raw.kind||'REGION').toUpperCase();if(kind!=='REGION')return false;
+  const requestedKind=String(raw.kind||currentSpatialScope()||'REGION').toUpperCase();
+  const kind=requestedKind==='INSTANCE'?'INSTANCE':requestedKind==='LOCAL'?'LOCAL':'REGION';
   spatialSelectionPreviousGrid={shape:viewerGridMode,columns:viewerGridColumns,rows:viewerGridRows};
-  spatialSelectionKind='REGION';spatialSelectionGridShape=String(raw.gridShape||'hex').toLowerCase()==='square'?'square':'hex';
+  spatialSelectionKind=kind;spatialSelectionGridShape=String(raw.gridShape||'hex').toLowerCase()==='square'?'square':'hex';
   spatialSelectionColumns=clamp(Math.trunc(Number(raw.columns)||VIEWER_WINDOW_GRID_COLUMNS),1,64);spatialSelectionRows=clamp(Math.trunc(Number(raw.rows)||VIEWER_WINDOW_GRID_ROWS),1,64);
   spatialSelectionFocusCell=Math.floor(spatialSelectionRows/2)*spatialSelectionColumns+Math.floor(spatialSelectionColumns/2);
   spatialSelectedCells.clear();spatialSelectionActive=true;applyViewerGridMode(spatialSelectionGridShape,false,spatialSelectionColumns,spatialSelectionRows);
   renderSpatialSelectionOverlay();const overlay=ensureSpatialSelectionOverlay();try{overlay.focus({preventScroll:true})}catch{overlay.focus()}
-  publishSpatialSelectionChange();announce('Region hex selector active. Touch or drag across cells, or use arrows and Enter.');return true;
+  publishSpatialSelectionChange();announce(`${kind.charAt(0)+kind.slice(1).toLowerCase()} selector active on the visible map. Touch or drag across cells, or use arrows and Enter.`);return true;
 }
 function getSpatialSelection(){return spatialSelectionSnapshot()}
-function finishSpatialSelection(){if(!spatialSelectionActive)return false;spatialSelectionActive=false;spatialSelectionPointerId=null;renderSpatialSelectionOverlay();publishSpatialSelectionChange();announce(`Region footprint saved with ${spatialSelectedCells.size} selected ${spatialSelectionGridShape} cells.`);return true}
+function focusSpatialSelection(){
+  const snapshot=spatialSelectionSnapshot();if(!snapshot.selectedCells.length)return false;
+  const r=stage.getBoundingClientRect(),angle=currentSpatialViewAngle(),cos=Math.max(.12,Math.cos(angle*Math.PI/180));
+  const minX=snapshot.canonicalMinX*naturalWidth,minY=snapshot.canonicalMinY*naturalHeight,maxX=snapshot.canonicalMaxX*naturalWidth,maxY=snapshot.canonicalMaxY*naturalHeight;
+  const width=Math.max(1,maxX-minX),height=Math.max(1,maxY-minY),nextScale=Math.min(r.width/width,r.height/Math.max(1,height*cos))*.94;
+  scale=clamp(nextScale,MIN_VIEW_SCALE,Math.max(maxScale,nextScale));
+  const centerX=minX+(width/2),centerY=minY+(height/2);
+  x=(r.width/2)-(centerX*scale);y=(r.height/2)-(centerY*scale*cos);
+  applyTransform();return true;
+}
+function finishSpatialSelection(focus=true){
+  if(!spatialSelectionActive)return false;
+  const count=spatialSelectedCells.size,kind=spatialSelectionKind||'REGION';
+  if(focus&&count)focusSpatialSelection();
+  spatialSelectionActive=false;spatialSelectionPointerId=null;spatialTouchPointers.clear();spatialTouchStart=null;spatialTouchPinchStart=null;spatialTouchHadPinch=false;
+  spatialSelectedCells.clear();renderSpatialSelectionOverlay();publishSpatialSelectionChange();
+  announce(`${kind.charAt(0)+kind.slice(1).toLowerCase()} saved from ${count} visible ${spatialSelectionGridShape} cells. The viewer is focused on that space.`);
+  return true;
+}
 function cancelSpatialSelection(){spatialSelectionActive=false;spatialSelectionPointerId=null;spatialTouchPointers.clear();spatialTouchStart=null;spatialTouchPinchStart=null;spatialTouchHadPinch=false;spatialSelectedCells.clear();if(spatialSelectionPreviousGrid)applyViewerGridMode(spatialSelectionPreviousGrid.shape,false,spatialSelectionPreviousGrid.columns,spatialSelectionPreviousGrid.rows);spatialSelectionPreviousGrid=null;renderSpatialSelectionOverlay();publishSpatialSelectionChange();announce('Region selection cancelled.');return true}
 function moveSpatialSelectionCursor(columnDelta,rowDelta){
   if(!spatialSelectionActive)return false;
@@ -2812,7 +2879,7 @@ function fitClaimedRegion(region){
   suspendRegionEnhancement();
   const r=stage.getBoundingClientRect(),cropX=(bounds.minX/bounds.columns)*naturalWidth,cropY=(bounds.minY/bounds.rows)*naturalHeight;
   const cropW=(bounds.width/bounds.columns)*naturalWidth,cropH=(bounds.height/bounds.rows)*naturalHeight;
-  const angle=REGION_DEFINER?15:(SCOPE_VIEW_ANGLE[externalSpatialScope]||15);
+  const angle=currentSpatialViewAngle();
   const tiltHeight=cropH*Math.cos(angle*Math.PI/180);
   scale=Math.min(r.width/Math.max(cropW,1),r.height/Math.max(tiltHeight,1))*.92;
   scale=clamp(scale,MIN_VIEW_SCALE,Math.max(maxScale,scale));
@@ -2826,7 +2893,7 @@ function claimedRegionFitScale(region){
   const r=stage.getBoundingClientRect();
   if(r.width<=0||r.height<=0)return 0;
   const cropW=(bounds.width/bounds.columns)*naturalWidth,cropH=(bounds.height/bounds.rows)*naturalHeight;
-  const tiltHeight=cropH*Math.cos(15*Math.PI/180);
+  const tiltHeight=cropH*Math.cos(currentSpatialViewAngle()*Math.PI/180);
   return Math.min(r.width/Math.max(cropW,1),r.height/Math.max(tiltHeight,1))*.92;
 }
 function syncClaimedRegionContextMask(){
@@ -4016,7 +4083,8 @@ keyboardToggle.addEventListener('click',()=>keyboard.hidden?openKeyboard():close
 settingsToggle.addEventListener('click',openViewerSettings);
 viewerSettingsClose.addEventListener('click',closeViewerSettings);
 settingsFit.addEventListener('click',()=>{fitMap();closeViewerSettings()});
-settingsResetTilt.addEventListener('click',()=>{resetTilt();closeViewerSettings();announce('Viewer tilt reset.')});
+settingsResetTilt.addEventListener('click',()=>{resetTilt();closeViewerSettings();announce('Device parallax tilt reset. View angle is unchanged.')});
+if(viewAngleSelect){viewAngleSelect.value=String(viewAngle);viewAngleSelect.addEventListener('change',()=>setViewAngle(viewAngleSelect.value));}
 settingsUpscale.addEventListener('click',()=>void toggleUpscale());
 settingsStartMenu.addEventListener('click',openStartMenu);
 imageUploadToggle.addEventListener('click',openImageUpload);
@@ -4245,6 +4313,7 @@ window.ShaelvienPrototype=Object.freeze({
   regionControllerStep,
   regionControllerSelect,
   regionControllerToggleGrid,
+  setViewAngle,
   beginSpatialSelection,
   getSpatialSelection,
   finishSpatialSelection,
