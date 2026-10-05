@@ -199,9 +199,9 @@ function renderEnhancedSvg(snapshot,focusPoints=''){
     else figures.push(`<rect x="${column}" y="${row}" width="1" height="1" fill="rgba(69,178,221,.27)" stroke="rgba(69,178,221,.24)" stroke-width=".05"/>`);
   }
   const focus=focusPoints&&isHex
-    ?`<polygon points="${focusPoints}" fill="rgba(255,255,255,.05)" stroke="${p.light}" stroke-width=".07" vector-effect="non-scaling-stroke"/>`
+    ?`<polygon class="focus" points="${focusPoints}" fill="rgba(255,255,255,.05)" stroke="${p.light}" stroke-width=".07" vector-effect="non-scaling-stroke"/>`
     :'';
-  return `<svg viewBox="0 0 ${viewWidth} ${rows}" preserveAspectRatio="none" aria-hidden="true">
+  return `<svg data-selection-enhanced="true" viewBox="0 0 ${viewWidth} ${rows}" preserveAspectRatio="none" aria-hidden="true">
     <defs>
       <filter id="spatialMetalBorder" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">
         <feMorphology in="SourceAlpha" operator="dilate" radius=".11" result="outerDilate"/>
@@ -223,6 +223,11 @@ function renderEnhancedSvg(snapshot,focusPoints=''){
   </svg>`;
 }
 
+function selectionSignature(snapshot,focusPoints){
+  const selected=Array.isArray(snapshot?.selectedCells)?snapshot.selectedCells.join(','):'';
+  return `${snapshot?.gridShape||'hex'}|${snapshot?.columns||10}x${snapshot?.rows||10}|${selected}|${focusPoints}|${autoFill?'1':'0'}|${palette().key}`;
+}
+
 function scheduleDecorate(){
   if(!active||decorateQueued)return;
   decorateQueued=true;
@@ -236,10 +241,13 @@ function decorateOverlay(){
   if(!overlay||!snapshot)return;
   const currentSvg=overlay.querySelector('svg');
   const focusPoints=currentSvg?.querySelector('.focus')?.getAttribute('points')||'';
+  const signature=selectionSignature(snapshot,focusPoints);
+  if(currentSvg?.dataset.selectionEnhanced==='true'&&overlay.dataset.enhancedSignature===signature)return;
   decorating=true;
   try{
     const effective=augmentedSnapshot(snapshot);
     overlay.innerHTML=renderEnhancedSvg(snapshot,focusPoints);
+    overlay.dataset.enhancedSignature=signature;
     overlay.dataset.autoFill=autoFill?'true':'false';
     overlay.dataset.borderColor=palette().key;
     overlay.setAttribute('aria-label',`${effective.selectedCells.length} ${snapshot.gridShape||'hex'} cells selected. Autofill ${autoFill?'on':'off'}. Border ${palette().label}.`);
@@ -371,6 +379,8 @@ function restoreParentPresentation(){
 
 function toggleAutoFill(){
   autoFill=!autoFill;
+  const overlay=document.querySelector('.spatial-selection-grid.active');
+  if(overlay)delete overlay.dataset.enhancedSignature;
   scheduleDecorate();
   applyParentPresentation();
   announce(`Autofill ${autoFill?'on':'off'}. ${autoFill?'Closed selection loops now include every cell inside them.':'Only cells you explicitly select will be saved.'}`);
@@ -380,6 +390,8 @@ function toggleAutoFill(){
 function cycleBorder(direction=1){
   const step=Math.sign(Number(direction)||1)||1;
   borderIndex=(borderIndex+step+BORDER_PALETTES.length)%BORDER_PALETTES.length;
+  const overlay=document.querySelector('.spatial-selection-grid.active');
+  if(overlay)delete overlay.dataset.enhancedSignature;
   scheduleDecorate();
   applyParentPresentation();
   announce(`Selection border ${palette().label}.`);
