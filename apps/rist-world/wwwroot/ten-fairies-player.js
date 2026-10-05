@@ -89,9 +89,11 @@
   }));
  }
 
- function installTwoPressActions(root){
+ function installDelayedActions(root){
   const buttons=[root.querySelector('#signin'),root.querySelector('#signup')].filter(Boolean);
   let live=root.querySelector('[data-entry-selection-status]');
+  let pendingTimer=0;
+  let pendingButton=null;
   if(!live){
    live=document.createElement('span');
    live.className='sr-only-shaelvien';
@@ -99,30 +101,45 @@
    live.setAttribute('aria-live','polite');
    root.appendChild(live);
   }
-  const clearArmed=except=>buttons.forEach(button=>{
+  const clearSelection=except=>buttons.forEach(button=>{
    if(button===except)return;
    button.dataset.armed='false';
    button.setAttribute('aria-pressed','false');
   });
+  const cancelPending=()=>{
+   if(pendingTimer){clearTimeout(pendingTimer);pendingTimer=0;}
+   if(pendingButton){pendingButton.dataset.armed='false';pendingButton.setAttribute('aria-pressed','false');pendingButton=null;}
+  };
   buttons.forEach(button=>{
-   if(button.dataset.twoPressReady==='1')return;
-   button.dataset.twoPressReady='1';
+   if(button.dataset.delayedActionReady==='1')return;
+   button.dataset.delayedActionReady='1';
    button.dataset.armed='false';
    button.setAttribute('aria-pressed','false');
    button.addEventListener('click',event=>{
-    if(button.dataset.armed!=='true'){
-     event.preventDefault();
-     event.stopImmediatePropagation();
-     clearArmed(button);
-     button.dataset.armed='true';
-     button.setAttribute('aria-pressed','true');
-     const name=(button.textContent||'Action').trim().replace(/\s+/g,' ');
-     live.textContent=`${name} selected. Press again to continue.`;
+    if(button.dataset.releaseDelayedAction==='1'){
+     button.dataset.releaseDelayedAction='0';
+     button.dataset.armed='false';
+     button.setAttribute('aria-pressed','false');
+     pendingButton=null;
+     live.textContent='';
      return;
     }
-    button.dataset.armed='false';
-    button.setAttribute('aria-pressed','false');
-    live.textContent='';
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if(pendingButton!==button)cancelPending();
+    clearSelection(button);
+    button.dataset.armed='true';
+    button.setAttribute('aria-pressed','true');
+    pendingButton=button;
+    const name=(button.textContent||'Action').trim().replace(/\s+/g,' ');
+    live.textContent=`${name} selected. Continuing.`;
+    if(pendingTimer)clearTimeout(pendingTimer);
+    pendingTimer=setTimeout(()=>{
+     pendingTimer=0;
+     if(pendingButton!==button)return;
+     button.dataset.releaseDelayedAction='1';
+     button.click();
+    },350);
    },true);
   });
  }
@@ -141,7 +158,7 @@
   if(returnLink)returnLink.remove();
   if(provider){provider.classList.add('sr-only-shaelvien');provider.textContent='Authentication is provided by Discord.';}
   if(alpha)alpha.classList.add('sr-only-shaelvien');
-  installTwoPressActions(root);
+  installDelayedActions(root);
   const players=[...root.querySelectorAll('.ten-fairies-player')];
   players.slice(1).forEach(player=>player.remove());
   if(players[0])renderEntryPlayer(players[0]);
