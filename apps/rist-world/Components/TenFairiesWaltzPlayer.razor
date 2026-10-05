@@ -2,19 +2,19 @@
  <div class="ten-fairies-dock">
   <div class="ten-fairies-dock-title">
    <strong>THE TEN FAIRIES</strong>
-   <small>Modern Suno realization · user-controlled playback</small>
+   <small>SUNO REALIZATION</small>
   </div>
 
   <div class="ten-fairies-tracks" aria-label="The Ten Fairies audio tracks">
    <label class="ten-fairies-track">
-    <span>PART 1</span>
+    <span>I</span>
     <audio controls preload="metadata" playsinline aria-label="Play The Ten Fairies Part 1 modern Suno realization">
      <source src="https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3" type="audio/mpeg" />
      Your browser does not support audio playback.
     </audio>
    </label>
    <label class="ten-fairies-track">
-    <span>PART 2</span>
+    <span>II</span>
     <audio controls preload="metadata" playsinline aria-label="Play The Ten Fairies Part 2 modern Suno realization">
      <source src="https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_2.mp3" type="audio/mpeg" />
      Your browser does not support audio playback.
@@ -22,22 +22,30 @@
    </label>
   </div>
 
-  <p class="ten-fairies-dedication">
-   Inspired by and dedicated to <strong>“Winthrop”</strong>, the printed composer credit on the historical <em>The Ten Fairies</em>.
-   <span class="ten-fairies-modern-note">Historical source: Library of Congress, <em>Music for the Nation: American Sheet Music, ca. 1870–1885</em>. Modern audio realization: Suno. Not a historical recording.</span>
-   <span class="ten-fairies-attribution-note">Attribution research associates J. R. Winthrop with James Ramsey Murray (1841–1905), but that identification is not yet conclusively tied to this score.</span>
-  </p>
+  <div class="ten-fairies-ticker" role="note" aria-label="The Ten Fairies provenance and attribution">
+   <span>Inspired by and dedicated to “Winthrop,” the printed composer credit on the historical <em>The Ten Fairies</em> · Historical source: Library of Congress, <em>Music for the Nation: American Sheet Music, ca. 1870–1885</em> · Modern audio realization: Suno · Not a historical recording · Attribution research associates J. R. Winthrop with James Ramsey Murray (1841–1905), but that identification is not yet conclusively tied to this score.</span>
+  </div>
  </div>
 </aside>
 
 <style>
- .ten-fairies-player{display:none;position:fixed;z-index:2147483550;top:auto;right:auto;bottom:max(8px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(820px,calc(100vw - 16px));box-sizing:border-box;color:#eee6d2;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;text-align:left}
+ .ten-fairies-player{display:none;position:fixed;z-index:2147483550;bottom:max(7px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(820px,calc(100vw - 14px));box-sizing:border-box;color:#eee6d2;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;text-align:left}
  body:has(.rist-auth-start) .ten-fairies-player,
  body:has(.launcher-hub) .ten-fairies-player{display:block}
- .ten-fairies-dock{display:grid;grid-template-columns:minmax(155px,.52fr) minmax(330px,1.48fr);grid-template-areas:"title tracks" "note note";gap:6px 10px;align-items:center;overflow:hidden;padding:8px 10px 7px;border:1px solid rgba(183,150,75,.78);border-radius:12px;background:rgba(4,10,14,.92);box-shadow:0 12px 34px rgba(0,0,0,.46);backdrop-filter:blur(8px)}
- .ten-fairies-dock-title{grid-area:title;min-width:0;display:grid;gap:3px}.ten-fairies-dock-title strong{color:#f0d68e;font:900 10px/1.05 system-ui;letter-spacing:.12em}.ten-fairies-dock-title small{color:#c2ccd0;font:750 9px/1.2 system-ui;letter-spacing:.03em}
- .ten-fairies-tracks{grid-area:tracks;display:grid;grid-template-columns:1fr 1fr;gap:7px;min-width:0}.ten-fairies-track{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px;align-items:center;min-width:0}.ten-fairies-track>span{color:#f0d68e;font:900 8px/1 system-ui;letter-spacing:.08em}.ten-fairies-track audio{display:block;width:100%;min-width:0;height:32px;margin:0}
- .ten-fairies-dedication{grid-area:note;margin:0;color:#d5c7a0;font:650 9px/1.3 Georgia,"Times New Roman",serif;text-align:center}.ten-fairies-dedication em{color:#f0d68e}.ten-fairies-modern-note,.ten-fairies-attribution-note{display:block;margin-top:1px;color:#93a5ad;font:600 8px/1.25 system-ui;letter-spacing:.01em}.ten-fairies-attribution-note{color:#82949b}
- @@media(max-width:620px){.ten-fairies-player{width:min(520px,calc(100vw - 12px));bottom:max(6px,env(safe-area-inset-bottom))}.ten-fairies-dock{grid-template-columns:1fr;grid-template-areas:"title" "tracks" "note";gap:5px;padding:7px 8px 6px}.ten-fairies-dock-title{text-align:center}.ten-fairies-tracks{grid-template-columns:1fr;gap:4px}.ten-fairies-track audio{height:31px}}
+ .ten-fairies-dock{display:grid;grid-template-columns:minmax(118px,.42fr) minmax(360px,1.58fr);grid-template-areas:"title tracks" "ticker ticker";gap:5px 9px;align-items:center;overflow:hidden;padding:6px 8px 5px;border:1px solid rgba(183,150,75,.78);border-radius:11px;background:rgba(4,10,14,.91);box-shadow:0 10px 28px rgba(0,0,0,.42);backdrop-filter:blur(8px)}
+ .ten-fairies-dock-title{grid-area:title;min-width:0;display:grid;gap:2px}.ten-fairies-dock-title strong{color:#f0d68e;font:900 9px/1.05 system-ui;letter-spacing:.11em}.ten-fairies-dock-title small{color:#9fb0b7;font:750 7px/1.1 system-ui;letter-spacing:.07em}
+ .ten-fairies-tracks{grid-area:tracks;display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:0}.ten-fairies-track{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px;align-items:center;min-width:0}.ten-fairies-track>span{color:#f0d68e;font:900 8px/1 system-ui;letter-spacing:.05em}.ten-fairies-track audio{display:block;width:100%;min-width:0;height:29px;margin:0}
+ .ten-fairies-ticker{grid-area:ticker;min-width:0;overflow:hidden;white-space:nowrap;border-top:1px solid rgba(183,150,75,.22);padding-top:3px;color:#b9c4c8;font:650 8px/1.2 Georgia,"Times New Roman",serif}
+ .ten-fairies-ticker>span{display:inline-block;min-width:max-content;padding-left:100%;animation:ten-fairies-scroll 30s linear infinite}.ten-fairies-ticker em{color:#dbc98f}
+ @@keyframes ten-fairies-scroll{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+ @@media(max-width:620px){
+  .ten-fairies-player{width:calc(100vw - 10px);bottom:max(5px,env(safe-area-inset-bottom))}
+  .ten-fairies-dock{grid-template-columns:1fr;grid-template-areas:"title" "tracks" "ticker";gap:3px;padding:5px 6px 4px}
+  .ten-fairies-dock-title{display:flex;align-items:baseline;justify-content:center;gap:8px;text-align:center}
+  .ten-fairies-tracks{grid-template-columns:1fr 1fr;gap:4px}
+  .ten-fairies-track{grid-template-columns:auto minmax(0,1fr);gap:3px}.ten-fairies-track audio{height:28px}
+  .ten-fairies-ticker{font-size:7.5px;padding-top:2px}
+ }
+ @@media(prefers-reduced-motion:reduce){.ten-fairies-ticker{overflow-x:auto}.ten-fairies-ticker>span{padding-left:0;animation:none}}
  @@media(prefers-reduced-transparency:reduce){.ten-fairies-dock{background:#040a0e;backdrop-filter:none}}
 </style>
