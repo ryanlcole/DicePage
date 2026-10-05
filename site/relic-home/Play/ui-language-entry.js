@@ -124,6 +124,14 @@
   }finally{applying=false}
  }
  function queue(){if(queued)return;queued=true;setTimeout(()=>{queued=false;void apply()},20)}
+ function loadTenFairiesPlayer(){
+  if(document.querySelector('script[data-ten-fairies-player-runtime]'))return;
+  const script=document.createElement('script');
+  script.src='/Game/ten-fairies-player.js?v=20261005-two-part-1';
+  script.defer=true;
+  script.dataset.tenFairiesPlayerRuntime='1';
+  document.head.appendChild(script);
+ }
  function init(){
   const host=root();
   if(!host)return;
@@ -132,6 +140,7 @@
   observer=new MutationObserver(mutations=>{if(!applying&&mutations.some(m=>m.type==='childList'||m.type==='characterData'||m.type==='attributes'))queue()});
   observer.observe(host,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:ATTRS});
   void loadApi();
+  loadTenFairiesPlayer();
   queue();
  }
  window.RistPlayEntryLanguage={apply,refresh:queue};
