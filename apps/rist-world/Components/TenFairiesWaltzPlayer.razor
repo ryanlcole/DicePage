@@ -1,28 +1,43 @@
-<aside class="ten-fairies-player" aria-label="The Ten Fairies two-part music player">
+<aside class="ten-fairies-player" aria-label="The Ten Fairies modern Suno realizations">
  <div class="ten-fairies-dock">
   <div class="ten-fairies-dock-title">
    <strong>THE TEN FAIRIES</strong>
-   <small data-ten-fairies-part>Part 1 of 2 · modern interpretation</small>
+   <small>Modern Suno realization · user-controlled playback</small>
   </div>
-  <audio controls preload="auto" playsinline data-ten-fairies-audio aria-label="Play The Ten Fairies two-part modern interpretation">
-   <source src="https://drive.google.com/uc?export=download&amp;id=1bwcsUkSJ8BQ9jyMhMaDadCah76B-zHv-" type="audio/mpeg" />
-   Your browser does not support audio playback.
-  </audio>
-  <p class="ten-fairies-dedication">Inspired by and dedicated to <strong>“Winthrop”</strong>, the composer credited on the original 1882 publication, <em>The Ten Fairies</em>.
-   <span class="ten-fairies-modern-note">Modern two-part interpretation · not a historical recording.</span>
+
+  <div class="ten-fairies-tracks" aria-label="The Ten Fairies audio tracks">
+   <label class="ten-fairies-track">
+    <span>PART 1</span>
+    <audio controls preload="metadata" playsinline aria-label="Play The Ten Fairies Part 1 modern Suno realization">
+     <source src="https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3" type="audio/mpeg" />
+     Your browser does not support audio playback.
+    </audio>
+   </label>
+   <label class="ten-fairies-track">
+    <span>PART 2</span>
+    <audio controls preload="metadata" playsinline aria-label="Play The Ten Fairies Part 2 modern Suno realization">
+     <source src="https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_2.mp3" type="audio/mpeg" />
+     Your browser does not support audio playback.
+    </audio>
+   </label>
+  </div>
+
+  <p class="ten-fairies-dedication">
+   Inspired by and dedicated to <strong>“Winthrop”</strong>, the printed composer credit on the historical <em>The Ten Fairies</em>.
+   <span class="ten-fairies-modern-note">Historical source: Library of Congress, <em>Music for the Nation: American Sheet Music, ca. 1870–1885</em>. Modern audio realization: Suno. Not a historical recording.</span>
+   <span class="ten-fairies-attribution-note">Attribution research associates J. R. Winthrop with James Ramsey Murray (1841–1905), but that identification is not yet conclusively tied to this score.</span>
   </p>
  </div>
 </aside>
 
 <style>
- .ten-fairies-player{display:none;position:fixed;z-index:2147483550;top:auto;right:auto;bottom:max(8px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(760px,calc(100vw - 16px));box-sizing:border-box;color:#eee6d2;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;text-align:left}
- body:has(.rist-auth-shell) .ten-fairies-player,
+ .ten-fairies-player{display:none;position:fixed;z-index:2147483550;top:auto;right:auto;bottom:max(8px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(820px,calc(100vw - 16px));box-sizing:border-box;color:#eee6d2;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;text-align:left}
  body:has(.rist-auth-start) .ten-fairies-player,
  body:has(.launcher-hub) .ten-fairies-player{display:block}
- .ten-fairies-dock{display:grid;grid-template-columns:minmax(128px,.55fr) minmax(220px,1.45fr);grid-template-areas:"title audio" "note note";gap:5px 10px;align-items:center;overflow:hidden;padding:8px 10px 7px;border:1px solid rgba(183,150,75,.78);border-radius:12px;background:rgba(4,10,14,.92);box-shadow:0 12px 34px rgba(0,0,0,.46);backdrop-filter:blur(8px)}
- .ten-fairies-dock-title{grid-area:title;min-width:0;display:grid;gap:2px}.ten-fairies-dock-title strong{color:#f0d68e;font:900 10px/1.05 system-ui;letter-spacing:.12em}.ten-fairies-dock-title small{color:#c2ccd0;font:750 9px/1.15 system-ui;letter-spacing:.05em}
- .ten-fairies-player audio{grid-area:audio;display:block;width:100%;height:34px;margin:0}
- .ten-fairies-dedication{grid-area:note;margin:0;color:#d5c7a0;font:650 9px/1.3 Georgia,"Times New Roman",serif;text-align:center}.ten-fairies-dedication em{color:#f0d68e}.ten-fairies-modern-note{display:block;margin-top:1px;color:#93a5ad;font:600 8px/1.2 system-ui;letter-spacing:.02em}
- @@media(max-width:620px){.ten-fairies-player{width:min(520px,calc(100vw - 12px));bottom:max(6px,env(safe-area-inset-bottom))}.ten-fairies-dock{grid-template-columns:1fr;grid-template-areas:"title" "audio" "note";gap:4px;padding:7px 8px 6px}.ten-fairies-dock-title{text-align:center}.ten-fairies-player audio{height:32px}}
+ .ten-fairies-dock{display:grid;grid-template-columns:minmax(155px,.52fr) minmax(330px,1.48fr);grid-template-areas:"title tracks" "note note";gap:6px 10px;align-items:center;overflow:hidden;padding:8px 10px 7px;border:1px solid rgba(183,150,75,.78);border-radius:12px;background:rgba(4,10,14,.92);box-shadow:0 12px 34px rgba(0,0,0,.46);backdrop-filter:blur(8px)}
+ .ten-fairies-dock-title{grid-area:title;min-width:0;display:grid;gap:3px}.ten-fairies-dock-title strong{color:#f0d68e;font:900 10px/1.05 system-ui;letter-spacing:.12em}.ten-fairies-dock-title small{color:#c2ccd0;font:750 9px/1.2 system-ui;letter-spacing:.03em}
+ .ten-fairies-tracks{grid-area:tracks;display:grid;grid-template-columns:1fr 1fr;gap:7px;min-width:0}.ten-fairies-track{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px;align-items:center;min-width:0}.ten-fairies-track>span{color:#f0d68e;font:900 8px/1 system-ui;letter-spacing:.08em}.ten-fairies-track audio{display:block;width:100%;min-width:0;height:32px;margin:0}
+ .ten-fairies-dedication{grid-area:note;margin:0;color:#d5c7a0;font:650 9px/1.3 Georgia,"Times New Roman",serif;text-align:center}.ten-fairies-dedication em{color:#f0d68e}.ten-fairies-modern-note,.ten-fairies-attribution-note{display:block;margin-top:1px;color:#93a5ad;font:600 8px/1.25 system-ui;letter-spacing:.01em}.ten-fairies-attribution-note{color:#82949b}
+ @@media(max-width:620px){.ten-fairies-player{width:min(520px,calc(100vw - 12px));bottom:max(6px,env(safe-area-inset-bottom))}.ten-fairies-dock{grid-template-columns:1fr;grid-template-areas:"title" "tracks" "note";gap:5px;padding:7px 8px 6px}.ten-fairies-dock-title{text-align:center}.ten-fairies-tracks{grid-template-columns:1fr;gap:4px}.ten-fairies-track audio{height:31px}}
  @@media(prefers-reduced-transparency:reduce){.ten-fairies-dock{background:#040a0e;backdrop-filter:none}}
 </style>
