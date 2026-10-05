@@ -1,0 +1,101 @@
+name: Publish Ten Fairies Music to AWS
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - '.github/workflows/publish-ten-fairies-music.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  ASSET_BUCKET: rist-assets-assetbucket-curjzuwjbjtv
+  DISTRIBUTION_ID: E1D9TALLP51FI5
+  ASSET_BASE_URL: https://d2d6rnm6fnsp89.cloudfront.net/
+  PART_1_DRIVE_ID: 1bwcsUkSJ8BQ9jyMhMaDadCah76B-zHv-
+  PART_2_DRIVE_ID: 1fsB9MRkDgWRSBfqC8rHxCKBq0DdJq1tB
+  PART_1_SIZE: '4656674'
+  PART_2_SIZE: '4309307'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+
+      - name: Download and verify source audio
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ten-fairies"
+          curl --fail --location --retry 5 --retry-delay 3 --retry-all-errors \
+            --output "$RUNNER_TEMP/ten-fairies/part-1.mp3" \
+            "https://drive.google.com/uc?export=download&id=${PART_1_DRIVE_ID}"
+          curl --fail --location --retry 5 --retry-delay 3 --retry-all-errors \
+            --output "$RUNNER_TEMP/ten-fairies/part-2.mp3" \
+            "https://drive.google.com/uc?export=download&id=${PART_2_DRIVE_ID}"
+
+          test "$(stat -c%s "$RUNNER_TEMP/ten-fairies/part-1.mp3")" = "$PART_1_SIZE"
+          test "$(stat -c%s "$RUNNER_TEMP/ten-fairies/part-2.mp3")" = "$PART_2_SIZE"
+
+          python - <<'PY'
+          from pathlib import Path
+          for name in ('part-1.mp3', 'part-2.mp3'):
+              data = (Path(__import__('os').environ['RUNNER_TEMP']) / 'ten-fairies' / name).read_bytes()[:32].lstrip().lower()
+              if data.startswith((b'<html', b'<!doctype', b'{')):
+                  raise SystemExit(f'{name} is not MPEG audio; download returned markup/data instead')
+          print('Ten Fairies source files passed byte-size and content sanity checks.')
+          PY
+
+      - name: Configure AWS through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish verified audio to private S3 origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws s3 cp "$RUNNER_TEMP/ten-fairies/part-1.mp3" \
+            "s3://${ASSET_BUCKET}/music/ten-fairies/ten-fairies-part-1.mp3" \
+            --content-type 'audio/mpeg' \
+            --cache-control 'public,max-age=31536000,immutable' \
+            --only-show-errors
+          aws s3 cp "$RUNNER_TEMP/ten-fairies/part-2.mp3" \
+            "s3://${ASSET_BUCKET}/music/ten-fairies/ten-fairies-part-2.mp3" \
+            --content-type 'audio/mpeg' \
+            --cache-control 'public,max-age=31536000,immutable' \
+            --only-show-errors
+
+      - name: Refresh and verify CloudFront audio
+        shell: bash
+        run: |
+          set -euo pipefail
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --paths \
+              '/music/ten-fairies/ten-fairies-part-1.mp3' \
+              '/music/ten-fairies/ten-fairies-part-2.mp3' \
+            --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "$DISTRIBUTION_ID" --id "$INVALIDATION_ID"
+
+          curl --fail --location --retry 8 --retry-delay 3 --retry-all-errors \
+            --output "$RUNNER_TEMP/ten-fairies/cdn-part-1.mp3" \
+            "${ASSET_BASE_URL}music/ten-fairies/ten-fairies-part-1.mp3"
+          curl --fail --location --retry 8 --retry-delay 3 --retry-all-errors \
+            --output "$RUNNER_TEMP/ten-fairies/cdn-part-2.mp3" \
+            "${ASSET_BASE_URL}music/ten-fairies/ten-fairies-part-2.mp3"
+
+          test "$(stat -c%s "$RUNNER_TEMP/ten-fairies/cdn-part-1.mp3")" = "$PART_1_SIZE"
+          test "$(stat -c%s "$RUNNER_TEMP/ten-fairies/cdn-part-2.mp3")" = "$PART_2_SIZE"
+          echo 'Both Ten Fairies parts are live through the AWS CloudFront asset CDN.'
