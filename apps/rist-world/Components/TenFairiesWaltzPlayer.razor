@@ -1,49 +1,28 @@
-<aside class="ten-fairies-player" aria-label="The Ten Fairies historical music presentation">
- <details>
-  <summary>
-   <span class="ten-fairies-note" aria-hidden="true">♪</span>
-   <span class="ten-fairies-summary-copy">
-    <strong>THE TEN FAIRIES</strong>
-    <small>No. 1 · Waltz · modern pipe-organ draft</small>
-   </span>
-  </summary>
-  <div class="ten-fairies-panel">
-   <p class="ten-fairies-credit">Historical source: Library of Congress item 2023846055 · J. Church &amp; Co. · 1882 · printed credit <strong>“Winthrop”</strong>.</p>
-   <audio controls preload="metadata" aria-label="Play the modern pipe-organ draft of The Ten Fairies No. 1 Waltz">
-    <source src="https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/01_Waltz_PIPE_ORGAN_MODERN_DRAFT.mp3" type="audio/mpeg" />
-    Your browser does not support audio playback.
-   </audio>
-   <p class="ten-fairies-provenance"><strong>MODERN_DRAFT</strong> · Modern pipe-organ realization of the source-based Waltz draft. This is not a historical recording and does not represent a complete restoration of the ten-piece collection.</p>
-   <p class="ten-fairies-attribution"><strong>Attribution note:</strong> J. R. Winthrop → James Ramsey Murray is supported but remains unproven.</p>
-   <p class="ten-fairies-status"><strong>Collection status:</strong> nine complete solo scores are located; the full Galop remains unlocated.</p>
-   <a href="https://www.loc.gov/item/2023846055/" target="_blank" rel="noopener">Open Library of Congress source</a>
+<aside class="ten-fairies-player" aria-label="The Ten Fairies two-part music player">
+ <div class="ten-fairies-dock">
+  <div class="ten-fairies-dock-title">
+   <strong>THE TEN FAIRIES</strong>
+   <small data-ten-fairies-part>Part 1 of 2 · modern interpretation</small>
   </div>
- </details>
+  <audio controls preload="auto" playsinline data-ten-fairies-audio aria-label="Play The Ten Fairies two-part modern interpretation">
+   <source src="https://drive.google.com/uc?export=download&amp;id=1bwcsUkSJ8BQ9jyMhMaDadCah76B-zHv-" type="audio/mpeg" />
+   Your browser does not support audio playback.
+  </audio>
+  <p class="ten-fairies-dedication">Inspired by and dedicated to <strong>“Winthrop”</strong>, the composer credited on the original 1882 publication, <em>The Ten Fairies</em>.
+   <span class="ten-fairies-modern-note">Modern two-part interpretation · not a historical recording.</span>
+  </p>
+ </div>
 </aside>
 
 <style>
- .ten-fairies-player{display:none;position:fixed;z-index:2147483550;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));width:min(360px,calc(100vw - 20px));box-sizing:border-box;color:#eee6d2;font-family:system-ui,-apple-system,sans-serif}
+ .ten-fairies-player{display:none;position:fixed;z-index:2147483550;top:auto;right:auto;bottom:max(8px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(760px,calc(100vw - 16px));box-sizing:border-box;color:#eee6d2;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;text-align:left}
  body:has(.rist-auth-shell) .ten-fairies-player,
  body:has(.rist-auth-start) .ten-fairies-player,
  body:has(.launcher-hub) .ten-fairies-player{display:block}
- .ten-fairies-player details{overflow:hidden;border:1px solid rgba(183,150,75,.72);border-radius:12px;background:rgba(4,10,14,.90);box-shadow:0 12px 34px rgba(0,0,0,.42);backdrop-filter:blur(8px)}
- .ten-fairies-player summary{min-height:48px;display:flex;align-items:center;gap:10px;box-sizing:border-box;padding:9px 12px;cursor:pointer;list-style:none;touch-action:manipulation;user-select:none}
- .ten-fairies-player summary::-webkit-details-marker{display:none}
- .ten-fairies-player summary:focus-visible{outline:2px dashed rgba(255,241,183,.9);outline-offset:-4px}
- .ten-fairies-note{display:grid;place-items:center;width:30px;height:30px;flex:0 0 30px;border:1px solid #7b6739;border-radius:50%;color:#f0d68e;font:900 18px/1 Georgia,serif}
- .ten-fairies-summary-copy{min-width:0;display:grid;gap:3px;text-align:left}
- .ten-fairies-summary-copy strong{color:#f0d68e;font:900 10px/1 system-ui;letter-spacing:.12em}
- .ten-fairies-summary-copy small{overflow:hidden;color:#c2ccd0;font:700 9px/1.2 system-ui;white-space:nowrap;text-overflow:ellipsis}
- .ten-fairies-panel{display:grid;gap:9px;padding:0 12px 12px;border-top:1px solid rgba(123,103,57,.55)}
- .ten-fairies-panel p{margin:10px 0 0}
- .ten-fairies-credit{color:#d7dee1;font:650 10px/1.45 system-ui}
- .ten-fairies-panel audio{display:block;width:100%;height:38px}
- .ten-fairies-provenance,.ten-fairies-attribution,.ten-fairies-status{color:#aebcc2;font:600 9px/1.45 system-ui}
- .ten-fairies-provenance strong,.ten-fairies-attribution strong,.ten-fairies-status strong{color:#ffe09a;letter-spacing:.04em}
- .ten-fairies-panel a{width:max-content;max-width:100%;color:#f0d68e;font:800 9px/1.2 system-ui}
- @@media(max-width:620px){
-  .ten-fairies-player{top:max(8px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));width:min(330px,calc(100vw - 16px))}
-  .ten-fairies-player details:not([open]){width:min(285px,calc(100vw - 16px));margin-left:auto}
- }
- @@media(prefers-reduced-transparency:reduce){.ten-fairies-player details{background:#040a0e;backdrop-filter:none}}
+ .ten-fairies-dock{display:grid;grid-template-columns:minmax(128px,.55fr) minmax(220px,1.45fr);grid-template-areas:"title audio" "note note";gap:5px 10px;align-items:center;overflow:hidden;padding:8px 10px 7px;border:1px solid rgba(183,150,75,.78);border-radius:12px;background:rgba(4,10,14,.92);box-shadow:0 12px 34px rgba(0,0,0,.46);backdrop-filter:blur(8px)}
+ .ten-fairies-dock-title{grid-area:title;min-width:0;display:grid;gap:2px}.ten-fairies-dock-title strong{color:#f0d68e;font:900 10px/1.05 system-ui;letter-spacing:.12em}.ten-fairies-dock-title small{color:#c2ccd0;font:750 9px/1.15 system-ui;letter-spacing:.05em}
+ .ten-fairies-player audio{grid-area:audio;display:block;width:100%;height:34px;margin:0}
+ .ten-fairies-dedication{grid-area:note;margin:0;color:#d5c7a0;font:650 9px/1.3 Georgia,"Times New Roman",serif;text-align:center}.ten-fairies-dedication em{color:#f0d68e}.ten-fairies-modern-note{display:block;margin-top:1px;color:#93a5ad;font:600 8px/1.2 system-ui;letter-spacing:.02em}
+ @@media(max-width:620px){.ten-fairies-player{width:min(520px,calc(100vw - 12px));bottom:max(6px,env(safe-area-inset-bottom))}.ten-fairies-dock{grid-template-columns:1fr;grid-template-areas:"title" "audio" "note";gap:4px;padding:7px 8px 6px}.ten-fairies-dock-title{text-align:center}.ten-fairies-player audio{height:32px}}
+ @@media(prefers-reduced-transparency:reduce){.ten-fairies-dock{background:#040a0e;backdrop-filter:none}}
 </style>
