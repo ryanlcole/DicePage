@@ -114,12 +114,10 @@ function setParentEditFocus(active){
 }
 
 function beginSpatialSelection(raw={}){
-  // Every deed/region selector uses the same touch-sized 10×10 hex mesh.
-  // The frozen world window is unchanged, so this makes each selectable hex
-  // about three times wider/taller than the previous 30×30 mesh.
-  const options={...raw,gridShape:'hex',columns:10,rows:10};
-  // Freeze the exact world window BEFORE the canonical selector changes any
-  // viewer/grid state. The camera is a lens; Select Area must not reframe it.
+  // Spatial footprint selection uses the original 30×30 visible-window mesh.
+  // Tier/Layer selection may happen before the mesh is exposed, but the frozen
+  // X/Y camera is captured here so changing depth never changes the chosen place.
+  const options={...raw,gridShape:'hex',columns:30,rows:30};
   const preSelection=baseApi?.getSpatialSelection?.();
   const preCamera=captureCameraVisual();
   const preWindow=freezeWindow(preSelection,options);
