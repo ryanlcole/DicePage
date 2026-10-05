@@ -4,6 +4,13 @@ namespace RistWorld.Components;
 
 public partial class UniversalInterface
 {
+    bool _spatialReferenceDepthChosen;
+    bool _spatialZSelectionActive;
+    int _spatialReferenceTier;
+    int _spatialReferenceLayer;
+    int? _spatialZStartTier;
+    int? _spatialZEndTier;
+
     bool CanDirectEditSpatialDepth =>
         !_exploreReadOnlyMode
         && ((_inspectionEditMode && Session.TrustedPlatformDeveloper)
@@ -51,6 +58,25 @@ public partial class UniversalInterface
     bool IsSpatialDepthSemanticStage =>
         _spatialDefinitionActive && (_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer);
 
+    async Task<bool> SendSpatialSelectionMarkerAsync(object marker)
+    {
+        if (_worldBuilderSourceModule is null)
+            return false;
+
+        try
+        {
+            await _worldBuilderSourceModule.InvokeVoidAsync(
+                "setSpatialDefinition",
+                _worldBuilderFrame,
+                marker);
+            return true;
+        }
+        catch (JSException)
+        {
+            return false;
+        }
+    }
+
     async Task<bool> AdjustSpatialDepthSemanticAsync(int direction)
     {
         if (!IsSpatialDepthSemanticStage || !CanDirectEditSpatialDepth)
@@ -60,16 +86,27 @@ public partial class UniversalInterface
         if (direction == 0)
             return true;
 
-        if (_stage == Stage.WorldBuilderTier)
+        if (_spatialZSelectionActive)
+        {
+            if (_stage != Stage.WorldBuilderTier)
+                return true;
+
+            _tier = Math.Clamp(_tier + direction, 0, SpatialMaxTierIndex);
+            _layer = Math.Clamp(_spatialReferenceLayer, 0, SpatialMaxLayerForTier(_tier));
+            _message = _spatialZStartTier.HasValue
+                ? $"Z Tier {_tier}. First boundary is Tier {_spatialZStartTier.Value}; choose the opposite boundary and touch the left display."
+                : $"Z Tier {_tier}. Touch the left display to set the first vertical boundary.";
+        }
+        else if (_stage == Stage.WorldBuilderTier)
         {
             _tier = Math.Clamp(_tier + direction, 0, SpatialMaxTierIndex);
             _layer = Math.Clamp(_layer, 0, SpatialMaxLayerForTier(_tier));
-            _message = $"Tier {_tier}. Deed Layer {_layer} remains within this tier.";
+            _message = $"Reference Tier {_tier}. Choose the tier whose visible layer you will trace.";
         }
         else
         {
             _layer = Math.Clamp(_layer + direction, 0, SpatialMaxLayerForTier(_tier));
-            _message = $"Layer {_layer} on Tier {_tier}.";
+            _message = $"Reference Layer {_layer} on Tier {_tier}.";
         }
 
         await SyncWorldBuilderDepthAsync();
@@ -82,18 +119,65 @@ public partial class UniversalInterface
         if (!IsSpatialDepthSemanticStage || !CanDirectEditSpatialDepth)
             return false;
 
+        if (_spatialZSelectionActive)
+        {
+            if (_stage != Stage.WorldBuilderTier)
+                return true;
+
+            if (!_spatialZStartTier.HasValue)
+            {
+                _spatialZStartTier = _tier;
+                _message = $"First Z boundary set at Tier {_tier}. Move to the other vertical boundary; choose the same tier again for a single-tier region.";
+                await InvokeAsync(StateHasChanged);
+                return true;
+            }
+
+            _spatialZEndTier = _tier;
+            var minTier = Math.Min(_spatialZStartTier.Value, _spatialZEndTier.Value);
+            var maxTier = Math.Max(_spatialZStartTier.Value, _spatialZEndTier.Value);
+            _stage = Stage.WorldHome;
+
+            await SendSpatialSelectionMarkerAsync(new
+            {
+                spatialVolumeDepth = true,
+                minTier,
+                maxTier,
+                referenceTier = _spatialReferenceTier,
+                referenceLayer = _spatialReferenceLayer,
+                layersPerTier = WorldSession.LayersPerTier
+            });
+
+            _message = minTier == maxTier
+                ? $"Z volume limited to Tier {minTier}. Touch Save Area once more to name and save the 3D space."
+                : $"Z volume spans Tiers {minTier}–{maxTier}. Touch Save Area once more to name and save the 3D space.";
+            await InvokeAsync(StateHasChanged);
+            return true;
+        }
+
         if (_stage == Stage.WorldBuilderTier)
         {
             _stage = Stage.WorldBuilderLayer;
-            _message = $"Tier {_tier} selected. Choose Layer on the same left display.";
-        }
-        else
-        {
-            _stage = Stage.WorldHome;
-            _message = $"Deed depth set to Tier {_tier}, Layer {_layer}. Select the X/Y hexes, then use Save Area on the left display.";
+            _message = $"Reference Tier {_tier} selected. Choose the visible Layer you want to trace.";
+            await InvokeAsync(StateHasChanged);
+            return true;
         }
 
+        _spatialReferenceTier = _tier;
+        _spatialReferenceLayer = _layer;
+        _spatialReferenceDepthChosen = true;
+        _stage = Stage.WorldHome;
         await SyncWorldBuilderDepthAsync();
+
+        var activated = await SendSpatialSelectionMarkerAsync(new
+        {
+            beginSpatialFootprint = true,
+            tier = _spatialReferenceTier,
+            layer = _spatialReferenceLayer
+        });
+
+        _message = activated
+            ? $"Tier {_spatialReferenceTier}, Layer {_spatialReferenceLayer} is the reference slice. The 30×30 hex footprint is active now; select cells until the left display says Save Area."
+            : "The depth reference is set, but the X/Y footprint selector could not be activated.";
         await InvokeAsync(StateHasChanged);
         return true;
     }
@@ -104,15 +188,30 @@ public partial class UniversalInterface
         if (!CanDirectEditSpatialDepth)
             return false;
 
-        ClampSpatialDepth(ref _tier, ref _layer);
+        var volumePhase = _spatialReferenceDepthChosen && _spatialSelectionCount > 0;
         _spatialDefinitionActive = true;
-        _stage = Stage.WorldBuilderTier;
-        _message = $"Deed depth · Tier {_tier}. The parent semantic left display is authoritative; X/Y selection remains frozen to the visible map.";
 
-        // Render the authoritative Tier state first, then push that exact value
-        // into the embedded representation. This prevents Select Area from
-        // briefly retaining the previously visible top parallax tier while the
-        // left semantic display has already moved to Tier 0.
+        if (volumePhase)
+        {
+            _spatialZSelectionActive = true;
+            _spatialZStartTier = null;
+            _spatialZEndTier = null;
+            _tier = Math.Clamp(_spatialReferenceTier, 0, SpatialMaxTierIndex);
+            _layer = Math.Clamp(_spatialReferenceLayer, 0, SpatialMaxLayerForTier(_tier));
+            _stage = Stage.WorldBuilderTier;
+            _message = $"Vertical volume selection · 60° view. Start at Z Tier {_tier}; touch the left display to set the first boundary, then choose the other boundary.";
+        }
+        else
+        {
+            ClampSpatialDepth(ref _tier, ref _layer);
+            _spatialReferenceDepthChosen = false;
+            _spatialZSelectionActive = false;
+            _spatialZStartTier = null;
+            _spatialZEndTier = null;
+            _stage = Stage.WorldBuilderTier;
+            _message = $"Choose the reference Tier first. Hex selection is locked until Tier and Layer are both chosen.";
+        }
+
         await InvokeAsync(StateHasChanged);
         await SyncWorldBuilderDepthAsync();
         return true;
@@ -124,6 +223,10 @@ public partial class UniversalInterface
         if (_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer)
             _stage = Stage.WorldHome;
 
+        _spatialReferenceDepthChosen = false;
+        _spatialZSelectionActive = false;
+        _spatialZStartTier = null;
+        _spatialZEndTier = null;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -143,7 +246,9 @@ public partial class UniversalInterface
             maxTierIndex = SpatialMaxTierIndex,
             maxLayer = SpatialMaxLayerForTier(tier),
             tier,
-            layer
+            layer,
+            referenceDepthChosen = _spatialReferenceDepthChosen,
+            verticalVolume = _spatialZSelectionActive
         });
     }
 
