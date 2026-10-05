@@ -1,0 +1,16 @@
+<section class="ten-fairies-start-music" aria-label="Ten Fairies music preview">
+ <strong>TEN FAIRIES · WALTZ</strong>
+ <small>PIPE ORGAN · MODERN DRAFT</small>
+ <audio controls loop preload="metadata" aria-label="Play Ten Fairies Waltz modern pipe organ draft">
+  <source src="https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/01_Waltz_PIPE_ORGAN_MODERN_DRAFT.mp3" type="audio/mpeg" />
+ </audio>
+</section>
+
+<style>
+.ten-fairies-start-music{display:none}
+.rist-auth-start ~ .ten-fairies-start-music{position:fixed;z-index:2147483600;top:max(18px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(420px,90vw);display:grid;gap:4px;justify-items:center;padding:9px 12px;border:1px solid rgba(224,197,141,.45);border-radius:12px;background:rgba(5,12,18,.76);box-shadow:0 8px 24px rgba(0,0,0,.38);backdrop-filter:blur(5px);color:#f5e7bd;text-align:center;pointer-events:auto}
+.ten-fairies-start-music strong{font:800 11px/1.1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.1em}
+.ten-fairies-start-music small{font:800 8px/1.1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.13em;color:#bbc8cd}
+.ten-fairies-start-music audio{display:block;width:min(360px,84vw);height:32px}
+@media(max-width:420px){.rist-auth-start ~ .ten-fairies-start-music{top:max(10px,env(safe-area-inset-top));padding:7px 9px}.ten-fairies-start-music audio{height:30px}}
+</style>
