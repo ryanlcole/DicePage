@@ -182,13 +182,13 @@ public partial class UniversalInterface
         return true;
     }
 
-    [JSInvokable]
-    public async Task<bool> BeginWorldBuilderSpatialDepthControlAsync()
+    async Task<bool> BeginWorldBuilderSpatialDepthControlCoreAsync(string phase)
     {
         if (!CanDirectEditSpatialDepth)
             return false;
 
-        var volumePhase = _spatialReferenceDepthChosen && _spatialSelectionCount > 0;
+        var volumePhase = string.Equals(phase, "volume", StringComparison.OrdinalIgnoreCase)
+            && _spatialReferenceDepthChosen;
         _spatialDefinitionActive = true;
 
         if (volumePhase)
@@ -209,12 +209,27 @@ public partial class UniversalInterface
             _spatialZStartTier = null;
             _spatialZEndTier = null;
             _stage = Stage.WorldBuilderTier;
-            _message = $"Choose the reference Tier first. Hex selection is locked until Tier and Layer are both chosen.";
+            _message = "Choose the reference Tier first. Hex selection is locked until Tier and Layer are both chosen.";
         }
 
         await InvokeAsync(StateHasChanged);
         await SyncWorldBuilderDepthAsync();
         return true;
+    }
+
+    [JSInvokable]
+    public Task<bool> BeginWorldBuilderSpatialDepthControlPhaseAsync(string phase) =>
+        BeginWorldBuilderSpatialDepthControlCoreAsync(phase);
+
+    [JSInvokable]
+    public Task<bool> BeginWorldBuilderSpatialDepthControlAsync()
+    {
+        // Compatibility for an older cached host: once a footprint exists,
+        // the next begin is the Z-volume phase rather than a second reference pass.
+        var phase = _spatialReferenceDepthChosen && _spatialSelectionCount > 0
+            ? "volume"
+            : "reference";
+        return BeginWorldBuilderSpatialDepthControlCoreAsync(phase);
     }
 
     [JSInvokable]
