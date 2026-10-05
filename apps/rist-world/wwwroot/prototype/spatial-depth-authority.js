@@ -18,6 +18,7 @@ const context={
 };
 
 let active=false;
+let footprintEnabled=false;
 let depth={tier:0,layer:0};
 let settleFrame=0;
 let settleTimer=0;
@@ -33,6 +34,20 @@ function mirrorDepth(raw={}){
     layer:Math.max(0,Math.trunc(Number(raw.layer)||0))
   };
   return depth;
+}
+
+function selectionOverlay(){return document.querySelector('.spatial-selection-grid')}
+
+function setFootprintOverlayEnabled(enabled){
+  footprintEnabled=!!enabled;
+  const overlay=selectionOverlay();
+  if(!overlay)return;
+  overlay.style.visibility=footprintEnabled?'':'hidden';
+  overlay.style.pointerEvents=footprintEnabled?'':'none';
+  overlay.setAttribute('aria-hidden',footprintEnabled?'false':'true');
+  if(footprintEnabled){
+    try{overlay.focus({preventScroll:true})}catch{try{overlay.focus()}catch{}}
+  }
 }
 
 function cancelDepthSettlement(){
@@ -68,10 +83,11 @@ function settleDepth(payload){
 }
 
 function beginSpatialSelection(raw={}){
-  // The frozen visible viewport stays identical, but the selection mesh is
-  // deliberately coarse enough for touch: 10×10 rather than 30×30 makes
-  // each hex about three times wider/taller over the same map window.
-  const options={...raw,gridShape:'hex',columns:10,rows:10};
+  // Select Area starts by choosing the reference Tier/Layer. The 30×30 X/Y
+  // mesh exists underneath so the camera can freeze immediately, but it is
+  // intentionally hidden and non-interactive until the parent reaches the
+  // footprint-selection step.
+  const options={...raw,gridShape:'hex',columns:30,rows:30};
   const started=baseApi?.beginSpatialSelection?.(options);
   if(!started)return started;
 
@@ -82,23 +98,38 @@ function beginSpatialSelection(raw={}){
     layer:layers.length===1?Math.max(0,Math.trunc(Number(layers[0])||0)):0
   });
   active=true;
+  setFootprintOverlayEnabled(false);
 
-  // Lifecycle only. The parent UniversalInterface owns the semantic
-  // Tier -> Layer -> Save controls, validates deed height, and pushes the
-  // authoritative depth back through setExternalDepth(). The iframe mirrors
-  // that value exactly; it never edits parent controls or parent state.
-  post('spatial-depth-control-begin');
+  // The parent owns Tier/Layer semantics. At this point it is selecting the
+  // source slice for the footprint; no X/Y hex can be selected yet.
+  post('spatial-depth-control-begin',{phase:'reference'});
   return started;
+}
+
+function activateSpatialFootprint(){
+  if(!active)return false;
+  setFootprintOverlayEnabled(true);
+  return true;
+}
+
+function finishSpatialFootprint(focus=true){
+  if(!active||!footprintEnabled)return false;
+  const result=baseApi?.finishSpatialSelection?.(focus);
+  footprintEnabled=false;
+  return result;
+}
+
+function beginSpatialVolumeDepth(){
+  if(!active)active=true;
+  footprintEnabled=false;
+  post('spatial-depth-control-begin',{phase:'volume'});
+  return true;
 }
 
 function setExternalDepth(raw={}){
   const next=mirrorDepth(raw);
   const payload={...raw,tier:next.tier,layer:next.layer};
   const result=applyBaseDepth(payload);
-  // Selection startup installs the frozen-map wrappers immediately after the
-  // first render. Reassert the same parent-owned depth after those frames so
-  // the initial picture cannot remain on a stale top parallax tier until the
-  // user moves the Tier control.
   if(active)settleDepth(payload);
   return result;
 }
@@ -126,24 +157,44 @@ function getSpatialSelection(){
   };
 }
 
+function moveSpatialSelectionCursor(columnDelta,rowDelta){
+  if(!active||!footprintEnabled)return false;
+  return baseApi?.moveSpatialSelectionCursor?.(columnDelta,rowDelta)??false;
+}
+
+function toggleSpatialSelectionCursor(){
+  if(!active||!footprintEnabled)return false;
+  return baseApi?.toggleSpatialSelectionCursor?.()??false;
+}
+
 function cleanup(){
   cancelDepthSettlement();
   depthSyncSerial++;
-  if(!active)return;
+  const wasActive=active;
   active=false;
-  post('spatial-depth-control-end');
+  footprintEnabled=false;
+  const overlay=selectionOverlay();
+  if(overlay){overlay.style.visibility='';overlay.style.pointerEvents='';overlay.removeAttribute('aria-hidden')}
+  if(wasActive)post('spatial-depth-control-end');
 }
 
 function finishSpatialSelection(focus=true){
-  const result=baseApi?.finishSpatialSelection?.(focus);
+  const hadActive=active;
+  if(footprintEnabled)baseApi?.finishSpatialSelection?.(focus);
   cleanup();
-  return result;
+  return hadActive;
 }
 
 function cancelSpatialSelection(){
-  const result=baseApi?.cancelSpatialSelection?.();
+  const hadActive=active;
+  if(footprintEnabled)baseApi?.cancelSpatialSelection?.();
+  else{
+    // The underlying selection session may still be camera-frozen even while
+    // its mesh is hidden during reference-depth selection.
+    baseApi?.cancelSpatialSelection?.();
+  }
   cleanup();
-  return result;
+  return hadActive;
 }
 
 window.addEventListener('message',event=>{
@@ -158,8 +209,13 @@ window.addEventListener('message',event=>{
 window.ShaelvienPrototype=Object.freeze({
   ...baseApi,
   beginSpatialSelection,
+  activateSpatialFootprint,
+  finishSpatialFootprint,
+  beginSpatialVolumeDepth,
   setExternalDepth,
   getSpatialSelection,
+  moveSpatialSelectionCursor,
+  toggleSpatialSelectionCursor,
   finishSpatialSelection,
   cancelSpatialSelection
 });
@@ -168,5 +224,6 @@ window.addEventListener('pagehide',()=>{
   cancelDepthSettlement();
   depthSyncSerial++;
   active=false;
+  footprintEnabled=false;
 },{once:true});
 })();
