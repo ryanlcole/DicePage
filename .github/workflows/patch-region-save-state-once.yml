@@ -1,0 +1,195 @@
+name: Patch Region Save State Once
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - .github/workflows/patch-region-save-state-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Repair Region tool bootstrap and save state
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          ui = Path('apps/rist-world/Components/UniversalInterface.razor')
+          text = ui.read_text(encoding='utf-8')
+
+          old = ''' async Task BeginOrSaveVisibleSpatialSelectionAsync()
+ {
+  if(!_spatialDefinitionActive&&string.Equals(VisibleSpatialKind,"REGION",StringComparison.OrdinalIgnoreCase))
+  {
+   var inspectionReason=_inspectionEditMode?RequireInspectionReason():"";'''
+          new = ''' async Task BeginOrSaveVisibleSpatialSelectionAsync()
+ {
+  if(string.Equals(VisibleSpatialKind,"REGION",StringComparison.OrdinalIgnoreCase))
+  {
+   // Region geography is authored by focus/crop + border geometry, never by the
+   // legacy visible-hex selector. Clear any stale selector before opening tools.
+   if(_spatialDefinitionActive)
+   {
+    if(_worldBuilderSourceModule is not null)
+    {
+     try{await _worldBuilderSourceModule.InvokeAsync<bool>("cancelSpatialSelection",_worldBuilderFrame);}catch(JSException){}
+    }
+    _spatialDefinitionActive=false;
+    _spatialSelectionCount=0;
+    _pendingSpatialName="";
+   }
+
+   var inspectionReason=_inspectionEditMode?RequireInspectionReason():"";'''
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected Region entry block once, found {text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          old = '''   Session.SetActiveRegion("");
+   _regionDefinerNewFlow=true;
+   _regionDefinerState=null;
+   _regionDefinerOpen=true;
+   _pendingSpatialInspectionReason=inspectionReason;
+   _stage=Stage.SpatialSelect;'''
+          new = '''   Session.SetActiveRegion("");
+   _regionDefinerNewFlow=true;
+   _regionDefinerState=null;
+   _regionDefinerOpen=true;
+   _builderChainIndex=1;
+   _requestedBuilderChainIndex=1;
+   _assetScope="REGION";
+   _pendingSpatialInspectionReason=inspectionReason;
+   _stage=Stage.SpatialSelect;'''
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected Region scope block once, found {text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          old = ''' async Task ActivateRegionDefinerPrimaryAsync()
+ {
+  if(_regionDefinerWorkspace is null)return;
+  var state=_regionDefinerState??await _regionDefinerWorkspace.GetControllerStateAsync();if(state is null)return;
+  if(string.Equals(state.Phase,"select",StringComparison.OrdinalIgnoreCase))
+  {
+   if(state.SelectedCount<=0){_message="Select at least one Region cell on the map first.";return;}
+   var name=await JS.InvokeAsync<string?>("prompt","Name this region","New Region");name=(name??"").Trim();
+   if(name.Length==0){_message="Region save cancelled. The Region Definer selection is unchanged.";return;}
+   _message=$"Saving {name} through the established Region Definer…";await _regionDefinerWorkspace.PrimaryAsync(name);return;
+  }
+  await _regionDefinerWorkspace.PrimaryAsync();
+ }'''
+          new = ''' async Task ActivateRegionDefinerPrimaryAsync()
+ {
+  if(_regionDefinerWorkspace is null)return;
+  var state=_regionDefinerState??await _regionDefinerWorkspace.GetControllerStateAsync();if(state is null)return;
+  if(string.Equals(state.Phase,"select",StringComparison.OrdinalIgnoreCase))
+  {
+   // Refuse the retired cell-painting Region path instead of saving a hex mask.
+   // The geometry tool owns naming in its Save phase; browser prompt is not used.
+   _message="Legacy hex Region selection is retired. Reopen Region Tools to define a focus crop and authored border.";
+   return;
+  }
+  await _regionDefinerWorkspace.PrimaryAsync();
+ }'''
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected legacy Region primary block once, found {text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          old = '''   _builderChainIndex=2;_requestedBuilderChainIndex=2;_assetScope="LOCAL";_tier=0;_layer=0;_stage=Stage.WorldBuilderTier;
+   _message=$"{savedRegion.Name} saved by the original Region Definer. Continuing into Local inside the same recursive viewer.";
+   await InvokeAsync(StateHasChanged);
+   if(_regionDefinerWorkspace is not null)await _regionDefinerWorkspace.SetDepthAsync(_tier,_layer,"LOCAL",savedRegion.RegionId,$"{savedRegion.RegionId}/local");
+   return;'''
+          new = '''   _builderChainIndex=1;_requestedBuilderChainIndex=1;_assetScope="REGION";_stage=Stage.SpatialSelect;
+   _message=$"{savedRegion.Name} saved. The 60° Region view and chosen Tier visibility remain active; Local is entered only by an explicit next action.";
+   await InvokeAsync(StateHasChanged);
+   return;'''
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected auto-Local save block once, found {text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          if '"prompt","Name this region"' in text:
+              raise SystemExit('Region save still invokes browser prompt')
+          ui.write_text(text, encoding='utf-8')
+
+          host = Path('apps/rist-world/wwwroot/region-definer-host.js')
+          htext = host.read_text(encoding='utf-8')
+          old = '''async function callPrototype(frame,name,...args){
+  await ensureRegionGeometryTools(frame);
+  const api=await waitForPrototype(frame),fn=api?.[name];
+  if(typeof fn!=="function")return null;
+  return await fn(...args);
+}'''
+          new = '''async function callPrototype(frame,name,...args){
+  // Wait for the iframe's real prototype document first. Injecting into the
+  // initial about:blank document is lost when Safari completes navigation.
+  const initial=await waitForPrototype(frame);
+  if(!initial)return null;
+  const loaded=await ensureRegionGeometryTools(frame);
+  if(!loaded)return null;
+  const api=frame?.contentWindow?.ShaelvienPrototype,fn=api?.[name];
+  if(typeof fn!=="function")return null;
+  return await fn(...args);
+}'''
+          if htext.count(old) != 1:
+              raise SystemExit(f'Expected host callPrototype block once, found {htext.count(old)}')
+          htext = htext.replace(old, new, 1)
+
+          old = '''export async function attach(frame,dotnet){
+  detach(frame);
+  await ensureRegionGeometryTools(frame);
+  const handler=async event=>{'''
+          new = '''export async function attach(frame,dotnet){
+  detach(frame);
+  // Region geometry must attach to the loaded prototype document, not the
+  // transient iframe document that exists before navigation completes.
+  const initial=await waitForPrototype(frame);
+  if(initial)await ensureRegionGeometryTools(frame);
+  const handler=async event=>{'''
+          if htext.count(old) != 1:
+              raise SystemExit(f'Expected host attach block once, found {htext.count(old)}')
+          htext = htext.replace(old, new, 1)
+          host.write_text(htext, encoding='utf-8')
+
+          test = Path('apps/rist-world/tests/canonical-viewer-region-definer-geometry.test.cjs')
+          ttext = test.read_text(encoding='utf-8')
+          if "const uiPath" not in ttext:
+              ttext = ttext.replace(
+                  "const contractPath = path.join(root, 'REGION_DEFINER_CONTRACT.md');",
+                  "const contractPath = path.join(root, 'REGION_DEFINER_CONTRACT.md');\nconst uiPath = path.join(root, 'Components', 'UniversalInterface.razor');")
+              ttext = ttext.replace(
+                  "const contract = fs.readFileSync(contractPath, 'utf8');",
+                  "const contract = fs.readFileSync(contractPath, 'utf8');\nconst ui = fs.readFileSync(uiPath, 'utf8');")
+              ttext += '''\n\ntest('Region flow cannot fall back to legacy hex save or browser prompt', () => {\n  assert.match(ui, /Legacy hex Region selection is retired/);\n  assert.doesNotMatch(ui, /\\\"prompt\\\",\\\"Name this region\\\"/);\n  assert.match(ui, /_builderChainIndex=1;_requestedBuilderChainIndex=1;_assetScope=\\\"REGION\\\";_stage=Stage.SpatialSelect/);\n  assert.doesNotMatch(ui, /saved by the original Region Definer\\. Continuing into Local/);\n});\n\ntest('Region host waits for the loaded iframe before geometry injection', () => {\n  assert.match(host, /const initial=await waitForPrototype\\(frame\\);/);\n  assert.match(host, /if\\(!initial\\)return null;/);\n  assert.match(host, /const loaded=await ensureRegionGeometryTools\\(frame\\);/);\n});\n'''
+          test.write_text(ttext, encoding='utf-8')
+          PY
+
+          git diff --check
+          node --check apps/rist-world/wwwroot/region-definer-host.js
+          node --check apps/rist-world/wwwroot/prototype/region-geometry-tools.js
+          node --test apps/rist-world/tests/canonical-viewer-region-definer-geometry.test.cjs
+          ! grep -q '"prompt","Name this region"' apps/rist-world/Components/UniversalInterface.razor
+          grep -q 'Legacy hex Region selection is retired' apps/rist-world/Components/UniversalInterface.razor
+          grep -q 'waitForPrototype(frame)' apps/rist-world/wwwroot/region-definer-host.js
+      - name: Build RIST WORLD
+        run: dotnet build apps/rist-world/RistWorld.csproj -c Release
+      - name: Commit repair
+        shell: bash
+        run: |
+          git config user.name "shaelvien-region-state-repair"
+          git config user.email "actions@users.noreply.github.com"
+          git add apps/rist-world/Components/UniversalInterface.razor apps/rist-world/wwwroot/region-definer-host.js apps/rist-world/tests/canonical-viewer-region-definer-geometry.test.cjs
+          git diff --cached --check
+          git commit -m "Fix Region geometry bootstrap and save state [region-save-repair]"
+          git push origin HEAD:live-alpha-rist-blazor-world
