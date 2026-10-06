@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: semantic-controller-contract-${{ github.ref }}
@@ -39,64 +39,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Wire Region geometry tools into Region scope
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          ui = Path('apps/rist-world/Components/UniversalInterface.razor')
-          text = ui.read_text(encoding='utf-8')
-
-          old = '''   _regionDefinerState=null;
-   _regionDefinerOpen=true;
-   _pendingSpatialInspectionReason=inspectionReason;
-   _stage=Stage.SpatialSelect;'''
-          new = '''   _regionDefinerState=null;
-   _regionDefinerOpen=true;
-   _builderChainIndex=1;
-   _requestedBuilderChainIndex=1;
-   _assetScope="REGION";
-   _pendingSpatialInspectionReason=inspectionReason;
-   _stage=Stage.SpatialSelect;'''
-          if text.count(old) != 1:
-              raise SystemExit(f'Expected one Region Tools scope block, found {text.count(old)}')
-          text = text.replace(old, new, 1)
-
-          old_mode = ''' :_stage==Stage.SpatialSelect&&_regionDefinerOpen
-   ?(_regionDefinerState?.GridShape?.ToUpperInvariant()??"HEX")'''
-          new_mode = ''' :_stage==Stage.SpatialSelect&&_regionDefinerOpen
-   ?"TOOLS"'''
-          if text.count(old_mode) != 1:
-              raise SystemExit(f'Expected one Region analog mode block, found {text.count(old_mode)}')
-          text = text.replace(old_mode, new_mode, 1)
-
-          old_aria = ''' string AnalogModeAriaLabel=>_stage==Stage.SpatialSelect&&_regionDefinerOpen
-  ?"Pan the original Region Definer. Press Select to toggle the cell at viewer center. Touch this button to change grid shape."'''
-          new_aria = ''' string AnalogModeAriaLabel=>_stage==Stage.SpatialSelect&&_regionDefinerOpen
-  ?"Navigate the Region Definer geometry tools. Geography authoring is gridless; Select acts on the active Region tool."'''
-          if text.count(old_aria) != 1:
-              raise SystemExit(f'Expected one Region analog aria block, found {text.count(old_aria)}')
-          text = text.replace(old_aria, new_aria, 1)
-
-          if 'SELECT HEXES' in text:
-              raise SystemExit('Stale SELECT HEXES label remains in UniversalInterface.razor')
-          ui.write_text(text, encoding='utf-8')
-
-          workspace = Path('apps/rist-world/Components/RegionDefinerWorkspace.razor')
-          wtext = workspace.read_text(encoding='utf-8')
-          old_cache = '"import","./region-definer-host.js?v=20261004-controller-adapter-1"'
-          new_cache = '"import","./region-definer-host.js?v=20261006-region-geometry-tools-2"'
-          if wtext.count(old_cache) != 1:
-              raise SystemExit(f'Expected one Region host cache key, found {wtext.count(old_cache)}')
-          wtext = wtext.replace(old_cache, new_cache, 1)
-          workspace.write_text(wtext, encoding='utf-8')
-          PY
-          git diff --check
-          grep -q '"REGION TOOLS"' apps/rist-world/Components/UniversalInterface.razor
-          ! grep -q 'SELECT HEXES' apps/rist-world/Components/UniversalInterface.razor
-          grep -q 'region-geometry-tools-2' apps/rist-world/Components/RegionDefinerWorkspace.razor
-
       - name: Validate universal input JavaScript
         run: node --check apps/rist-world/wwwroot/universal-interface-input.js
 
@@ -107,13 +49,3 @@ jobs:
 
       - name: Build RIST WORLD
         run: dotnet build apps/rist-world/RistWorld.csproj -c Release
-
-      - name: Commit Region tools wiring
-        shell: bash
-        run: |
-          git config user.name "shaelvien-region-tools"
-          git config user.email "actions@users.noreply.github.com"
-          git add apps/rist-world/Components/UniversalInterface.razor apps/rist-world/Components/RegionDefinerWorkspace.razor
-          git diff --cached --check
-          git commit -m "Keep Region geometry tools in Region scope [region-tools-scope]"
-          git push origin HEAD:live-alpha-rist-blazor-world
