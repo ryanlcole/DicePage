@@ -1,0 +1,80 @@
+name: Patch Semantic Select Order Once
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - .github/workflows/patch-semantic-select-order-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Preserve analog Select contract while routing Region tools
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/rist-world/Components/UniversalInterface.SemanticControls.cs')
+          s=p.read_text(encoding='utf-8')
+          old='''        if (_stage == Stage.SpatialSelect && _regionDefinerOpen)
+        {
+            _builderChainIndex = 1;
+            _requestedBuilderChainIndex = 1;
+            _assetScope = "REGION";
+            await SelectRegionDefinerAsync();
+            return;
+        }
+
+        if ((_stage == Stage.BrowsePlace || _stage == Stage.MmoMap) && CursorMode)
+        {
+            await ActivateBrowseCursorTargetAsync();
+            return;
+        }
+'''
+          new='''        if ((_stage == Stage.BrowsePlace || _stage == Stage.MmoMap) && CursorMode)
+        {
+            await ActivateBrowseCursorTargetAsync();
+            return;
+        }
+
+        if (_stage == Stage.SpatialSelect && _regionDefinerOpen)
+        {
+            _builderChainIndex = 1;
+            _requestedBuilderChainIndex = 1;
+            _assetScope = "REGION";
+            await SelectRegionDefinerAsync();
+            return;
+        }
+'''
+          if s.count(old)!=1:
+              raise SystemExit(f'Expected SelectSemantic routing block once, found {s.count(old)}')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+          git diff --check
+          npm install --prefix "$RUNNER_TEMP/rist-semantic-tests" --no-audit --no-fund jsdom@26.1.0
+          NODE_PATH="$RUNNER_TEMP/rist-semantic-tests/node_modules" node --test apps/rist-world/tests/canonical-viewer-*.test.cjs
+      - name: Build RIST WORLD
+        run: dotnet build apps/rist-world/RistWorld.csproj -c Release
+      - name: Commit ordering repair
+        shell: bash
+        run: |
+          git config user.name "shaelvien-semantic-select-repair"
+          git config user.email "actions@users.noreply.github.com"
+          git add apps/rist-world/Components/UniversalInterface.SemanticControls.cs
+          git diff --cached --check
+          git commit -m "Preserve analog Select while routing Region tools [semantic-select-order]"
+          git reset --hard HEAD
+          git pull --rebase origin live-alpha-rist-blazor-world
+          git push origin HEAD:live-alpha-rist-blazor-world
