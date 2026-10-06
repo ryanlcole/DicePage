@@ -210,18 +210,18 @@ public partial class UniversalInterface
             return;
         }
 
+        if ((_stage == Stage.BrowsePlace || _stage == Stage.MmoMap) && CursorMode)
+        {
+            await ActivateBrowseCursorTargetAsync();
+            return;
+        }
+
         if (_stage == Stage.SpatialSelect && _regionDefinerOpen)
         {
             _builderChainIndex = 1;
             _requestedBuilderChainIndex = 1;
             _assetScope = "REGION";
             await SelectRegionDefinerAsync();
-            return;
-        }
-
-        if ((_stage == Stage.BrowsePlace || _stage == Stage.MmoMap) && CursorMode)
-        {
-            await ActivateBrowseCursorTargetAsync();
             return;
         }
 
