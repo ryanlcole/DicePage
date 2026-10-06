@@ -85,4 +85,5 @@ jobs:
           git add apps/rist-world/Components/UniversalInterface.razor apps/rist-world/wwwroot/region-definer-host.js apps/rist-world/tests/canonical-viewer-region-definer-geometry.test.cjs
           git diff --cached --check
           git commit -m "Fix Region geometry bootstrap and save state [region-save-repair]"
+          git pull --rebase origin live-alpha-rist-blazor-world
           git push origin HEAD:live-alpha-rist-blazor-world
