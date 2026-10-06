@@ -7,10 +7,12 @@ const root = path.resolve(__dirname, '..');
 const geometryPath = path.join(root, 'wwwroot', 'prototype', 'region-geometry-tools.js');
 const hostPath = path.join(root, 'wwwroot', 'region-definer-host.js');
 const contractPath = path.join(root, 'REGION_DEFINER_CONTRACT.md');
+const uiPath = path.join(root, 'Components', 'UniversalInterface.razor');
 
 const geometry = fs.readFileSync(geometryPath, 'utf8');
 const host = fs.readFileSync(hostPath, 'utf8');
 const contract = fs.readFileSync(contractPath, 'utf8');
+const ui = fs.readFileSync(uiPath, 'utf8');
 
 test('Region Definer geometry helper is valid classic JavaScript', () => {
   assert.doesNotThrow(() => new Function(geometry));
@@ -37,4 +39,18 @@ test('Region Definer contract says crop is view scope and 60 degree region view'
   assert.match(contract, /Region presentation after border confirmation is 60°\./);
   assert.match(contract, /Geography authoring is gridless to the user/);
   assert.match(contract, /Cursor selection and touch selection are equivalent semantic inputs\./);
+});
+
+
+test('Region flow rejects legacy hex save and browser prompt', () => {
+  assert.match(ui, /Legacy hex Region selection is retired/);
+  assert.doesNotMatch(ui, /\"prompt\",\"Name this region\"/);
+  assert.match(ui, /_builderChainIndex=1;_requestedBuilderChainIndex=1;_assetScope=\"REGION\";_stage=Stage.SpatialSelect/);
+  assert.doesNotMatch(ui, /Continuing into Local inside the same recursive viewer/);
+});
+
+test('Region host waits for loaded iframe before geometry injection', () => {
+  assert.match(host, /const initial=await waitForPrototype\(frame\);/);
+  assert.match(host, /if\(!initial\)return null;/);
+  assert.match(host, /const loaded=await ensureRegionGeometryTools\(frame\);/);
 });

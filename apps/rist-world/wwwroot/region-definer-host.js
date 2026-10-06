@@ -30,8 +30,11 @@ async function waitForPrototype(frame,timeoutMs=3000){
   return null;
 }
 async function callPrototype(frame,name,...args){
-  await ensureRegionGeometryTools(frame);
-  const api=await waitForPrototype(frame),fn=api?.[name];
+  const initial=await waitForPrototype(frame);
+  if(!initial)return null;
+  const loaded=await ensureRegionGeometryTools(frame);
+  if(!loaded)return null;
+  const api=frame?.contentWindow?.ShaelvienPrototype,fn=api?.[name];
   if(typeof fn!=="function")return null;
   return await fn(...args);
 }
@@ -80,7 +83,8 @@ export function detach(frame){
 
 export async function attach(frame,dotnet){
   detach(frame);
-  await ensureRegionGeometryTools(frame);
+  const initial=await waitForPrototype(frame);
+  if(initial)await ensureRegionGeometryTools(frame);
   const handler=async event=>{
     if(event.origin!==location.origin||event.source!==frame?.contentWindow)return;
     const data=event.data;
