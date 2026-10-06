@@ -1,7 +1,23 @@
 const bridges=new WeakMap();
+const GEOMETRY_TOOL_SRC="/Game/prototype/region-geometry-tools.js?v=20261006-region-border-1";
 
 function post(frame,message){
   try{frame?.contentWindow?.postMessage({source:"shaelvien-regiondefiner-host",...message},location.origin)}catch{}
+}
+
+async function ensureRegionGeometryTools(frame){
+  const doc=frame?.contentDocument;
+  if(!doc)return false;
+  if(doc.getElementById("region-geometry-tools-v2"))return true;
+  return await new Promise(resolve=>{
+    const script=doc.createElement("script");
+    script.id="region-geometry-tools-v2";
+    script.src=GEOMETRY_TOOL_SRC;
+    script.async=false;
+    script.onload=()=>resolve(true);
+    script.onerror=()=>resolve(false);
+    (doc.body||doc.documentElement).appendChild(script);
+  });
 }
 
 async function waitForPrototype(frame,timeoutMs=3000){
@@ -14,11 +30,13 @@ async function waitForPrototype(frame,timeoutMs=3000){
   return null;
 }
 async function callPrototype(frame,name,...args){
+  await ensureRegionGeometryTools(frame);
   const api=await waitForPrototype(frame),fn=api?.[name];
   if(typeof fn!=="function")return null;
   return await fn(...args);
 }
 async function sendState(frame,dotnet){
+  await ensureRegionGeometryTools(frame);
   try{
     const worldSource=await dotnet.invokeMethodAsync("GetWorldSourceForPrototype");
     post(frame,{type:"world-source",worldSource:worldSource||null});
@@ -30,6 +48,12 @@ async function sendState(frame,dotnet){
     post(frame,{type:"catalog",regions:Array.isArray(regions)?regions:[]});
   }catch(error){
     post(frame,{type:"catalog-error",message:String(error?.message||error||"Region permissions are unavailable")});
+  }
+  try{
+    const regions=await dotnet.invokeMethodAsync("GetRegionGeometryCatalogForPrototype");
+    post(frame,{type:"catalog-v2",regions:Array.isArray(regions)?regions:[]});
+  }catch{
+    // Geometry-v2 is additive. Older cached clients continue on the legacy catalog.
   }
 }
 
@@ -54,8 +78,9 @@ export function detach(frame){
   bridges.delete(frame);
 }
 
-export function attach(frame,dotnet){
+export async function attach(frame,dotnet){
   detach(frame);
+  await ensureRegionGeometryTools(frame);
   const handler=async event=>{
     if(event.origin!==location.origin||event.source!==frame?.contentWindow)return;
     const data=event.data;
@@ -71,14 +96,14 @@ export function attach(frame,dotnet){
       }
       if(data.type==="controller-state"){
         const state=data.state&&typeof data.state==="object"?data.state:{};
-        await dotnet.invokeMethodAsync("ReceiveControllerStateAsync",String(state.phase||"idle"),Math.max(0,Math.trunc(Number(state.selectedCount)||0)),String(state.gridShape||"hex"),Math.max(0,Math.trunc(Number(state.tierIndex)||0)),state.pending===true,state.exitRequested===true,String(state.regionId||""),String(state.regionName||""));
+        await dotnet.invokeMethodAsync("ReceiveControllerStateAsync",String(state.phase||"idle"),Math.max(0,Math.trunc(Number(state.selectedCount)||0)),String(state.gridShape||"none"),Math.max(0,Math.trunc(Number(state.tierIndex)||0)),state.pending===true,state.exitRequested===true,String(state.regionId||""),String(state.regionName||""));
         return;
       }
       if(data.type==="request-claim"){
         const cells=Array.isArray(data.cells)?data.cells.map(Number).filter(Number.isInteger):[];
-        const tierIndex=Math.max(0,Math.min(2,Math.trunc(Number(data.tierIndex)||0)));
+        const tierIndex=Math.max(0,Math.trunc(Number(data.tierIndex)||0));
         const sourceLayerOffsets=Array.isArray(data.sourceLayerOffsets)
-          ? data.sourceLayerOffsets.map(Number).filter(value=>Number.isInteger(value)&&value>=0&&value<10)
+          ? data.sourceLayerOffsets.map(Number).filter(value=>Number.isInteger(value)&&value>=0&&value<100)
           : Array.from({length:10},(_,index)=>index);
         const gridShape=String(data.gridShape||"square").toLowerCase()==="hex"?"hex":"square";
         const name=String(data.name||"").trim();
@@ -87,14 +112,19 @@ export function attach(frame,dotnet){
         return;
       }
       if(data.type==="create-region"){
-        const name=String(data.name||"").trim();
-        const cells=Array.isArray(data.cells)?data.cells.map(Number).filter(Number.isInteger):[];
-        const tierIndex=Math.max(0,Math.min(2,Math.trunc(Number(data.tierIndex)||0)));
-        const sourceLayerOffsets=Array.isArray(data.sourceLayerOffsets)
-          ? data.sourceLayerOffsets.map(Number).filter(value=>Number.isInteger(value)&&value>=0&&value<10)
-          : Array.from({length:10},(_,index)=>index);
-        const gridShape=String(data.gridShape||"square").toLowerCase()==="hex"?"hex":"square";
-        const region=await dotnet.invokeMethodAsync("CreateRegionFromPrototypeAsync",name,cells,tierIndex,sourceLayerOffsets,gridShape);
+        let region;
+        if(Math.trunc(Number(data.version)||0)>=2){
+          region=await dotnet.invokeMethodAsync("CreateRegionGeometryFromPrototypeAsync",data);
+        }else{
+          const name=String(data.name||"").trim();
+          const cells=Array.isArray(data.cells)?data.cells.map(Number).filter(Number.isInteger):[];
+          const tierIndex=Math.max(0,Math.trunc(Number(data.tierIndex)||0));
+          const sourceLayerOffsets=Array.isArray(data.sourceLayerOffsets)
+            ? data.sourceLayerOffsets.map(Number).filter(value=>Number.isInteger(value)&&value>=0&&value<10)
+            : Array.from({length:10},(_,index)=>index);
+          const gridShape=String(data.gridShape||"square").toLowerCase()==="hex"?"hex":"square";
+          region=await dotnet.invokeMethodAsync("CreateRegionFromPrototypeAsync",name,cells,tierIndex,sourceLayerOffsets,gridShape);
+        }
         post(frame,{type:"region-created",region});
         return;
       }
