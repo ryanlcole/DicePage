@@ -1,147 +1,25 @@
-name: One-time Region tools wiring
+name: Patch Region Tools
 
 on:
   push:
     branches:
       - live-alpha-rist-blazor-world
-    paths:
-      - .github/workflows/patch-region-tools-once.yml
 
 permissions:
   contents: write
 
 jobs:
   patch:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: live-alpha-rist-blazor-world
-      - name: Wire Region tools into World Home
-        shell: bash
+      - name: Apply Region tools wiring
+        run: python .github/scripts/patch_region_tools_once.py
+      - name: Commit Region tools wiring
         run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path('apps/rist-world/Components/UniversalInterface.razor')
-          text = path.read_text(encoding='utf-8')
-
-          old_label = '''  Stage.WorldHome=>_spatialDefinitionActive
-           ?(_spatialSelectionCount>0?$"SAVE AREA · {_spatialSelectionCount}":"SELECT HEXES")
-           :"SELECT AREA",'''
-          new_label = '''  Stage.WorldHome=>string.Equals(VisibleSpatialKind,"REGION",StringComparison.OrdinalIgnoreCase)
-           ?"REGION TOOLS"
-           :_spatialDefinitionActive
-            ?(_spatialSelectionCount>0?$"SAVE AREA · {_spatialSelectionCount}":"SELECT AREA")
-            :"SELECT AREA",'''
-          count = text.count(old_label)
-          if count != 2:
-              raise SystemExit(f'Expected 2 WorldHome label blocks, found {count}')
-          text = text.replace(old_label, new_label)
-
-          old_detail = '''  Stage.WorldHome=>_spatialDefinitionActive
-           ?$"Select the visible hexes that belong together. Pan and pinch still move through the continuous world. {_spatialSelectionCount} selected."
-           :$"Pan or zoom to the place you want, choose any view angle, then Select Area. Zoom currently resolves {_viewerSpatialScope.ToLowerInvariant()} detail at {_viewerSpatialZoomRatio:0.##}×.",'''
-          new_detail = '''  Stage.WorldHome=>string.Equals(VisibleSpatialKind,"REGION",StringComparison.OrdinalIgnoreCase)
-           ?"Open Region Tools. Draw a rough crop view, define the true Region border with Line, Pencil, or Magic Select, then choose visible tiers at the 60° Region view. Crop limits only what you view/edit; it never creates another map."
-           :_spatialDefinitionActive
-            ?$"Define the visible scene area. Pan and pinch still move through the continuous world. {_spatialSelectionCount} selected."
-            :$"Pan or zoom to the place you want, choose any view angle, then Select Area. Zoom currently resolves {_viewerSpatialScope.ToLowerInvariant()} detail at {_viewerSpatialZoomRatio:0.##}×.",'''
-          if old_detail not in text:
-              raise SystemExit('WorldHome detail block not found')
-          text = text.replace(old_detail, new_detail, 1)
-
-          old_prompt = '''  Stage.WorldHome=>"TOUCH · TIERS",'''
-          new_prompt = '''  Stage.WorldHome=>string.Equals(VisibleSpatialKind,"REGION",StringComparison.OrdinalIgnoreCase)?"TOUCH · REGION TOOLS":"TOUCH · SELECT AREA",'''
-          if old_prompt not in text:
-              raise SystemExit('WorldHome prompt block not found')
-          text = text.replace(old_prompt, new_prompt, 1)
-
-          old_method = ''' async Task BeginOrSaveVisibleSpatialSelectionAsync()
- {
-  if(_worldBuilderSourceModule is null)
-  {
-   _message="World Builder spatial tools are still loading.";
-   return;
-  }
-
-  if(!_spatialDefinitionActive)
-  {'''
-          new_method = ''' async Task BeginOrSaveVisibleSpatialSelectionAsync()
- {
-  if(!_spatialDefinitionActive&&string.Equals(VisibleSpatialKind,"REGION",StringComparison.OrdinalIgnoreCase))
-  {
-   var inspectionReason=_inspectionEditMode?RequireInspectionReason():"";
-   if(_inspectionEditMode&&string.IsNullOrWhiteSpace(inspectionReason))
-   {
-    _message="Enter a reason for this inspection edit before defining a Region.";
-    return;
-   }
-
-   Session.SetActiveRegion("");
-   _regionDefinerNewFlow=true;
-   _regionDefinerState=null;
-   _regionDefinerOpen=true;
-   _pendingSpatialInspectionReason=inspectionReason;
-   _stage=Stage.SpatialSelect;
-   _message="Region Tools opened on the same canonical map. Start with a rough crop view, then draw the true border and choose visible tiers at 60°.";
-   await InvokeAsync(StateHasChanged);
-   return;
-  }
-
-  if(_worldBuilderSourceModule is null)
-  {
-   _message="World Builder spatial tools are still loading.";
-   return;
-  }
-
-  if(!_spatialDefinitionActive)
-  {'''
-          if old_method not in text:
-              raise SystemExit('BeginOrSaveVisibleSpatialSelectionAsync opening block not found')
-          text = text.replace(old_method, new_method, 1)
-
-          old_spatial_value = '''  Stage.SpatialSelect=>_regionDefinerOpen
-   ?((_regionDefinerState?.SelectedCount??0)>0?$"SAVE REGION · {_regionDefinerState!.SelectedCount}":"SELECT REGION")
-   :CurrentSpatialSelectionLabel,'''
-          new_spatial_value = '''  Stage.SpatialSelect=>_regionDefinerOpen
-   ?"REGION TOOLS"
-   :CurrentSpatialSelectionLabel,'''
-          count = text.count(old_spatial_value)
-          if count != 2:
-              raise SystemExit(f'Expected 2 SpatialSelect value blocks, found {count}')
-          text = text.replace(old_spatial_value, new_spatial_value)
-
-          old_spatial_prompt = '''  Stage.SpatialSelect=>_regionDefinerOpen
-   ?((_regionDefinerState?.SelectedCount??0)>0?"TOUCH · NAME + SAVE":"TOUCH MAP · SELECT")
-   :SpatialOptionIsNew?"TOUCH · OPEN REGION DEFINER":"TOUCH · OPEN",'''
-          new_spatial_prompt = '''  Stage.SpatialSelect=>_regionDefinerOpen
-   ?"TOUCH · USE REGION TOOLS"
-   :SpatialOptionIsNew?"TOUCH · OPEN REGION DEFINER":"TOUCH · OPEN",'''
-          if old_spatial_prompt not in text:
-              raise SystemExit('SpatialSelect prompt block not found')
-          text = text.replace(old_spatial_prompt, new_spatial_prompt, 1)
-
-          old_title = '''  Stage.SpatialSelect=>_regionDefinerOpen
-   ?$"REGION · ORIGINAL DEFINER · {_regionDefinerState?.SelectedCount??0} SELECTED"
-   :$"{CurrentBuilderScope} · SELECT",'''
-          new_title = '''  Stage.SpatialSelect=>_regionDefinerOpen
-   ?$"REGION DEFINER · {(_regionDefinerState?.Phase??"TOOLS").ToUpperInvariant()}"
-   :$"{CurrentBuilderScope} · SELECT",'''
-          if old_title not in text:
-              raise SystemExit('SpatialSelect title block not found')
-          text = text.replace(old_title, new_title, 1)
-
-          if 'SELECT HEXES' in text:
-              raise SystemExit('Stale SELECT HEXES label remains')
-          if 'REGION TOOLS' not in text:
-              raise SystemExit('Region Tools label was not inserted')
-          if '_regionDefinerOpen=true;' not in text:
-              raise SystemExit('Region Definer wiring was not inserted')
-
-          path.write_text(text, encoding='utf-8')
-          PY
-
           git config user.name "shaelvien-region-tools"
           git config user.email "actions@users.noreply.github.com"
           git add apps/rist-world/Components/UniversalInterface.razor
