@@ -93,8 +93,11 @@ public partial class RegionDefinerWorkspace
         visibleLayerOffsets = region.VisibleLayerOffsets ?? []
     };
 
-    static bool GeometryProperty(JsonElement source, string name, out JsonElement value) =>
-        source.ValueKind == JsonValueKind.Object && source.TryGetProperty(name, out value);
+    static bool GeometryProperty(JsonElement source, string name, out JsonElement value)
+    {
+        value = default;
+        return source.ValueKind == JsonValueKind.Object && source.TryGetProperty(name, out value);
+    }
 
     static string GeometryString(JsonElement source, string name, string fallback = "") =>
         GeometryProperty(source, name, out var value) && value.ValueKind == JsonValueKind.String
