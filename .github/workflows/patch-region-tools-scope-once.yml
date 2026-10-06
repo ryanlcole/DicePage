@@ -93,3 +93,5 @@ jobs:
           git diff --cached --check
           git commit -m "Keep Region geometry tools in Region scope [region-tools-scope]"
           git push origin HEAD:live-alpha-rist-blazor-world
+
+# one-time trigger
