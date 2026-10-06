@@ -212,6 +212,9 @@ public partial class UniversalInterface
 
         if (_stage == Stage.SpatialSelect && _regionDefinerOpen)
         {
+            _builderChainIndex = 1;
+            _requestedBuilderChainIndex = 1;
+            _assetScope = "REGION";
             await SelectRegionDefinerAsync();
             return;
         }
@@ -234,6 +237,17 @@ public partial class UniversalInterface
     async Task DispatchSemanticActionAsync(string actionId, int direction = 0)
     {
         actionId = (actionId ?? "").Trim().ToLowerInvariant();
+
+        if (_stage == Stage.SpatialSelect
+            && _regionDefinerOpen
+            && actionId is UniversalSemanticControls.Action.Secondary or UniversalSemanticControls.Action.Inspect)
+        {
+            _builderChainIndex = 1;
+            _requestedBuilderChainIndex = 1;
+            _assetScope = "REGION";
+            await ActivateRegionDefinerPrimaryAsync();
+            return;
+        }
 
         // Frozen deed selection still uses the normal parent semantic controller.
         // The iframe only mirrors the depth selected here; it never owns or
@@ -355,7 +369,9 @@ public partial class UniversalInterface
                 await DispatchSemanticActionAsync(UniversalSemanticControls.Action.NavigateY, direction);
                 break;
             case "left-slider":
-                if (_spatialDefinitionActive && (_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer))
+                if (_stage == Stage.SpatialSelect && _regionDefinerOpen)
+                    await StepRegionDefinerAsync("y", -direction);
+                else if (_spatialDefinitionActive && (_stage is Stage.WorldBuilderTier or Stage.WorldBuilderLayer))
                     await AdjustSpatialDepthSemanticAsync(direction);
                 else if (_stage == Stage.MmoMap)
                     CycleMmoLeftOption(direction);
@@ -363,7 +379,9 @@ public partial class UniversalInterface
                     ApplyY(direction);
                 break;
             case "right-slider":
-                if (_stage == Stage.MmoMap) CycleMmoRightOption(direction);
+                if (_stage == Stage.SpatialSelect && _regionDefinerOpen)
+                    await StepRegionDefinerAsync("x", direction);
+                else if (_stage == Stage.MmoMap) CycleMmoRightOption(direction);
                 else ApplyX(direction);
                 break;
             case "select":
