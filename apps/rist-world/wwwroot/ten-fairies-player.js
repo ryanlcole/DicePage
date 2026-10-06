@@ -5,8 +5,52 @@
   'https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3',
   'https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_2.mp3'
  ];
- const STYLE_ID='shaelvien-entry-clean-v5';
+ const STYLE_ID='shaelvien-entry-clean-v6';
  const discordMark='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20.317 4.3698A19.7913 19.7913 0 0 0 15.432 2.855c-.211.375-.444.864-.608 1.249a18.27 18.27 0 0 0-5.647 0 12.64 12.64 0 0 0-.617-1.249A19.736 19.736 0 0 0 3.677 4.37C.586 8.938-.252 13.39.167 17.779A19.9 19.9 0 0 0 6.154 20.8a14.1 14.1 0 0 0 1.47-2.39 12.8 12.8 0 0 1-2.315-1.11c.194-.142.384-.29.568-.441 4.465 2.067 9.308 2.067 13.72 0 .185.152.375.3.568.441a12.8 12.8 0 0 1-2.319 1.111 14 14 0 0 0 1.47 2.39 19.84 19.84 0 0 0 5.987-3.022c.49-5.088-.837-9.5-4.886-13.41ZM8.02 15.331c-1.34 0-2.44-1.244-2.44-2.774s1.077-2.776 2.44-2.776c1.375 0 2.462 1.256 2.44 2.776 0 1.53-1.077 2.774-2.44 2.774Zm7.975 0c-1.34 0-2.44-1.244-2.44-2.774s1.077-2.776 2.44-2.776c1.375 0 2.462 1.256 2.44 2.776 0 1.53-1.065 2.774-2.44 2.774Z"/></svg>';
+ let mediaObserverStarted=false;
+
+ function inferPart(audio){
+  const src=audio?.currentSrc||audio?.querySelector('source')?.src||'';
+  return /Part_2\.mp3(?:$|[?#])/i.test(src)?1:0;
+ }
+
+ function updateMediaSession(part,audio){
+  if(!('mediaSession' in navigator)||typeof MediaMetadata==='undefined')return;
+  const roman=part===1?'II':'I';
+  try{
+   navigator.mediaSession.metadata=new MediaMetadata({
+    title:`The Ten Fairies — Part ${roman}`,
+    artist:'Winthrop · Modern realization by Suno',
+    album:'The Ten Fairies (1880s)'
+   });
+  }catch{}
+ }
+
+ function wireMediaSessionAudio(audio){
+  if(!audio||audio.dataset.tenFairiesMediaSession==='1')return;
+  audio.dataset.tenFairiesMediaSession='1';
+  const sync=()=>updateMediaSession(inferPart(audio),audio);
+  audio.addEventListener('play',sync);
+  audio.addEventListener('loadedmetadata',sync);
+  audio.addEventListener('emptied',()=>requestAnimationFrame(sync));
+  sync();
+ }
+
+ function wireMediaSessionPlayers(root=document){
+  root.querySelectorAll?.('.ten-fairies-player audio').forEach(wireMediaSessionAudio);
+ }
+
+ function observeMediaSessionPlayers(){
+  if(mediaObserverStarted||!document.body)return;
+  mediaObserverStarted=true;
+  new MutationObserver(records=>{
+   records.forEach(record=>record.addedNodes.forEach(node=>{
+    if(!(node instanceof Element))return;
+    if(node.matches('.ten-fairies-player audio'))wireMediaSessionAudio(node);
+    wireMediaSessionPlayers(node);
+   }));
+  }).observe(document.body,{childList:true,subtree:true});
+ }
 
  function ensureStyles(){
   if(document.getElementById(STYLE_ID))return;
@@ -77,6 +121,8 @@
   const audio=host.querySelector('.ten-fairies-audio');
   const source=audio?.querySelector('source');
   const label=host.querySelector('[data-ten-fairies-part-label]');
+  wireMediaSessionAudio(audio);
+  updateMediaSession(0,audio);
   host.querySelectorAll('.ten-fairies-part').forEach(button=>button.addEventListener('click',()=>{
    const part=Number(button.dataset.part)||0;
    if(!audio||!source)return;
@@ -84,6 +130,7 @@
    source.src=PARTS[part];
    audio.setAttribute('aria-label',`Play The Ten Fairies Part ${part+1} modern Suno realization`);
    audio.load();
+   updateMediaSession(part,audio);
    host.querySelectorAll('.ten-fairies-part').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
    if(label)label.textContent=`PART ${part===0?'I':'II'} · SUNO`;
   }));
@@ -168,6 +215,11 @@
   document.querySelectorAll('.ten-fairies-player audio').forEach(audio=>{audio.autoplay=false;audio.removeAttribute('autoplay');});
  }
 
- function run(){cleanEntry();enforceUserControlledPlayback();}
+ function run(){
+  cleanEntry();
+  enforceUserControlledPlayback();
+  wireMediaSessionPlayers();
+  observeMediaSessionPlayers();
+ }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true}); else run();
 })();
