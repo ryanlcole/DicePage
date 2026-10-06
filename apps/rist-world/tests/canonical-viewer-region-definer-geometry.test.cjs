@@ -62,3 +62,12 @@ test('Region host waits for loaded iframe before geometry injection', () => {
   assert.match(host, /if\(!initial\)return null;/);
   assert.match(host, /const loaded=await ensureRegionGeometryTools\(frame\);/);
 });
+
+test('Region tier analog movement cannot save the Region', () => {
+  assert.match(geometry, /if\(state\.phase==='tiers'\)\{[\s\S]*?state\.tierCursor=wrap\(state\.tierCursor\+direction,[\s\S]*?return true;/);
+  assert.match(geometry, /if\(state\.phase==='tiers'\)\{[\s\S]*?state\.visibleTiers\.has\(tier\)[\s\S]*?applyVisibleTiers\(\)/);
+  const stepStart = geometry.indexOf('function controllerStep(axis,direction)');
+  const nextFunction = geometry.indexOf('function ', stepStart + 9);
+  const stepBody = geometry.slice(stepStart, nextFunction > stepStart ? nextFunction : undefined);
+  assert.doesNotMatch(stepBody, /saveRegion|SAVE REGION|primaryAction/);
+});
