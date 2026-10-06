@@ -4,14 +4,13 @@ on:
   push:
     branches:
       - live-alpha-rist-blazor-world
-    paths:
-      - .github/workflows/patch-region-tools-scope-once.yml
 
 permissions:
   contents: write
 
 jobs:
   patch:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -93,5 +92,3 @@ jobs:
           git diff --cached --check
           git commit -m "Keep Region geometry tools in Region scope [region-tools-scope]"
           git push origin HEAD:live-alpha-rist-blazor-world
-
-# one-time trigger
