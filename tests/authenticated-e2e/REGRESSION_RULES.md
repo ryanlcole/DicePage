@@ -9,3 +9,12 @@
 - A caught Blazor interop exception may produce zero browser pageerror events. Capture console errors, rendered error surfaces, request failures and screen geometry separately.
 - Region save must never turn a recoverable title/interop failure into an unrecoverable full-app stack screen. Preserve draft selection, authoritative commit gates and the existing in-map title composer.
 - New browser evidence must redact session headers, query strings and signed URLs. Never commit/upload raw authentication state or traces containing private credentials.
+
+## Private UI audit constraints
+
+- Never replace a parent-window global function with an iframe-realm function for Blazor interop. Use a scoped explicit module bridge for the existing editor.
+- World modal input must be above the viewer, trap focus while open, and restore inert state even after Blazor removes the modal element.
+- Embedded tools must remain visible and usable when legitimately opened; passive summaries must not cover them.
+- Labels are not images; image-size controls cannot assume every selected content node has size.
+- Canonical styles must be published through the existing bundle, with no lazy requests for absent source-only CSS files.
+- Separate committed map representation from authoritative region metadata. A null result after 401/403 is not a successful write. Keep the catalog persistence assertion failing until the actual authority contract is repaired; never bypass authorization to make the test green.

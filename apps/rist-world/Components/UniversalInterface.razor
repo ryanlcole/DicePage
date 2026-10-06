@@ -2469,7 +2469,9 @@
   }
 
   var defaultName=snapshot.Kind=="INSTANCE"?"New Scene":"New Area";
-  var name=(await JS.InvokeAsync<string?>("prompt","Name this space",defaultName)??"").Trim();
+  string name;
+  try{name=(await _worldBuilderSourceModule.InvokeAsync<string?>("requestSpatialTitle",_worldBuilderFrame,defaultName)??"").Trim();}
+  catch(JSException ex){_message="The area was not saved: "+ex.Message;return;}
   if(name.Length==0)
   {
    _message="Save cancelled. The visible selection is unchanged.";

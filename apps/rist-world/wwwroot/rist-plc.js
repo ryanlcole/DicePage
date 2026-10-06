@@ -27,13 +27,10 @@
   ]
  };
  const styles={
-  tabletop:['css/button-artwork-fit.css?v=1'],
-  shell:['css/character-universal.css?v=universal-badge-1'],
-  interaction:[
-   'css/art-studio.css?v=20260829-consolidated-1',
-   'css/art-surface-controls.css?v=1',
-   'css/asset-credit.css?v=1'
-  ]
+  // These canonical styles are included in the generated rist.css publication.
+  tabletop:[],
+  shell:[],
+  interaction:[]
  };
  const values={tabletop:PHASE.TABLETOP,shell:PHASE.SHELL,interaction:PHASE.INTERACTION};
  const dependencies={tabletop:null,shell:'tabletop',interaction:'shell'};
