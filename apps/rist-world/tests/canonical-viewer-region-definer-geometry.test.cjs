@@ -41,6 +41,14 @@ test('Region Definer contract says crop is view scope and 60 degree region view'
   assert.match(contract, /Cursor selection and touch selection are equivalent semantic inputs\./);
 });
 
+test('Region entry is intercepted before the generic legacy hex selector', () => {
+  const regionEntry = ui.indexOf('if(string.Equals(VisibleSpatialKind,"REGION",StringComparison.OrdinalIgnoreCase))');
+  const legacyHexEntry = ui.indexOf('"beginSpatialSelection"');
+  assert.ok(regionEntry >= 0, 'Region geometry entry guard must exist');
+  assert.ok(legacyHexEntry >= 0, 'Legacy selector remains available for non-Region scopes');
+  assert.ok(regionEntry < legacyHexEntry, 'Region must be routed before the legacy selector');
+  assert.match(ui, /_spatialDefinitionActive=false;[\s\S]*?_regionDefinerOpen=true;/);
+});
 
 test('Region flow rejects legacy hex save and browser prompt', () => {
   assert.match(ui, /Legacy hex Region selection is retired/);
