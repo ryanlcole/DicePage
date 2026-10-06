@@ -49,3 +49,10 @@ venv/
 knowledge/project/private*
 project-knowledge-preflight.json
 project-knowledge-required-access.json
+
+# Local authenticated E2E credentials, browser state, builds and private traces.
+.e2e-runtime/
+**/playwright/.auth/
+**/test-results/
+**/playwright-report/
+**/node_modules/

@@ -1,0 +1,5917 @@
+{
+  "startedAt": "2026-10-06T02:18:23.093Z",
+  "mode": "audit",
+  "checks": [
+    {
+      "name": "Guest direct /Game/index.html",
+      "pass": true
+    },
+    {
+      "name": "Guest direct /Game/",
+      "pass": true
+    },
+    {
+      "name": "Guest Launcher release controls stay locked",
+      "pass": true
+    },
+    {
+      "name": "Private HTTP APIs reject unauthenticated requests",
+      "pass": true
+    },
+    {
+      "name": "user private start and reload",
+      "pass": true
+    },
+    {
+      "name": "user authenticated nested Launcher direct navigation",
+      "pass": true
+    },
+    {
+      "name": "gm private start and reload",
+      "pass": true
+    },
+    {
+      "name": "gm authenticated nested Launcher direct navigation",
+      "pass": true
+    }
+  ],
+  "states": [
+    {
+      "name": "se-normal-user-roles",
+      "screenshot": "se-normal-user-roles.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: ROLEPLAYER",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 157.5,
+            "y": 519,
+            "width": 60,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: GAMEMASTER",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      }
+    },
+    {
+      "name": "se-roleplayer",
+      "screenshot": "se-roleplayer.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "geonaph-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "geonaph-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "geonaph-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "geonaph-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "geonaph-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "geonaph-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "geonaph-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "geonaph-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "geonaph-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "geonaph-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "geonaph-worldbuilder-frame"
+          }
+        ]
+      },
+      "text": "CHARACTER\nDICE\nENCOUNTER\nREPLAY\nCHAT\n− Longitude + − Latitude + − Layer + − Tier +\nX 30  Y 30  Z 1 km \n30×30 • 1 km/sq • 1 km high • 30 km × 30 km"
+    },
+    {
+      "name": "se-start",
+      "screenshot": "se-start.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "ESSENTIAL ONLY",
+            "x": 39,
+            "y": 491.3125,
+            "width": 144.5,
+            "height": 38,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "ALLOW OPTIONAL",
+            "x": 191.5,
+            "y": 491.3125,
+            "width": 144.5,
+            "height": 38,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select Part 2",
+            "x": 141.65625,
+            "y": 614,
+            "width": 27,
+            "height": 28,
+            "covered": false,
+            "interceptor": "ten-fairies-part"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          }
+        ]
+      }
+    },
+    {
+      "name": "se-environment",
+      "screenshot": "se-environment.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Left display button: SHAELVIEN",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg environment-choice-label"
+          },
+          {
+            "name": "Open Legacy GM archive import",
+            "x": 157.5,
+            "y": 519,
+            "width": 60,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: RIST",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg environment-choice-label"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      }
+    },
+    {
+      "name": "se-roles",
+      "screenshot": "se-roles.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: ROLEPLAYER",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 157.5,
+            "y": 519,
+            "width": 60,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: GAMEMASTER",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      }
+    },
+    {
+      "name": "se-gamemaster",
+      "screenshot": "se-gamemaster.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: WORLD BUILDER",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 154.765625,
+            "y": 519,
+            "width": 65.46875,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: EXPLORE",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      }
+    },
+    {
+      "name": "se-world-dialog",
+      "screenshot": "se-world-dialog.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: WORLD BUILDER",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 154.765625,
+            "y": 519,
+            "width": 65.46875,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: EXPLORE",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Close sandbox world chooser",
+            "x": 315,
+            "y": 101.265625,
+            "width": 38,
+            "height": 38,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 35,
+            "y": 213.265625,
+            "width": 305,
+            "height": 46,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 23,
+            "y": 488.546875,
+            "width": 329,
+            "height": 74.1875,
+            "covered": true,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      }
+    },
+    {
+      "name": "se-world-created",
+      "screenshot": "se-world-created.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: WORLD BUILDER",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 154.765625,
+            "y": 519,
+            "width": 65.46875,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: AINPC E2E WORLD",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-sm"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      }
+    },
+    {
+      "name": "se-world-open",
+      "screenshot": "se-world-open.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: WORLD BUILDER",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 154.765625,
+            "y": 519,
+            "width": 65.46875,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: AINPC E2E WORLD",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-sm"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      }
+    },
+    {
+      "name": "se-builder-0",
+      "screenshot": "se-builder-0.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: SELECT AREA",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 157.5,
+            "y": 519,
+            "width": 60,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: CONTEXT",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      },
+      "text": "WORLD\nTIER 0 · LAYER 0\nT0\nL0\nN\nE\nS\nW\nLEGEND\nTERRAIN\nWORLD\nCONTEXT\nASSET CONTEXT\nWORLD · T0 L0\n\nNO CONTEXT SAVED\n\nBACK\nWORLD HOME\nSELECT\nEDIT\nDELETE\nUNDO\nCUT\nCOPY\nREDO\nPASTE\nFORWARD\nrist.semantic-controls.v1 · shaep.worldhome · left SELECT AREA · primary CONTEXT\nX 0\nY 0\nAINPC E2E World · EDIT DEPTH: WORLD → WORLD HOME\nSPACE\nSELECT AREA\nTOUCH · TIERS\nCURSOR\nUP\nDOWN\nLEFT\nRIGHT\nSTART\nASSET CONTEXT\nCONTEXT\nTOUCH · OPEN\n− Longitude + − Latitude + − Layer + − Tier +\nX 30  Y 30  Z 1 km \n30×30 • 1 km/sq • 1 km high • 30 km × 30 km",
+      "status": "WORLD · WORLD HOME\n   World Builder is one continuous space. Pan and zoom to a place, choose any view angle, then Select Area to give that space identity."
+    },
+    {
+      "name": "se-builder-1",
+      "screenshot": "se-builder-1.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: TIER 0",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 154.765625,
+            "y": 519,
+            "width": 65.46875,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: CONTEXT",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      },
+      "text": "WORLD\nTIER 0 · LAYER 0\nT0\nL0\nBACK\nWORLD HOME\nSELECT\nEDIT\nDELETE\nUNDO\nCUT\nCOPY\nREDO\nPASTE\nFORWARD\nrist.semantic-controls.v1 · shaep.worldbuildertier · left TIER 0 · primary CONTEXT\nX 0\nY 0\nAINPC E2E World · EDIT DEPTH: WORLD → TIER\nDEPTH\nTIER 0\nTOUCH · ACTIVATE\nBUTTONS\nUP\nDOWN\nLEFT\nRIGHT\nSTART\nASSET CONTEXT\nCONTEXT\nTOUCH · OPEN\n− Longitude + − Latitude + − Layer + − Tier +\nX 30  Y 30  Z 1 km \n30×30 • 1 km/sq • 1 km high • 30 km × 30 km",
+      "status": "WORLD · TIER\n   Choose the reference Tier first. Hex selection is locked until Tier and Layer are both chosen."
+    },
+    {
+      "name": "se-builder-2",
+      "screenshot": "se-builder-2.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: LAYER 0",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 154.765625,
+            "y": 519,
+            "width": 65.46875,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: CONTEXT",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      },
+      "text": "WORLD\nTIER 0 · LAYER 0\nT0\nL0\nBACK\nWORLD HOME\nSELECT\nEDIT\nDELETE\nUNDO\nCUT\nCOPY\nREDO\nPASTE\nFORWARD\nrist.semantic-controls.v1 · shaep.worldbuilderlayer · left LAYER 0 · primary CONTEXT\nX 0\nY 0\nAINPC E2E World · EDIT DEPTH: WORLD → LAYER\nDEPTH\nLAYER 0\nTOUCH · ACTIVATE\nBUTTONS\nUP\nDOWN\nLEFT\nRIGHT\nSTART\nASSET CONTEXT\nCONTEXT\nTOUCH · OPEN\n− Longitude + − Latitude + − Layer + − Tier +\nX 30  Y 30  Z 1 km \n30×30 • 1 km/sq • 1 km high • 30 km × 30 km",
+      "status": "WORLD · LAYER\n   Reference Tier 0 selected. Choose the visible Layer you want to trace."
+    },
+    {
+      "name": "se-builder-3",
+      "screenshot": "se-builder-3.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: SELECT HEXES",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 157.5,
+            "y": 519,
+            "width": 60,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Selection options. Autofill on. Touch to toggle. Swipe horizontally for border color.",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      },
+      "text": "WORLD\nTIER 0 · LAYER 0\nT0\nL0\nBACK\nWORLD HOME\nSELECT\nEDIT\nDELETE\nUNDO\nCUT\nCOPY\nREDO\nPASTE\nFORWARD\nrist.semantic-controls.v1 · shaep.worldhome · left SELECT HEXES · primary CONTEXT\nX 0\nY 0\nAINPC E2E World · EDIT DEPTH: WORLD → WORLD HOME\nSPACE\nSELECT HEXES\nTOUCH · TIERS\nCURSOR\nUP\nDOWN\nLEFT\nRIGHT\nSTART\nSELECTION OPTIONS\nAUTOFILL · ON\nSWIPE ↔ BORDER · TOUCH TOGGLE\n− Longitude + − Latitude + − Layer + − Tier +\nX 30  Y 30  Z 1 km \n30×30 • 1 km/sq • 1 km high • 30 km × 30 km",
+      "status": "WORLD · WORLD HOME\n   Tier 0, Layer 0 is the reference slice. The 30×30 hex footprint is active now; select cells until the left display says Save Area."
+    },
+    {
+      "name": "se-builder-4",
+      "screenshot": "se-builder-4.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: SELECT HEXES",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 157.5,
+            "y": 519,
+            "width": 60,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Selection options. Autofill on. Touch to toggle. Swipe horizontally for border color.",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      },
+      "text": "WORLD\nTIER 0 · LAYER 0\nT0\nL0\nBACK\nWORLD HOME\nSELECT\nEDIT\nDELETE\nUNDO\nCUT\nCOPY\nREDO\nPASTE\nFORWARD\nrist.semantic-controls.v1 · shaep.worldhome · left SELECT HEXES · primary CONTEXT\nX 0\nY 0\nAINPC E2E World · EDIT DEPTH: WORLD → WORLD HOME\nSPACE\nSELECT HEXES\nTOUCH · TIERS\nCURSOR\nUP\nDOWN\nLEFT\nRIGHT\nSTART\nSELECTION OPTIONS\nAUTOFILL · ON\nSWIPE ↔ BORDER · TOUCH TOGGLE\n− Longitude + − Latitude + − Layer + − Tier +\nX 30  Y 30  Z 1 km \n30×30 • 1 km/sq • 1 km high • 30 km × 30 km",
+      "status": "WORLD · WORLD HOME\n   Select at least one visible hex before saving."
+    },
+    {
+      "name": "se-builder-5",
+      "screenshot": "se-builder-5.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: SELECT HEXES",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 157.5,
+            "y": 519,
+            "width": 60,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Selection options. Autofill on. Touch to toggle. Swipe horizontally for border color.",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      },
+      "text": "WORLD\nTIER 0 · LAYER 0\nT0\nL0\nBACK\nWORLD HOME\nSELECT\nEDIT\nDELETE\nUNDO\nCUT\nCOPY\nREDO\nPASTE\nFORWARD\nrist.semantic-controls.v1 · shaep.worldhome · left SELECT HEXES · primary CONTEXT\nX 0\nY 0\nAINPC E2E World · EDIT DEPTH: WORLD → WORLD HOME\nSPACE\nSELECT HEXES\nTOUCH · TIERS\nCURSOR\nUP\nDOWN\nLEFT\nRIGHT\nSTART\nSELECTION OPTIONS\nAUTOFILL · ON\nSWIPE ↔ BORDER · TOUCH TOGGLE\n− Longitude + − Latitude + − Layer + − Tier +\nX 30  Y 30  Z 1 km \n30×30 • 1 km/sq • 1 km high • 30 km × 30 km",
+      "status": "WORLD · WORLD HOME\n   Select at least one visible hex before saving."
+    },
+    {
+      "name": "se-builder-6",
+      "screenshot": "se-builder-6.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: SELECT HEXES",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 157.5,
+            "y": 519,
+            "width": 60,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Selection options. Autofill on. Touch to toggle. Swipe horizontally for border color.",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      },
+      "text": "WORLD\nTIER 0 · LAYER 0\nT0\nL0\nBACK\nWORLD HOME\nSELECT\nEDIT\nDELETE\nUNDO\nCUT\nCOPY\nREDO\nPASTE\nFORWARD\nrist.semantic-controls.v1 · shaep.worldhome · left SELECT HEXES · primary CONTEXT\nX 0\nY 0\nAINPC E2E World · EDIT DEPTH: WORLD → WORLD HOME\nSPACE\nSELECT HEXES\nTOUCH · TIERS\nCURSOR\nUP\nDOWN\nLEFT\nRIGHT\nSTART\nSELECTION OPTIONS\nAUTOFILL · ON\nSWIPE ↔ BORDER · TOUCH TOGGLE\n− Longitude + − Latitude + − Layer + − Tier +\nX 30  Y 30  Z 1 km \n30×30 • 1 km/sq • 1 km high • 30 km × 30 km",
+      "status": "WORLD · WORLD HOME\n   Select at least one visible hex before saving."
+    },
+    {
+      "name": "se-region-select",
+      "screenshot": "se-region-select.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: SELECT HEXES",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 157.5,
+            "y": 519,
+            "width": 60,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Selection options. Autofill on. Touch to toggle. Swipe horizontally for border color.",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      },
+      "status": "WORLD · WORLD HOME\n   Select at least one visible hex before saving."
+    },
+    {
+      "name": "se-region-save-attempt",
+      "screenshot": "se-region-save-attempt.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: TIER 0",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 154.765625,
+            "y": 519,
+            "width": 65.46875,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: CONTEXT",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      },
+      "status": "REGION · TIER\n   Vertical volume selection · 60° view. Start at Z Tier 0; touch the left display to set the first boundary, then choose the other boundary."
+    },
+    {
+      "name": "se-region-depth-0",
+      "screenshot": "se-region-depth-0.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: TIER 0",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 154.765625,
+            "y": 519,
+            "width": 65.46875,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: CONTEXT",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      },
+      "text": "REGION\nTIER 0 · LAYER 0\nT0\nL0\nBACK\nWORLD HOME\nSELECT\nEDIT\nDELETE\nUNDO\nCUT\nCOPY\nREDO\nPASTE\nFORWARD\nrist.semantic-controls.v1 · shaep.worldbuildertier · left TIER 0 · primary CONTEXT\nX 0\nY 0\nAINPC E2E World · EDIT DEPTH: REGION → TIER\nDEPTH\nTIER 0\nTOUCH · ACTIVATE\nBUTTONS\nUP\nDOWN\nLEFT\nRIGHT\nSTART\nASSET CONTEXT\nCONTEXT\nTOUCH · OPEN\n− Longitude + − Latitude + − Layer + − Tier +\nX 30  Y 30  Z 1 km \n30×30 • 1 km/sq • 1 km high • 30 km × 30 km",
+      "status": "REGION · TIER\n   First Z boundary set at Tier 0. Move to the other vertical boundary; choose the same tier again for a single-tier region."
+    },
+    {
+      "name": "se-region-depth-1",
+      "screenshot": "se-region-depth-1.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 17,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 48.171875,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 79.359375,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 172.90625,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 204.078125,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 235.265625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 266.453125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 297.625,
+            "y": 17,
+            "width": 29.1875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 328.8125,
+            "y": 17,
+            "width": 29.171875,
+            "height": 28,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: SAVE AREA · 1",
+            "x": 14,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 157.5,
+            "y": 519,
+            "width": 60,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 160.421875,
+            "y": 618,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: CONTEXT",
+            "x": 245,
+            "y": 508,
+            "width": 116,
+            "height": 143,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "viewer-menu-bar"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          }
+        ]
+      },
+      "text": "REGION\nTIER 0 · LAYER 0\nT0\nL0\nBACK\nWORLD HOME\nSELECT\nEDIT\nDELETE\nUNDO\nCUT\nCOPY\nREDO\nPASTE\nFORWARD\nrist.semantic-controls.v1 · shaep.worldhome · left SAVE AREA · 1 · primary CONTEXT\nX 0\nY 0\nAINPC E2E World · EDIT DEPTH: REGION → WORLD HOME\nSPACE\nSAVE AREA · 1\nTOUCH · TIERS\nCURSOR\nUP\nDOWN\nLEFT\nRIGHT\nSTART\nASSET CONTEXT\nCONTEXT\nTOUCH · OPEN\n− Longitude + − Latitude + − Layer + − Tier +\nX 30  Y 30  Z 1 km \n30×30 • 1 km/sq • 1 km high • 30 km × 30 km",
+      "status": "REGION · WORLD HOME\n   Z volume limited to Tier 0. Touch Save Area once more to name and save the 3D space."
+    },
+    {
+      "name": "se-region-depth-2",
+      "screenshot": "se-region-depth-2.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": []
+      },
+      "text": "RIST startup error\n\nThe value 'prompt' is not a function.\nError: The value 'prompt' is not a function.\n    at http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:510\n    at u.resolveInvocationHandler (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:1428)\n    at S (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:6453)\n    at w.processJSCall (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:4444)\n    at w.beginInvokeJSFromDotNet (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:4129)\n    at Object.Qt [as invokeJSJson] (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:58855)\n    at http://127.0.0.1:8765/Game/_framework/dotnet.runtime.v06hirbjsv.js:3:34587\n    at Mc (http://127.0.0.1:8765/Game/_framework/dotnet.runtime.v06hirbjsv.js:3:175837)\n    at http://127.0.0.1:8765/Game/_framework/dotnet.native.rw4kynp763.wasm:wasm-function[298]:0x1f797\n    at http://127.0.0.1:8765/Game/_framework/dotnet.native.rw4kynp763.wasm:wasm-function[222]:0x1ca98\n\nMicrosoft.JSInterop.JSException"
+    },
+    {
+      "name": "se-reloaded",
+      "screenshot": "se-reloaded.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "PRESS START",
+            "x": 24,
+            "y": 552.3125,
+            "width": 327,
+            "height": 48,
+            "covered": false,
+            "interceptor": "rist-auth-press-start"
+          },
+          {
+            "name": "Select Part 2",
+            "x": 141.65625,
+            "y": 614,
+            "width": 27,
+            "height": 28,
+            "covered": false,
+            "interceptor": "ten-fairies-part"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 0,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 34.5,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 104.25,
+            "y": 25,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 52,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          },
+          {
+            "name": "",
+            "x": 47.21875,
+            "y": 74,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": "rist-auth-start-art"
+          }
+        ]
+      }
+    },
+    {
+      "name": "se-after-reload-owned-world",
+      "text": "BACK\nWORLD HOME\nSELECT\nEDIT\nDELETE\nUNDO\nCUT\nCOPY\nREDO\nPASTE\nFORWARD\nrist.semantic-controls.v1 · shaep.pathselect · left WORLD BUILDER · primary AINPC E2E WORLD\nX 0\nY 0\nGAMEMASTER → PATH\nGAMEMASTER PATH\nWORLD BUILDER\nSLIDE ↑↓ · TOUCH PATH\nBUTTONS\nUP\nDOWN\nLEFT\nRIGHT\nSTART\nRIST WORLDS\nAINPC E2E WORLD\nTOUCH · OPEN WORLD\n− Longitude + − Latitude + − Layer + − Tier +\nX 30  Y 30  Z 1 km \n30×30 • 1 km/sq • 1 km high • 30 km × 30 km"
+    },
+    {
+      "name": "desktop-owned-world",
+      "screenshot": "desktop-owned-world.png",
+      "geometry": {
+        "width": 1280,
+        "height": 800,
+        "scrollWidth": 1280,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 45,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 153.453125,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 261.90625,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 587.265625,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 695.71875,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 804.171875,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 912.625,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 1021.078125,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 1129.53125,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: WORLD BUILDER",
+            "x": 41,
+            "y": 598,
+            "width": 507,
+            "height": 183,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 607.265625,
+            "y": 609,
+            "width": 65.46875,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 612.921875,
+            "y": 748,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: AINPC E2E WORLD",
+            "x": 732,
+            "y": 598,
+            "width": 507,
+            "height": 183,
+            "covered": false,
+            "interceptor": "display-text display-text-sm"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-shell semantic-experience-guided semantic-skin-linear"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 377.828125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 412.328125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 482.078125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 27,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 27,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 421.265625,
+            "y": 27,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": ""
+          }
+        ]
+      }
+    },
+    {
+      "name": "desktop-builder-entry",
+      "screenshot": "desktop-builder-entry.png",
+      "geometry": {
+        "width": 1280,
+        "height": 800,
+        "scrollWidth": 1280,
+        "controls": [
+          {
+            "name": "Back",
+            "x": 45,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "World Home — show all layers and parallax",
+            "x": 153.453125,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Select an existing placed asset",
+            "x": 261.90625,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Undo",
+            "x": 587.265625,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Cut selected item",
+            "x": 695.71875,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Copy selected item",
+            "x": 804.171875,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Redo",
+            "x": 912.625,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Paste copied item",
+            "x": 1021.078125,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Forward",
+            "x": 1129.53125,
+            "y": 25,
+            "width": 105.453125,
+            "height": 30,
+            "covered": false,
+            "interceptor": ""
+          },
+          {
+            "name": "Left display button: SELECT AREA",
+            "x": 41,
+            "y": 598,
+            "width": 507,
+            "height": 183,
+            "covered": false,
+            "interceptor": "display-text display-text-md"
+          },
+          {
+            "name": "Switch analog between cursor and button controls",
+            "x": 610,
+            "y": 609,
+            "width": 60,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-mode-button"
+          },
+          {
+            "name": "Open Start menu",
+            "x": 612.921875,
+            "y": 748,
+            "width": 54.15625,
+            "height": 22,
+            "covered": false,
+            "interceptor": "analog-start-button"
+          },
+          {
+            "name": "Right display button: CONTEXT",
+            "x": 732,
+            "y": 598,
+            "width": 507,
+            "height": 183,
+            "covered": false,
+            "interceptor": "display-text display-text-lg"
+          },
+          {
+            "name": "Decrease longitude",
+            "x": 0,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-shell semantic-experience-guided semantic-skin-linear"
+          },
+          {
+            "name": "Increase longitude",
+            "x": 119.171875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Decrease latitude",
+            "x": 153.671875,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Increase latitude",
+            "x": 259.125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one layer",
+            "x": 293.625,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one layer",
+            "x": 377.828125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move down one tier, ten layers",
+            "x": 412.328125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "Move up one tier, ten layers",
+            "x": 482.078125,
+            "y": 0,
+            "width": 29.40625,
+            "height": 25,
+            "covered": true,
+            "interceptor": "universal-worldbuilder-frame"
+          },
+          {
+            "name": "",
+            "x": 43.5,
+            "y": 27,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 221.90625,
+            "y": 27,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": ""
+          },
+          {
+            "name": "",
+            "x": 421.265625,
+            "y": 27,
+            "width": 129,
+            "height": 16,
+            "covered": true,
+            "interceptor": ""
+          }
+        ]
+      },
+      "status": "WORLD · WORLD HOME\n   World Builder is one continuous space. Pan and zoom to a place, choose any view angle, then Select Area to give that space identity."
+    },
+    {
+      "name": "standalone-launcher",
+      "screenshot": "standalone-launcher.png",
+      "geometry": {
+        "width": 375,
+        "height": 667,
+        "scrollWidth": 375,
+        "controls": [
+          {
+            "name": "Testing",
+            "x": 0,
+            "y": 166,
+            "width": 93.75,
+            "height": 49,
+            "covered": false,
+            "interceptor": "stage-tab active"
+          },
+          {
+            "name": "QATest",
+            "x": 93.75,
+            "y": 166,
+            "width": 93.75,
+            "height": 49,
+            "covered": false,
+            "interceptor": "stage-tab"
+          },
+          {
+            "name": "Staging",
+            "x": 187.5,
+            "y": 166,
+            "width": 93.75,
+            "height": 49,
+            "covered": false,
+            "interceptor": "stage-tab"
+          },
+          {
+            "name": "QAStaging",
+            "x": 281.25,
+            "y": 166,
+            "width": 93.75,
+            "height": 49,
+            "covered": false,
+            "interceptor": "stage-tab"
+          }
+        ]
+      }
+    }
+  ],
+  "findings": [
+    {
+      "name": "se-world-dialog",
+      "issue": "World creation tap intercepted by universal viewer. Keyboard-only diagnostic continuation follows."
+    },
+    {
+      "name": "se-region-depth-2",
+      "issue": "Region save crashes the application: prompt is not a function. Local/image editing cannot safely continue."
+    },
+    {
+      "name": "standalone-launcher",
+      "issue": "Standalone Launcher fails to validate an otherwise valid session; ../rist.js resolves to missing /rist.js."
+    }
+  ],
+  "consoleErrors": [
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "[RIST PLC] style failed css/button-artwork-fit.css?v=1"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "[RIST PLC] style failed css/character-universal.css?v=universal-badge-1"
+    },
+    {
+      "label": "gm-auth",
+      "text": "fail: Microsoft.AspNetCore.Components.Web.ErrorBoundary[0]\n      Microsoft.JSInterop.JSException: The value 'prompt' is not a function.\n      Error: The value 'prompt' is not a function.\n          at http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:510\n          at u.resolveInvocationHandler (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:1428)\n          at S (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:6453)\n          at w.processJSCall (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:4444)\n          at w.beginInvokeJSFromDotNet (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:4129)\n          at Object.Qt [as invokeJSJson] (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:58855)\n          at http://127.0.0.1:8765/Game/_framework/dotnet.runtime.v06hirbjsv.js:3:34587\n          at Mc (http://127.0.0.1:8765/Game/_framework/dotnet.runtime.v06hirbjsv.js:3:175837)\n          at http://127.0.0.1:8765/Game/_framework/dotnet.native.rw4kynp763.wasm:wasm-function[298]:0x1f797\n          at http://127.0.0.1:8765/Game/_framework/dotnet.native.rw4kynp763.wasm:wasm-function[222]:0x1ca98\n         at Microsoft.JSInterop.JSRuntime.<InvokeAsync>d__23`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()\n         at RistWorld.Components.UniversalInterface.BeginOrSaveVisibleSpatialSelectionAsync()\n         at RistWorld.Components.UniversalInterface.PressLeft()\n         at RistWorld.Components.UniversalInterface.DispatchSemanticActionAsync(String actionId, Int32 direction)\n         at Microsoft.AspNetCore.Components.ComponentBase.CallStateHasChangedOnAsyncCompletion(Task task)\n         at Microsoft.AspNetCore.Components.RenderTree.Renderer.GetErrorHandledTask(Task taskToHandle, ComponentState owningComponentState)\nMicrosoft.JSInterop.JSException: The value 'prompt' is not a function.\nError: The value 'prompt' is not a function.\n    at http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:510\n    at u.resolveInvocationHandler (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:1428)\n    at S (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:6453)\n    at w.processJSCall (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:4444)\n    at w.beginInvokeJSFromDotNet (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:4129)\n    at Object.Qt [as invokeJSJson] (http://127.0.0.1:8765/Game/_framework/blazor.webassembly.66stpp682q.js:1:58855)\n    at http://127.0.0.1:8765/Game/_framework/dotnet.runtime.v06hirbjsv.js:3:34587\n    at Mc (http://127.0.0.1:8765/Game/_framework/dotnet.runtime.v06hirbjsv.js:3:175837)\n    at http://127.0.0.1:8765/Game/_framework/dotnet.native.rw4kynp763.wasm:wasm-function[298]:0x1f797\n    at http://127.0.0.1:8765/Game/_framework/dotnet.native.rw4kynp763.wasm:wasm-function[222]:0x1ca98\n   at Microsoft.JSInterop.JSRuntime.<InvokeAsync>d__23`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()\n   at RistWorld.Components.UniversalInterface.BeginOrSaveVisibleSpatialSelectionAsync()\n   at RistWorld.Components.UniversalInterface.PressLeft()\n   at RistWorld.Components.UniversalInterface.DispatchSemanticActionAsync(String actionId, Int32 direction)\n   at Microsoft.AspNetCore.Components.ComponentBase.CallStateHasChangedOnAsyncCompletion(Task task)\n   at Microsoft.AspNetCore.Components.RenderTree.Renderer.GetErrorHandledTask(Task taskToHandle, ComponentState owningComponentState)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "standalone-launcher",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "exceptions": [],
+  "networkErrors": [
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/Game/authority-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/auth/storage/download",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/auth/storage/download",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/Game/css/button-artwork-fit.css",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/Game/css/button-artwork-fit.css",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/Game/css/character-universal.css",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/Game/css/character-universal.css",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/Game/authority-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/authority/authority/profile-complete",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "status": 404
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/auth/storage/download",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/objects/[redacted]",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "standalone-launcher",
+      "url": "http://127.0.0.1:8765/rist.js",
+      "status": 404
+    },
+    {
+      "label": "standalone-launcher",
+      "url": "http://127.0.0.1:8765/rist.js",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "blockedExternal": [
+    {
+      "label": "user-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "user-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "user-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "user-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/tilesets/world/terrain/ocean/ocean-067/tile-03-03.jpg",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/tilesets/world/terrain/ocean/ocean-067/tile-03-03.jpg",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/tilesets/world/terrain/ocean/ocean-067/tile-03-03.jpg",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/tilesets/world/terrain/ocean/ocean-067/tile-03-03.jpg",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/tilesets/world/terrain/ocean/ocean-067/tile-03-03.jpg",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    }
+  ],
+  "completedAt": "2026-10-06T02:18:58.241Z"
+}

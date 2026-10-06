@@ -2142,10 +2142,10 @@ def handler(event, context):
         )
         if not parcel:
             return response(404, {"error": "That Shaelvien deed is not claimed"})
-        owner_user_id = str(parcel.get("ownerUserId") or "")
-        if not owner_user_id:
+        deed_owner_user_id = str(parcel.get("ownerUserId") or "")
+        if not deed_owner_user_id:
             return response(409, {"error": "That deed does not have a GameMaster owner"})
-        if owner_user_id == user_id:
+        if deed_owner_user_id == user_id:
             return response(409, {"error": "You already own this deed"})
         if str(parcel.get("status") or "Claimed").lower() == "refunded":
             return response(409, {"error": "Refunded deeds use the bid action instead of a GameMaster request"})
@@ -2159,14 +2159,14 @@ def handler(event, context):
             "parcelId": parcel_id,
             "cellIndex": cell_index,
             "requesterUserId": user_id,
-            "ownerUserId": owner_user_id,
+            "ownerUserId": deed_owner_user_id,
             "displayName": str(parcel.get("displayName") or ""),
             "status": "Pending",
             "requestedAtUtc": utc_stamp(),
         }
         world.put_item(Item=dynamo_safe(request_item))
         notify_user(
-            owner_user_id,
+            deed_owner_user_id,
             "parcel.deed.request",
             world_id,
             {

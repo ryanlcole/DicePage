@@ -1,0 +1,48 @@
+name: Isolated authenticated E2E
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [live-alpha-rist-blazor-world]
+    paths:
+      - 'tests/authenticated-e2e/**'
+      - 'apps/rist-world/**'
+      - 'infra/aws/rist-discord-storage.yml'
+      - 'infra/aws/rist-platform-authority/**'
+      - '.github/workflows/authenticated-e2e.yml'
+permissions:
+  contents: read
+jobs:
+  private-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SHAELVIEN_TEST_AUTH: '1'
+      SHAELVIEN_ENVIRONMENT: test
+      DOTNET_ENVIRONMENT: Development
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r tests/authenticated-e2e/requirements.txt
+      - run: npm ci --prefix tests/authenticated-e2e
+      - run: cd tests/authenticated-e2e && npx playwright install --with-deps chromium
+      - run: python -m pytest tests/authenticated-e2e/test_security.py -q
+      - run: python tests/authenticated-e2e/build_local.py
+      - run: npm test --prefix tests/authenticated-e2e
+      - name: Exercise and audit private UI
+        run: npm run audit --prefix tests/authenticated-e2e
+      - name: Upload screenshots and redacted findings only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-ui-evidence
+          path: .e2e-runtime/evidence-public/
+          retention-days: 7

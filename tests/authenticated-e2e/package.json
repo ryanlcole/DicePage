@@ -1,0 +1,11 @@
+{
+  "name": "rist-authenticated-e2e",
+  "private": true,
+  "scripts": {
+    "test": "node browser-tests.cjs --auth-only",
+    "audit": "node browser-tests.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.58.2"
+  }
+}

@@ -1,0 +1,2 @@
+moto[s3,dynamodb]==5.1.15
+pytest==9.1.1
