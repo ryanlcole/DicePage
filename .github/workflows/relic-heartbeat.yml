@@ -1,0 +1,54 @@
+name: ReLiC Website Heartbeat
+
+on:
+  push:
+    branches:
+      - live-alpha-rist-blazor-world
+  pull_request:
+    branches:
+      - live-alpha-rist-blazor-world
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: relic-heartbeat-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out observed source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Syntax-check heartbeat probe
+        run: python -m py_compile .github/scripts/relic_heartbeat.py
+
+      - name: Observe minimum continuity state
+        id: heartbeat
+        continue-on-error: true
+        run: python .github/scripts/relic_heartbeat.py --output relic-heartbeat.json
+
+      - name: Publish bounded heartbeat evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relic-heartbeat-${{ github.sha }}
+          path: relic-heartbeat.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Surface unsafe state
+        if: steps.heartbeat.outcome == 'failure'
+        run: |
+          echo "::error::ReLiC heartbeat reported UNSAFE. Inspect the bounded heartbeat artifact and its diagnostic_pointers."
+          exit 1
