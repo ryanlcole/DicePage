@@ -1,5 +1,5 @@
 const bridges=new WeakMap();
-const REGION_TOOL_SRC="/Game/prototype/region-volume-tools.js?v=20261007-canonical-volume-2";
+const REGION_TOOL_SRC="./region-volume-tools.js?v=20261007-region-selection-repair-1";
 
 function post(frame,message){
   try{frame?.contentWindow?.postMessage({source:"shaelvien-regiondefiner-host",...message},location.origin)}catch{}
@@ -35,18 +35,27 @@ function normalizeControllerState(raw){
 }
 
 async function ensureRegionTools(frame){
-  const doc=frame?.contentDocument;
-  if(!doc)return false;
-  if(doc.getElementById("region-volume-tools-v3"))return true;
-  return await new Promise(resolve=>{
-    const script=doc.createElement("script");
+  const doc=frame?.contentDocument,win=frame?.contentWindow;
+  if(!doc||!win)return false;
+  const activated=()=>doc.getElementById("stage")?.dataset?.regionVolumeV3==="true"
+    && typeof win.ShaelvienPrototype?.enterRegionController==="function";
+  if(activated())return true;
+
+  let script=doc.getElementById("region-volume-tools-v3");
+  if(!script){
+    script=doc.createElement("script");
     script.id="region-volume-tools-v3";
-    script.src=REGION_TOOL_SRC;
+    script.src=new URL(REGION_TOOL_SRC,win.location.href).href;
     script.async=false;
-    script.onload=()=>resolve(true);
-    script.onerror=()=>resolve(false);
     (doc.body||doc.documentElement).appendChild(script);
-  });
+  }
+
+  const started=Date.now();
+  while(Date.now()-started<3000){
+    if(activated())return true;
+    await new Promise(resolve=>setTimeout(resolve,40));
+  }
+  return false;
 }
 
 async function waitForPrototype(frame,timeoutMs=3000){
