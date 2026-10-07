@@ -323,7 +323,20 @@ function boot(){
     return false;
   }
   function controllerToggleGrid(){announce(state.phase==='xy'?'The square grid is the X/Y coordinate authority and remains active during Region definition.':'The coordinate grid may return for snapping and measurement; Region identity remains the saved XYZ bounds.');return true}
-  function enterController(){state.cursorVisible=state.phase==='xy';renderOverlay();publishState();return true}
+  function enterController(){
+    // Controller entry changes interaction only. Reuse the already loaded canonical
+    // World representation instead of replacing it with the legacy selector canvas.
+    try{baseApi.showAllParallax?.()}catch{}
+    if(state.phase==='xy'){
+      restoreTopDown();
+      state.cursorVisible=true;
+    }else if((state.phase==='existing'||state.phase==='saved')&&validBounds()){
+      fitBounds60();
+    }
+    renderAll();
+    publishState();
+    return true;
+  }
 
   function adoptRegion(region){
     if(!region||typeof region!=='object')return;
