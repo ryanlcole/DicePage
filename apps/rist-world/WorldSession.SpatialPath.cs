@@ -60,10 +60,8 @@ public sealed partial class WorldSession
         var node = nodes.FirstOrDefault(item => string.Equals(item.NodeId, nodeId, StringComparison.Ordinal));
         if (node is null) return false;
 
-        // Reconstruct lineage from the selected identity so going down or jumping
-        // to a saved child restores its authored parent representation.
         var lineage = new List<WorldSpatialNode>();
-        var cursor = node;
+        WorldSpatialNode? cursor = node;
         var visited = new HashSet<string>(StringComparer.Ordinal);
         while (cursor is not null && visited.Add(cursor.NodeId))
         {
@@ -76,7 +74,7 @@ public sealed partial class WorldSession
         _activeSpatialRegionId = lineage.LastOrDefault(item => string.Equals(item.Kind, "REGION", StringComparison.OrdinalIgnoreCase))?.NodeId ?? "";
         _activeLocalId = lineage.LastOrDefault(item => string.Equals(item.Kind, "LOCAL", StringComparison.OrdinalIgnoreCase))?.NodeId ?? "";
         _activeInstanceId = lineage.LastOrDefault(item => string.Equals(item.Kind, "INSTANCE", StringComparison.OrdinalIgnoreCase))?.NodeId ?? "";
-        SetViewportTier(NormalizeRecursionTier(node.Kind));
+        RestoreSpatialRepresentation();
         Notify();
         return true;
     }
@@ -111,9 +109,9 @@ public sealed partial class WorldSession
             return;
         }
         SetViewportTier(NormalizeRecursionTier(node.Kind));
-        SetSceneTier(Math.Max(0, node.TierIndex));
-        var layer = node.VisibleLayerOffsets?.FirstOrDefault() ?? 0;
-        SetLayerOffset(Math.Clamp(layer, 0, LayersPerTier - 1));
+        var tier = Math.Max(0, node.TierIndex);
+        var layer = Math.Clamp(node.VisibleLayerOffsets?.FirstOrDefault() ?? 0, 0, LayersPerTier - 1);
+        SetSceneZ(checked((tier * LayersPerTier) + layer));
     }
 
     static int SpatialScopeRank(string? kind) => NormalizeRecursionTier(kind) switch
