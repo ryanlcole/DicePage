@@ -1,105 +1,194 @@
-# RegionDefiner Contract
+# REGION DEFINER CONTRACT
 
-RegionDefiner is a scoped authoring/view surface over the selected World. It never becomes another map authority.
+Status: authoritative product/implementation contract for Region definition.
 
-## Canonical flow
+## Core separation
 
-1. A World ID is selected first.
-2. Choosing **RegionDefiner** opens the selected World from the shared database-backed WorldBuilder source. Endemar follows the same source rule as every other World.
-3. A new Region begins in the full top-down World view. The user does **not** define geography by painting visible grid cells.
-4. The user chooses a rough **focus shape** around the area they want to work in. Supported authoring shapes are rectangle, ellipse and freeform/lasso.
-5. Choosing **Crop View** focuses the viewer and establishes an edit limit. Crop is presentation/edit scope only: it does not duplicate, cut, fork, flatten, or save another map.
-6. Inside that focused World view, the user draws the actual Region border. Border tools are:
-   - **Line** — deliberate straight-segment boundaries;
-   - **Pencil** — freehand boundaries;
-   - **Magic Select** — seeds an editable boundary proposal from the current focus shape so the author can refine or replace it.
-7. Choosing **Set Region Border** establishes the Region's geographic/authority boundary over canonical World coordinates.
-8. After the border is set, RegionDefiner switches to a fixed **60° regional representation**.
-9. The user chooses which World Tiers are visible in the Region view. Tier visibility changes presentation only; it does not remove or mutate source-world data.
-10. The user names and saves the Region, or submits a Claim Request when GM approval is required.
-11. Saving stores Region authority/view metadata against the selected World identity. The canonical World map remains the only map truth.
-12. Once the Region is saved, regional building/editing continues against that same canonical map under Region permissions.
-13. Grids are **not** the primary Region geography-definition interface. Grids return when they are useful: tile placement, construction/snap operations, and play/encounter spatial rules.
+World Builder and Region Definer are separate tools with separate jobs.
 
-## Crop and context
+**World Builder** creates and edits the continuous underlying World:
+- World terrain,
+- World Tiers and Layers,
+- global features,
+- canonical World assets and source state.
 
-A Region crop is a **viewer focus and edit limit**, not a new asset or map.
+**Region Definer** does not create another map and does not begin by choosing a Tier or Layer. It defines a bounded authority/edit volume inside the already-existing World.
 
-The rough focus shape should normally extend beyond the final Region border. That surrounding area remains visible context, allowing a viewer near a Region edge to naturally see neighboring terrain, coastlines, mountains, roads, settlements or other Regions when permissions allow it.
+A Region is therefore:
 
-The final Region border determines the Region's authority/context boundary. Visibility outside that border is not automatically erased merely because the viewer is inside the Region.
+`Xmin..Xmax × Ymin..Ymax × Tmin..Tmax`
 
-Changing the focus/crop must never silently resize the Region. Crop/focus and Region border are separate concepts.
+The World underneath remains the same World before, during, and after Region definition.
 
-## Hidden spatial representation
+## Region creation order
 
-RegionDefiner may compile the authored focus and border into hidden coordinate/cell representations required by persistence, permissions, snapping, compatibility or spatial queries.
+### 1. Open the same World top-down
 
-Those hidden cells are implementation/storage representation only. They must never force the user to define geography by targeting tiny Square or Hex cells.
+Region Definer consumes the canonical World Builder source. It must not copy, crop, rasterize, fork, or replace World terrain as Region identity.
 
-The user-authored border and canonical World coordinates remain the semantic Region definition. Grid rendering is deferred until placement or play needs it.
+The permanent square coordinate grid is visible/available as the measuring authority.
 
-## Representation
+The grid is **coordinates, not geography**.
 
-RegionDefiner uses:
+### 2. Define horizontal bounds first
 
-- top-down World presentation while choosing the rough focus and drawing the border;
-- fixed **60°** presentation after the Region border is confirmed;
-- author-selected visible Tiers for the resulting Region view;
-- a focused view/edit window that may include context outside the final Region boundary.
+The first Region operation is exactly four horizontal boundaries:
+- X minimum,
+- X maximum,
+- Y minimum,
+- Y maximum.
 
-These are presentation rules. World ID, source assets, coordinates, scale, Tier/Layer identity, Z and canonical parent relationships are not reauthored by the view angle or crop.
+The GM may establish those boundaries by dragging opposite corners or by entering the coordinate values directly.
 
-## Canonical-map authority
+Rules:
+- no Tier prompt yet,
+- no Layer prompt yet,
+- no hex painting,
+- no polygon painting required,
+- no crop-as-identity,
+- no second terrain map.
 
-There is one recursive spatial truth in the database. WorldBuilder, RegionDefiner, Local/landmark/interior tools, object viewers, player views and battle instances are permission-filtered windows over that same truth.
+Persisted Region identity uses canonical normalized World X/Y bounds. Any cell list retained by older persistence, indexing, permission, or claim code is a **derived compatibility representation**, not semantic Region truth.
 
-- WorldBuilder works on the authorized World/zone portion.
-- RegionDefiner works on an authorized Region portion.
-- Local and deeper tools recurse into smaller coordinate scopes.
-- Objects, players and battle instances remain anchored to canonical parent coordinates.
-- A tool may focus, crop, tilt, simplify, hide, reveal, or increase detail for presentation; it does not create another authoritative map.
-- Regional edits write through to the same canonical World truth with Region provenance and permission checks.
-- Browser storage is recovery/cache only and is never authoritative map truth.
+### 3. Define vertical extent second
 
-## Claim authority
+Only after X/Y is confirmed does Region Definer ask for:
+- Z minimum Tier,
+- Z maximum Tier.
 
-Selecting or drawing a map portion is not equivalent to owning or editing it.
+The bounds are inclusive Tier boundaries. Canonical persistence stores their layer-space equivalent as:
+- `CanonicalZMin = MinTier × LayersPerTier`,
+- `CanonicalZMax = (MaxTier + 1) × LayersPerTier`.
 
-- an owner/GM may define and build directly within their authority;
-- an invited non-owner may define a proposed boundary and submit a **Claim Request** when their World claim policy permits it;
-- **Blocked** removes the claim action;
-- **Restricted** permits requests only inside already-authorized personal/character scopes;
-- **Limited** permits requests but the GM chooses the final approved spatial/resource scope;
-- **Co-Operative** grants shared ownership of the approved resource while locally protected child resources may retain secrets;
-- **Release Ownership** transfers the granting owner's ownership only after exact written approval in a direct authenticated session.
+`CanonicalZMax` is therefore an exclusive upper layer boundary.
 
-A pending request does not unlock regional building. The GM decision remains the authority boundary.
+A Region may span a single Tier or multiple Tiers. Choosing a lower Min Tier and a higher Max Tier allows the Region to extend downward and upward through the World stack without rebuilding any World Tier.
 
-## One recursive map
+### 4. Confirm volume, then switch to 60°
 
-The database stores one recursive spatial truth:
+The Region view remains top-down while X/Y and Z are being defined.
 
-**World → Region → Local → Site/Building → Interior → Tactical/Instance → Object → Container → Contents.**
+After all six bounds are confirmed, Region representation switches to **60°**.
 
-Every child keeps its parent identity and canonical coordinates. A deeper viewer changes scale, detail, visibility and representation, not truth.
+This camera change is representation only. It does not alter World geometry, World identity, or the canonical Region bounds.
 
-Shaelvien may stream very large Worlds as zones for storage/render performance. A zone is a partition, not a separate reality. Cross-zone identity and coordinates remain part of the same Shaelvien map.
+### 5. Dress the Region
 
-## Permission-filtered knowledge
+After the Region volume exists, the GM adds Region-scale miniature objects inside that volume, such as:
+- mountains and rock formations,
+- forests, trees, and vegetation,
+- structures,
+- roads and bridges,
+- environmental props and effects.
 
-There are no separate player maps that overwrite truth. The server projects the canonical map through permissions.
+Region objects are **additive detail** anchored to the canonical World. A World Tier may already contain terrain or a mountain range; Region miniatures add fidelity without replacing or duplicating that World Tier.
 
-A GM may reveal a node or chosen recursion depth to a user, party or session. Knowledge does not automatically leak between parties. A visitor can attend one session with only that session's revealed map and return later without gaining discoveries made by another party. Party/user/session reveal grants are separate from ownership and edit authority.
+World terrain remains the parent context underneath Region objects.
 
-The GM may later reveal a changed Region upward at different detail levels: for example only a landmark at WORLD view, a road network at REGION view, or full interiors only when the viewer has permission to recurse that far.
+## Local creation
 
-## Non-negotiable invariants
+A Local is not created by rebuilding the Region.
 
-- Crop is view/edit scope, never a duplicated map.
-- Border is Region authority geometry, separate from crop.
-- Region presentation after border confirmation is 60°.
-- Visible Tiers are chosen by the author and are presentation only.
-- Geography authoring is gridless to the user; grids return for tile placement and play.
-- Cursor selection and touch selection are equivalent semantic inputs.
-- RegionDefiner never creates an independent terrain/world database.
+The GM selects one or more meaningful Region objects/areas and gives that selection meaning by naming or labeling it. That named selection establishes a Local footprint/perimeter and changes the representation to the Local viewing context.
+
+**Defining meaning creates a Local.**
+
+Local is the next fidelity level. Local-scale content may include:
+- character/token-scale pieces,
+- finer scenery,
+- doors and furniture,
+- NPCs,
+- lighting,
+- animated water,
+- wind, smoke, fire, and weather sprites,
+- other fine interactive scene detail.
+
+The parent Region miniatures continue to exist as context. They are not rebuilt.
+
+## Instance creation
+
+Instance is the runtime transformation of the authored scene.
+
+Starting play:
+- changes the camera/runtime context,
+- fixes each player's permitted perspective for that Instance,
+- activates appropriate interaction/click commands,
+- changes the surface from primarily authoring behavior to playable behavior.
+
+**Starting play creates an Instance.**
+
+## Authoring spine
+
+The primary Region-detail authoring relationship is:
+
+```text
+WORLD
+  ↓
+REGION
+X/Y bounds + Z min/max Tier
+  ↓
+Region miniature objects
+  ↓
+named selection / meaningful footprint
+  ↓
+LOCAL
+  ↓
+Local-scale objects + tokens + effects
+  ↓
+INSTANCE
+player perspectives + interaction commands
+```
+
+This authoring spine does not delete other recursive semantic categories such as Site, Room, Object, Container, or Contents. Those may still describe meaning inside the same spatial continuity. They do not replace the World → Region → Local → Instance authoring transition defined here.
+
+## Grid rule
+
+The grid is contextual tooling, never geography identity.
+
+- **World / Region definition:** square coordinate grid gives exact X/Y measurement and bounds.
+- **Object placement:** a grid may appear when snapping or measurement is useful.
+- **Play:** an appropriate tactical grid may appear when game rules require it.
+
+A GM never has to paint a Region from tiny hexes.
+
+## Canonical persistence
+
+For a Region, semantic spatial authority is:
+- `CanonicalMinX`,
+- `CanonicalMaxX`,
+- `CanonicalMinY`,
+- `CanonicalMaxY`,
+- `CanonicalZMin`,
+- `CanonicalZMax`.
+
+Derived/backward-compatible fields may include:
+- selected cell indexes,
+- boundary cell indexes,
+- `TierIndex` as the minimum Tier compatibility value,
+- source layer offsets,
+- visible Tier/Layer presentation lists.
+
+Derived representations must never override contradictory canonical XYZ bounds.
+
+## Permission requests
+
+Direct GM/owner Region creation supports the bounded multi-Tier volume contract.
+
+The current older server claim-request transport still represents one Tier plus layer offsets. Until that server authority contract is migrated, claim-only users must not be told that a multi-Tier request was persisted when it was not. The UI must fail transparently or constrain that request rather than silently collapsing a requested volume.
+
+## Prohibited regressions
+
+Do not restore any of these as Region-definition authority:
+- World Builder choosing a reference Tier/Layer before Region definition,
+- 30×30 hex Region footprint painting,
+- rough-focus/crop as Region identity,
+- freehand polygon border as required Region identity,
+- visible-tier checkboxes standing in for Z volume,
+- copied Region terrain maps,
+- Region geometry that can drift independently from its canonical World coordinates.
+
+## Recursive rule
+
+**Defining bounds creates a Region.**  
+**Defining meaning creates a Local.**  
+**Starting play creates an Instance.**
