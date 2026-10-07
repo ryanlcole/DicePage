@@ -2,17 +2,20 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
+    // Builder recursion is semantic containment. Tier/Layer remain Z-depth inside
+    // the active scope; changing representation never creates a second world truth.
     public static readonly string[] RecursionTiers =
     [
-        "WORLD","REGION","LOCAL","SITE","ROOM","ENCOUNTER","OBJECT","CONTAINER","CONTENTS"
+        "WORLD","REGION","LOCAL","INSTANCE"
     ];
 
-    // Canonical recursive-map truth. These are semantic containment scopes, not
-    // separate map files. Shaelvien may partition WORLD into streamed zones only
-    // for performance; coordinates and identity remain anchored in one world truth.
+    // Canonical recursive-map truth. REGION and LOCAL may repeat, nest, and
+    // overlap. INSTANCE is the playable projection of the selected spatial path.
+    // Shaelvien may partition WORLD into streamed zones only for performance;
+    // coordinates and identity remain anchored in one world truth.
     public static readonly string[] CanonicalMapScopes =
     [
-        "WORLD","REGION","LANDMARK","INTERIOR","OBJECT","PLAYER","BATTLE_INSTANCE"
+        "WORLD","REGION","LOCAL","INSTANCE"
     ];
     public const string ShaelvienWorldPartitionKind = "ZONE";
     public const bool ShaelvienPartitionsArePerformanceOnly = true;
@@ -43,8 +46,13 @@ public sealed partial class WorldSession
         return value switch
         {
             "ZONE" or "CONTINENT" => "REGION",
-            "AREA" => "LOCAL",
-            "TACTICAL" or "INSTANCE" => "ENCOUNTER",
+            "AREA" or "LANDMARK" or "SITE" => "LOCAL",
+            // Retired rigid sub-editors are compatibility inputs only. They
+            // resolve to the nearest current semantic scope instead of reviving
+            // SITE/ROOM/ENCOUNTER/OBJECT/CONTAINER/CONTENTS as builder tiers.
+            "ROOM" or "INTERIOR" => "LOCAL",
+            "TACTICAL" or "ENCOUNTER" or "BATTLE_INSTANCE" or "PLAYER" => "INSTANCE",
+            "OBJECT" or "CONTAINER" or "CONTENTS" => "INSTANCE",
             "UNIVERSAL" or "WEATHER" or "" => "WORLD",
             _ when RecursionTiers.Contains(value) => value,
             _ => "WORLD"
@@ -91,10 +99,10 @@ public sealed partial class WorldSession
         return staged.Kind switch
         {
             "rolling-stock" => "REGION",
-            "mini" => "ENCOUNTER",
+            "mini" => "INSTANCE",
             "pawn" or "pin" => "LOCAL",
             "terrain" => "LOCAL",
-            "bit" => "OBJECT",
+            "bit" => "INSTANCE",
             _ => ViewportTier
         };
     }
@@ -109,17 +117,17 @@ public sealed partial class WorldSession
     public string NativeLayer(PieceItem piece) => piece.Kind switch
     {
         "rolling-stock" => "REGION",
-        "mini" => "ENCOUNTER",
+        "mini" => "INSTANCE",
         "pawn" or "pin" => "LOCAL",
         "terrain" => "LOCAL",
-        "bit" => "OBJECT",
+        "bit" => "INSTANCE",
         _ => ViewportTier
     };
 
     public bool LayerParticipatesInViewport(string? nativeLayer)
     {
         if (string.Equals(nativeLayer,"WEATHER",StringComparison.OrdinalIgnoreCase))
-            return RecursionTierRank(ViewportTier) <= RecursionTierRank("ROOM");
+            return RecursionTierRank(ViewportTier) <= RecursionTierRank("LOCAL");
         return RecursionTierRank(nativeLayer) <= RecursionTierRank(ViewportTier);
     }
 
