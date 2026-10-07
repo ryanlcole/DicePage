@@ -1,0 +1,186 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject WorldSession Session
+@inject DiscordAuthClient Auth
+@inject AssetRatingClient Ratings
+@inject IJSRuntime JS
+
+<section class="rock-candy-capture" aria-label="Rock Candy Capture">
+ <header>
+  <div>
+   <p>ROCK CANDY</p>
+   <h2>Capture a real miniature as a glass polyhedron.</h2>
+  </div>
+  <span>@CapturedCount/6 VIEWS</span>
+ </header>
+
+ <div class="rock-candy-intro">
+  <p>Photograph the same miniature from six directions. Rock Candy removes only the chosen background color that is connected to the outside edge, then packs the cleaned perspectives onto the inner faces of a transparent d6 shell.</p>
+  <small>The original photos stay on this device in this version. Only the finished transparent Rock Candy atlas is uploaded.</small>
+ </div>
+
+ <div class="rock-candy-settings">
+  <label><span>NAME</span><input maxlength="64" placeholder="My miniature" @bind="_name" @bind:event="oninput" /></label>
+  <label><span>OUTSIDE COLOR</span><input class="rock-candy-color" type="color" @bind="_keyColor" /></label>
+  <label><span>COLOR TOLERANCE</span><input type="range" min="0" max="100" step="1" @bind="_tolerance" /><output>@_tolerance%</output></label>
+ </div>
+
+ <div class="rock-candy-faces" aria-label="Six capture directions">
+  @foreach(var face in FaceOrder)
+  {
+   <article class="rock-candy-face-card @(_faces.ContainsKey(face.Key)?"captured":"")">
+    <div class="rock-candy-face-preview">
+     @if(_faces.TryGetValue(face.Key,out var image))
+     {
+      <img src="@image" alt="@face.Label captured view" />
+     }
+     else
+     {
+      <strong>@face.Glyph</strong>
+     }
+    </div>
+    <div><strong>@face.Label</strong><small>@face.Help</small></div>
+    @if(face.Key=="front") { <InputFile OnChange="LoadFront" accept="image/*" capture="environment" disabled="@_working" /> }
+    else if(face.Key=="right") { <InputFile OnChange="LoadRight" accept="image/*" capture="environment" disabled="@_working" /> }
+    else if(face.Key=="back") { <InputFile OnChange="LoadBack" accept="image/*" capture="environment" disabled="@_working" /> }
+    else if(face.Key=="left") { <InputFile OnChange="LoadLeft" accept="image/*" capture="environment" disabled="@_working" /> }
+    else if(face.Key=="top") { <InputFile OnChange="LoadTop" accept="image/*" capture="environment" disabled="@_working" /> }
+    else { <InputFile OnChange="LoadBottom" accept="image/*" capture="environment" disabled="@_working" /> }
+   </article>
+  }
+ </div>
+
+ @if(AllFacesCaptured)
+ {
+  <div class="rock-candy-live-preview" aria-label="Rock Candy preview">
+   <strong>GLASS SHELL PREVIEW</strong>
+   <div class="rock-candy-preview-stage">
+    <div class="rock-candy-preview-cube">
+     @foreach(var face in FaceOrder)
+     {
+      <span class="rc-preview-face rc-@face.Key" style="@PreviewFaceStyle(face.Key)"></span>
+     }
+    </div>
+   </div>
+  </div>
+ }
+
+ <fieldset class="rock-candy-rating">
+  <legend>CONTENT RATING</legend>
+  <p>The finished Rock Candy asset uses the same provider rating boundary as every uploaded asset.</p>
+  <label class="rock-candy-rating-choice general"><input type="checkbox" checked="@_providerGeneral" @onchange="e=>SetProviderGeneral(e.Value as bool?==true)" /><span><strong>General / none of these</strong><small>No mature-content descriptor applies.</small></span></label>
+  <div class="rock-candy-rating-grid">
+   @foreach(var descriptor in ContentAllowancePolicy.Descriptors)
+   {
+    <label class="rock-candy-rating-choice"><input type="checkbox" checked="@_providerDescriptors.Contains(descriptor.Id)" @onchange="e=>ToggleProviderDescriptor(descriptor.Id,e.Value as bool?==true)" /><span><strong>@descriptor.Label</strong><small>@descriptor.Reason</small></span></label>
+   }
+  </div>
+ </fieldset>
+
+ <div class="rock-candy-actions">
+  <button type="button" class="primary" disabled="@(!CanSave)" @onclick="SaveRockCandyAsync">@(_working?"MAKING ROCK CANDY…":"SAVE ROCK CANDY")</button>
+  <button type="button" disabled="@(_working||CapturedCount==0)" @onclick="Reset">CLEAR CAPTURE</button>
+ </div>
+ @if(!Session.IsLoggedIn)<p class="rock-candy-status">Log in to save Rock Candy to your private Miniatures library.</p>
+ @if(!string.IsNullOrWhiteSpace(_status))<p class="rock-candy-status" role="status">@_status</p>
+</section>
+
+<style>
+ .rock-candy-capture{display:grid;gap:12px;padding:14px;border:1px solid #5b7080;border-radius:12px;background:linear-gradient(145deg,#09151d,#101723 55%,#151309);box-shadow:inset 0 0 40px #70cfff0a;color:#e8dec5}.rock-candy-capture>header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.rock-candy-capture header p{margin:0;color:#86c9e8;font-size:9px;font-weight:950;letter-spacing:.18em}.rock-candy-capture h2{margin:4px 0 0;color:#eef7ff;font:600 19px/1.25 Georgia,serif}.rock-candy-capture header>span{padding:6px 8px;border:1px solid #527991;border-radius:999px;background:#0b1c25;color:#a8dcf4;font-size:8px;font-weight:900;white-space:nowrap}.rock-candy-intro{display:grid;gap:4px;padding:10px;border:1px solid #344d5c;border-radius:9px;background:#071219}.rock-candy-intro p{margin:0;color:#c8d3d8;font-size:11px;line-height:1.5}.rock-candy-intro small{color:#8199a5;font-size:9px;line-height:1.4}.rock-candy-settings{display:grid;grid-template-columns:minmax(0,1fr) 110px minmax(150px,.8fr);gap:8px}.rock-candy-settings label{display:grid;grid-template-columns:1fr auto;gap:5px;align-items:center;padding:8px;border:1px solid #3e5360;border-radius:8px;background:#0a151c}.rock-candy-settings label>span{grid-column:1/-1;color:#8fa7b4;font-size:8px;font-weight:900;letter-spacing:.1em}.rock-candy-settings input[type=text],.rock-candy-settings input:not([type]){width:100%}.rock-candy-settings input{box-sizing:border-box;min-width:0}.rock-candy-settings input[type="text"]{height:34px;padding:0 8px;border:1px solid #506572;border-radius:6px;background:#071016;color:#fff}.rock-candy-settings .rock-candy-color{width:100%;height:34px;padding:2px;border:1px solid #506572;border-radius:6px;background:#071016}.rock-candy-settings input[type="range"]{width:100%}.rock-candy-settings output{color:#bde6fa;font-size:9px}.rock-candy-faces{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.rock-candy-face-card{position:relative;min-width:0;display:grid;grid-template-columns:58px minmax(0,1fr);grid-template-rows:58px;gap:8px;align-items:center;padding:7px;border:1px solid #3e4b52;border-radius:9px;background:#0b1419;overflow:hidden}.rock-candy-face-card.captured{border-color:#5795b0;box-shadow:inset 0 0 18px #6bd3ff12}.rock-candy-face-preview{width:58px;height:58px;display:grid;place-items:center;overflow:hidden;border:1px solid #425d6b;border-radius:7px;background:radial-gradient(circle,#16303c,#071016)}.rock-candy-face-preview img{width:100%;height:100%;object-fit:contain}.rock-candy-face-preview strong{color:#87b9ce;font-size:20px}.rock-candy-face-card>div:nth-child(2){min-width:0;display:grid;gap:3px}.rock-candy-face-card>div:nth-child(2)>strong{color:#dfeaf0;font-size:10px}.rock-candy-face-card>div:nth-child(2)>small{color:#81919a;font-size:8px;line-height:1.25}.rock-candy-face-card input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.rock-candy-live-preview{display:grid;grid-template-columns:auto minmax(130px,1fr);align-items:center;gap:10px;padding:9px;border:1px solid #4c7183;border-radius:10px;background:#08131a}.rock-candy-live-preview>strong{color:#9fdaf4;font-size:8px;letter-spacing:.1em}.rock-candy-preview-stage{height:150px;display:grid;place-items:center;perspective:650px;overflow:visible}.rock-candy-preview-cube{--rc-half:48px;position:relative;width:96px;height:96px;transform-style:preserve-3d;transform:rotateX(-22deg) rotateY(36deg)}.rc-preview-face{position:absolute;inset:0;background-size:contain;background-position:center;background-repeat:no-repeat;border:1px solid #b8e9ff88;box-shadow:inset 0 0 20px #bfeeff1f;background-color:#9bdfff12;backface-visibility:hidden}.rc-preview-face::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,#fff5,#9be2ff0d 45%,#79cfff28);pointer-events:none}.rc-front{transform:translateZ(var(--rc-half))}.rc-back{transform:rotateY(180deg) translateZ(var(--rc-half))}.rc-right{transform:rotateY(90deg) translateZ(var(--rc-half))}.rc-left{transform:rotateY(-90deg) translateZ(var(--rc-half))}.rc-top{transform:rotateX(90deg) translateZ(var(--rc-half))}.rc-bottom{transform:rotateX(-90deg) translateZ(var(--rc-half))}.rock-candy-rating{display:grid;gap:7px;margin:0;padding:10px;border:1px solid #3d4f58;border-radius:9px}.rock-candy-rating legend{padding:0 5px;color:#8eb9cd;font-size:8px;font-weight:900;letter-spacing:.12em}.rock-candy-rating>p{margin:0;color:#899ba4;font-size:9px}.rock-candy-rating-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.rock-candy-rating-choice{display:grid;grid-template-columns:auto 1fr;gap:7px;align-items:start;padding:7px;border:1px solid #344750;border-radius:7px;background:#0b161c}.rock-candy-rating-choice>span{display:grid;gap:2px}.rock-candy-rating-choice strong{font-size:9px}.rock-candy-rating-choice small{color:#80919a;font-size:8px;line-height:1.25}.rock-candy-rating-choice.general{border-color:#5c6c55}.rock-candy-actions{display:flex;gap:7px}.rock-candy-actions button{min-height:40px;padding:0 12px;border:1px solid #536c78;border-radius:8px;background:#101b21;color:#c3d8e2;font-size:9px;font-weight:900;letter-spacing:.06em}.rock-candy-actions button.primary{border-color:#6c9eb4;background:#14303c;color:#d9f3ff}.rock-candy-actions button:disabled{opacity:.35}.rock-candy-status{margin:0;padding:7px;border-radius:7px;background:#071016;color:#9eb2bc;font-size:9px;line-height:1.4}
+ @@media(max-width:680px){.rock-candy-settings{grid-template-columns:1fr 90px}.rock-candy-settings label:last-child{grid-column:1/-1}.rock-candy-faces{grid-template-columns:repeat(2,minmax(0,1fr))}.rock-candy-rating-grid{grid-template-columns:1fr}.rock-candy-live-preview{grid-template-columns:1fr}.rock-candy-preview-stage{height:130px}}
+ @@media(max-width:420px){.rock-candy-face-card{grid-template-columns:48px minmax(0,1fr);grid-template-rows:48px}.rock-candy-face-preview{width:48px;height:48px}.rock-candy-capture{padding:10px}.rock-candy-faces{gap:5px}}
+</style>
+
+@code {
+ const long MaxFaceBytes=20*1024*1024;
+ static readonly (string Key,string Label,string Glyph,string Help)[] FaceOrder=
+ [
+  ("front","Front","↑","Face the miniature toward the camera."),
+  ("right","Right","→","Turn the miniature 90° left."),
+  ("back","Back","↓","Photograph the rear."),
+  ("left","Left","←","Turn the miniature 90° right."),
+  ("top","Top","⌃","Photograph from directly above."),
+  ("bottom","Bottom","⌄","Photograph the underside or base.")
+ ];
+ readonly Dictionary<string,string> _faces=new(StringComparer.Ordinal);
+ readonly HashSet<string> _providerDescriptors=new(StringComparer.Ordinal);
+ IJSObjectReference? _module;
+ string _name="";
+ string _keyColor="#ffffff";
+ int _tolerance=18;
+ string _status="";
+ bool _providerGeneral;
+ bool _working;
+ int CapturedCount=>_faces.Count;
+ bool AllFacesCaptured=>FaceOrder.All(x=>_faces.ContainsKey(x.Key));
+ bool CanSave=>Session.IsLoggedIn&&!_working&&AllFacesCaptured&&!string.IsNullOrWhiteSpace(_name)&&(_providerGeneral||_providerDescriptors.Count>0);
+
+ async Task LoadFront(InputFileChangeEventArgs e)=>await LoadFaceAsync("front",e);
+ async Task LoadRight(InputFileChangeEventArgs e)=>await LoadFaceAsync("right",e);
+ async Task LoadBack(InputFileChangeEventArgs e)=>await LoadFaceAsync("back",e);
+ async Task LoadLeft(InputFileChangeEventArgs e)=>await LoadFaceAsync("left",e);
+ async Task LoadTop(InputFileChangeEventArgs e)=>await LoadFaceAsync("top",e);
+ async Task LoadBottom(InputFileChangeEventArgs e)=>await LoadFaceAsync("bottom",e);
+
+ async Task<IJSObjectReference> ModuleAsync()=>_module??=await JS.InvokeAsync<IJSObjectReference>("import","./rock-candy.js");
+
+ async Task LoadFaceAsync(string face,InputFileChangeEventArgs e)
+ {
+  var file=e.File;
+  if(file.Size>MaxFaceBytes){_status=$"{file.Name} is larger than 20 MB.";return;}
+  if(!file.ContentType.StartsWith("image/",StringComparison.OrdinalIgnoreCase)){_status="Rock Candy accepts image captures only.";return;}
+  _working=true;_status=$"Cleaning {face} from the outside inward…";
+  try
+  {
+   await using var stream=file.OpenReadStream(MaxFaceBytes);
+   using var memory=new MemoryStream();
+   await stream.CopyToAsync(memory);
+   var dataUrl=$"data:{file.ContentType};base64,{Convert.ToBase64String(memory.ToArray())}";
+   var module=await ModuleAsync();
+   var cleaned=await module.InvokeAsync<string>("processFace",dataUrl,_keyColor,_tolerance,512);
+   _faces[face]=cleaned;
+   _status=$"{CapturedCount}/6 Rock Candy views captured.";
+  }
+  catch(Exception ex){_status="Capture failed: "+ex.Message;}
+  finally{_working=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ string PreviewFaceStyle(string face)=>_faces.TryGetValue(face,out var src)?$"background-image:url('{src}');":"";
+ void SetProviderGeneral(bool value){_providerGeneral=value;if(value)_providerDescriptors.Clear();}
+ void ToggleProviderDescriptor(string id,bool value){_providerGeneral=false;if(value)_providerDescriptors.Add(id);else _providerDescriptors.Remove(id);}
+
+ async Task SaveRockCandyAsync()
+ {
+  if(!CanSave)return;
+  _working=true;_status="Building the six inner faces…";
+  try
+  {
+   var module=await ModuleAsync();
+   var ordered=FaceOrder.Select(x=>_faces[x.Key]).ToArray();
+   var atlas=await module.InvokeAsync<string>("buildAtlas",ordered,512);
+   const string prefix="data:image/png;base64,";
+   if(!atlas.StartsWith(prefix,StringComparison.Ordinal))throw new InvalidOperationException("The Rock Candy atlas was not encoded as PNG.");
+   var bytes=Convert.FromBase64String(atlas[prefix.Length..]);
+   var safe=WorldSession.AssetPathSegment(_name);
+   var key=$"uploads/miniatures/rock-candy/{Guid.NewGuid():N}-{safe}.png";
+   await Auth.UploadBytesAsync(key,bytes,"image/png");
+   var rating=await Ratings.RegisterAsync(key,_providerDescriptors,_providerGeneral);
+   if(rating is null)throw new InvalidOperationException("Rock Candy uploaded but its required content rating could not be registered.");
+
+   var catalog=await Session.LoadUserAssetCatalogAsync();
+   var entries=(catalog.Items??[]).ToList();
+   entries.Add(new UserAssetCatalogEntry(
+    key,_name.Trim(),"Miniatures","Rock Candy",DateTimeOffset.UtcNow,
+    AssetKind:"rock-candy",SpriteColumns:3,SpriteRows:2,FrameCount:6,
+    SourceWidth:1536,SourceHeight:1024));
+   await Session.SaveUserAssetCatalogAsync(new UserAssetCatalog(entries,DateTimeOffset.UtcNow));
+   _status=$"Rock Candy ‘{_name.Trim()}’ saved to Uploads → Miniatures → Rock Candy. Open Assets to place it on a board.";
+  }
+  catch(Exception ex){_status="Rock Candy save failed: "+ex.Message;}
+  finally{_working=false;await InvokeAsync(StateHasChanged);}
+ }
+
+ void Reset(){_faces.Clear();_status="";}
+ public async ValueTask DisposeAsync(){if(_module is not null)await _module.DisposeAsync();}
+}
