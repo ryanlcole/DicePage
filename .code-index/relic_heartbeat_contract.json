@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "status": "PROPOSAL_IMPLEMENTATION",
+  "purpose": "Provide a tiny machine-readable continuity signal so ReLiC and external reasoning tools can inspect exceptions without relearning the repository.",
+  "doctrine": {
+    "observer_only": true,
+    "safe_does_not_authorize_mutation": true,
+    "representation_is_not_truth": true,
+    "routine_success_is_ephemeral": true,
+    "failure_evidence_is_bounded": true
+  },
+  "states": {
+    "SAFE": "Required invariants passed at the observed commit.",
+    "DEGRADED": "A non-critical invariant needs review.",
+    "UNSAFE": "A critical invariant failed and bounded diagnostic evidence should be inspected.",
+    "UNKNOWN": "Expected evidence or heartbeat is absent, stale, or cannot establish safety."
+  },
+  "heartbeat": {
+    "required_fields": [
+      "schema_version",
+      "system",
+      "repository",
+      "branch",
+      "observed_commit",
+      "state",
+      "checked_at",
+      "checks",
+      "diagnostic_pointers"
+    ],
+    "allowed_states": ["SAFE", "DEGRADED", "UNSAFE", "UNKNOWN"]
+  },
+  "retention": {
+    "safe_history": "Do not require durable per-run SAFE history in the repository.",
+    "diagnostic_evidence": "Preserve only bounded evidence needed to diagnose unresolved, security-relevant, repeated, or novel failures.",
+    "durable_knowledge": "Promote a distilled error rule only after verification; do not promote raw observations to canon."
+  },
+  "routing": {
+    "semantic_map": ".code-index/relic_paths.json",
+    "latest_heartbeat": ".code-index/relic_heartbeat.json",
+    "known_errors": "KNOWN_ERRORS.md",
+    "semantic_units": ".code-index/semantic_units.json",
+    "code_index_summary": ".code-index/summary.json",
+    "code_database_summary": ".code-index/code_database_summary.json"
+  }
+}
