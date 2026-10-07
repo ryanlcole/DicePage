@@ -1,23 +1,23 @@
 @implements IDisposable
 @inject WorldSession Session
 
-<aside class="recursion-cockpit" data-recursion-tier="@Session.ViewportTier" data-recursion-layer="@Session.ViewportTier" aria-label="Recursive world tiers">
+<aside class="recursion-cockpit" data-recursion-tier="@Session.ViewportTier" data-recursion-layer="@Session.ViewportTier" aria-label="Recursive world builder">
     <div class="recursion-cockpit-frame" aria-hidden="true"></div>
-    <div class="recursion-layer-strip" role="toolbar" aria-label="Viewing tier">
+    <div class="recursion-layer-strip" role="toolbar" aria-label="Builder scope">
         @foreach (var tier in WorldSession.RecursionTiers)
         {
             <button type="button"
                     class="recursion-layer-button @(Session.ViewportTier==tier?"active":"")"
                     data-tier="@tier"
                     data-layer="@tier"
-                    title="View @Pretty(tier) tier"
+                    title="View @Pretty(tier) scope"
                     aria-pressed="@(Session.ViewportTier==tier)"
                     @onclick="()=>Session.SetViewportTier(tier)">
                 <span>@Short(tier)</span>
             </button>
         }
     </div>
-    <output class="recursion-layer-readout"><strong>@Pretty(Session.ViewportTier)</strong><span>viewport tier</span></output>
+    <output class="recursion-layer-readout"><strong>@Pretty(Session.ViewportTier)</strong><span>builder scope</span></output>
 </aside>
 
 @code {
@@ -27,7 +27,6 @@
     static string Pretty(string value)=>System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value.ToLowerInvariant());
     static string Short(string tier)=>tier switch
     {
-        "WORLD"=>"W","REGION"=>"R","LOCAL"=>"L","SITE"=>"S","ROOM"=>"RM",
-        "ENCOUNTER"=>"E","OBJECT"=>"O","CONTAINER"=>"C","CONTENTS"=>"CT",_=>"?"
+        "WORLD"=>"W","REGION"=>"R","LOCAL"=>"L","INSTANCE"=>"I",_=>"?"
     };
 }
