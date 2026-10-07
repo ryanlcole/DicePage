@@ -1,8 +1,37 @@
 const bridges=new WeakMap();
-const REGION_TOOL_SRC="/Game/prototype/region-volume-tools.js?v=20261006-bounded-volume-1";
+const REGION_TOOL_SRC="/Game/prototype/region-volume-tools.js?v=20261007-canonical-volume-2";
 
 function post(frame,message){
   try{frame?.contentWindow?.postMessage({source:"shaelvien-regiondefiner-host",...message},location.origin)}catch{}
+}
+
+function controllerModeLabel(phase){
+  switch(String(phase||"").toLowerCase()){
+    case "xy":return "BOUNDS";
+    case "z":return "Z";
+    case "save":return "60°";
+    case "saved":
+    case "existing":return "REGION";
+    default:return "BOUNDS";
+  }
+}
+
+function normalizeControllerState(raw){
+  const state=raw&&typeof raw==="object"?raw:{};
+  const phase=String(state.phase||"idle");
+  return {
+    phase,
+    selectedCount:Math.max(0,Math.trunc(Number(state.selectedCount)||0)),
+    // Grid shape is internal compatibility metadata. The parent controller must
+    // describe the current Region operation instead of exposing HEX/SQUARE as
+    // geography.
+    gridShape:controllerModeLabel(phase),
+    tierIndex:Math.max(0,Math.trunc(Number(state.tierIndex)||0)),
+    pending:state.pending===true,
+    exitRequested:state.exitRequested===true,
+    regionId:String(state.regionId||""),
+    regionName:String(state.regionName||"")
+  };
 }
 
 async function ensureRegionTools(frame){
@@ -40,6 +69,10 @@ async function callPrototype(frame,name,...args){
   return await fn(...args);
 }
 
+async function readControllerState(frame){
+  return normalizeControllerState(await callPrototype(frame,"getRegionControllerState"));
+}
+
 async function sendState(frame,dotnet){
   await ensureRegionTools(frame);
   try{
@@ -63,14 +96,32 @@ async function sendState(frame,dotnet){
 }
 
 export async function refresh(frame,dotnet){await sendState(frame,dotnet)}
-export async function enterControllerRegionSelection(frame){return (await callPrototype(frame,"enterRegionController"))!==false}
-export async function publishControllerState(frame){return await callPrototype(frame,"publishRegionControllerState")}
-export async function getControllerState(frame){return await callPrototype(frame,"getRegionControllerState")}
-export async function controllerPrimary(frame,name=""){return await callPrototype(frame,"regionControllerPrimary",String(name||""))}
-export async function controllerBack(frame){return await callPrototype(frame,"regionControllerBack")}
+export async function enterControllerRegionSelection(frame){
+  const result=await callPrototype(frame,"enterRegionController");
+  return result!==false;
+}
+export async function publishControllerState(frame){
+  await callPrototype(frame,"publishRegionControllerState");
+  return await readControllerState(frame);
+}
+export async function getControllerState(frame){return await readControllerState(frame)}
+export async function controllerPrimary(frame,name=""){
+  await callPrototype(frame,"regionControllerPrimary",String(name||""));
+  return await readControllerState(frame);
+}
+export async function controllerBack(frame){
+  await callPrototype(frame,"regionControllerBack");
+  return await readControllerState(frame);
+}
 export async function controllerStep(frame,axis,direction){return (await callPrototype(frame,"regionControllerStep",String(axis||""),Math.sign(Number(direction)||0)))!==false}
 export async function controllerSelect(frame){return (await callPrototype(frame,"regionControllerSelect"))!==false}
-export async function controllerToggleGrid(frame){return (await callPrototype(frame,"regionControllerToggleGrid"))!==false}
+export async function controllerToggleGrid(frame){
+  // The old controller used this button to switch HEX/SQUARE. Region identity is
+  // now XYZ bounds, so touching the center mode button only republishes semantic
+  // state and never changes geography or compatibility grid metadata.
+  await callPrototype(frame,"publishRegionControllerState");
+  return true;
+}
 export async function setDepth(frame,tier,layer,scope,spatialNodeId="",spatialPath=""){return (await callPrototype(frame,"setExternalDepth",{tier,layer,scope,spatialNodeId,spatialPath}))!==false}
 export async function placeAsset(frame,payload){return (await callPrototype(frame,"placeExternalAsset",payload||{}))!==false}
 export async function editCommand(frame,command){const result=await callPrototype(frame,"editCommand",String(command||"").toLowerCase());return typeof result==="string"?result:""}
@@ -101,8 +152,8 @@ export async function attach(frame,dotnet){
         return;
       }
       if(data.type==="controller-state"){
-        const state=data.state&&typeof data.state==="object"?data.state:{};
-        await dotnet.invokeMethodAsync("ReceiveControllerStateAsync",String(state.phase||"idle"),Math.max(0,Math.trunc(Number(state.selectedCount)||0)),String(state.gridShape||"square"),Math.max(0,Math.trunc(Number(state.tierIndex)||0)),state.pending===true,state.exitRequested===true,String(state.regionId||""),String(state.regionName||""));
+        const state=normalizeControllerState(data.state);
+        await dotnet.invokeMethodAsync("ReceiveControllerStateAsync",state.phase,state.selectedCount,state.gridShape,state.tierIndex,state.pending,state.exitRequested,state.regionId,state.regionName);
         return;
       }
       if(data.type==="request-claim"){
