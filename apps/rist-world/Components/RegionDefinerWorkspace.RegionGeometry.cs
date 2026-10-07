@@ -162,18 +162,20 @@ public partial class RegionDefinerWorkspace
         int columns,
         int rows)
     {
-        var rectangle = RectangleCells(minX, minY, maxX, maxY, columns, rows);
-        if (rectangle.Count == 0) return [];
-        var set = rectangle.ToHashSet();
-        return rectangle.Where(cell =>
+        columns = Math.Max(1, columns);
+        rows = Math.Max(1, rows);
+        var minColumn = Math.Clamp((int)Math.Floor(minX * columns), 0, columns - 1);
+        var maxColumn = Math.Clamp((int)Math.Ceiling(maxX * columns) - 1, minColumn, columns - 1);
+        var minRow = Math.Clamp((int)Math.Floor(minY * rows), 0, rows - 1);
+        var maxRow = Math.Clamp((int)Math.Ceiling(maxY * rows) - 1, minRow, rows - 1);
+        var result = new List<int>();
+        for (var row = minRow; row <= maxRow; row++)
+        for (var column = minColumn; column <= maxColumn; column++)
         {
-            var column = cell % columns;
-            var row = cell / columns;
-            return !set.Contains((row * columns) + column - 1)
-                || !set.Contains((row * columns) + column + 1)
-                || !set.Contains(((row - 1) * columns) + column)
-                || !set.Contains(((row + 1) * columns) + column);
-        }).Distinct().Order().ToList();
+            if (row == minRow || row == maxRow || column == minColumn || column == maxColumn)
+                result.Add((row * columns) + column);
+        }
+        return result.Distinct().Order().ToList();
     }
 
     static bool GeometryProperty(JsonElement source, string name, out JsonElement value)
