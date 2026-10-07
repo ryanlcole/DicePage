@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "status": "PROPOSAL_IMPLEMENTATION",
+  "purpose": "Pointer-first navigation for ReLiC and ChatGPT. These are routes to inspect, not cached claims of current truth.",
+  "rules": [
+    "Use pointers to locate authoritative evidence; inspect the current target before implementation-sensitive claims.",
+    "A pointer is representation, not proof that the target is healthy or current.",
+    "Expand only the Shaep needed for the active question.",
+    "Do not infer mutation authority from discoverability."
+  ],
+  "shaeps": {
+    "code_governance": {
+      "purpose": "Code identity, duplicate/stale detection, semantic graph, and error signatures.",
+      "paths": [
+        ".github/workflows/code-index.yml",
+        "tools/code_index.py",
+        "tools/code_database.py",
+        "tools/semantic_units.py",
+        ".code-index/summary.json",
+        ".code-index/code_database_summary.json",
+        ".code-index/semantic_units.json"
+      ]
+    },
+    "compliance_guardrails": {
+      "purpose": "Repository compliance and authority guardrail verification.",
+      "paths": [
+        ".github/workflows/compliance-guardrails.yml",
+        ".github/scripts/verify-compliance-guardrails.py"
+      ]
+    },
+    "authenticated_e2e": {
+      "purpose": "Authenticated end-to-end regression verification.",
+      "paths": [
+        ".github/workflows/authenticated-e2e.yml"
+      ]
+    },
+    "public_delivery": {
+      "purpose": "Public-alpha CI and deployment evidence.",
+      "paths": [
+        ".github/workflows/public-alpha-ci.yml",
+        ".github/workflows/deploy-live-alpha-public.yml",
+        ".github/workflows/deploy-rist-frontend-aws.yml"
+      ]
+    },
+    "world_region": {
+      "purpose": "Current Region bounded-volume viewer/definition implementation and regression contract.",
+      "paths": [
+        "apps/rist-world/wwwroot/region-definer-host.js",
+        "apps/rist-world/wwwroot/prototype/region-volume-tools.js",
+        "apps/rist-world/wwwroot/prototype/region-selection-tools.js",
+        "apps/rist-world/tests/canonical-viewer-region-volume-contract.test.cjs"
+      ]
+    },
+    "errors": {
+      "purpose": "Durable known errors plus generated error-signature evidence.",
+      "paths": [
+        "KNOWN_ERRORS.md",
+        ".code-index/error_sources.json",
+        ".code-index/code_database_summary.json"
+      ]
+    },
+    "relic_heartbeat": {
+      "purpose": "Minimal continuity state and bounded exception routing.",
+      "paths": [
+        ".code-index/relic_heartbeat_contract.json",
+        ".code-index/relic_heartbeat.json",
+        ".github/workflows/relic-heartbeat.yml",
+        ".github/scripts/relic_heartbeat.py"
+      ]
+    }
+  }
+}
