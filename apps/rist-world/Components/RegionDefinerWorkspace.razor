@@ -93,7 +93,7 @@
    var regionFlow=NewRegionFlow?"new":activeRegion is null?"new":"existing";
    var regionId=Uri.EscapeDataString(NewRegionFlow?"":activeRegion?.RegionId??"");
    var embedded=EmbeddedController?"&embedded-controller=1":"";
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}{embedded}&renderer=20261007-region-selection-repair-1";
+   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}{embedded}&renderer=20261006-bounded-region-volume-1";
   }
  }
 
@@ -103,7 +103,7 @@
 
   // Attach the canonical-map bridge before loading region/claim metadata.
   // Viewer rendering must never wait on permission metadata or MMO claim refresh.
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20261007-region-selection-repair-1");
+  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20261006-bounded-region-volume-1");
   _self=DotNetObjectReference.Create(this);
   await _module.InvokeVoidAsync("attach",_frame,_self);
   _bridgeAttached=true;
