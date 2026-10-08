@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ReLiC Neuron Field</title>
+<style>
+:root{color-scheme:dark;--bg:#05070b;--panel:#0c1119;--line:#728096;--text:#eef5ff;--muted:#9aa9bc;--accent:#d8f3ff;--warn:#ffb4a8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,sans-serif;overflow:hidden}canvas{display:block;width:100vw;height:100vh;touch-action:none}.hud{position:fixed;inset:12px 12px auto 12px;display:flex;gap:8px;align-items:flex-start;pointer-events:none}.card{background:#0c1119dd;border:1px solid #293446;border-radius:12px;padding:10px 12px;backdrop-filter:blur(8px);pointer-events:auto}.title{font-weight:700}.small{font-size:12px;color:var(--muted);max-width:540px}.status{margin-left:auto;text-align:right}.legend{position:fixed;left:12px;bottom:12px;max-width:min(560px,calc(100vw - 24px))}.observer{position:fixed;inset:0;border:1px solid #7bdfff33;pointer-events:none;box-shadow:inset 0 0 80px #69d9ff0a}.detail{position:fixed;right:12px;bottom:12px;width:min(340px,calc(100vw - 24px));display:none}.detail.show{display:block}.pill{display:inline-block;margin:2px 4px 2px 0;padding:2px 6px;border:1px solid #33435a;border-radius:999px;font-size:11px}.bad{color:var(--warn)}
+</style>
+</head>
+<body>
+<canvas id="field" aria-label="ReLiC neuron spatial formation"></canvas><div class="observer" aria-hidden="true"></div>
+<div class="hud"><div class="card"><div class="title">ReLiC • Neuron Formation</div><div class="small">Observer-only spatial representation. Particles are bounded records; links are source-backed relationships; Shaeps are emergent clusters. No central ReLiC node.</div></div><div class="card status"><div id="score">forming…</div><div class="small" id="counts"></div></div></div>
+<div class="card legend"><span class="pill">observation</span><span class="pill">decision</span><span class="pill">canon</span><span class="pill">hypothesis</span><span class="pill">implementation</span><span class="pill">verification/current</span><span class="pill bad">contradiction tension</span><div class="small">Drag to rotate • pinch/wheel to zoom • tap a particle to trace it. Formation is representation, not truth authority.</div></div>
+<div class="card detail" id="detail"></div>
+<script src="relic-neuron-field.js"></script>
+</body></html>
