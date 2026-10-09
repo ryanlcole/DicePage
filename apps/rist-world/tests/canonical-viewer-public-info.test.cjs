@@ -23,11 +23,23 @@ test('Game info credits directly used software contributors after legal links',(
   for(const label of [
     'OpenAI / ChatGPT','GitHub','GitHub Actions','Amazon Web Services',
     'Microsoft .NET','Blazor WebAssembly','Python','JavaScript',
-    'Node.js','npm','Discord','Git'
+    'Node.js','npm','Discord','Git','Suno','AMD AI Developer Program'
   ]) assert.ok(info.includes(label),'missing software contributor: '+label);
   assert.match(info,/assets\/software\/openai-chatgpt\.svg/);
   assert.match(info,/assets\/software\/aws\.svg/);
+  assert.match(info,/https:\/\/suno\.com\//);
+  assert.match(info,/https:\/\/developer\.amd\.com\/ai-developer-program\//);
+  assert.match(info,/https:\/\/ryanlcole\.github\.io\/ReLiC-AMD-Business-Continuity\//);
   assert.match(info,/trademarks and logos remain the property of their respective owners/);
+
+  const contributorLinks=[
+    'https://openai.com/','https://github.com/','https://github.com/features/actions',
+    'https://aws.amazon.com/','https://dotnet.microsoft.com/','https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor',
+    'https://www.python.org/','https://developer.mozilla.org/en-US/docs/Web/JavaScript',
+    'https://nodejs.org/','https://www.npmjs.com/','https://discord.com/','https://git-scm.com/',
+    'https://suno.com/','https://developer.amd.com/ai-developer-program/'
+  ];
+  for(const href of contributorLinks) assert.ok(info.includes('href="'+href+'"'),'missing contributor website link: '+href);
 
   assert.match(info,/assets\/branding\/relic_gamemaster_wordmark\.jpg/);
   assert.match(info,/alt="ReLiCGameMaster logo"/);
@@ -39,8 +51,6 @@ test('Game info credits directly used software contributors after legal links',(
   assert.doesNotMatch(info,/class="die-body"/);
 });
 
-
-
 test('Game info has only a bottom Return Home control',()=>{
   const info=readApp('wwwroot/info.html');
   assert.doesNotMatch(info,/Return to RIST WORLD/);
@@ -49,10 +59,6 @@ test('Game info has only a bottom Return Home control',()=>{
   const contributors=info.indexOf('id="software-contributors"');
   assert.ok(button>contributors);
 });
-
-
-
-
 
 test('Meet the team opens the live Jeyrusal Signature Card parallax stack',()=>{
   const info=readApp('wwwroot/info.html');
