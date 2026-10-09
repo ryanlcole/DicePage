@@ -4,7 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>Shaelvien World Builder</title>
-  <link rel="stylesheet" href="./prototype.css?v=20261004-continuous-space-2" />
+  <link rel="stylesheet" href="./prototype.css?v=20261008-force-region-marker-1" />
+  <style id="region-marker-preboot-style">html.region-marker-preboot #stage .region-tier-preview,html.region-marker-preboot #stage .region-tier-preview-panel,html.region-marker-preboot #stage .tier-preview,html.region-marker-preboot #stage .tier-preview-panel,html.region-marker-preboot #stage [data-region-tier-preview]{display:none!important}html.region-marker-preboot #world{display:block!important;visibility:visible!important;opacity:1!important}</style>
+  <script>(()=>{const q=new URLSearchParams(location.search);if(String(q.get('mode')||'').toLowerCase()==='regiondefiner'&&String(q.get('regionFlow')||'').toLowerCase()==='new')document.documentElement.classList.add('region-marker-preboot')})()</script>
 </head>
 <body>
 <main class="app-shell">
@@ -15,6 +17,6 @@
     <section id="viewerKeyboard" class="keyboard" aria-label="World Builder contextual keyboard" hidden data-ui><div class="keyboard-head"><strong>VIEWER-MOUNTED KEYBOARD · PERCEPTION / TOOLS ONLY</strong><button id="keyboardClose" type="button" aria-label="Close keyboard">×</button></div><div id="keyboardTabs" class="keyboard-tabs" role="tablist" aria-label="Keyboard modes"></div><div id="keyboardKeys" class="keyboard-keys"></div></section><div id="live" class="sr-live" role="status" aria-live="polite"></div>
   </section>
 </main>
-<script src="./viewer-input.js?v=20260920-desktop-input-1"></script><script src="./prototype.js?v=20261004-continuous-space-2"></script><script src="./spatial-selection-session.js?v=20261004-frozen-selection-4&fix=20261004-hex30-volume-1"></script><script src="./spatial-title-handoff.js?v=20261004-spatial-title-1"></script><script src="./spatial-depth-authority.js?v=20261004-parent-depth-4&fix=20261004-reference-xy-z-1"></script><script src="./spatial-selector-lock.js?v=20261004-map-selector-lock-1"></script><script src="./spatial-selection-enhancements.js?v=20261004-volume-selection-1"></script><script src="./region-selection-tools.js?v=20261008-retired-region-selector-2"></script><script id="region-volume-tools-v3" src="./region-volume-tools.js?v=20261008-marker-region-resume-3"></script>
+<script src="./viewer-input.js?v=20260920-desktop-input-1"></script><script src="./prototype.js?v=20261008-force-region-marker-1"></script><script src="./spatial-selection-session.js?v=20261004-frozen-selection-4&fix=20261004-hex30-volume-1"></script><script src="./spatial-title-handoff.js?v=20261004-spatial-title-1"></script><script src="./spatial-depth-authority.js?v=20261004-parent-depth-4&fix=20261004-reference-xy-z-1"></script><script src="./spatial-selector-lock.js?v=20261004-map-selector-lock-1"></script><script src="./spatial-selection-enhancements.js?v=20261004-volume-selection-1"></script><script id="region-volume-tools-v3" src="./region-volume-tools.js?v=20261008-force-region-marker-4"></script>
 </body>
 </html>
