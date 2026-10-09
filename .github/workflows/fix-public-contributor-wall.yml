@@ -1,0 +1,95 @@
+name: Fix public contributor wall
+
+on:
+  push:
+    branches: [fix-software-contributor-links-amd-suno]
+    paths: [.github/workflows/fix-public-contributor-wall.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix-software-contributor-links-amd-suno
+          fetch-depth: 0
+      - name: Apply deterministic contributor repair
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path('apps/rist-world/wwwroot/info.html')
+          text = path.read_text(encoding='utf-8')
+          start = text.index('<section id="software-contributors"')
+          end = text.index('</section>', start) + len('</section>')
+          old = text[start:end]
+
+          links = {
+            'OpenAI / ChatGPT': 'https://openai.com/',
+            'GitHub': 'https://github.com/',
+            'GitHub Actions': 'https://github.com/features/actions',
+            'Amazon Web Services': 'https://aws.amazon.com/',
+            'Microsoft .NET': 'https://dotnet.microsoft.com/',
+            'Blazor WebAssembly': 'https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor',
+            'Python': 'https://www.python.org/',
+            'JavaScript': 'https://developer.mozilla.org/en-US/docs/Web/JavaScript',
+            'Node.js': 'https://nodejs.org/',
+            'npm': 'https://www.npmjs.com/',
+            'Discord': 'https://discord.com/',
+            'Git': 'https://git-scm.com/',
+          }
+
+          def link_card(match):
+            article = match.group(0)
+            heading = re.search(r'<h3>([^<]+)</h3>', article)
+            if not heading or heading.group(1) not in links:
+              return article
+            label = heading.group(1)
+            href = links[label]
+            if '<a class="software-logo-link"' in article:
+              return article
+            article = article.replace('<img class="software-logo"', f'<a class="software-logo-link" href="{href}" target="_blank" rel="noopener noreferrer" aria-label="Visit {label} official website"><img class="software-logo"', 1)
+            article = article.replace(' decoding="async">', ' decoding="async"></a>', 1)
+            return article
+
+          new = re.sub(r'<article class="software-card">.*?</article>', link_card, old)
+
+          if '<h3>Suno</h3>' not in new:
+            suno = '''\n <article class="software-card"><a class="software-logo-link" href="https://suno.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit Suno official website"><img class="software-logo" src="https://suno.com/favicon.ico" alt="Suno logo" loading="lazy" decoding="async"></a><div><h3>Suno</h3></div><p>Used for AI-assisted music generation and audio experimentation for project creative work.</p></article>'''
+            new = new.replace('\n</div>\n<p class="software-note">', suno + '\n</div>\n<p class="software-note">')
+
+          if '<h3>AMD AI Developer Program</h3>' not in new:
+            amd = '''\n <article class="software-card"><a class="software-logo-link" href="https://developer.amd.com/ai-developer-program/" target="_blank" rel="noopener noreferrer" aria-label="Visit AMD AI Developer Program"><img class="software-logo" src="https://cdn.simpleicons.org/amd/ED1C24" alt="AMD logo" loading="lazy" decoding="async"></a><div><h3>AMD AI Developer Program</h3></div><p>ReLiC Share / ReLiC AMD Business Continuity is being developed as a public hackathon implementation of ReLiC's business-continuity and temporal-authority work. <a href="https://ryanlcole.github.io/ReLiC-AMD-Business-Continuity/" target="_blank" rel="noopener noreferrer">View the public ReLiC AMD Business Continuity project.</a></p></article>'''
+            new = new.replace('\n</div>\n<p class="software-note">', amd + '\n</div>\n<p class="software-note">')
+
+          if old == new:
+            raise SystemExit('Contributor block was not changed; refusing no-op repair.')
+          text = text[:start] + new + text[end:]
+          path.write_text(text, encoding='utf-8')
+
+          check = path.read_text(encoding='utf-8')
+          required = list(links.values()) + [
+            'https://suno.com/',
+            'https://developer.amd.com/ai-developer-program/',
+            'https://ryanlcole.github.io/ReLiC-AMD-Business-Continuity/'
+          ]
+          missing = [url for url in required if url not in check]
+          if missing:
+            raise SystemExit(f'Missing expected contributor links: {missing}')
+      - name: Run public info regression test
+        run: node --test apps/rist-world/tests/canonical-viewer-public-info.test.cjs
+      - name: Verify only intended file changed
+        run: |
+          git diff --check
+          git diff -- apps/rist-world/wwwroot/info.html
+      - name: Commit repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/rist-world/wwwroot/info.html
+          git commit -m "Fix software contributor links and AMD/Suno credits"
+          git push origin HEAD:fix-software-contributor-links-amd-suno
