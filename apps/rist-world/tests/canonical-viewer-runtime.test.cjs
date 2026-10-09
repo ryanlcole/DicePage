@@ -26,8 +26,13 @@ test('viewer retains pointer, wheel, keyboard and resize camera paths',()=>{
 });
 
 test('viewer separates text input from map navigation',()=>{
-  assert.match(prototype,/function isTextInput/);
-  assert.match(prototype,/isTextInput\(event\.target\)/);
+  // Keyboard camera navigation is owned by viewer-input.js. It is intentionally
+  // fail-closed: only the focused stage may consume navigation keys, so native
+  // inputs, selects, textareas and buttons retain their own keyboard behavior.
+  assert.match(input,/event\.target!==stage/);
+  assert.match(input,/doc\.activeElement!==stage/);
+  assert.match(input,/event\.ctrlKey\|\|event\.metaKey\|\|event\.altKey/);
+  assert.match(prototype,/button,input,select,textarea,a\[href\],\[contenteditable\]/);
 });
 
 test('view-only and claim-only modes fail closed for authoritative edits',()=>{
