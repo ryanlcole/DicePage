@@ -1,5 +1,21 @@
 /* ReLiC Share contributor presentation.
-   Separate from the legacy embedded block so future contributor edits remain line-addressable. */
+   Keep the canonical contributor wall presentation isolated from legacy page styles. */
 .software-card>a:first-child{display:inline-flex;width:52px;height:52px;border-radius:12px;text-decoration:none}
 .software-card>a:first-child:focus-visible{outline:2px solid #f2cf72;outline-offset:3px}
 .software-card .software-project-link{grid-column:1/-1;color:#f2cf72;font-weight:700}
+
+/* Canonical alphabetical presentation without duplicating contributor content. */
+#software-contributors .software-grid>.software-card:nth-child(14){order:1} /* AMD AI Developer Program */
+#software-contributors .software-grid>.software-card:nth-child(4){order:2}  /* Amazon Web Services */
+#software-contributors .software-grid>.software-card:nth-child(6){order:3}  /* Blazor WebAssembly */
+#software-contributors .software-grid>.software-card:nth-child(11){order:4} /* Discord */
+#software-contributors .software-grid>.software-card:nth-child(12){order:5} /* Git */
+#software-contributors .software-grid>.software-card:nth-child(2){order:6}  /* GitHub */
+#software-contributors .software-grid>.software-card:nth-child(3){order:7}  /* GitHub Actions */
+#software-contributors .software-grid>.software-card:nth-child(8){order:8}  /* JavaScript */
+#software-contributors .software-grid>.software-card:nth-child(5){order:9}  /* Microsoft .NET */
+#software-contributors .software-grid>.software-card:nth-child(9){order:10} /* Node.js */
+#software-contributors .software-grid>.software-card:nth-child(10){order:11} /* npm */
+#software-contributors .software-grid>.software-card:nth-child(1){order:12} /* OpenAI / ChatGPT */
+#software-contributors .software-grid>.software-card:nth-child(7){order:13} /* Python */
+#software-contributors .software-grid>.software-card:nth-child(13){order:14} /* Suno */
