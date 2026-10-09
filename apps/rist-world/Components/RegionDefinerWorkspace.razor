@@ -3,326 +3,39 @@
 @inject WorldSession Session
 @inject IJSRuntime JS
 
-<div class="region-definer-host @(EmbeddedController?"embedded-controller-host":"")"
-     data-world-id="@Session.WorldId"
-     data-world-name="@Session.WorldDisplayName"
-     aria-label="Region Definer">
- <iframe
-  @ref="_frame"
-  class="region-definer-frame"
-  src="@BuilderSrc"
-  title="Region Definer"
-  loading="eager"
-  allow="fullscreen"
- ></iframe>
+<div class="region-definer-host @(EmbeddedController?"embedded-controller-host":"")" data-world-id="@Session.WorldId" data-world-name="@Session.WorldDisplayName" aria-label="Region Definer">
+ <iframe @ref="_frame" class="region-definer-frame" src="@BuilderSrc" title="Region Definer" loading="eager" allow="fullscreen"></iframe>
 </div>
-
-<style>
- .region-definer-host{
-  box-sizing:border-box;
-  position:absolute;
-  inset:0;
-  z-index:2147481000;
-  width:100%;
-  height:100%;
-  min-width:0;
-  min-height:0;
-  overflow:hidden;
-  background:#05090c;
-  contain:layout size;
- }
- .region-definer-frame{
-  display:block;
-  width:100%;
-  height:100%;
-  border:0;
-  margin:0;
-  padding:0;
-  background:#05090c;
- }
-</style>
+<style>.region-definer-host{box-sizing:border-box;position:absolute;inset:0;z-index:2147481000;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:#05090c;contain:layout size}.region-definer-frame{display:block;width:100%;height:100%;border:0;margin:0;padding:0;background:#05090c}</style>
 
 @code {
- ElementReference _frame;
- IJSObjectReference? _module;
- DotNetObjectReference<RegionDefinerWorkspace>? _self;
- bool _bridgeAttached;
-
+ ElementReference _frame; IJSObjectReference? _module; DotNetObjectReference<RegionDefinerWorkspace>? _self; bool _bridgeAttached;
  [Parameter] public EventCallback OnStartMenu { get; set; }
  [Parameter] public EventCallback OnHome { get; set; }
  [Parameter] public EventCallback<RegionDefinerControllerState> OnControllerState { get; set; }
  [Parameter] public bool EmbeddedController { get; set; }
  [Parameter] public bool NewRegionFlow { get; set; }
  [Parameter] public string SeedOverride { get; set; } = "";
-
- string BuilderSrc
- {
-  get
-  {
-   var worldId=Uri.EscapeDataString(Session.WorldId??"");
-   var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");
-   // Endemar and Geonaph are separate Shaelvien zones. Endemar owns the primordial
-   // fantasy-fiction bootstrap; Geonaph is Truth/Hybrid and must hydrate only from
-   // its own database-backed region/history layers. Legacy geonaph asset paths do
-   // not grant Endemar content to the Geonaph zone.
-   var activeRegion=NewRegionFlow?null:Session.ActiveRegion;
-   var activeParcel=string.IsNullOrWhiteSpace(activeRegion?.ParcelId)
-    ?null
-    :Session.MmoParcels.FirstOrDefault(parcel=>string.Equals(parcel.ParcelId,activeRegion!.ParcelId,StringComparison.Ordinal));
-   var isEndemar=Session.IsGeonaphWorld&&string.IsNullOrWhiteSpace(activeRegion?.ParcelId);
-   var isGeonaph=activeParcel is not null
-    &&string.Equals(activeParcel.DisplayName,WorldSession.GeonaphZoneDisplayName,StringComparison.OrdinalIgnoreCase);
-   var seed=!string.IsNullOrWhiteSpace(SeedOverride)?SeedOverride.Trim().ToLowerInvariant():isEndemar?"endemar":isGeonaph?"geonaph":"empty";
-   var surfacePixels=activeRegion?.ParcelPixelWidth>0
-    ? activeRegion.ParcelPixelWidth
-    : Session.SurfaceWorldPixelLimit ?? WorldSession.IncludedSurfaceWorldPixels;
-   var maxHeight=isEndemar
-    ? WorldSession.EndemarMaxHeight
-    : activeRegion?.MaxHeight>0
-     ? activeRegion.MaxHeight
-     : Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;
-   var surfacePolicy=!string.IsNullOrWhiteSpace(activeRegion?.ParcelId)
-    ?"mmo-parcel"
-    : Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";
-   var truthMode=isEndemar
-    ?WorldSession.EndemarTruthMode
-    :isGeonaph
-     ?WorldSession.GeonaphTruthMode
-     :"UNSPECIFIED";
-   var access=(Session.HasTrustedWorldBuilderAuthority||Session.CanEditRegion(activeRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";
-   var regionFlow=NewRegionFlow?"new":activeRegion is null?"new":"existing";
-   var regionId=Uri.EscapeDataString(NewRegionFlow?"":activeRegion?.RegionId??"");
-   var embedded=EmbeddedController?"&embedded-controller=1":"";
-   return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}{embedded}&renderer=20261006-bounded-region-volume-1";
-  }
- }
-
- protected override async Task OnAfterRenderAsync(bool firstRender)
- {
-  if(!firstRender||_bridgeAttached)return;
-
-  // Attach the canonical-map bridge before loading region/claim metadata.
-  // Viewer rendering must never wait on permission metadata or MMO claim refresh.
-  _module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20261006-bounded-region-volume-1");
-  _self=DotNetObjectReference.Create(this);
-  await _module.InvokeVoidAsync("attach",_frame,_self);
-  _bridgeAttached=true;
-
-  try
-  {
-   if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();
-   await Session.LoadRegionsAsync();
-   await _module.InvokeVoidAsync("refresh",_frame,_self);
-   if(EmbeddedController)
-   {
-    if(NewRegionFlow)await _module.InvokeVoidAsync("enterControllerRegionSelection",_frame);
-    else await _module.InvokeVoidAsync("publishControllerState",_frame);
-   }
-  }
-  catch
-  {
-   // The map stays visible; a later interaction can retry metadata loading.
-  }
- }
-
- [JSInvokable]
- public async Task RequestHomeFromPrototypeAsync()
- {
-  if(OnHome.HasDelegate)await OnHome.InvokeAsync();
- }
-
- [JSInvokable]
- public async Task ReceiveControllerStateAsync(string phase,int selectedCount,string gridShape,int tierIndex,bool pending,bool exitRequested,string regionId,string regionName)
- {
-  if(OnControllerState.HasDelegate)
-   await OnControllerState.InvokeAsync(new RegionDefinerControllerState(phase,selectedCount,gridShape,tierIndex,pending,exitRequested,regionId,regionName));
- }
-
- public async Task<RegionDefinerControllerState?> GetControllerStateAsync()
- {
-  if(_module is null)return null;
-  try{return await _module.InvokeAsync<RegionDefinerControllerState?>("getControllerState",_frame);}catch(JSException){return null;}
- }
- public async Task<RegionDefinerControllerState?> PrimaryAsync(string name="")
- {
-  if(_module is null)return null;
-  try{return await _module.InvokeAsync<RegionDefinerControllerState?>("controllerPrimary",_frame,name);}catch(JSException){return null;}
- }
- public async Task<RegionDefinerControllerState?> BackAsync()
- {
-  if(_module is null)return null;
-  try{return await _module.InvokeAsync<RegionDefinerControllerState?>("controllerBack",_frame);}catch(JSException){return null;}
- }
- public async Task<bool> StepAsync(string axis,int direction)
- {
-  if(_module is null)return false;
-  try{return await _module.InvokeAsync<bool>("controllerStep",_frame,axis,direction);}catch(JSException){return false;}
- }
- public async Task<bool> SelectAsync()
- {
-  if(_module is null)return false;
-  try{return await _module.InvokeAsync<bool>("controllerSelect",_frame);}catch(JSException){return false;}
- }
- public async Task<bool> ToggleGridAsync()
- {
-  if(_module is null)return false;
-  try{return await _module.InvokeAsync<bool>("controllerToggleGrid",_frame);}catch(JSException){return false;}
- }
- public async Task<bool> SetDepthAsync(int tier,int layer,string scope,string spatialNodeId="",string spatialPath="")
- {
-  if(_module is null)return false;
-  try{return await _module.InvokeAsync<bool>("setDepth",_frame,tier,layer,scope,spatialNodeId,spatialPath);}catch(JSException){return false;}
- }
- public async Task<bool> PlaceAssetAsync(object payload)
- {
-  if(_module is null)return false;
-  try{return await _module.InvokeAsync<bool>("placeAsset",_frame,payload);}catch(JSException){return false;}
- }
- public async Task<string> EditCommandAsync(string command)
- {
-  if(_module is null)return "Region viewer editing tools are still loading.";
-  try{return await _module.InvokeAsync<string>("editCommand",_frame,command);}catch(JSException){return "Region viewer editing tools are still loading.";}
- }
- public async Task<bool> ShowAllParallaxAsync()
- {
-  if(_module is null)return false;
-  try{return await _module.InvokeAsync<bool>("showAllParallax",_frame);}catch(JSException){return false;}
- }
-
- [JSInvokable]
- public async Task<object> GetWorldSourceForPrototype()
- {
-  var databaseSource=await Session.LoadWorldBuilderSourceAsync();
-  return new
-  {
-   worldId=Session.WorldId,
-   worldName=Session.WorldDisplayName,
-   gridColumns=WorldSession.SpatialScopeGridColumns,
-   gridRows=WorldSession.SpatialScopeGridRows,
-   gridStyle=Session.GridStyle,
-   planeIndex=Session.PlaneIndex,
-   source="database",
-   updatedAtUtc=databaseSource?.UpdatedAtUtc??"",
-   state=databaseSource?.State,
-   activeRegionId=Session.ActiveRegion?.RegionId??"",
-   parcelId=Session.ActiveRegion?.ParcelId??"",
-   parcelPixelWidth=Session.ActiveRegion?.ParcelPixelWidth??0,
-   parcelPixelHeight=Session.ActiveRegion?.ParcelPixelHeight??0,
-   maxHeight=Session.ActiveRegion?.MaxHeight??0,
-   canPromoteWorldSource=Session.HasTrustedWorldBuilderAuthority
-  };
- }
-
- [JSInvokable]
- public async Task<object> SaveRegionMapLayersFromPrototypeAsync(string regionId,System.Text.Json.JsonElement userLayers)
- {
-  var saved=await Session.SaveRegionMapLayersAsync(regionId,userLayers);
-  return new
-  {
-   success=saved is not null,
-   worldId=saved?.WorldId??Session.WorldId,
-   regionId,
-   updatedAtUtc=saved?.UpdatedAtUtc??""
-  };
- }
-
- [JSInvokable]
- public async Task<object> PromoteWorldSourceFromPrototypeAsync(System.Text.Json.JsonElement state)
- {
-  if(!Session.HasTrustedWorldBuilderAuthority)
-   return new { success=false, worldId=Session.WorldId, updatedAtUtc="" };
-
-  var current=await Session.LoadWorldBuilderSourceAsync();
-  var merged=WorldSession.MergeWorldBuilderRepresentationState(
-   state,
-   current?.State,
-   Session.ActiveRegion?.RegionId??"");
-  var saved=await Session.SaveWorldBuilderSourceAsync(merged);
-  return new
-  {
-   success=saved is not null,
-   worldId=saved?.WorldId??Session.WorldId,
-   updatedAtUtc=saved?.UpdatedAtUtc??""
-  };
- }
-
- [JSInvokable]
- public object GetRegionCatalogForPrototype()
- {
-  return Session.Regions.Select(region=>new
-  {
-   id=region.RegionId,
-   name=region.Name,
-   tierIndex=region.TierIndex,
-   minColumn=region.MinColumn,
-   minRow=region.MinRow,
-   maxColumn=region.MaxColumn,
-   maxRow=region.MaxRow,
-   selectedCells=region.SelectedCells,
-   sourceLayerOffsets=region.SourceLayerOffsets,
-   gridShape=region.GridShape,
-   coordinateSpace=region.CoordinateSpace,
-   gridColumns=string.Equals(region.CoordinateSpace,WorldSession.SpatialWorldCoordinateSpace,StringComparison.OrdinalIgnoreCase)
-    ?WorldSession.SpatialScopeGridColumns
-    :WorldSession.GridColumns,
-   gridRows=string.Equals(region.CoordinateSpace,WorldSession.SpatialWorldCoordinateSpace,StringComparison.OrdinalIgnoreCase)
-    ?WorldSession.SpatialScopeGridRows
-    :WorldSession.GridRows,
-   ownerUserId=region.OwnerUserId,
-   parcelId=region.ParcelId,
-   parcelPixelWidth=region.ParcelPixelWidth,
-   parcelPixelHeight=region.ParcelPixelHeight,
-   maxHeight=region.MaxHeight,
-   updatedAtUtc=region.UpdatedAtUtc
-  }).ToList();
- }
-
- [JSInvokable]
- public async Task<object> SubmitRegionClaimRequestFromPrototypeAsync(string name,int[] cells,int tierIndex,int[] sourceLayerOffsets,string gridShape)
- {
-  var result=await Session.SubmitWorldClaimRequestAsync(
-   "regiondefiner",
-   tierIndex,
-   cells??Array.Empty<int>(),
-   sourceLayerOffsets??Array.Empty<int>(),
-   gridShape,
-   requestedName:name);
-  return new
-  {
-   success=result.Success,
-   message=result.Message,
-   requestId=result.Request?.RequestId??"",
-   status=result.Request?.Status??""
-  };
- }
-
- [JSInvokable]
- public async Task<object> CreateRegionFromPrototypeAsync(string name,int[] cells,int tierIndex,int[] sourceLayerOffsets,string gridShape)
- {
-  var region=await Session.CreateRegionAsync(name,cells??Array.Empty<int>(),tierIndex,sourceLayerOffsets??Array.Empty<int>(),gridShape);
-  return new
-  {
-   id=region.RegionId,
-   name=region.Name,
-   tierIndex=region.TierIndex,
-   minColumn=region.MinColumn,
-   minRow=region.MinRow,
-   maxColumn=region.MaxColumn,
-   maxRow=region.MaxRow,
-   selectedCells=region.SelectedCells,
-   sourceLayerOffsets=region.SourceLayerOffsets,
-   gridShape=region.GridShape,
-   updatedAtUtc=region.UpdatedAtUtc
-  };
- }
-
- public async ValueTask DisposeAsync()
- {
-  if(_module is not null)
-  {
-   try{await _module.InvokeVoidAsync("detach",_frame);}catch{}
-   await _module.DisposeAsync();
-  }
-  _self?.Dispose();
- }
+ string BuilderSrc { get { var worldId=Uri.EscapeDataString(Session.WorldId??"");var worldName=Uri.EscapeDataString(Session.WorldDisplayName??"");var activeRegion=NewRegionFlow?null:Session.ActiveRegion;var activeParcel=string.IsNullOrWhiteSpace(activeRegion?.ParcelId)?null:Session.MmoParcels.FirstOrDefault(parcel=>string.Equals(parcel.ParcelId,activeRegion!.ParcelId,StringComparison.Ordinal));var isEndemar=Session.IsGeonaphWorld&&string.IsNullOrWhiteSpace(activeRegion?.ParcelId);var isGeonaph=activeParcel is not null&&string.Equals(activeParcel.DisplayName,WorldSession.GeonaphZoneDisplayName,StringComparison.OrdinalIgnoreCase);var seed=!string.IsNullOrWhiteSpace(SeedOverride)?SeedOverride.Trim().ToLowerInvariant():isEndemar?"endemar":isGeonaph?"geonaph":"empty";var surfacePixels=activeRegion?.ParcelPixelWidth>0?activeRegion.ParcelPixelWidth:Session.SurfaceWorldPixelLimit??WorldSession.IncludedSurfaceWorldPixels;var maxHeight=isEndemar?WorldSession.EndemarMaxHeight:activeRegion?.MaxHeight>0?activeRegion.MaxHeight:Session.IsGeonaphWorld?WorldSession.MmoParcelMaxHeight:WorldSession.LayersPerTier;var surfacePolicy=!string.IsNullOrWhiteSpace(activeRegion?.ParcelId)?"mmo-parcel":Session.IsGeonaphWorld&&Session.HasPlatformCommercialOverride?"developer-controlled":"entitled";var truthMode=isEndemar?WorldSession.EndemarTruthMode:isGeonaph?WorldSession.GeonaphTruthMode:"UNSPECIFIED";var access=(Session.HasTrustedWorldBuilderAuthority||Session.CanEditRegion(activeRegion))?"edit":Session.CanRequestWorldClaim?"claim":"view";var regionFlow=NewRegionFlow?"new":activeRegion is null?"new":"existing";var regionId=Uri.EscapeDataString(NewRegionFlow?"":activeRegion?.RegionId??"");var embedded=EmbeddedController?"&embedded-controller=1":"";return $"/Game/prototype/index.html?live-worldbuilder=1&mode=regiondefiner&worldId={worldId}&worldName={worldName}&seed={seed}&surfacePixels={surfacePixels}&maxHeight={maxHeight}&truthMode={Uri.EscapeDataString(truthMode)}&surfacePolicy={surfacePolicy}&access={access}&regionFlow={regionFlow}&regionId={regionId}{embedded}&renderer=20261009-controller-flowchart-1";} }
+ protected override async Task OnAfterRenderAsync(bool firstRender){if(!firstRender||_bridgeAttached)return;_module=await JS.InvokeAsync<IJSObjectReference>("import","./region-definer-host.js?v=20261009-controller-flowchart-1");_self=DotNetObjectReference.Create(this);await _module.InvokeVoidAsync("attach",_frame,_self);_bridgeAttached=true;try{if(Session.IsGeonaphWorld)await Session.RefreshMmoLandAsync();await Session.LoadRegionsAsync();await _module.InvokeVoidAsync("refresh",_frame,_self);if(EmbeddedController){if(NewRegionFlow)await _module.InvokeVoidAsync("enterControllerRegionSelection",_frame);else await _module.InvokeVoidAsync("publishControllerState",_frame);}}catch{}}
+ [JSInvokable] public async Task RequestHomeFromPrototypeAsync(){if(OnHome.HasDelegate)await OnHome.InvokeAsync();}
+ [JSInvokable] public async Task ReceiveControllerStateAsync(string phase,int selectedCount,string gridShape,int tierIndex,bool pending,bool exitRequested,string regionId,string regionName,int caseIndex=0,int caseCount=1,string caseLabel="REGION",string leftLabel="REGION TOOLS",string rightLabel="SELECT"){if(OnControllerState.HasDelegate)await OnControllerState.InvokeAsync(new RegionDefinerControllerState(phase,selectedCount,gridShape,tierIndex,pending,exitRequested,regionId,regionName,caseIndex,caseCount,caseLabel,leftLabel,rightLabel));}
+ public async Task<RegionDefinerControllerState?> GetControllerStateAsync(){if(_module is null)return null;try{return await _module.InvokeAsync<RegionDefinerControllerState?>("getControllerState",_frame);}catch(JSException){return null;}}
+ public async Task<RegionDefinerControllerState?> PrimaryAsync(string name=""){if(_module is null)return null;try{return await _module.InvokeAsync<RegionDefinerControllerState?>("controllerPrimary",_frame,name);}catch(JSException){return null;}}
+ public async Task<RegionDefinerControllerState?> SecondaryAsync(){if(_module is null)return null;try{return await _module.InvokeAsync<RegionDefinerControllerState?>("controllerSecondary",_frame);}catch(JSException){return null;}}
+ public async Task<RegionDefinerControllerState?> BackAsync(){if(_module is null)return null;try{return await _module.InvokeAsync<RegionDefinerControllerState?>("controllerBack",_frame);}catch(JSException){return null;}}
+ public async Task<RegionDefinerControllerState?> StepAsync(string axis,int direction){if(_module is null)return null;try{return await _module.InvokeAsync<RegionDefinerControllerState?>("controllerStep",_frame,axis,direction);}catch(JSException){return null;}}
+ public async Task<RegionDefinerControllerState?> SelectAsync(){if(_module is null)return null;try{return await _module.InvokeAsync<RegionDefinerControllerState?>("controllerSelect",_frame);}catch(JSException){return null;}}
+ public async Task<bool> ToggleGridAsync(){if(_module is null)return false;try{return await _module.InvokeAsync<bool>("controllerToggleGrid",_frame);}catch(JSException){return false;}}
+ public async Task<bool> SetDepthAsync(int tier,int layer,string scope,string spatialNodeId="",string spatialPath=""){if(_module is null)return false;try{return await _module.InvokeAsync<bool>("setDepth",_frame,tier,layer,scope,spatialNodeId,spatialPath);}catch(JSException){return false;}}
+ public async Task<bool> PlaceAssetAsync(object payload){if(_module is null)return false;try{return await _module.InvokeAsync<bool>("placeAsset",_frame,payload);}catch(JSException){return false;}}
+ public async Task<string> EditCommandAsync(string command){if(_module is null)return "Region viewer editing tools are still loading.";try{return await _module.InvokeAsync<string>("editCommand",_frame,command);}catch(JSException){return "Region viewer editing tools are still loading.";}}
+ public async Task<bool> ShowAllParallaxAsync(){if(_module is null)return false;try{return await _module.InvokeAsync<bool>("showAllParallax",_frame);}catch(JSException){return false;}}
+ [JSInvokable] public async Task<object> GetWorldSourceForPrototype(){var databaseSource=await Session.LoadWorldBuilderSourceAsync();return new{worldId=Session.WorldId,worldName=Session.WorldDisplayName,gridColumns=WorldSession.SpatialScopeGridColumns,gridRows=WorldSession.SpatialScopeGridRows,gridStyle=Session.GridStyle,planeIndex=Session.PlaneIndex,source="database",updatedAtUtc=databaseSource?.UpdatedAtUtc??"",state=databaseSource?.State,activeRegionId=Session.ActiveRegion?.RegionId??"",parcelId=Session.ActiveRegion?.ParcelId??"",parcelPixelWidth=Session.ActiveRegion?.ParcelPixelWidth??0,parcelPixelHeight=Session.ActiveRegion?.ParcelPixelHeight??0,maxHeight=Session.ActiveRegion?.MaxHeight??0,canPromoteWorldSource=Session.HasTrustedWorldBuilderAuthority};}
+ [JSInvokable] public async Task<object> SaveRegionMapLayersFromPrototypeAsync(string regionId,System.Text.Json.JsonElement userLayers){var saved=await Session.SaveRegionMapLayersAsync(regionId,userLayers);return new{success=saved is not null,worldId=saved?.WorldId??Session.WorldId,regionId,updatedAtUtc=saved?.UpdatedAtUtc??""};}
+ [JSInvokable] public async Task<object> PromoteWorldSourceFromPrototypeAsync(System.Text.Json.JsonElement state){if(!Session.HasTrustedWorldBuilderAuthority)return new{success=false,worldId=Session.WorldId,updatedAtUtc=""};var current=await Session.LoadWorldBuilderSourceAsync();var merged=WorldSession.MergeWorldBuilderRepresentationState(state,current?.State,Session.ActiveRegion?.RegionId??"");var saved=await Session.SaveWorldBuilderSourceAsync(merged);return new{success=saved is not null,worldId=saved?.WorldId??Session.WorldId,updatedAtUtc=saved?.UpdatedAtUtc??""};}
+ [JSInvokable] public object GetRegionCatalogForPrototype(){return Session.Regions.Select(region=>new{id=region.RegionId,name=region.Name,tierIndex=region.TierIndex,minColumn=region.MinColumn,minRow=region.MinRow,maxColumn=region.MaxColumn,maxRow=region.MaxRow,selectedCells=region.SelectedCells,sourceLayerOffsets=region.SourceLayerOffsets,gridShape=region.GridShape,coordinateSpace=region.CoordinateSpace,gridColumns=string.Equals(region.CoordinateSpace,WorldSession.SpatialWorldCoordinateSpace,StringComparison.OrdinalIgnoreCase)?WorldSession.SpatialScopeGridColumns:WorldSession.GridColumns,gridRows=string.Equals(region.CoordinateSpace,WorldSession.SpatialWorldCoordinateSpace,StringComparison.OrdinalIgnoreCase)?WorldSession.SpatialScopeGridRows:WorldSession.GridRows,ownerUserId=region.OwnerUserId,parcelId=region.ParcelId,parcelPixelWidth=region.ParcelPixelWidth,parcelPixelHeight=region.ParcelPixelHeight,maxHeight=region.MaxHeight,updatedAtUtc=region.UpdatedAtUtc}).ToList();}
+ [JSInvokable] public async Task<object> SubmitRegionClaimRequestFromPrototypeAsync(string name,int[] cells,int tierIndex,int[] sourceLayerOffsets,string gridShape){var result=await Session.SubmitWorldClaimRequestAsync("regiondefiner",tierIndex,cells??Array.Empty<int>(),sourceLayerOffsets??Array.Empty<int>(),gridShape,requestedName:name);return new{success=result.Success,message=result.Message,requestId=result.Request?.RequestId??"",status=result.Request?.Status??""};}
+ [JSInvokable] public async Task<object> CreateRegionFromPrototypeAsync(string name,int[] cells,int tierIndex,int[] sourceLayerOffsets,string gridShape){var region=await Session.CreateRegionAsync(name,cells??Array.Empty<int>(),tierIndex,sourceLayerOffsets??Array.Empty<int>(),gridShape);return new{id=region.RegionId,name=region.Name,tierIndex=region.TierIndex,minColumn=region.MinColumn,minRow=region.MinRow,maxColumn=region.MaxColumn,maxRow=region.MaxRow,selectedCells=region.SelectedCells,sourceLayerOffsets=region.SourceLayerOffsets,gridShape=region.GridShape,updatedAtUtc=region.UpdatedAtUtc};}
+ public async ValueTask DisposeAsync(){if(_module is not null){try{await _module.InvokeVoidAsync("detach",_frame);}catch{}await _module.DisposeAsync();}_self?.Dispose();}
 }
