@@ -2,36 +2,31 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    // Builder recursion is semantic containment. These are default capability
-    // labels, not names imposed on authored spaces; the GM/user names the actual
-    // world, region, local, instance, and container. Tier/Layer remain Z-depth
-    // inside the active scope and representation never creates a second truth.
+    // Canonical recursive containment. These are semantic contexts of one editor,
+    // never separate editors. Tier/Layer are Z properties of the active context.
     public static readonly string[] RecursionTiers =
     [
-        "WORLD","REGION","LOCAL","INSTANCE","CONTAINER"
+        "WORLD",
+        "REGION",
+        "LOCAL",
+        "SITE",
+        "ROOM",
+        "TACTICAL",
+        "OBJECT",
+        "CONTAINER",
+        "CONTENTS"
     ];
 
-    // Canonical recursive-map truth. REGION and LOCAL may repeat, nest, and
-    // overlap. INSTANCE is the playable projection of the selected spatial path.
-    // CONTAINER bridges world-space objects to selectable inventory objects/cards
-    // and may itself recurse. Shaelvien may partition WORLD into streamed zones
-    // only for performance; coordinates and identity remain anchored in one truth.
-    public static readonly string[] CanonicalMapScopes =
-    [
-        "WORLD","REGION","LOCAL","INSTANCE","CONTAINER"
-    ];
+    public static readonly string[] CanonicalMapScopes = RecursionTiers;
     public const string ShaelvienWorldPartitionKind = "ZONE";
     public const bool ShaelvienPartitionsArePerformanceOnly = true;
 
-    // Representation/capability defaults. Camera angle is presentation state;
-    // crossing a zoom/memory threshold may fluidly hand the viewer to the next
-    // recursive cube without changing canonical identity or coordinates.
+    // Representation defaults only. Camera state never changes semantic identity.
     public const int WorldDefaultViewDegrees = 0;
     public const int RegionDefaultViewDegrees = 15;
     public const int LocalDefaultViewDegrees = 30;
 
-    // Compatibility alias for older components/snapshots. WEATHER is a visual
-    // layer, never a navigable recursion tier.
+    // Compatibility alias while callers migrate from the old Layer wording.
     public static IReadOnlyList<string> RecursionLayers => RecursionTiers;
 
     private Dictionary<string,AtlasTile> _atlasById = new(StringComparer.Ordinal);
@@ -56,20 +51,16 @@ public sealed partial class WorldSession
         return value switch
         {
             "ZONE" or "CONTINENT" => "REGION",
-            "AREA" or "LANDMARK" or "SITE" => "LOCAL",
-            // Retired rigid sub-editors are compatibility inputs only. They
-            // resolve to the nearest current semantic scope instead of reviving
-            // SITE/ROOM/ENCOUNTER/OBJECT/CONTENTS as mandatory builder tiers.
-            "ROOM" or "INTERIOR" => "LOCAL",
-            "TACTICAL" or "ENCOUNTER" or "BATTLE_INSTANCE" or "PLAYER" => "INSTANCE",
-            "OBJECT" or "CONTENTS" => "CONTAINER",
+            "AREA" or "LANDMARK" => "LOCAL",
+            "BUILDING" => "SITE",
+            "INTERIOR" => "ROOM",
+            "ENCOUNTER" or "BATTLE_INSTANCE" or "PLAYER" or "INSTANCE" => "TACTICAL",
             "UNIVERSAL" or "WEATHER" or "" => "WORLD",
             _ when RecursionTiers.Contains(value) => value,
             _ => "WORLD"
         };
     }
 
-    // Legacy name retained while saved-map and component code migrates to tier terminology.
     public static string NormalizeRecursionLayer(string? layer) => NormalizeRecursionTier(layer);
 
     public static int RecursionTierRank(string? tier)
@@ -80,6 +71,34 @@ public sealed partial class WorldSession
     }
 
     public static int RecursionLayerRank(string? layer) => RecursionTierRank(layer);
+
+    public static string? ParentRecursionTier(string? tier)
+    {
+        var rank = RecursionTierRank(tier);
+        return rank <= 0 ? null : RecursionTiers[rank - 1];
+    }
+
+    public static string? ChildRecursionTier(string? tier)
+    {
+        var rank = RecursionTierRank(tier);
+        return rank >= RecursionTiers.Length - 1 ? null : RecursionTiers[rank + 1];
+    }
+
+    public bool EnterRecursiveChild()
+    {
+        var child = ChildRecursionTier(ViewportTier);
+        if (child is null) return false;
+        SetViewportTier(child);
+        return true;
+    }
+
+    public bool ExitToRecursiveParent()
+    {
+        var parent = ParentRecursionTier(ViewportTier);
+        if (parent is null) return false;
+        SetViewportTier(parent);
+        return true;
+    }
 
     private AtlasTile? FindAtlasTile(string id)
     {
@@ -109,10 +128,10 @@ public sealed partial class WorldSession
         return staged.Kind switch
         {
             "rolling-stock" => "REGION",
-            "mini" => "INSTANCE",
+            "mini" => "TACTICAL",
             "pawn" or "pin" => "LOCAL",
             "terrain" => "LOCAL",
-            "bit" => "INSTANCE",
+            "bit" => "OBJECT",
             _ => ViewportTier
         };
     }
@@ -127,10 +146,10 @@ public sealed partial class WorldSession
     public string NativeLayer(PieceItem piece) => piece.Kind switch
     {
         "rolling-stock" => "REGION",
-        "mini" => "INSTANCE",
+        "mini" => "TACTICAL",
         "pawn" or "pin" => "LOCAL",
         "terrain" => "LOCAL",
-        "bit" => "INSTANCE",
+        "bit" => "OBJECT",
         _ => ViewportTier
     };
 
