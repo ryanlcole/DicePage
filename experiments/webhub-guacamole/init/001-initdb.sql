@@ -1,0 +1,5 @@
+-- WebHub Guacamole PoC database bootstrap.
+-- The Guacamole schema must be generated from the exact Guacamole container
+-- version being tested before first startup. See README.md.
+-- This placeholder intentionally creates no application tables so we do not
+-- pin a potentially mismatched schema in the Shaelvien repository.
