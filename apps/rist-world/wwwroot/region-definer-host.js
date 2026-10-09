@@ -2,10 +2,13 @@ const bridges=new WeakMap();
 const REGION_TOOL_SRC="/Game/prototype/region-volume-tools.js?v=20261009-controller-flowchart-1";
 
 function post(frame,message){try{frame?.contentWindow?.postMessage({source:"shaelvien-regiondefiner-host",...message},location.origin)}catch{}}
+// Grid shape is internal compatibility metadata. The active Region UI is semantic bounded-volume flow, not grid geography.
+function controllerModeLabel(phase){switch(String(phase||"").toLowerCase()){case "xy":return "BOUNDS";case "z":return "Z";case "existing":return "REGION";default:return "FLOW"}}
 function normalizeControllerState(raw){
  const state=raw&&typeof raw==="object"?raw:{};
+ const phase=String(state.phase||"idle");
  return {
-  phase:String(state.phase||"idle"),selectedCount:Math.max(0,Math.trunc(Number(state.selectedCount)||0)),gridShape:"FLOW",tierIndex:Math.max(0,Math.trunc(Number(state.tierIndex)||0)),pending:state.pending===true,exitRequested:state.exitRequested===true,regionId:String(state.regionId||""),regionName:String(state.regionName||""),caseIndex:Math.max(0,Math.trunc(Number(state.caseIndex)||0)),caseCount:Math.max(1,Math.trunc(Number(state.caseCount)||1)),caseLabel:String(state.caseLabel||"REGION"),leftLabel:String(state.leftLabel||"REGION TOOLS"),rightLabel:String(state.rightLabel||"SELECT")
+  phase,selectedCount:Math.max(0,Math.trunc(Number(state.selectedCount)||0)),gridShape:controllerModeLabel(phase),tierIndex:Math.max(0,Math.trunc(Number(state.tierIndex)||0)),pending:state.pending===true,exitRequested:state.exitRequested===true,regionId:String(state.regionId||""),regionName:String(state.regionName||""),caseIndex:Math.max(0,Math.trunc(Number(state.caseIndex)||0)),caseCount:Math.max(1,Math.trunc(Number(state.caseCount)||1)),caseLabel:String(state.caseLabel||"REGION"),leftLabel:String(state.leftLabel||"REGION TOOLS"),rightLabel:String(state.rightLabel||"SELECT")
  };
 }
 async function ensureRegionTools(frame){const doc=frame?.contentDocument;if(!doc)return false;if(doc.getElementById("region-volume-tools-v3"))return true;return await new Promise(resolve=>{const script=doc.createElement("script");script.id="region-volume-tools-v3";script.src=REGION_TOOL_SRC;script.async=false;script.onload=()=>resolve(true);script.onerror=()=>resolve(false);(doc.body||doc.documentElement).appendChild(script)})}
