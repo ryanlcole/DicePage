@@ -1,7 +1,7 @@
 {
   "database": ".code-index/code_graph.sqlite3",
   "dot": ".code-index/relationships.dot",
-  "edges": 301397,
+  "edges": 301328,
   "error_events": 8,
   "error_signatures": 8,
   "mermaid": ".code-index/relationships.mmd",
@@ -9,12 +9,12 @@
   "project_import_id": "fac9b840bf712fdb770e276cfc6ee4f60981af38f71cca2dfa73cd9257c6336b",
   "project_records": 295,
   "project_sources": 30,
-  "references": 435224,
+  "references": 435060,
   "regression_observations": 0,
   "regressions": 0,
   "repeat_observations": 0,
   "repeated_errors": 0,
-  "resolved_references": 301397,
+  "resolved_references": 301328,
   "schema_version": 1,
-  "symbols": 176264
+  "symbols": 176237
 }
