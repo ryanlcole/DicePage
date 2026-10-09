@@ -4,6 +4,9 @@ on:
   push:
     branches: [fix-software-contributor-links-amd-suno]
     paths: [.github/workflows/fix-public-contributor-wall.yml]
+  pull_request:
+    branches: [live-alpha-rist-blazor-world]
+    paths: [.github/workflows/fix-public-contributor-wall.yml]
 
 permissions:
   contents: write
