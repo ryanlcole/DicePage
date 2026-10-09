@@ -82,8 +82,14 @@
   <button type="button" class="primary" disabled="@(!CanSave)" @onclick="SaveRockCandyAsync">@(_working?"MAKING ROCK CANDY…":"SAVE ROCK CANDY")</button>
   <button type="button" disabled="@(_working||CapturedCount==0)" @onclick="Reset">CLEAR CAPTURE</button>
  </div>
- @if(!Session.IsLoggedIn)<p class="rock-candy-status">Log in to save Rock Candy to your private Miniatures library.</p>
- @if(!string.IsNullOrWhiteSpace(_status))<p class="rock-candy-status" role="status">@_status</p>
+ @if(!Session.IsLoggedIn)
+ {
+  <p class="rock-candy-status">Log in to save Rock Candy to your private Miniatures library.</p>
+ }
+ @if(!string.IsNullOrWhiteSpace(_status))
+ {
+  <p class="rock-candy-status" role="status">@_status</p>
+ }
 </section>
 
 <style>
