@@ -27,6 +27,6 @@
     static string Pretty(string value)=>System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value.ToLowerInvariant());
     static string Short(string tier)=>tier switch
     {
-        "WORLD"=>"W","REGION"=>"R","LOCAL"=>"L","INSTANCE"=>"I",_=>"?"
+        "WORLD"=>"W","REGION"=>"R","LOCAL"=>"L","INSTANCE"=>"I","CONTAINER"=>"C",_=>"?"
     };
 }
