@@ -1,9 +1,11 @@
 @using Microsoft.AspNetCore.Components.Forms
 @inject WorldSession Session
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 @if(Open)
 {
- <section class="world-gate-backdrop" role="presentation" @onclick="CloseAsync">
+ <section @ref="_backdrop" class="world-gate-backdrop" role="presentation" @onclick="CloseAsync">
   <div class="world-gate" role="dialog" aria-modal="true" aria-label="Choose a world" @onclick:stopPropagation="true">
    <header>
     <span><small>RIST SANDBOX</small><strong>@(DeedMode?"CLAIM DEED":"CHOOSE A SANDBOX WORLD")</strong></span>
@@ -79,7 +81,7 @@
 }
 
 <style>
- .world-gate-backdrop{position:fixed;inset:0;z-index:2147482550;display:grid;place-items:center;padding:16px;background:#020609d9;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+ .world-gate-backdrop{position:fixed;inset:0;z-index:2147483400;display:grid;place-items:center;padding:16px;background:#020609d9;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
  .world-gate{box-sizing:border-box;width:min(92vw,620px);max-height:90dvh;display:flex;flex-direction:column;overflow:auto;overscroll-behavior:contain;border:1px solid #8a6d32;border-radius:14px;background:#081117;color:#e8dec5;box-shadow:0 22px 70px #000d;font-family:system-ui,-apple-system,sans-serif}
  .world-gate>*{flex:0 0 auto;min-width:0}
  .world-gate>header{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #4f452d;background:#0a141bf5;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
@@ -117,6 +119,10 @@
  [Parameter] public EventCallback OnContinue{get;set;}
  [Parameter] public bool RequireSelection{get;set;}
  [Parameter] public bool DeedMode{get;set;}
+ ElementReference _backdrop;
+ IJSObjectReference? _focusModule;
+ DotNetObjectReference<WorldGate>? _focusReference;
+ bool _focusMounted;
  readonly List<AccountWorldReference> _worlds=[];
  AccountWorldReference? _deleteWorld;
  bool _wasOpen;
@@ -145,6 +151,12 @@
 
  protected override async Task OnAfterRenderAsync(bool firstRender)
  {
+  if(Open){
+   _focusModule??=await JS.InvokeAsync<IJSObjectReference>("import","./world-gate-focus.js");
+   if(!_focusMounted){_focusReference??=DotNetObjectReference.Create(this);await _focusModule.InvokeVoidAsync("mount",_backdrop,_focusReference);_focusMounted=true;}
+   else await _focusModule.InvokeVoidAsync("refresh",_backdrop);
+  }
+  else if(_focusMounted&&_focusModule is not null){await _focusModule.InvokeVoidAsync("release");_focusMounted=false;}
   if(!_loadRequested)return;
   _loadRequested=false;
   await RefreshWorldsAsync();
@@ -253,5 +265,10 @@
   else await OnClose.InvokeAsync();
  }
 
+ [JSInvokable] public Task CloseWorldChooserAsync()=>CloseAsync();
+ public async ValueTask DisposeAsync(){
+  if(_focusModule is not null){try{await _focusModule.InvokeVoidAsync("release");await _focusModule.DisposeAsync();}catch(JSException){}}
+  _focusReference?.Dispose();
+ }
  async Task CloseAsync(){if(_busy||_deleteWorld is not null||RequireSelection)return;await OnClose.InvokeAsync();}
 }

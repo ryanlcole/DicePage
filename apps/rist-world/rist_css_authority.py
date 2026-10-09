@@ -20,7 +20,8 @@ SOURCES = [
     "recursion-cockpit.css", "start-menu.css", "mmo-mode.css", "prelogin-visitor.css",
     "rist-tutorial.css", "discord-login.css", "mobile-history-fixes.css",
     "calforth-token-lite.css", "token-rail-visuals.css", "faux-depth.css",
-    "home-viewport.css",
+    "home-viewport.css", "button-artwork-fit.css", "character-universal.css",
+    "art-studio.css", "art-surface-controls.css", "asset-credit.css",
 ]
 
 IMPORT_RE = re.compile(r"@import\s+url\((?:['\"])?([^)'\"]+)(?:['\"])?\)\s*;", re.I)

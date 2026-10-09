@@ -1,4 +1,5 @@
 const bridges=new WeakMap();
+const toolObservers=new WeakMap();
 
 function post(frame,message){
   try{frame?.contentWindow?.postMessage({source:"shaelvien-worldbuilder-host",...message},location.origin)}catch{}
@@ -36,6 +37,20 @@ export async function save(frame){
   const fn=frame?.contentWindow?.ShaelvienPrototype?.save;
   if(typeof fn!=="function")return false;
   return (await fn())!==false;
+}
+
+export async function requestSpatialTitle(frame, defaultName){
+  await waitForPrototype(frame);
+  if(!toolObservers.has(frame)){
+    const doc=frame.contentDocument;
+    const sync=()=>{frame.dataset.viewerToolOpen=String([...doc.querySelectorAll('#viewerKeyboard[data-spatial-title],#imageUploadPanel,#spriteUploadPanel')].some(node=>!node.hidden));};
+    const observer=new MutationObserver(sync);
+    observer.observe(doc.body,{subtree:true,attributes:true,attributeFilter:['hidden','data-spatial-title']});
+    toolObservers.set(frame,observer);sync();
+  }
+  const composer=frame?.contentWindow?.RistSpatialTitle;
+  if(typeof composer?.request!=="function")throw new Error("The map title editor is still loading. Your selection is unchanged.");
+  return String(await composer.request(String(defaultName||"New Area"))||"");
 }
 
 async function waitForPrototype(frame,timeoutMs=3000){
@@ -142,6 +157,8 @@ export function reload(frame,worldSource){
 }
 
 export function detach(frame){
+  toolObservers.get(frame)?.disconnect();toolObservers.delete(frame);
+  if(frame)delete frame.dataset.viewerToolOpen;
   const existing=bridges.get(frame);
   if(!existing)return;
   window.removeEventListener("message",existing);

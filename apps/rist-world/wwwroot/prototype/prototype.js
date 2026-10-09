@@ -3917,7 +3917,7 @@ function renderKeyboardKeysContent(){
   }
   if(keyboardMode==='Image'){
     if(personalFolderType==='Images'){renderPersonalFolder('Images','MY IMAGES');return}
-    if(!selectedImage){
+    if(!selectedImage||selectedImage.kind==='label'){
       appendPlacementRoleControls();
       keyboardKeys.append(
         toolKey('UPLOAD','image',openImageUpload),
