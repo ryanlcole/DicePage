@@ -2,23 +2,33 @@ namespace RistWorld;
 
 public sealed partial class WorldSession
 {
-    // Builder recursion is semantic containment. Tier/Layer remain Z-depth inside
-    // the active scope; changing representation never creates a second world truth.
+    // Builder recursion is semantic containment. These are default capability
+    // labels, not names imposed on authored spaces; the GM/user names the actual
+    // world, region, local, instance, and container. Tier/Layer remain Z-depth
+    // inside the active scope and representation never creates a second truth.
     public static readonly string[] RecursionTiers =
     [
-        "WORLD","REGION","LOCAL","INSTANCE"
+        "WORLD","REGION","LOCAL","INSTANCE","CONTAINER"
     ];
 
     // Canonical recursive-map truth. REGION and LOCAL may repeat, nest, and
     // overlap. INSTANCE is the playable projection of the selected spatial path.
-    // Shaelvien may partition WORLD into streamed zones only for performance;
-    // coordinates and identity remain anchored in one world truth.
+    // CONTAINER bridges world-space objects to selectable inventory objects/cards
+    // and may itself recurse. Shaelvien may partition WORLD into streamed zones
+    // only for performance; coordinates and identity remain anchored in one truth.
     public static readonly string[] CanonicalMapScopes =
     [
-        "WORLD","REGION","LOCAL","INSTANCE"
+        "WORLD","REGION","LOCAL","INSTANCE","CONTAINER"
     ];
     public const string ShaelvienWorldPartitionKind = "ZONE";
     public const bool ShaelvienPartitionsArePerformanceOnly = true;
+
+    // Representation/capability defaults. Camera angle is presentation state;
+    // crossing a zoom/memory threshold may fluidly hand the viewer to the next
+    // recursive cube without changing canonical identity or coordinates.
+    public const int WorldDefaultViewDegrees = 0;
+    public const int RegionDefaultViewDegrees = 15;
+    public const int LocalDefaultViewDegrees = 30;
 
     // Compatibility alias for older components/snapshots. WEATHER is a visual
     // layer, never a navigable recursion tier.
@@ -49,10 +59,10 @@ public sealed partial class WorldSession
             "AREA" or "LANDMARK" or "SITE" => "LOCAL",
             // Retired rigid sub-editors are compatibility inputs only. They
             // resolve to the nearest current semantic scope instead of reviving
-            // SITE/ROOM/ENCOUNTER/OBJECT/CONTAINER/CONTENTS as builder tiers.
+            // SITE/ROOM/ENCOUNTER/OBJECT/CONTENTS as mandatory builder tiers.
             "ROOM" or "INTERIOR" => "LOCAL",
             "TACTICAL" or "ENCOUNTER" or "BATTLE_INSTANCE" or "PLAYER" => "INSTANCE",
-            "OBJECT" or "CONTAINER" or "CONTENTS" => "INSTANCE",
+            "OBJECT" or "CONTENTS" => "CONTAINER",
             "UNIVERSAL" or "WEATHER" or "" => "WORLD",
             _ when RecursionTiers.Contains(value) => value,
             _ => "WORLD"
