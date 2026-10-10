@@ -1,6 +1,8 @@
 import os
 import tempfile
 
+import pytest
+
 fd, path = tempfile.mkstemp(prefix="relic-test-", suffix=".db")
 os.close(fd)
 os.unlink(path)
@@ -10,11 +12,18 @@ os.environ["RELIC_WRITE_TOKEN"] = "test-token"
 from fastapi.testclient import TestClient
 import app
 
-client = TestClient(app.app)
 AUTH = {"Authorization": "Bearer test-token"}
 
 
-def test_event_is_append_only_and_readable():
+@pytest.fixture
+def client():
+    # Enter TestClient as a context manager so FastAPI's startup lifecycle
+    # runs and initializes the SQLite schema before requests are sent.
+    with TestClient(app.app) as test_client:
+        yield test_client
+
+
+def test_event_is_append_only_and_readable(client):
     r = client.post("/v1/events", headers=AUTH, json={
         "kind": "CONTINUITY",
         "status": "VERIFIED",
@@ -27,7 +36,7 @@ def test_event_is_append_only_and_readable():
     assert any(row["id"] == event_id for row in rows)
 
 
-def test_proposal_refuses_mutation_until_all_three_gates_pass():
+def test_proposal_refuses_mutation_until_all_three_gates_pass(client):
     proposal = client.post("/v1/proposals", headers=AUTH, json={
         "subject": "report.section",
         "proposed_payload": {"operation": "omit", "section": "limitations"},
@@ -43,7 +52,7 @@ def test_proposal_refuses_mutation_until_all_three_gates_pass():
     assert r.json()["mutation_allowed"] is True
 
 
-def test_failed_gate_keeps_change_blocked():
+def test_failed_gate_keeps_change_blocked(client):
     pid = client.post("/v1/proposals", headers=AUTH, json={"subject": "canon", "proposed_payload": {"change": "x"}}).json()["id"]
     client.post(f"/v1/proposals/{pid}/gates/necessity", headers=AUTH, json={"state": "FAILED", "evidence": {}})
     client.post(f"/v1/proposals/{pid}/gates/accuracy", headers=AUTH, json={"state": "PROVEN", "evidence": {}})
