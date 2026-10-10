@@ -41,12 +41,30 @@
      }
     </div>
     <div><strong>@face.Label</strong><small>@face.Help</small></div>
-    @if(face.Key=="front") { <InputFile OnChange="LoadFront" accept="image/*" capture="environment" disabled="@_working" /> }
-    else if(face.Key=="right") { <InputFile OnChange="LoadRight" accept="image/*" capture="environment" disabled="@_working" /> }
-    else if(face.Key=="back") { <InputFile OnChange="LoadBack" accept="image/*" capture="environment" disabled="@_working" /> }
-    else if(face.Key=="left") { <InputFile OnChange="LoadLeft" accept="image/*" capture="environment" disabled="@_working" /> }
-    else if(face.Key=="top") { <InputFile OnChange="LoadTop" accept="image/*" capture="environment" disabled="@_working" /> }
-    else { <InputFile OnChange="LoadBottom" accept="image/*" capture="environment" disabled="@_working" /> }
+    @if(face.Key=="front")
+    {
+     <InputFile OnChange="LoadFront" accept="image/*" capture="environment" disabled="@_working" />
+    }
+    else if(face.Key=="right")
+    {
+     <InputFile OnChange="LoadRight" accept="image/*" capture="environment" disabled="@_working" />
+    }
+    else if(face.Key=="back")
+    {
+     <InputFile OnChange="LoadBack" accept="image/*" capture="environment" disabled="@_working" />
+    }
+    else if(face.Key=="left")
+    {
+     <InputFile OnChange="LoadLeft" accept="image/*" capture="environment" disabled="@_working" />
+    }
+    else if(face.Key=="top")
+    {
+     <InputFile OnChange="LoadTop" accept="image/*" capture="environment" disabled="@_working" />
+    }
+    else
+    {
+     <InputFile OnChange="LoadBottom" accept="image/*" capture="environment" disabled="@_working" />
+    }
    </article>
   }
  </div>
