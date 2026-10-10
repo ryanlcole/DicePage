@@ -3,6 +3,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py .
+COPY mcp_server.py .
 RUN mkdir -p /data
 ENV RELIC_DB_PATH=/data/relic.db
 EXPOSE 8080
