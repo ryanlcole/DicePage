@@ -50,32 +50,20 @@ jobs:
 
           contract_path = Path('.code-index/humans_language.json')
           manifest_path = Path('apps/rist-world/wwwroot/.well-known/shaelvien-language.json')
-
           contract_bytes = contract_path.read_bytes()
           contract = json.loads(contract_bytes)
           manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-
           expected_path = manifest['discovery']['canonical_contract']
           if expected_path != contract_path.as_posix():
-              raise SystemExit(
-                  f'Language discovery points to {expected_path!r}, expected {contract_path.as_posix()!r}'
-              )
-
+              raise SystemExit(f'Language discovery points to {expected_path!r}, expected {contract_path.as_posix()!r}')
           contract_version = contract['version']
           manifest_version = manifest['language']['version']
           if contract_version != manifest_version:
-              raise SystemExit(
-                  f'Language version drift: contract={contract_version} manifest={manifest_version}'
-              )
-
+              raise SystemExit(f'Language version drift: contract={contract_version} manifest={manifest_version}')
           actual_hash = hashlib.sha256(contract_bytes).hexdigest()
           expected_hash = manifest['discovery']['canonical_contract_sha256']
           if actual_hash != expected_hash:
-              raise SystemExit(
-                  'Language contract hash drift: update the deployed manifest when the canonical contract changes. '
-                  f'expected={expected_hash} actual={actual_hash}'
-              )
-
+              raise SystemExit('Language contract hash drift: update the deployed manifest when the canonical contract changes. ' f'expected={expected_hash} actual={actual_hash}')
           print(f'Language contract v{contract_version} synchronized: {actual_hash}')
           PY
 
@@ -104,11 +92,9 @@ jobs:
           python - <<'PY'
           import sqlite3
           from pathlib import Path
-
           path = Path('.code-index/code_graph.sqlite3')
           if not path.exists():
               raise SystemExit(0)
-
           db = sqlite3.connect(path)
           rows = db.execute('''
               SELECT error_id, language, error_code, occurrence_count,
@@ -118,7 +104,6 @@ jobs:
               ORDER BY regression_flag DESC, occurrence_count DESC, error_id
           ''').fetchall()
           db.close()
-
           for error_id, language, error_code, count, repeat_flag, regression_flag, message in rows:
               level = 'REGRESSION' if regression_flag else 'REPEATED'
               code = f' {error_code}' if error_code else ''
@@ -186,11 +171,27 @@ jobs:
             exit 0
           fi
 
+          observed_source="$(git rev-parse HEAD)"
           git commit -m "Refresh governed code identity and semantic graph"
-          git push origin HEAD:live-alpha-rist-blazor-world
+          recorder_commit="$(git rev-parse HEAD)"
+
+          # ReLiC continuity law: observer evidence belongs to the exact source state
+          # that produced it. If source truth advances while we are observing it,
+          # never force, merge, or rebase stale evidence onto the newer state.
+          # Defer to a fresh observation of the new head instead.
+          if ! git push origin HEAD:live-alpha-rist-blazor-world; then
+            echo "::warning title=ReLiC stale-observation deferral::Source truth advanced after observation ${observed_source}. Recorder ${recorder_commit} will not overwrite or attach stale evidence to the newer head. Scheduling a fresh governance pass."
+            git fetch origin live-alpha-rist-blazor-world
+            newest_head="$(git rev-parse origin/live-alpha-rist-blazor-world)"
+            echo "Observed source: $observed_source"
+            echo "Current source:  $newest_head"
+            gh workflow run code-index.yml --ref live-alpha-rist-blazor-world
+            echo "ReLiC learned: branch advancement is not recorder failure; it invalidates the old observation and requires re-observation."
+            exit 0
+          fi
+
           exact_head="$(git rev-parse HEAD)"
           echo "Recorded exact governed head: $exact_head"
-
           gh workflow run code-index.yml --ref live-alpha-rist-blazor-world -f verify_only=true
           gh workflow run compliance-guardrails.yml --ref live-alpha-rist-blazor-world
           echo "Deployment remains owned by the original source push. Governance metadata commits do not launch duplicate production deploys."
