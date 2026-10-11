@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - relic-independent-service
+      - relic-project-boundaries
     paths:
       - 'services/relic-host/**'
       - 'infra/aws/relic-observatory-ingest.yml'
@@ -49,6 +50,8 @@ jobs:
           python -m py_compile
           app.py
           historical_import.py
+          relic_boundaries.py
+          environment_advisor.py
           mcp_server.py
           observatory.py
           github_observer.py
@@ -60,6 +63,7 @@ jobs:
         run: >
           pytest -q
           test_relic_host.py
+          test_relic_boundaries.py
           test_observatory.py
           test_github_observer.py
           test_relic_collector.py
