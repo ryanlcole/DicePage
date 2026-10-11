@@ -1,0 +1,65 @@
+name: Repair World Builder
+
+on:
+  push:
+    branches: [live-alpha-rist-blazor-world]
+    paths: ['.github/workflows/repair-worldbuilder.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+          fetch-depth: 0
+      - name: Patch and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/rist-world/Components/UniversalInterface.razor')
+          s=p.read_text()
+          old='''   case Stage.WorldHome:
+            await BeginOrSaveVisibleSpatialSelectionAsync();
+            break;'''
+          new='''   case Stage.WorldHome:
+            _builderChainIndex=0;
+            _requestedBuilderChainIndex=0;
+            _assetScope="WORLD";
+            _tier=0;
+            _layer=0;
+            _stage=Stage.WorldBuilderTier;
+            await SyncWorldBuilderDepthAsync();
+            _message="World editing opened. Choose a World Tier; Region tools remain an explicit child action from the World.";
+            break;'''
+          if old not in s:
+              raise SystemExit('expected WorldHome regression block not found')
+          s=s.replace(old,new,1)
+          s=s.replace('''  Stage.WorldHome=>string.Equals(VisibleSpatialKind,"REGION",StringComparison.OrdinalIgnoreCase)
+   ?"REGION TOOLS"
+   :_spatialDefinitionActive
+    ?(_spatialSelectionCount>0?$"SAVE AREA · {_spatialSelectionCount}":"SELECT AREA")
+    :"SELECT AREA",''','''  Stage.WorldHome=>"CHOOSE TIER",''',1)
+          s=s.replace('''  Stage.WorldHome=>string.Equals(VisibleSpatialKind,"REGION",StringComparison.OrdinalIgnoreCase)
+   ?"Open Region Tools. Draw a rough crop view, define the true Region border with Line, Pencil, or Magic Select, then choose visible tiers at the 60° Region view. Crop limits only what you view/edit; it never creates another map."
+   :_spatialDefinitionActive
+    ?$"Define the visible scene area. Pan and pinch still move through the continuous world. {_spatialSelectionCount} selected."
+    :$"Pan or zoom to the place you want, choose any view angle, then Select Area. Zoom currently resolves {_viewerSpatialScope.ToLowerInvariant()} detail at {_viewerSpatialZoomRatio:0.##}×.",''','''  Stage.WorldHome=>"Edit the World first. Choose a Tier, then a Layer. Region tools are entered explicitly from the World after the parent map is ready.",''',1)
+          p.write_text(s)
+          PY
+          node --test apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs
+          git diff --check
+      - name: Commit repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Shaelvien Build Repair'
+          git config user.email 'actions@users.noreply.github.com'
+          git add apps/rist-world/Components/UniversalInterface.razor
+          git commit -m 'Restore World-first builder navigation'
+          git push origin HEAD:live-alpha-rist-blazor-world
