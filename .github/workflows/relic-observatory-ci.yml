@@ -1,0 +1,43 @@
+name: ReLiC Observatory CI
+
+on:
+  push:
+    branches:
+      - relic-independent-service
+    paths:
+      - 'services/relic-host/**'
+      - '.github/workflows/relic-observatory-ci.yml'
+  pull_request:
+    paths:
+      - 'services/relic-host/**'
+      - '.github/workflows/relic-observatory-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/relic-host
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: services/relic-host/requirements-dev.txt
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements-dev.txt
+
+      - name: Compile ReLiC host and Observatory
+        run: python -m py_compile app.py mcp_server.py observatory.py
+
+      - name: Run ReLiC host and Observatory tests
+        run: pytest -q test_relic_host.py test_observatory.py
