@@ -1,0 +1,82 @@
+name: Add Select Region menu
+
+on:
+  push:
+    branches: [live-alpha-rist-blazor-world]
+    paths: ['.github/workflows/add-select-region-menu.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: live-alpha-rist-blazor-world
+          fetch-depth: 0
+
+      - name: Patch Select Region controller flow
+        shell: python
+        run: |
+          from pathlib import Path
+
+          ui_path = Path('apps/rist-world/Components/UniversalInterface.razor')
+          ui = ui_path.read_text(encoding='utf-8')
+
+          old = '''    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("world-home")' aria-label="World Home — show all layers and parallax">WORLD HOME</button>\n    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("select")' aria-label="Select an existing placed asset">SELECT</button>'''
+          new = '''    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("world-home")' aria-label="World Home — show all layers and parallax">WORLD HOME</button>\n    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("select-region")' aria-label="Select Region coordinates on the World grid">SELECT REGION</button>\n    <button type="button" @onclick='()=>HandleViewerMenuCommandAsync("select")' aria-label="Select an existing placed asset">SELECT</button>'''
+          if old not in ui:
+              raise SystemExit('viewer menu anchor not found')
+          ui = ui.replace(old, new, 1)
+
+          old = '''  if(command=="back"){await NavigateViewerBackAsync();return;}\n  if(command=="world-home"){await OpenWorldHomeAsync();return;}\n  if(command=="forward"){await NavigateViewerForwardAsync();return;}'''
+          new = '''  if(command=="back"){await NavigateViewerBackAsync();return;}\n  if(command=="world-home"){await OpenWorldHomeAsync();return;}\n  if(command=="select-region"){await BeginOrSaveWorldRegionCoordinateSelectionAsync();return;}\n  if(command=="forward"){await NavigateViewerForwardAsync();return;}'''
+          if old not in ui:
+              raise SystemExit('viewer command anchor not found')
+          ui = ui.replace(old, new, 1)
+
+          anchor = ''' async Task HandleViewerMenuCommandAsync(string command)\n {'''
+          method = ''' async Task BeginOrSaveWorldRegionCoordinateSelectionAsync()\n {\n  if(_regionDefinerOpen)\n  {\n   _message="Return to World Home before selecting a parent Region by coordinates.";\n   await InvokeAsync(StateHasChanged);\n   return;\n  }\n  if(_worldBuilderSourceModule is null)\n  {\n   _message="World grid tools are still loading.";\n   await InvokeAsync(StateHasChanged);\n   return;\n  }\n\n  if(!_spatialDefinitionActive)\n  {\n   var inspectionReason=_inspectionEditMode?RequireInspectionReason():"";\n   if(_inspectionEditMode&&string.IsNullOrWhiteSpace(inspectionReason))\n   {\n    _message="Enter a reason for this inspection edit before selecting a Region.";\n    await InvokeAsync(StateHasChanged);\n    return;\n   }\n\n   _builderChainIndex=0;\n   _requestedBuilderChainIndex=0;\n   _assetScope="WORLD";\n   _pendingSpatialInspectionReason=inspectionReason;\n   bool started;\n   try\n   {\n    started=await _worldBuilderSourceModule.InvokeAsync<bool>(\n     "beginSpatialSelection",\n     _worldBuilderFrame,\n     new { kind="REGION", gridShape="square", columns=300, rows=300 });\n   }\n   catch(JSException){started=false;}\n\n   if(!started)\n   {\n    _message="The World coordinate grid could not start.";\n    await InvokeAsync(StateHasChanged);\n    return;\n   }\n\n   _spatialDefinitionActive=true;\n   _spatialSelectionCount=0;\n   _spatialSelectionGridShape="square";\n   _message="Select Region · World 300 × 300 coordinate grid active. X moves columns, Y moves rows, Select toggles a coordinate; choose SELECT REGION again to save.";\n   await InvokeAsync(StateHasChanged);\n   return;\n  }\n\n  SpatialSelectionSnapshot? snapshot;\n  try{snapshot=await _worldBuilderSourceModule.InvokeAsync<SpatialSelectionSnapshot?>("getSpatialSelection",_worldBuilderFrame);}\n  catch(JSException){snapshot=null;}\n  if(snapshot is null||snapshot.CanonicalCells.Length==0)\n  {\n   _message="Select at least one X,Y coordinate before saving the Region.";\n   await InvokeAsync(StateHasChanged);\n   return;\n  }\n\n  var name=(await JS.InvokeAsync<string?>("prompt","Name this Region","New Region")??"").Trim();\n  if(name.Length==0)\n  {\n   _message="Region save cancelled. The coordinate selection remains active.";\n   await InvokeAsync(StateHasChanged);\n   return;\n  }\n\n  try\n  {\n   await Session.CreateRegionAsync(\n    name,\n    snapshot.CanonicalCells,\n    snapshot.TierIndex,\n    snapshot.VisibleLayerOffsets,\n    "square",\n    snapshot.CanonicalCells,\n    300,\n    300,\n    snapshot.ViewMinX,\n    snapshot.ViewMinY,\n    snapshot.ViewMaxX,\n    snapshot.ViewMaxY,\n    snapshot.CanonicalMinX,\n    snapshot.CanonicalMinY,\n    snapshot.CanonicalMaxX,\n    snapshot.CanonicalMaxY,\n    "WORLD",\n    snapshot.ZoomRatio,\n    snapshot.ViewAngle,\n    snapshot.VisibleTierIndices,\n    snapshot.VisibleLayerOffsets);\n\n   if(_inspectionEditMode&&!string.IsNullOrWhiteSpace(_pendingSpatialInspectionReason))\n   {\n    await RecordInspectionAuditAsync("CREATE REGION BY XY",_pendingSpatialInspectionReason);\n    ConsumeInspectionReason();\n   }\n\n   try{await _worldBuilderSourceModule.InvokeAsync<bool>("finishSpatialSelection",_worldBuilderFrame,true);}catch(JSException){}\n   _spatialDefinitionActive=false;\n   _spatialSelectionCount=0;\n   _pendingSpatialInspectionReason="";\n   _builderChainIndex=1;\n   _requestedBuilderChainIndex=1;\n   _assetScope="REGION";\n   _stage=Stage.SpatialSelect;\n   SelectActiveSpatialOption();\n   _message=$"{name} saved from the World X,Y grid. The selected coordinates now define the Region footprint; choose it to continue into Region Tier and Layer.";\n  }\n  catch(Exception ex)\n  {\n   Console.Error.WriteLine($"World coordinate Region save failed: {ex}");\n   _message="The Region coordinates could not be saved.";\n  }\n  await InvokeAsync(StateHasChanged);\n }\n\n'''
+          if anchor not in ui:
+              raise SystemExit('menu handler anchor not found')
+          ui = ui.replace(anchor, method + anchor, 1)
+          ui_path.write_text(ui, encoding='utf-8')
+
+          proto_path = Path('apps/rist-world/wwwroot/prototype/prototype.js')
+          proto = proto_path.read_text(encoding='utf-8')
+          proto_old = "columns=clamp(Math.trunc(Number(columns)||30),1,64);rows=clamp(Math.trunc(Number(rows)||30),1,64);"
+          proto_new = "columns=clamp(Math.trunc(Number(columns)||30),1,SCOPE_GRID_COLUMNS);rows=clamp(Math.trunc(Number(rows)||30),1,SCOPE_GRID_ROWS);"
+          if proto.count(proto_old) < 2:
+              raise SystemExit('expected viewer grid clamps not found twice')
+          proto = proto.replace(proto_old, proto_new, 2)
+          sel_old = "spatialSelectionColumns=clamp(Math.trunc(Number(raw.columns)||VIEWER_WINDOW_GRID_COLUMNS),1,64);spatialSelectionRows=clamp(Math.trunc(Number(raw.rows)||VIEWER_WINDOW_GRID_ROWS),1,64);"
+          sel_new = "spatialSelectionColumns=clamp(Math.trunc(Number(raw.columns)||VIEWER_WINDOW_GRID_COLUMNS),1,SCOPE_GRID_COLUMNS);spatialSelectionRows=clamp(Math.trunc(Number(raw.rows)||VIEWER_WINDOW_GRID_ROWS),1,SCOPE_GRID_ROWS);"
+          if proto.count(sel_old) < 2:
+              raise SystemExit('expected spatial selection clamps not found twice')
+          proto = proto.replace(sel_old, sel_new, 2)
+          proto_path.write_text(proto, encoding='utf-8')
+
+          test_path = Path('apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs')
+          tests = test_path.read_text(encoding='utf-8')
+          addition = '''\n\ntest('World menu exposes a 300 by 300 X,Y Region coordinate selector',()=>{\n  assert.match(razor,/HandleViewerMenuCommandAsync\\(\\"select-region\\"\\)[\\s\\S]{0,160}?SELECT REGION/);\n  assert.match(razor,/BeginOrSaveWorldRegionCoordinateSelectionAsync\\(\\)[\\s\\S]*?kind=\\"REGION\\"[\\s\\S]*?gridShape=\\"square\\"[\\s\\S]*?columns=300[\\s\\S]*?rows=300/);\n  assert.match(prototype,/spatialSelectionColumns=clamp\\([^;]+,1,SCOPE_GRID_COLUMNS\\);spatialSelectionRows=clamp\\([^;]+,1,SCOPE_GRID_ROWS\\)/);\n});\n'''
+          if "World menu exposes a 300 by 300 X,Y Region coordinate selector" not in tests:
+              tests += addition
+          test_path.write_text(tests, encoding='utf-8')
+
+      - name: Verify focused regression
+        run: |
+          node --check apps/rist-world/wwwroot/prototype/prototype.js
+          node --test apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs
+          git diff --check
+
+      - name: Commit source change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "Shaelvien Build Repair"
+          git config user.email "actions@users.noreply.github.com"
+          git add apps/rist-world/Components/UniversalInterface.razor apps/rist-world/wwwroot/prototype/prototype.js apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs
+          git commit -m "Add World X Y region selector"
+          git push origin HEAD:live-alpha-rist-blazor-world
