@@ -48,6 +48,7 @@ jobs:
         run: >
           python -m py_compile
           app.py
+          historical_import.py
           mcp_server.py
           observatory.py
           github_observer.py
