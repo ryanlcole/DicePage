@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""Git pre-push hook: preserve the exact outgoing code state before network push.
+
+WARN-ONLY: this hook never blocks a push because of project drift. Snapshots stay
+inside .git/relic-observatory so they do not modify the working tree or recurse.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+def git(*args: str) -> str:
+    return subprocess.check_output(["git", *args], text=True).strip()
+
+
+def main() -> int:
+    root = Path(git("rev-parse", "--show-toplevel"))
+    out = root / ".git" / "relic-observatory" / "pre-push"
+    out.mkdir(parents=True, exist_ok=True)
+    now = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    records = []
+
+    for line in sys.stdin:
+        parts = line.split()
+        if len(parts) != 4:
+            continue
+        local_ref, local_sha, remote_ref, remote_sha = parts
+        if set(local_sha) == {"0"}:
+            continue
+        base = remote_sha if remote_sha and set(remote_sha) != {"0"} else f"{local_sha}^"
+        try:
+            patch = subprocess.check_output(["git", "diff", "--binary", base, local_sha])
+            names = subprocess.check_output(["git", "diff", "--name-only", base, local_sha], text=True).splitlines()
+        except subprocess.CalledProcessError:
+            patch = subprocess.check_output(["git", "show", "--binary", "--format=fuller", local_sha])
+            names = subprocess.check_output(["git", "show", "--pretty=", "--name-only", local_sha], text=True).splitlines()
+        digest = hashlib.sha256(patch).hexdigest()
+        stem = f"{now}-{local_sha[:12]}"
+        (out / f"{stem}.patch").write_bytes(patch)
+        record = {
+            "schema": "RELIC-PRE-PUSH-CAPTURE/1",
+            "status": "OBSERVATION",
+            "captured_at": datetime.now(timezone.utc).isoformat(),
+            "local_ref": local_ref,
+            "local_sha": local_sha,
+            "remote_ref": remote_ref,
+            "remote_sha_before_push": remote_sha,
+            "changed_paths": sorted(set(n for n in names if n)),
+            "patch_sha256": digest,
+            "patch_file": f"{stem}.patch",
+            "note": "Captured before network push. This record warns/supports review; it does not prevent drift or promote canon."
+        }
+        (out / f"{stem}.json").write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        records.append(record)
+
+    if records:
+        print(f"ReLiC pre-push: captured {len(records)} outgoing ref(s) under .git/relic-observatory/pre-push/", file=sys.stderr)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
