@@ -119,6 +119,8 @@ const CANONICAL_PLANE_KEYS=Object.freeze(['surface','highlands','mountains']);
 const layerReady={surface:false,highlands:false,mountains:false};
 const pointers=new Map();
 let viewerSize=null;
+const DESKTOP_FINE_POINTER=matchMedia('(hover: hover) and (pointer: fine)');
+const REDUCED_MOTION=matchMedia('(prefers-reduced-motion: reduce)');
 let naturalWidth=1,naturalHeight=1,scale=1,minScale=.1,maxScale=12,x=0,y=0,fitX=0,fitY=0,panStart=null,pinchStart=null,keyboardMode=REGION_DEFINER&&REGION_FLOW==='new'?'Select':'Viewer',toolMode='Inspect',tiltBaseline=null,tiltTargetX=0,tiltTargetY=0,tiltX=0,tiltY=0,tiltFrame=0,selectedImage=null,imageDrag=null,viewerTier=REGION_DEFINER?'sea':'all',viewerLayer=0,upscaleStarted=false;
 let viewerEditClipboard=null;
 const viewerUndoStack=[],viewerRedoStack=[];
@@ -1242,7 +1244,8 @@ function setViewerTier(key){
   if(viewerTier!=='all')restorePassedFullFrames(tierByKey(viewerTier).index);
   if(REGION_DEFINER&&previous!==viewerTier){clearRegionSelection(false);deselectUserImage(false)}
   updateTierButton();renderTierMenu();applyTransform();scheduleRegionEnhancement(40);renderKeyboardKeys();
-  announce(viewerTier==='all'?'All Parallax selected. Zoom blends through all world tiers.':`${tierLabel(tierByKey(viewerTier))} selected${REGION_DEFINER?' for regional definition.':''}`);
+  if(viewerTier!=='all')resetDesktopMouseParallax();
+  announce(viewerTier==='all'?'All Parallax selected. Mouse movement adds desktop parallax; wheel, trackpad, + and − zoom through world depth.':`${tierLabel(tierByKey(viewerTier))} selected${REGION_DEFINER?' for regional definition.':''}`);
 }
 function adjustSelectedSize(direction){
   if(READ_ONLY)return;
@@ -4077,6 +4080,35 @@ function resetTilt(){
   tiltTargetY=0;
   scheduleTilt();
 }
+function desktopMouseParallaxActive(){
+  return !REGION_DEFINER
+    &&viewerTier==='all'
+    &&DESKTOP_FINE_POINTER.matches
+    &&!REDUCED_MOTION.matches
+    &&!spatialSelectionActive
+    &&pointers.size===0;
+}
+function updateDesktopMouseParallax(event){
+  if(event.pointerType!=='mouse'||!desktopMouseParallaxActive())return false;
+  const r=stage.getBoundingClientRect();
+  if(r.width<1||r.height<1)return false;
+  const nx=clamp(((event.clientX-r.left)/r.width)*2-1,-1,1);
+  const ny=clamp(((event.clientY-r.top)/r.height)*2-1,-1,1);
+  // Match the Jeyrusal Signature Card interaction: the visible depth stack
+  // follows mouse position while internal layers shift by depth.
+  tiltTargetX=nx*18;
+  tiltTargetY=ny*14;
+  scheduleTilt();
+  stage.dataset.desktopParallax='mouse';
+  return true;
+}
+function resetDesktopMouseParallax(){
+  if(!DESKTOP_FINE_POINTER.matches)return;
+  delete stage.dataset.desktopParallax;
+  tiltTargetX=0;
+  tiltTargetY=0;
+  scheduleTilt();
+}
 addEventListener('deviceorientation',event=>{
   const beta=Number(event.beta),gamma=Number(event.gamma);
   if(!Number.isFinite(beta)||!Number.isFinite(gamma))return;
@@ -4173,7 +4205,10 @@ stage.addEventListener('pointerdown',e=>{
   }
 });
 stage.addEventListener('pointermove',e=>{
-  if(!pointers.has(e.pointerId))return;
+  if(!pointers.has(e.pointerId)){
+    updateDesktopMouseParallax(e);
+    return;
+  }
   if(e.pointerType!=='mouse')e.preventDefault();
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(pointers.size===1&&panStart){x=panStart.x+(e.clientX-panStart.pointerX);y=panStart.y+(e.clientY-panStart.pointerY);applyTransform();scheduleRegionEnhancement();return}
@@ -4198,6 +4233,7 @@ function release(e){
 }
 stage.addEventListener('pointerup',release);
 stage.addEventListener('pointercancel',release);
+stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&pointers.size===0)resetDesktopMouseParallax()});
 stage.addEventListener('lostpointercapture',event=>{release(event);endImageDrag(event)});
 window.addEventListener('blur',()=>{
   for(const pointerId of [...pointers.keys()])release({pointerId});
@@ -4235,7 +4271,7 @@ function showAllParallax(){
   restorePassedFullFrames();
   stage.dataset.entryView='all-parallax';
   updateTierButton();renderTierMenu();fitMap();applyTransform();renderKeyboardKeys();
-  announce('All world layers shown in parallax. Choose a Tier when you are ready to isolate editing depth.');
+  announce('All world layers shown in parallax. On desktop, move the mouse to inspect depth and use the wheel, trackpad, + or − to zoom. Choose a Tier when you are ready to isolate editing depth.');
   return true;
 }
 
