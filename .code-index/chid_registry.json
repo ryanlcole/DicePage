@@ -519660,6 +519660,18 @@
       "scope": "TestMetadata.test_aliases",
       "status": "active"
     },
+    "3dd82b30a52283336c68de1db51b69cd428dbdf61db897cdd8c691af8f580eaf": {
+      "aliases": [
+        "fs"
+      ],
+      "chid": "chid.178564",
+      "kind": "variable",
+      "name": "fs",
+      "path": "apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs",
+      "qualified_name": "fs",
+      "scope": "",
+      "status": "active"
+    },
     "3dd8fc375c185f753e74e7d037bb3e0cb0a73f700da93957b3906ebda6afa08b": {
       "aliases": [
         "REG_DWORD_LITTLE_ENDIAN"
@@ -527194,6 +527206,18 @@
       "path": "libs/PyInstaller/__main__.py",
       "qualified_name": "_SmartFormatter._split_lines",
       "scope": "_SmartFormatter",
+      "status": "active"
+    },
+    "3ebda9c07281b559be11283457971358733813f884db84c80d49fdfa5530175c": {
+      "aliases": [
+        "assert"
+      ],
+      "chid": "chid.178563",
+      "kind": "variable",
+      "name": "assert",
+      "path": "apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs",
+      "qualified_name": "assert",
+      "scope": "",
       "status": "active"
     },
     "3ebdf15ec6826747c3dee9ddffea3897e62d5d52fbef6572375aff9dbb93733e": {
@@ -731172,6 +731196,18 @@
       "scope": "InotifyEvent.is_moved_to",
       "status": "active"
     },
+    "56fdd7d5b818b0d66677e2d010739b50b5e83dad96fc8029b69c0aef35faec9e": {
+      "aliases": [
+        "SCOPE_GRID_ROWS"
+      ],
+      "chid": "chid.178570",
+      "kind": "variable",
+      "name": "SCOPE_GRID_ROWS",
+      "path": "apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs",
+      "qualified_name": "SCOPE_GRID_ROWS",
+      "scope": "",
+      "status": "active"
+    },
     "56feda21e7f79de170b2164854d390d7eb84435ea894b470cd070146f66894f7": {
       "aliases": [
         "tmpdir"
@@ -784690,6 +784726,18 @@
       "path": "libs/pyglet/input/macos/darwin_hid.py",
       "qualified_name": "HIDManager._py_removal_callback.sender",
       "scope": "HIDManager._py_removal_callback",
+      "status": "active"
+    },
+    "5d6c1149373ad4ffeace9f69a144c393ec29a736be9544b8a76eaf4c0aec4cf8": {
+      "aliases": [
+        "LAYERS_PER_TIER"
+      ],
+      "chid": "chid.178571",
+      "kind": "variable",
+      "name": "LAYERS_PER_TIER",
+      "path": "apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs",
+      "qualified_name": "LAYERS_PER_TIER",
+      "scope": "",
       "status": "active"
     },
     "5d6c1bbb015c3349ca678a7d3589bce62d4b31d093bad3c3f81004d7b3947819": {
@@ -871630,6 +871678,18 @@
       "path": "libs/setuptools/_distutils/command/install_data.py",
       "qualified_name": "install_data._copy.self",
       "scope": "install_data._copy",
+      "status": "active"
+    },
+    "67ecb16d25b9bcb38070d26ec419cb057508c4ec5b711fb3fe1c98a85dc00840": {
+      "aliases": [
+        "prototype"
+      ],
+      "chid": "chid.178568",
+      "kind": "variable",
+      "name": "prototype",
+      "path": "apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs",
+      "qualified_name": "prototype",
+      "scope": "",
       "status": "active"
     },
     "67ed6d82aa03e6a3a040c7f75aa207106aadce435f6cd7067d01d4525bb35520": {
@@ -1293576,6 +1293636,18 @@
       "scope": "",
       "status": "active"
     },
+    "9aaffb1bd5f4795e34103e8a9b3d7d6d5bdd9233e7b82175be5cbd982fb9a738": {
+      "aliases": [
+        "root"
+      ],
+      "chid": "chid.178566",
+      "kind": "variable",
+      "name": "root",
+      "path": "apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs",
+      "qualified_name": "root",
+      "scope": "",
+      "status": "active"
+    },
     "9ab02e6c55ed90f2e98ea638922876d1ed64958b91f82082c82c8ed3d919b32a": {
       "aliases": [
         "_device"
@@ -1713576,6 +1713648,18 @@
       "scope": "",
       "status": "active"
     },
+    "ccb8303aa0b3fe8f8e6a1c00841dc6265d9eaa59a52b1a1b02bfcfee76848ff1": {
+      "aliases": [
+        "test"
+      ],
+      "chid": "chid.178562",
+      "kind": "variable",
+      "name": "test",
+      "path": "apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs",
+      "qualified_name": "test",
+      "scope": "",
+      "status": "active"
+    },
     "ccb84ab127a178f0fb2b046cb921690f930dcb03448e9b705e9ebd32314e8506": {
       "aliases": [
         "msg"
@@ -1815156,6 +1815240,18 @@
       "scope": "_rotate_point",
       "status": "active"
     },
+    "d8be85eec3aeca6cb6e83e75f2e7ff878aea7304e026b12622390b166aa3890f": {
+      "aliases": [
+        "razor"
+      ],
+      "chid": "chid.178567",
+      "kind": "variable",
+      "name": "razor",
+      "path": "apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs",
+      "qualified_name": "razor",
+      "scope": "",
+      "status": "active"
+    },
     "d8bebbca0604c20c1a44ffe423ff388a12afa881a551ecd7a4a089bba84425f2": {
       "aliases": [
         "debug_print"
@@ -1834293,6 +1834389,18 @@
       "name": "SCE_POV_WORD3",
       "path": "libs/pythonwin/pywin/scintilla/scintillacon.py",
       "qualified_name": "SCE_POV_WORD3",
+      "scope": "",
+      "status": "active"
+    },
+    "db02e40d7234991d51d3e13885d4b92bcb5c8f9f77ab5c3301a4d381dfebf701": {
+      "aliases": [
+        "path"
+      ],
+      "chid": "chid.178565",
+      "kind": "variable",
+      "name": "path",
+      "path": "apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs",
+      "qualified_name": "path",
       "scope": "",
       "status": "active"
     },
@@ -1887718,6 +1887826,18 @@
       "path": "libs/pyglet/extlibs/png.py",
       "qualified_name": "Writer.__init__.y_pixels_per_unit",
       "scope": "Writer.__init__",
+      "status": "active"
+    },
+    "e170ca53a9035f163802fba3938aa64ee7f7d5ca417773e6a51e51690af644ce": {
+      "aliases": [
+        "SCOPE_GRID_COLUMNS"
+      ],
+      "chid": "chid.178569",
+      "kind": "variable",
+      "name": "SCOPE_GRID_COLUMNS",
+      "path": "apps/rist-world/tests/worldbuilder-recursive-cube-flow.test.cjs",
+      "qualified_name": "SCOPE_GRID_COLUMNS",
+      "scope": "",
       "status": "active"
     },
     "e1711aedb9600b23eb367d359a4904e33e3d7702b4af88a26ad30330449e96e6": {
@@ -2142733,6 +2142853,6 @@
       "status": "active"
     }
   },
-  "next_id": 178562,
+  "next_id": 178572,
   "version": 1
 }
