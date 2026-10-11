@@ -20,6 +20,24 @@ Each step remains its own observation. A later step does not erase an earlier on
 - User reports are evidence of reported experience, not automatic proof of cause.
 - Observatory emits `OBSERVATION` only. It cannot promote records to canon or grant mutation authority.
 - The existing ReLiC MCP remains read-only for AI clients.
+- Drift warnings are advisory evidence, not vetoes. ReLiC warns about divergence from an intended target but does not prevent an authorized human from changing that target.
+- Before a configured local Git push, the outgoing code state should be captured so later investigation can distinguish the pre-push implementation from subsequent repository state.
+
+## Project memory separation
+
+`project_memory_targets.json` defines bounded project targets so retrieval and drift review do not collapse distinct projects into one memory. Current partitions include ReLiC Core, ReLiC Observatory, ReLiC Share, Shaelvien, RIST, exploratory RuneCore/WaveCore work, and Forsyth Tech learning continuity.
+
+These targets are context, not automatic canon. A target may change. When it does, preserve the prior target and the evidence/decision explaining the change rather than silently rewriting history.
+
+`project_drift_guard.py` maps changed paths to relevant target partitions and emits a `WARN_ONLY` report. A warning means "review this change against the intended target"; it does not mean the change is wrong and it always exits successfully.
+
+For local development, `tools/relic-pre-push` captures the exact outgoing patch, changed paths, refs and SHA-256 digest under `.git/relic-observatory/pre-push/` before Git sends the update. Install it per clone with:
+
+```text
+python tools/install-relic-hooks.py
+```
+
+The local capture deliberately lives inside `.git` so observing a push does not mutate the working tree or create a recursive commit. GitHub/AWS Observatory remains responsible for durable post-push ingestion. Local capture is pre-push evidence; durable ReLiC ingestion is a separate event and neither is canon promotion.
 
 ## Initial observation kinds
 
@@ -106,5 +124,6 @@ A future renderer may generate a human-readable `errors.md` from durable ReLiC e
 4. User-report adapter: accept bounded error reports with product/version evidence.
 5. Runtime adapter: observe application errors without collecting unnecessary personal data.
 6. Projection layer: produce `errors.md` and ReLiC Share evidence views from stored events.
+7. Pre-push bridge: optionally submit the local pre-push capture after the push succeeds, without giving the hook ReLiC write authority.
 
 Adapters should be independent of the read-only MCP surface. ReLiC Share may display bounded evidence, while the ReLiC service and ingestion credentials remain private.
