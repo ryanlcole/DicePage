@@ -1,0 +1,213 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Private ReLiC Observatory ingestion bridge. GitHub Actions assumes a short-lived
+  OIDC role and invokes a VPC Lambda. The Lambda re-validates OBSERVATION-only
+  evidence, discovers the highest running relic-host task revision, retrieves the
+  existing ReLiC write token inside AWS, and appends to private port 8080.
+  No public ReLiC ingestion endpoint is created.
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC containing the existing relic-host ECS tasks.
+
+  IngestSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnets for the private ingestion Lambda and interface endpoints.
+
+  RelicHostSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Existing security group attached to relic-host ECS tasks.
+
+  RelicWriteTokenSecretArn:
+    Type: String
+    Description: Existing Secrets Manager ARN containing RELIC_WRITE_TOKEN.
+    NoEcho: true
+
+  GitHubOidcProviderArn:
+    Type: String
+    Description: Existing IAM OIDC provider ARN for token.actions.githubusercontent.com.
+
+  GitHubRepository:
+    Type: String
+    Default: ryanlcole/DicePage
+
+  GitHubBranch:
+    Type: String
+    Default: relic-independent-service
+
+  RelicClusterName:
+    Type: String
+    Default: relic-host
+
+  RelicTaskFamily:
+    Type: String
+    Default: relic-host
+
+  RelicHostPort:
+    Type: Number
+    Default: 8080
+
+Resources:
+  ObservatoryIngestSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ReLiC Observatory private ingestion Lambda
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: relic-observatory-ingest
+
+  RelicHostIngressFromObservatory:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref RelicHostSecurityGroupId
+      IpProtocol: tcp
+      FromPort: !Ref RelicHostPort
+      ToPort: !Ref RelicHostPort
+      SourceSecurityGroupId: !Ref ObservatoryIngestSecurityGroup
+      Description: Observatory ingestion Lambda only
+
+  AwsApiEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: HTTPS from Observatory Lambda to private AWS API endpoints
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref ObservatoryIngestSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: relic-observatory-aws-endpoints
+
+  EcsInterfaceEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      VpcId: !Ref VpcId
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.ecs
+      PrivateDnsEnabled: true
+      SubnetIds: !Ref IngestSubnetIds
+      SecurityGroupIds:
+        - !Ref AwsApiEndpointSecurityGroup
+
+  SecretsManagerInterfaceEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      VpcId: !Ref VpcId
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.secretsmanager
+      PrivateDnsEnabled: true
+      SubnetIds: !Ref IngestSubnetIds
+      SecurityGroupIds:
+        - !Ref AwsApiEndpointSecurityGroup
+
+  ObservatoryIngestRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: relic-observatory-ingest
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: DiscoverRelicHost
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: ListAndDescribeRelicTasks
+                Effect: Allow
+                Action:
+                  - ecs:ListTasks
+                  - ecs:DescribeTasks
+                Resource: '*'
+              - Sid: ReadOnlyRelicWriteToken
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref RelicWriteTokenSecretArn
+
+  ObservatoryIngestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: relic-observatory-ingest
+      Description: Private authenticated Observatory to ReLiC append bridge
+      CodeUri: ../../services/relic-host
+      Handler: observatory_ingest_lambda.handler
+      Runtime: python3.12
+      Architectures: [x86_64]
+      Timeout: 30
+      MemorySize: 256
+      Role: !GetAtt ObservatoryIngestRole.Arn
+      VpcConfig:
+        SubnetIds: !Ref IngestSubnetIds
+        SecurityGroupIds:
+          - !Ref ObservatoryIngestSecurityGroup
+      Environment:
+        Variables:
+          RELIC_CLUSTER: !Ref RelicClusterName
+          RELIC_TASK_FAMILY: !Ref RelicTaskFamily
+          RELIC_HOST_PORT: !Ref RelicHostPort
+          RELIC_WRITE_TOKEN_SECRET_ARN: !Ref RelicWriteTokenSecretArn
+      Tags:
+        System: ReLiC
+        Boundary: ObservatoryIngestion
+        CanonAuthority: 'false'
+
+  GitHubObservatoryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: relic-observatory-github
+      Description: >
+        Short-lived GitHub OIDC role. May invoke only the Observatory ingestion
+        Lambda; it cannot read RELIC_WRITE_TOKEN or reach ReLiC storage directly.
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubRepository}:ref:refs/heads/${GitHubBranch}
+      Policies:
+        - PolicyName: InvokeObservatoryIngestOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: !GetAtt ObservatoryIngestFunction.Arn
+
+Outputs:
+  ObservatoryIngestFunctionName:
+    Value: !Ref ObservatoryIngestFunction
+    Description: Lambda invoked by GitHub Actions after local Observatory validation.
+
+  GitHubObservatoryRoleArn:
+    Value: !GetAtt GitHubObservatoryRole.Arn
+    Description: Store this ARN as the GitHub Actions variable RELIC_OBSERVATORY_ROLE_ARN.
+
+  ObservatoryIngestSecurityGroupId:
+    Value: !Ref ObservatoryIngestSecurityGroup
+
+  BoundaryStatement:
+    Value: GitHub submits OBSERVATION evidence; AWS retains ReLiC write authority; OBSERVATION is not CANON.
