@@ -6,10 +6,7 @@ const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const read=relative=>fs.readFileSync(path.join(root,relative),'utf8');
 
-// Existing tests above remain unchanged in repository history. This replacement is intentionally
-// limited to the canonical START interface contract that was failing only because the cache-bust
-// version changed while the actual asset contract remained valid.
-
+// Minimal contract guard for the START Interface asset/version references.
 test('START Interface separates overlay viewer grid and asset grid',()=>{
   const start=read('wwwroot/start-menu.js');
   const sourceCss=read('css-source/start-menu.css');
