@@ -66,7 +66,7 @@ No public ReLiC ingestion endpoint is required. GitHub does not receive `RELIC_W
 
 `infra/aws/relic-observatory-ingest.yml` defines this boundary. It also creates private ECS and Secrets Manager interface endpoints so the VPC Lambda can discover the running ReLiC task and retrieve the existing write secret without public Internet routing.
 
-`observatory_ingest_lambda.py` rejects non-`OBSERVATION` envelopes before reading the write secret. Historical standalone ECS tasks may coexist, so it selects the highest RUNNING `relic-host` task-definition revision instead of hard-coding a disposable task IP.
+`observatory_ingest/lambda_handler.py` rejects non-`OBSERVATION` envelopes before reading the write secret. Historical standalone ECS tasks may coexist, so it selects the highest RUNNING `relic-host` task-definition revision instead of hard-coding a disposable task IP. The package-local `observatory_ingest/validation.py` provides the dependency-free envelope validator used by the Lambda package.
 
 Each observation contains:
 
