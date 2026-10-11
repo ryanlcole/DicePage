@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ReLiC Share | End-to-End Engineering Report</title>
+<meta name="description" content="ReLiC Share engineering report: verified GitHub Observatory, private AWS ingestion, durable continuity, read-only MCP retrieval, failure history, recovery, and end-to-end proof.">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#081117">
+<link rel="canonical" href="https://relicgamemaster.com/relic/share/">
+<link rel="stylesheet" href="/relic-home.css?v=20260828-polish2">
+<style>
+:root{--ink:#081117;--panel:#0b171d;--gold:#e0c58d;--cyan:#88bac9;--text:#c7d1d3;--muted:#91a5a8;--line:rgba(224,197,141,.25);--ok:#b9e7c8;--warn:#f2d499}
+main{max-width:1160px;margin:0 auto;padding:42px 20px 80px}.eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:.75rem;font-weight:800;color:var(--cyan)}h1{margin:.08em 0 .22em;font:700 clamp(2.7rem,8vw,6.2rem)/.9 Georgia,"Times New Roman",serif;color:#f0dfbb}.lede{font-size:clamp(1.04rem,2.1vw,1.3rem);line-height:1.62;color:var(--text);max-width:900px}.hero,.card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(19,40,50,.75),rgba(9,22,28,.88))}.hero{padding:28px}.status{display:inline-flex;gap:9px;align-items:center;margin:12px 0;padding:8px 12px;border:1px solid rgba(185,231,200,.38);border-radius:999px;color:var(--ok);font:800 .78rem/1 system-ui;letter-spacing:.06em}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}.actions a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 14px;border-radius:10px;border:1px solid rgba(224,197,141,.42);background:#142a34;color:#f3e5c8;text-decoration:none;font:800 .9rem/1 system-ui}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:22px}.card{padding:24px}.wide{grid-column:1/-1}.card h2{margin:0 0 10px;font:700 clamp(1.35rem,3vw,2rem)/1.1 Georgia,"Times New Roman",serif;color:#ead9b5}.card h3{margin:20px 0 8px;color:#d8c49a}.card p,.card li{color:#b9c5c7;line-height:1.58}.card ul,.card ol{padding-left:21px}.law{font-family:Georgia,"Times New Roman",serif;color:#e8d6af;font-size:1.06rem}.flow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:16px}.flow div{min-height:92px;padding:14px;border:1px solid rgba(136,186,201,.28);border-radius:12px;background:#071116;color:#b7c7ca;font-size:.82rem;line-height:1.42}.flow strong{display:block;color:#ead9b5;margin-bottom:6px}.legend{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.legend div{padding:14px;border:1px solid rgba(136,186,201,.25);border-radius:12px;background:#071116}.legend strong{display:block;color:#dceef2;margin-bottom:6px}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-word}.fact{color:var(--ok)}.warning{color:var(--warn)}.timeline li{margin:10px 0}.small{font-size:.86rem;color:#93a7aa}.footer-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:40px}.footer-links a{color:#b9d8e1}@media(max-width:960px){.flow{grid-template-columns:1fr 1fr}.legend{grid-template-columns:1fr 1fr}}@media(max-width:760px){.grid,.legend,.flow{grid-template-columns:1fr}.wide{grid-column:auto}main{padding-top:28px}}
+</style>
+</head>
+<body>
+<header class="site-header"><nav aria-label="Primary navigation"><a href="/">Home</a><a href="/Game/index.html">Shaelvien</a><a href="/relic/">AI</a><a href="/relic/share/" aria-current="page">ReLiC Share</a><a href="/relicquery/">Knowledge</a></nav></header>
+<main>
+<section class="hero" aria-labelledby="title">
+<p class="eyebrow">ReLiC Share · Temporal Continuity · Observer — No Execution</p>
+<div class="status">VERIFIED MILESTONE · 2026-10-11</div>
+<h1 id="title">Remember.<br>Explain.<br>Prove.</h1>
+<p class="lede">ReLiC Share is the public engineering record for the ReLiC continuity system. The verified milestone demonstrates that a GitHub change can become a bounded <strong>OBSERVATION</strong>, cross a private AWS ingestion boundary, persist in durable storage, and later be retrieved by ChatGPT through a physically read-only MCP path without silently promoting the observation to canon.</p>
+<div class="actions"><a href="#proof">Read the proof</a><a href="#failures">Read the failures</a><a href="/relic/">Main ReLiC page</a></div>
+</section>
+
+<section class="grid">
+<article class="card wide">
+<p class="eyebrow">Problem</p><h2>AI continuity usually loses the reason a state exists.</h2>
+<p>A current answer can be correct while its history is missing. A new build can work while hiding the failed builds that taught the system what not to do. ReLiC addresses that gap by separating identity, representation, truth, provenance, status, and authority instead of collapsing them into one mutable summary.</p>
+<p class="law">Identity ≠ representation · Representation ≠ truth · UNKNOWN ≠ FACT · MEMORY ≠ CANON · Observation ≠ Canon</p>
+</article>
+
+<article class="card wide" id="proof">
+<p class="eyebrow">Verified architecture</p><h2>End-to-end continuity is complete.</h2>
+<div class="flow" aria-label="Verified ReLiC path">
+<div><strong>1 · GitHub</strong>Repository change on the observed branch.</div>
+<div><strong>2 · Actions</strong>Observatory CI validates and packages evidence.</div>
+<div><strong>3 · OIDC</strong>GitHub assumes a branch-scoped AWS role; no stored GitHub write token.</div>
+<div><strong>4 · Lambda</strong>Private ingestion bridge validates the evidence and holds write authority.</div>
+<div><strong>5 · ReLiC Host</strong>Private host writes the bounded event to durable EFS-backed storage.</div>
+<div><strong>6 · MCP</strong>ReLiC MCP opens the database read-only and exposes bounded retrieval.</div>
+<div><strong>7 · ChatGPT</strong>Secure MCP Tunnel returns the preserved event and provenance.</div>
+</div>
+<p class="small">This architecture proves the tested path. It does not claim universal AI safety, universal correctness, or automatic canon promotion.</p>
+</article>
+
+<article class="card wide">
+<p class="eyebrow">Evidence classes</p><h2>What each label means</h2>
+<div class="legend">
+<div><strong>OBSERVATION</strong><span>Something ReLiC recorded with provenance. It is not automatically truth or canon.</span></div>
+<div><strong>EVIDENCE</strong><span>Material that supports verification: logs, hashes, test results, source state, runtime state, and preserved artifacts.</span></div>
+<div><strong>REPRESENTATION</strong><span>A page, summary, model output, diagram, or other view of evidence. Representation is not the evidence itself.</span></div>
+<div><strong>CANON</strong><span>Governing project truth promoted through the applicable authority process. Observation cannot promote itself.</span></div>
+</div>
+</article>
+
+<article class="card">
+<p class="eyebrow">Security model</p><h2>Write authority stays private.</h2>
+<ul>
+<li>GitHub uses OIDC rather than a stored ReLiC write token.</li>
+<li>The AWS role is scoped to the observed branch and the bounded ingestion function.</li>
+<li>The ingestion Lambda validates the envelope before requesting private write credentials.</li>
+<li>The ReLiC host receives private ingestion; GitHub does not write directly to the database.</li>
+<li>The MCP container mounts the durable data path physically read-only and opens SQLite with <span class="mono">mode=ro</span> plus query-only semantics.</li>
+<li>The Secure MCP Tunnel is outbound from the ReLiC runtime; the MCP database reader has no ReLiC write authority.</li>
+</ul>
+</article>
+
+<article class="card">
+<p class="eyebrow">Immutable proof record</p><h2>The real GitHub observation survived.</h2>
+<p><strong>Event ID</strong><br><span class="mono">9527b2e0-1a01-4e7a-ae49-956cd5a42dd6</span></p>
+<p><strong>Status</strong> <span class="fact">OBSERVATION</span><br><strong>Source</strong> GIT_REPOSITORY<br><strong>Actor</strong> ryanlcole</p>
+<p><strong>Payload hash</strong><br><span class="mono">59eb97baebb48f4049ae28367456ae9fcc7bf448bb3ec84fd4f26b7015185f1a</span></p>
+<p class="small">The same ID, status, provenance, and hash were verified in preserved storage and later retrieved through the live ChatGPT → Secure MCP Tunnel → read-only MCP path.</p>
+</article>
+
+<article class="card wide" id="failures">
+<p class="eyebrow">Failure history</p><h2>The report keeps the failures that made the proof stronger.</h2>
+<ol class="timeline">
+<li><strong>Runs #22 and #23 — import regression.</strong> CI failed during test collection with <span class="mono">ModuleNotFoundError: No module named 'validation'</span>. OIDC was not exercised in those failed runs. The import path was corrected instead of treating a later green run as if the failures never happened.</li>
+<li><strong>Run #24 — real OIDC ingestion succeeded.</strong> The workflow completed, GitHub assumed the OIDC role, Lambda returned a successful bounded ingestion response, and the resulting CODE_CHANGE event was stored as OBSERVATION.</li>
+<li><strong>Live MCP read failure — SQLite reported “database disk image is malformed”.</strong> Forensics preserved the DB, WAL, and SHM before repair. A coherent copy passed both <span class="mono">quick_check</span> and <span class="mono">integrity_check</span>, so the evidence did not support claiming logical database destruction.</li>
+<li><strong>Architecture defect identified — WAL on shared EFS with multiple possible writers/readers.</strong> The writer was changed to rollback-journal DELETE mode; MCP was changed to a physically read-only mount and read-only SQLite connection.</li>
+<li><strong>First hardened rev8 launch failed before containers started.</strong> The task could not reach the private Secrets Manager interface endpoint because that endpoint's security group did not permit HTTPS from the ReLiC ECS host security group.</li>
+<li><strong>Scoped network correction.</strong> TCP 443 from the ReLiC host security group was added to the Secrets Manager endpoint security group; no public CIDR was introduced.</li>
+<li><strong>Second rev8 launch succeeded.</strong> The task reached RUNNING/HEALTHY, MCP became HEALTHY, and the recovered database remained intact.</li>
+</ol>
+</article>
+
+<article class="card wide">
+<p class="eyebrow">Recovery and verification</p><h2>Recovery was evidence-preserving, not destructive.</h2>
+<ul>
+<li>The live SQLite files were copied to a timestamped forensic recovery directory before mutation.</li>
+<li>The coherent preserved copy passed <span class="mono">quick_check = ok</span> and <span class="mono">integrity_check = ok</span>.</li>
+<li>All old standalone writer-capable tasks were stopped before journal conversion.</li>
+<li>The consolidated database was converted from WAL to rollback journal DELETE mode.</li>
+<li>Post-recovery database SHA-256: <span class="mono">4011371f636ef418de0355d41e5de0d33886bfaa85a00673e699724e2c29c21c</span>.</li>
+<li>Post-recovery event count remained 5 before any intentional new write.</li>
+<li>The critical GitHub event retained status OBSERVATION and the exact expected payload hash.</li>
+<li>The hardened runtime was then queried from ChatGPT through the live ReLiC connector, independently closing the readback path.</li>
+</ul>
+</article>
+
+<article class="card">
+<p class="eyebrow">Hardening</p><h2>Source and CI</h2>
+<p><span class="mono">c8e2bcf…</span> — Harden ReLiC SQLite for EFS shared storage.</p>
+<p><span class="mono">2457e9ab…</span> — Make ReLiC MCP database access physically read-only.</p>
+<p>Observatory CI runs #25 and #26 both completed successfully for those hardening commits.</p>
+</article>
+
+<article class="card">
+<p class="eyebrow">Read-only interface</p><h2>What ChatGPT can retrieve</h2>
+<ul><li><span class="mono">relic_context_pack</span> — bounded continuity relevant to a query.</li><li><span class="mono">relic_search</span> — bounded search across stored event fields and payload text.</li><li><span class="mono">relic_get_event</span> — one immutable event by ID.</li></ul>
+<p class="small">These tools retrieve representation of stored evidence. They do not grant authority to mutate ReLiC or promote an observation into canon.</p>
+</article>
+
+<article class="card wide">
+<p class="eyebrow">Current engineering truth</p><h2>Milestone frozen: ReLiC Observatory + Secure MCP Continuity — End-to-End Complete</h2>
+<p class="fact"><strong>Verified:</strong> GitHub Actions → GitHub OIDC → AWS Lambda → private ReLiC Host → durable EFS-backed SQLite → physically read-only MCP → Secure MCP Tunnel → ChatGPT.</p>
+<p><strong>Not claimed:</strong> that every future deployment is automatically correct, that evidence equals canon, that model agreement creates authority, or that the engineering report itself can overwrite the underlying record.</p>
+<p class="small">Freeze date: 2026-10-11. This page is a public representation of the verified engineering record. Later work should append new evidence rather than silently rewriting this history.</p>
+</article>
+</section>
+
+<div class="footer-links"><a href="/relic/">R.e.L.i.C. AI</a><a href="/relicquery/">Public knowledge</a><a href="/.well-known/relic-canon.json">Machine-readable canon</a><a href="/">ReLiCGameMaster</a></div>
+</main>
+</body>
+</html>
