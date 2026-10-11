@@ -11,40 +11,31 @@ Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: VPC containing the existing relic-host ECS tasks.
-
   IngestSubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
     Description: Subnets for the private ingestion Lambda and interface endpoints.
-
   RelicHostSecurityGroupId:
     Type: AWS::EC2::SecurityGroup::Id
     Description: Existing security group attached to relic-host ECS tasks.
-
   RelicWriteTokenSecretArn:
     Type: String
     Description: Existing Secrets Manager ARN containing RELIC_WRITE_TOKEN.
     NoEcho: true
-
   GitHubOidcProviderArn:
     Type: String
     Description: Existing IAM OIDC provider ARN for token.actions.githubusercontent.com.
-
   GitHubRepository:
     Type: String
     Default: ryanlcole/DicePage
-
   GitHubBranch:
     Type: String
     Default: relic-independent-service
-
   RelicClusterName:
     Type: String
     Default: relic-host
-
   RelicTaskFamily:
     Type: String
     Default: relic-host
-
   RelicHostPort:
     Type: Number
     Default: 8080
@@ -146,8 +137,8 @@ Resources:
     Properties:
       FunctionName: relic-observatory-ingest
       Description: Private authenticated Observatory to ReLiC append bridge
-      CodeUri: ../../services/relic-host
-      Handler: observatory_ingest_lambda.handler
+      CodeUri: ../../services/relic-host/observatory_ingest
+      Handler: lambda_handler.handler
       Runtime: python3.12
       Architectures: [x86_64]
       Timeout: 30
@@ -201,13 +192,10 @@ Outputs:
   ObservatoryIngestFunctionName:
     Value: !Ref ObservatoryIngestFunction
     Description: Lambda invoked by GitHub Actions after local Observatory validation.
-
   GitHubObservatoryRoleArn:
     Value: !GetAtt GitHubObservatoryRole.Arn
     Description: Store this ARN as the GitHub Actions variable RELIC_OBSERVATORY_ROLE_ARN.
-
   ObservatoryIngestSecurityGroupId:
     Value: !Ref ObservatoryIngestSecurityGroup
-
   BoundaryStatement:
     Value: GitHub submits OBSERVATION evidence; AWS retains ReLiC write authority; OBSERVATION is not CANON.
