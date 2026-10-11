@@ -19,6 +19,7 @@ jobs:
           ref: live-alpha-rist-blazor-world
           fetch-depth: 0
 
+      # Guarded one-time source repair. Refuses to patch if the expected regression is absent.
       - name: Restore World-first navigation
         shell: python
         run: |
