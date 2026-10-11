@@ -1,7 +1,42 @@
 (function(root){
   'use strict';
   // Input changes camera representation only. World mutations stay in the host.
+  function installDesktopZoomBar({stage,document:doc,zoom,fit}){
+    const finePointer=root.matchMedia?.('(hover: hover) and (pointer: fine)');
+    if(!finePointer)return()=>{};
+    let bar=null;
+    let range=null;
+    let previous=50;
+
+    const ensure=()=>{
+      const shouldShow=finePointer.matches;
+      if(!shouldShow){bar?.remove();bar=null;range=null;return;}
+      if(bar?.isConnected)return;
+      bar=doc.createElement('label');
+      bar.id='desktopZoomBar';
+      bar.className='desktop-zoom-bar';
+      bar.setAttribute('data-ui','');
+      bar.innerHTML='<span aria-hidden="true">−</span><input id="desktopZoomRange" type="range" min="0" max="100" value="50" step="1" aria-label="Zoom"><span aria-hidden="true">+</span>';
+      range=bar.querySelector('input');
+      Object.assign(bar.style,{position:'absolute',right:'14px',top:'50%',transform:'translateY(-50%)',zIndex:'40',display:'flex',flexDirection:'column-reverse',alignItems:'center',gap:'6px',padding:'9px 6px',border:'1px solid rgba(215,180,94,.82)',borderRadius:'999px',background:'rgba(3,10,16,.88)',color:'#f6e2a6',font:'900 14px/1 system-ui'});
+      Object.assign(range.style,{writingMode:'vertical-lr',direction:'rtl',width:'24px',height:'clamp(130px,30vh,260px)',accentColor:'#62ccff',cursor:'ns-resize'});
+      range.addEventListener('input',()=>{
+        const next=Number(range.value);
+        if(next===previous)return;
+        zoom(next>previous?1.08:1/1.08);
+        previous=next;
+      });
+      range.addEventListener('dblclick',()=>{fit();range.value='50';previous=50;});
+      stage.appendChild(bar);
+    };
+
+    finePointer.addEventListener?.('change',ensure);
+    ensure();
+    return()=>{finePointer.removeEventListener?.('change',ensure);bar?.remove();};
+  }
+
   function install({stage,document:doc,pan,zoom,fit,tiers,settings,upload,keyboard,modal}){
+    const removeZoomBar=installDesktopZoomBar({stage,document:doc,zoom,fit});
     const onKey=event=>{
       if(event.defaultPrevented||event.isComposing)return;
       const panel=modal();
@@ -25,7 +60,7 @@
       if(action){event.preventDefault();action();}
     };
     doc.addEventListener('keydown',onKey);
-    return()=>doc.removeEventListener('keydown',onKey);
+    return()=>{doc.removeEventListener('keydown',onKey);removeZoomBar();};
   }
   function resizeCamera(camera,previous,next){
     if(next.width<=0||next.height<=0)return null;
