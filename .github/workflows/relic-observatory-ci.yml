@@ -6,19 +6,23 @@ on:
       - relic-independent-service
     paths:
       - 'services/relic-host/**'
+      - 'infra/aws/relic-observatory-ingest.yml'
       - '.github/workflows/relic-observatory-ci.yml'
   pull_request:
     paths:
       - 'services/relic-host/**'
+      - 'infra/aws/relic-observatory-ingest.yml'
       - '.github/workflows/relic-observatory-ci.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
+  id-token: write
 
 env:
-  RELIC_INGEST_URL: ${{ secrets.RELIC_INGEST_URL }}
-  RELIC_WRITE_TOKEN: ${{ secrets.RELIC_WRITE_TOKEN }}
+  AWS_REGION: us-east-1
+  RELIC_OBSERVATORY_ROLE_ARN: ${{ vars.RELIC_OBSERVATORY_ROLE_ARN }}
+  RELIC_OBSERVATORY_FUNCTION: relic-observatory-ingest
 
 jobs:
   test:
@@ -41,10 +45,23 @@ jobs:
         run: python -m pip install --upgrade pip && pip install -r requirements-dev.txt
 
       - name: Compile ReLiC host and Observatory
-        run: python -m py_compile app.py mcp_server.py observatory.py github_observer.py relic_collector.py
+        run: >
+          python -m py_compile
+          app.py
+          mcp_server.py
+          observatory.py
+          github_observer.py
+          relic_collector.py
+          observatory_ingest_lambda.py
 
       - name: Run ReLiC host and Observatory tests
-        run: pytest -q test_relic_host.py test_observatory.py test_github_observer.py test_relic_collector.py
+        run: >
+          pytest -q
+          test_relic_host.py
+          test_observatory.py
+          test_github_observer.py
+          test_relic_collector.py
+          test_observatory_ingest_lambda.py
 
       - name: Generate code-change observation
         if: github.event_name == 'push'
@@ -63,10 +80,41 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Append observation to durable ReLiC
-        if: github.event_name == 'push' && env.RELIC_INGEST_URL != '' && env.RELIC_WRITE_TOKEN != ''
-        run: python relic_collector.py observatory-code-change.json
+      - name: Configure short-lived AWS credentials
+        if: github.event_name == 'push' && env.RELIC_OBSERVATORY_ROLE_ARN != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.RELIC_OBSERVATORY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Report ingestion not configured
-        if: github.event_name == 'push' && (env.RELIC_INGEST_URL == '' || env.RELIC_WRITE_TOKEN == '')
-        run: echo 'Observation verified and retained as CI evidence; durable ReLiC ingestion is not configured for this workflow.'
+      - name: Append observation through private AWS boundary
+        if: github.event_name == 'push' && env.RELIC_OBSERVATORY_ROLE_ARN != ''
+        run: |
+          aws lambda invoke             --function-name "$RELIC_OBSERVATORY_FUNCTION"             --region "$AWS_REGION"             --cli-binary-format raw-in-base64-out             --payload fileb://observatory-code-change.json             observatory-ingest-response.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          response = json.loads(Path("observatory-ingest-response.json").read_text(encoding="utf-8"))
+          if response.get("stored") is not True:
+              raise SystemExit(f"ReLiC ingestion did not report stored=true: {response}")
+          if response.get("observation_status") != "OBSERVATION":
+              raise SystemExit(f"unexpected observation status: {response}")
+          if response.get("canon_promoted") is not False:
+              raise SystemExit(f"invalid canon promotion result: {response}")
+          print(json.dumps({
+              "stored": True,
+              "id": response.get("id"),
+              "payload_hash": response.get("payload_hash"),
+              "observation_status": response.get("observation_status"),
+              "canon_promoted": response.get("canon_promoted"),
+          }, sort_keys=True))
+          PY
+
+      - name: Report private ingestion not configured
+        if: github.event_name == 'push' && env.RELIC_OBSERVATORY_ROLE_ARN == ''
+        run: >
+          echo 'Observation verified and retained as CI evidence;
+          private AWS ingestion is not configured until the
+          RELIC_OBSERVATORY_ROLE_ARN repository variable is set.'
