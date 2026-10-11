@@ -37,11 +37,30 @@ def digest(value: Any) -> str:
 
 
 def db() -> sqlite3.Connection:
+    """Open the authoritative writer connection.
+
+    ReLiC stores SQLite on EFS. WAL is intentionally forbidden here because
+    SQLite WAL requires all processes to be on the same host and is unsafe for
+    network filesystems. DELETE journal mode keeps locking in SQLite's normal
+    rollback-journal path. MCP readers use their own read-only connection.
+    """
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(DB_PATH)
+    con = sqlite3.connect(DB_PATH, timeout=30)
     con.row_factory = sqlite3.Row
-    con.execute("PRAGMA journal_mode=WAL")
+    con.execute("PRAGMA busy_timeout=30000")
+    con.execute("PRAGMA journal_mode=DELETE")
+    con.execute("PRAGMA synchronous=FULL")
     con.execute("PRAGMA foreign_keys=ON")
+    return con
+
+
+def readonly_db() -> sqlite3.Connection:
+    """Open ReLiC without schema, journal, or other mutation authority."""
+    uri = f"file:{DB_PATH}?mode=ro"
+    con = sqlite3.connect(uri, uri=True, timeout=30)
+    con.row_factory = sqlite3.Row
+    con.execute("PRAGMA busy_timeout=30000")
+    con.execute("PRAGMA query_only=ON")
     return con
 
 
@@ -119,14 +138,14 @@ def require_write(authorization: str | None) -> None:
 @app.get("/health")
 def health() -> dict[str, Any]:
     init()
-    with db() as con:
+    with readonly_db() as con:
         count = con.execute("SELECT COUNT(*) c FROM events").fetchone()["c"]
     return {"service": "relic-host", "state": "SAFE", "observer_only": True, "events": count}
 
 
 @app.get("/v1/events")
 def events(subject: str | None = None, limit: int = Query(100, ge=1, le=1000)) -> list[dict[str, Any]]:
-    with db() as con:
+    with readonly_db() as con:
         if subject:
             rows = con.execute("SELECT * FROM events WHERE subject=? ORDER BY seq DESC LIMIT ?", (subject, limit)).fetchall()
         else:
@@ -179,7 +198,7 @@ def gate(proposal_id: str, gate: str, item: GateIn, authorization: str | None = 
 
 @app.get("/v1/proposals/{proposal_id}")
 def proposal(proposal_id: str) -> dict[str, Any]:
-    with db() as con:
+    with readonly_db() as con:
         row = con.execute("SELECT * FROM proposals WHERE id=?", (proposal_id,)).fetchone()
     if not row:
         raise HTTPException(404, "proposal not found")
