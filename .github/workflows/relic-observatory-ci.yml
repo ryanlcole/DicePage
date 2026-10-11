@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+env:
+  RELIC_INGEST_URL: ${{ secrets.RELIC_INGEST_URL }}
+  RELIC_WRITE_TOKEN: ${{ secrets.RELIC_WRITE_TOKEN }}
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -60,12 +64,9 @@ jobs:
           retention-days: 30
 
       - name: Append observation to durable ReLiC
-        if: github.event_name == 'push' && secrets.RELIC_INGEST_URL != '' && secrets.RELIC_WRITE_TOKEN != ''
-        env:
-          RELIC_INGEST_URL: ${{ secrets.RELIC_INGEST_URL }}
-          RELIC_WRITE_TOKEN: ${{ secrets.RELIC_WRITE_TOKEN }}
+        if: github.event_name == 'push' && env.RELIC_INGEST_URL != '' && env.RELIC_WRITE_TOKEN != ''
         run: python relic_collector.py observatory-code-change.json
 
       - name: Report ingestion not configured
-        if: github.event_name == 'push' && (secrets.RELIC_INGEST_URL == '' || secrets.RELIC_WRITE_TOKEN == '')
+        if: github.event_name == 'push' && (env.RELIC_INGEST_URL == '' || env.RELIC_WRITE_TOKEN == '')
         run: echo 'Observation verified and retained as CI evidence; durable ReLiC ingestion is not configured for this workflow.'
