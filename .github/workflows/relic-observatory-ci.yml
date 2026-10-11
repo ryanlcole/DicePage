@@ -37,14 +37,18 @@ jobs:
         run: python -m pip install --upgrade pip && pip install -r requirements-dev.txt
 
       - name: Compile ReLiC host and Observatory
-        run: python -m py_compile app.py mcp_server.py observatory.py github_observer.py
+        run: python -m py_compile app.py mcp_server.py observatory.py github_observer.py relic_collector.py
 
       - name: Run ReLiC host and Observatory tests
-        run: pytest -q test_relic_host.py test_observatory.py test_github_observer.py
+        run: pytest -q test_relic_host.py test_observatory.py test_github_observer.py test_relic_collector.py
 
       - name: Generate code-change observation
         if: github.event_name == 'push'
         run: python github_observer.py "$GITHUB_EVENT_PATH" --output observatory-code-change.json
+
+      - name: Validate observation boundary
+        if: github.event_name == 'push'
+        run: python relic_collector.py observatory-code-change.json --dry-run
 
       - name: Upload observation evidence
         if: github.event_name == 'push'
@@ -54,3 +58,14 @@ jobs:
           path: services/relic-host/observatory-code-change.json
           if-no-files-found: error
           retention-days: 30
+
+      - name: Append observation to durable ReLiC
+        if: github.event_name == 'push' && secrets.RELIC_INGEST_URL != '' && secrets.RELIC_WRITE_TOKEN != ''
+        env:
+          RELIC_INGEST_URL: ${{ secrets.RELIC_INGEST_URL }}
+          RELIC_WRITE_TOKEN: ${{ secrets.RELIC_WRITE_TOKEN }}
+        run: python relic_collector.py observatory-code-change.json
+
+      - name: Report ingestion not configured
+        if: github.event_name == 'push' && (secrets.RELIC_INGEST_URL == '' || secrets.RELIC_WRITE_TOKEN == '')
+        run: echo 'Observation verified and retained as CI evidence; durable ReLiC ingestion is not configured for this workflow.'
