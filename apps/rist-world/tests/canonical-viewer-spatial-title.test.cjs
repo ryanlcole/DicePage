@@ -38,6 +38,11 @@ test('camera cannot redefine a live map selection',()=>{
 });
 
 test('spatial naming uses Labels editor and Enter, never native naming prompt',()=>{
-  assert.match(handoff,/Labels/);
-  assert.doesNotMatch(handoff,/window\.prompt|prompt\(/);
+  assert.match(handoff,/if\(String\(message\|\|''\)==='Name this space'\)return beginSpatialTitle\(defaultValue\)/);
+  assert.doesNotMatch(handoff,/return nativePrompt\('Name this space'/);
+  assert.match(handoff,/const center=selectionCenter\(snapshot\)/);
+  assert.match(handoff,/Name this area · Enter to save/);
+  assert.match(handoff,/if\(event\.key==='Enter'\)/);
+  assert.match(handoff,/input\.dispatchEvent\(new KeyboardEvent\('keydown',\{key:'Enter'/);
+  assert.match(handoff,/Title selected; adjust font and position/);
 });
