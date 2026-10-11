@@ -1,0 +1,57 @@
+{
+  "schema": "RELIC-PROJECT-MEMORY/1",
+  "doctrine": {
+    "identity_is_not_representation": true,
+    "representation_is_not_truth": true,
+    "unknown_is_not_fact": true,
+    "memory_is_not_canon": true,
+    "drift_warning_is_not_prevention": true,
+    "history_is_not_current_implementation": true
+  },
+  "behavior": {
+    "drift_policy": "WARN_ONLY",
+    "capture_before_push": true,
+    "automatic_canon_promotion": false,
+    "preserve_prior_state": true,
+    "current_repository_state_controls_current_behavior": true
+  },
+  "projects": {
+    "RELIC_CORE": {
+      "target": "Observer-first temporal continuity and provenance service for AI and software engineering.",
+      "authority": "Durable evidence with status, provenance, sequence and hashes preserved.",
+      "must_preserve": ["observer-only AI access", "OBSERVATION is not CANON", "append history instead of silent overwrite", "UNKNOWN remains UNKNOWN"],
+      "must_not_become": ["autonomous canon authority", "permission authority", "silent mutation layer"]
+    },
+    "RELIC_OBSERVATORY": {
+      "target": "Record engineering experience across code change, build/test, deployment, runtime report, investigation, correction and verification.",
+      "authority": "Observed engineering evidence; causation requires evidence.",
+      "must_preserve": ["user reports begin with cause UNKNOWN", "failures remain history", "private ingestion boundary", "read-only MCP for AI clients"]
+    },
+    "RELIC_SHARE": {
+      "target": "Public/hackathon demonstration and engineering report of ReLiC continuity without exposing private write authority.",
+      "authority": "Representation of bounded ReLiC evidence, not the authoritative store.",
+      "must_preserve": ["provenance", "failure history", "security boundary", "Observation/Evidence/Representation/Canon separation"]
+    },
+    "SHAELVIEN": {
+      "target": "Persistent world and worldbuilding system whose canon, rules, world state and representations remain distinguishable.",
+      "authority": "Approved Shaelvien canon plus currently inspected implementation for current software behavior.",
+      "must_preserve": ["Canon -> Rules -> World State -> Representation -> Generated Content", "unknowns are preserved", "AI invention does not auto-promote", "historical changes remain traceable"]
+    },
+    "RIST": {
+      "target": "Runtime/interface and authority framework for Shaelvien roleplay and GameMaster experiences across input methods and accessibility needs.",
+      "authority": "Current tested implementation and explicit project canon.",
+      "must_preserve": ["authority boundaries", "accessibility", "canonical semantic controls", "no partial-patch drift across duplicate implementations"]
+    },
+    "RUNECORE_WAVECORE": {
+      "status": "EXPLORATORY_UNLESS_PROMOTED",
+      "target": "Explore symbolic interpretation and waveform/state-computation concepts without presenting unverified models as established implementation or science.",
+      "authority": "Experiment results and explicitly promoted project canon only.",
+      "must_preserve": ["experiment vs fact separation", "measured output vs interpretation separation"]
+    },
+    "FORsyth_TECH_LEARNING": {
+      "target": "Maintain learning continuity across coursework while helping the learner understand and retain material rather than doing coursework for them.",
+      "authority": "Course sources and demonstrated understanding; technology-delta notes remain separate.",
+      "must_preserve": ["taught material", "demonstrated understanding", "uncertainty/misconceptions", "practice/results", "technology delta"]
+    }
+  }
+}
