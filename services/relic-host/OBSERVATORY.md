@@ -35,7 +35,38 @@ Each step remains its own observation. A later step does not erase an earlier on
 
 ## Observation Gateway
 
-`observatory.py` creates bounded event envelopes for an authorized collector to submit to ReLiC's existing append-only `/v1/events` endpoint. The collector owns write credentials. AI clients do not receive those credentials.
+`observatory.py` creates bounded event envelopes for an authorized collector to submit to ReLiC's existing append-only `/v1/events` endpoint.
+
+The durable AWS path intentionally separates submission identity from ReLiC write authority:
+
+```text
+GitHub Actions
+    |
+    | GitHub OIDC, short-lived AWS role
+    v
+relic-observatory-ingest Lambda
+    |
+    | validates OBSERVATION doctrine again
+    | discovers highest RUNNING relic-host task revision
+    | retrieves RELIC_WRITE_TOKEN inside AWS
+    v
+private relic-host:8080/v1/events
+    |
+    v
+encrypted durable ReLiC storage
+
+ChatGPT
+    |
+    v
+OpenAI Secure MCP Tunnel -> relic-mcp
+                           no RELIC_WRITE_TOKEN
+```
+
+No public ReLiC ingestion endpoint is required. GitHub does not receive `RELIC_WRITE_TOKEN`; its OIDC role may invoke only the dedicated ingestion Lambda. The Lambda runs inside the ReLiC VPC, and the ReLiC host security group permits TCP 8080 only from the dedicated ingestion security group.
+
+`infra/aws/relic-observatory-ingest.yml` defines this boundary. It also creates private ECS and Secrets Manager interface endpoints so the VPC Lambda can discover the running ReLiC task and retrieve the existing write secret without public Internet routing.
+
+`observatory_ingest_lambda.py` rejects non-`OBSERVATION` envelopes before reading the write secret. Historical standalone ECS tasks may coexist, so it selects the highest RUNNING `relic-host` task-definition revision instead of hard-coding a disposable task IP.
 
 Each observation contains:
 
@@ -48,6 +79,16 @@ Each observation contains:
 - observation time
 - a deterministic collector fingerprint for deduplication
 - explicit doctrine flags preventing representation/truth, temporal/causal, and observation/canon collapse
+
+## GitHub CI behavior
+
+`.github/workflows/relic-observatory-ci.yml` always compiles and tests the Observatory boundary, generates a code-change observation on branch pushes, validates it locally, and uploads the evidence artifact.
+
+Durable append is enabled only after AWS deployment and configuration of the repository variable:
+
+`RELIC_OBSERVATORY_ROLE_ARN`
+
+When that variable is absent, the workflow retains the validated evidence artifact and explicitly reports that private ingestion is not configured. No long-lived AWS key or ReLiC write token is stored in the workflow.
 
 ## User error reports
 
