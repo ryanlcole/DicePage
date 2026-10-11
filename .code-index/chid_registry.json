@@ -22078,7 +22078,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "fit",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "029a9567a28f51e2164179d043812b79b617ebba3648f304ef64561109b9d3c9": {
       "aliases": [
@@ -157824,6 +157824,18 @@
       "scope": "FileOperationProgressSink.PreCopyItem",
       "status": "active"
     },
+    "12de8e2cc5968f1ff1d28aaeda0c1ddb5665b2ce37b7ec98de79caaf4594c7fd": {
+      "aliases": [
+        "id"
+      ],
+      "chid": "chid.178560",
+      "kind": "variable",
+      "name": "id",
+      "path": "apps/rist-world/tests/canonical-viewer-dom-contract.test.cjs",
+      "qualified_name": "id",
+      "scope": "",
+      "status": "active"
+    },
     "12ded78098605cd286162b3952d4381a679baa2745f1988ff2de12ad4e74d9ee": {
       "aliases": [
         "_android_folder"
@@ -183336,6 +183348,18 @@
       "scope": "WorldSession",
       "status": "active"
     },
+    "15ec5c4a1ca79ef97467598b2b6c63a15793e50a63259ecba15ded20c60df7e2": {
+      "aliases": [
+        "path"
+      ],
+      "chid": "chid.178554",
+      "kind": "variable",
+      "name": "path",
+      "path": "apps/rist-world/tests/canonical-viewer-dom-contract.test.cjs",
+      "qualified_name": "path",
+      "scope": "",
+      "status": "active"
+    },
     "15ecad2f5a6d98ed712c3ec9c2c2a43a3c47a833c217d57ee4bb2a849f4a7b7c": {
       "aliases": [
         "card"
@@ -185962,7 +185986,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "battleText",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "163982aab617bdd86d87cc50cb02e86e7790a72d7f60c4e74adc328687637a28": {
       "aliases": [
@@ -200722,7 +200746,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "settingsUpscaleLabel",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "17f06d3e4baf6d96d47a11c49ad74a4447399de89e395f4b6ea7410882f62760": {
       "aliases": [
@@ -272854,7 +272878,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "theme-color",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "209b29456e23b954715d098fff633805e772def1ca76d6e1eaa1f7c37d005e96": {
       "aliases": [
@@ -345732,6 +345756,18 @@
       "scope": "RangeMap",
       "status": "active"
     },
+    "29281113fa79085d240182a717be4842dbf6e6cb70bc05c8eb9d8ebfaf797ad7": {
+      "aliases": [
+        "fs"
+      ],
+      "chid": "chid.178553",
+      "kind": "variable",
+      "name": "fs",
+      "path": "apps/rist-world/tests/canonical-viewer-dom-contract.test.cjs",
+      "qualified_name": "fs",
+      "scope": "",
+      "status": "active"
+    },
     "29283011494b636f1a0e2f4c77de660d4c60f3321ef4e300aed7a6f9649b3158": {
       "aliases": [
         "thisproc"
@@ -348106,7 +348142,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "settingsResetTilt",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "296dea533de9c65680ab06179cd3355736f4adeda2a34d816672990328c12ece": {
       "aliases": [
@@ -364762,7 +364798,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "viewerSettingsClose",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "2b625aaab8bae5cc967cd40e5aecf346ff8dcb4b681c107889852da93e8f1818": {
       "aliases": [
@@ -522382,7 +522418,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "tierToggle",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "3e2ee2d7426428b447b0b4dceef820d1216a6d11e8c3e14f990d18bab82c0501": {
       "aliases": [
@@ -533410,7 +533446,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "zoomIn",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "3f87340d9d287c0d58b179f7561d50e7c66d7f369ba274062fc395b9cc8f3174": {
       "aliases": [
@@ -607498,6 +607534,18 @@
       "path": "libs/pyglet/image/__init__.py",
       "qualified_name": "Texture3D.create_for_image_grid.internalformat",
       "scope": "Texture3D.create_for_image_grid",
+      "status": "active"
+    },
+    "4840ef6457125928ec19ce0e189bf7d89e3779bcbb85377968950f0bbc48bb03": {
+      "aliases": [
+        "index"
+      ],
+      "chid": "chid.178557",
+      "kind": "variable",
+      "name": "index",
+      "path": "apps/rist-world/tests/canonical-viewer-dom-contract.test.cjs",
+      "qualified_name": "index",
+      "scope": "",
       "status": "active"
     },
     "484134dba3d41d6cc765dbe0130d5187ef50e7d637436a224aa6a3d79a0a446b": {
@@ -836902,7 +836950,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "highlandsPlane",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "63b8f1c4598fb4688f1ac916a7dda29568436cc0ebf2754d13910090440d51a9": {
       "aliases": [
@@ -954562,7 +954610,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "tierMenu",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "71d34aedb22436200c68e04d69f0a40feab87853b0dae288847261a9eabbc13a": {
       "aliases": [
@@ -956578,7 +956626,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "settingsFit",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "721094ddf1ea9cb6903a7cc495da458a0841f75b5f7c5f97283895d255939fae": {
       "aliases": [
@@ -974494,7 +974542,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "mountainPlane",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "742fb1b80093da771507c026f0f6694b1a87076dc63b23737daf863d36213b66": {
       "aliases": [
@@ -990802,7 +990850,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "home",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "762027edb43b7f4b7e2c8880b8ffc5e41a770d6b7cc825067db705504be50db6": {
       "aliases": [
@@ -1083886,7 +1083934,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "persistentSave",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "815e10369846ad351899d396cc7c9eb3daba60cab753a33b4fd3abc3829fb588": {
       "aliases": [
@@ -1111630,7 +1111678,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "settingsStartMenu",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "84a320b0e54d84d64c6ac9c605686eebafdab79d12e3edd9b7f2d4b16782f666": {
       "aliases": [
@@ -1119442,7 +1119490,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "surfacePlane",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "8598afaff99eb8df06ee42f59dc4026b1d720237aa2c10ed5da1f053a842cff8": {
       "aliases": [
@@ -1231056,6 +1231104,18 @@
       "scope": "",
       "status": "active"
     },
+    "92fd3d0d3d7e2ae98489bdd5e33f534e3141d696713ab3d7d2aee7974396d34c": {
+      "aliases": [
+        "assert"
+      ],
+      "chid": "chid.178552",
+      "kind": "variable",
+      "name": "assert",
+      "path": "apps/rist-world/tests/canonical-viewer-dom-contract.test.cjs",
+      "qualified_name": "assert",
+      "scope": "",
+      "status": "active"
+    },
     "92fd3dc8d4effd644ef8476ec488b40b1fcf9162d0d01e3e8f249f21658f4c06": {
       "aliases": [
         "XIMHighlight"
@@ -1266768,6 +1266828,18 @@
       "scope": "",
       "status": "active"
     },
+    "9768cc8669a052350853b43fff0172e5493d9b10071093d55b1753f7b7936119": {
+      "aliases": [
+        "root"
+      ],
+      "chid": "chid.178556",
+      "kind": "variable",
+      "name": "root",
+      "path": "apps/rist-world/tests/canonical-viewer-dom-contract.test.cjs",
+      "qualified_name": "root",
+      "scope": "",
+      "status": "active"
+    },
     "976a505286ea03c5c7375a8093d5896d79fb2d4eb92890e6f72abaaae93ba04c": {
       "aliases": [
         "year"
@@ -1272814,6 +1272886,18 @@
       "path": "libs/pyglet/text/layout/scrolling.py",
       "qualified_name": "ScrollableTextLayout.__init__.program",
       "scope": "ScrollableTextLayout.__init__",
+      "status": "active"
+    },
+    "9834a6f82c864567f342858f5a6f3b8fcfbf224536c3ba4323162ba5e4818d55": {
+      "aliases": [
+        "runtime"
+      ],
+      "chid": "chid.178558",
+      "kind": "variable",
+      "name": "runtime",
+      "path": "apps/rist-world/tests/canonical-viewer-dom-contract.test.cjs",
+      "qualified_name": "runtime",
+      "scope": "",
       "status": "active"
     },
     "98350673ae59a7435c7bb90fc41afaaa30fcd798e0219342cd010b41247622b9": {
@@ -1367686,7 +1367770,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "settingsUpscale",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "a387cc860294293398b341186583bd1e3bc5c3c7ce6cb402b30773b451cd1e6c": {
       "aliases": [
@@ -1454290,7 +1454374,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "viewerShortcuts",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "adda18edd663738e9ef3ec90b9ab7df586749770a8db2eb8d9f7af280ee8a42f": {
       "aliases": [
@@ -1494046,7 +1494130,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "settingsToggle",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "b2ad99902d95ec3baa90ba4c0ac7cd8d591ef49448861ba8b89ee86dae87b21c": {
       "aliases": [
@@ -1781218,7 +1781302,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "keyboardToggle",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "d4e1ac1af5246ee5021fbca353a5f334473d55d702032d79e7ffc785644f4abd": {
       "aliases": [
@@ -1792605,6 +1792689,18 @@
       "name": "viewportElement",
       "path": "apps/tactical/js/app.js",
       "qualified_name": "viewportElement",
+      "scope": "",
+      "status": "active"
+    },
+    "d62b0449fefbb27dcdad95f32cf1386a050e92f5e43ba2f029a59be2700fe870": {
+      "aliases": [
+        "test"
+      ],
+      "chid": "chid.178555",
+      "kind": "variable",
+      "name": "test",
+      "path": "apps/rist-world/tests/canonical-viewer-dom-contract.test.cjs",
+      "qualified_name": "test",
       "scope": "",
       "status": "active"
     },
@@ -1805698,7 +1805794,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "viewerSettingsPanel",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "d7ad395e1c87fe84af2ce434c8bc87d1920e429eb7561d3062f57d13b1f31870": {
       "aliases": [
@@ -1870366,7 +1870462,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "zoomOut",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "df6d3968c4e2d6bafe070738c5edb92b965dfa7a71e14cc4c6dc253133c5c816": {
       "aliases": [
@@ -1900173,6 +1900269,18 @@
       "name": "FILE_DEVICE_DATALINK",
       "path": "libs/win32/lib/winioctlcon.py",
       "qualified_name": "FILE_DEVICE_DATALINK",
+      "scope": "",
+      "status": "active"
+    },
+    "e2f0b1fbe6b3c270d38bf6adb2f30cc53d6dcbc27f95c637580cd6eafdc60980": {
+      "aliases": [
+        "requiredIds"
+      ],
+      "chid": "chid.178559",
+      "kind": "variable",
+      "name": "requiredIds",
+      "path": "apps/rist-world/tests/canonical-viewer-dom-contract.test.cjs",
+      "qualified_name": "requiredIds",
       "scope": "",
       "status": "active"
     },
@@ -1961278,7 +1961386,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "tierGlyph",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "ea7775dc61a75fe84ede08f222b522159c28b1c6c3361fcf2c2f71e98aad0292": {
       "aliases": [
@@ -2017510,7 +2017618,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "viewAngleSelect",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "f1026195550bc3466137b082a23e88d5fe3778ab3bd7dbd375576ec683faf14f": {
       "aliases": [
@@ -2019742,7 +2019850,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "battleInstance",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "f1492d118a785273d9fc3373f8c7582f7ce578d09eef668dbff5933ffd7b5685": {
       "aliases": [
@@ -2054770,7 +2054878,7 @@
       "path": "apps/rist-world/wwwroot/prototype/index.html",
       "qualified_name": "imageUploadToggle",
       "scope": "",
-      "status": "retired"
+      "status": "active"
     },
     "f57e27dc3c6cc2292105b82d9bc01402c72a8a5fe00675ea10866decd2ff8467": {
       "aliases": [
@@ -2142613,6 +2142721,6 @@
       "status": "active"
     }
   },
-  "next_id": 178552,
+  "next_id": 178561,
   "version": 1
 }
