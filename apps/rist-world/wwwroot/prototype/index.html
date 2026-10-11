@@ -3,20 +3,97 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#05080b" />
   <title>Shaelvien World Builder</title>
-  <link rel="stylesheet" href="./prototype.css?v=20261004-continuous-space-2" />
+  <link rel="stylesheet" href="./prototype.css?v=20261011-world-contract-1" />
   <style id="region-marker-preboot-style">html.region-marker-preboot #stage .region-tier-preview,html.region-marker-preboot #stage .region-tier-preview-panel,html.region-marker-preboot #stage .tier-preview,html.region-marker-preboot #stage .tier-preview-panel,html.region-marker-preboot #stage [data-region-tier-preview]{display:none!important}html.region-marker-preboot #world{display:block!important;visibility:visible!important;opacity:1!important}</style>
   <script>(()=>{const q=new URLSearchParams(location.search);if(String(q.get('mode')||'').toLowerCase()==='regiondefiner'&&String(q.get('regionFlow')||'').toLowerCase()==='new')document.documentElement.classList.add('region-marker-preboot')})()</script>
 </head>
 <body>
-<main class="app-shell">
-  <section id="stage" class="stage" aria-label="World Builder viewer">
-    <div id="world" class="world"></div><div id="grid" class="grid" aria-hidden="true"></div><div id="selection" class="selection" aria-hidden="true"></div><div id="loading" class="loading">LOADING WORLD…</div>
-    <section id="imageUploadPanel" class="image-upload-panel" role="dialog" aria-modal="true" aria-label="Add image" hidden data-ui><div class="image-upload-card"><header><strong>ADD IMAGE</strong><button id="imageUploadClose" type="button" aria-label="Close image upload">×</button></header><label class="image-placement-role"><span>PLACEMENT</span><select id="imagePlacementRole" aria-describedby="imagePlacementHint"><option value="world-map">World Map / Sea Level · 100% × 100%</option><option value="layer">Adjustable Layer</option></select><small id="imagePlacementHint">Choose whether this image becomes the full world map or an adjustable layer above it.</small></label><div id="imagePositionGrid" class="image-position-grid"><label><span>X</span><input id="imageX" type="number" min="0" max="1" step="0.001" inputmode="decimal" /></label><label><span>Y</span><input id="imageY" type="number" min="0" max="1" step="0.001" inputmode="decimal" /></label><label><span>Tier</span><input id="imageTier" type="number" min="0" max="2" step="1" inputmode="numeric" /></label><label><span>Layer</span><input id="imageLayer" type="number" min="0" max="9" step="1" inputmode="numeric" /></label></div><label class="image-transparency"><input id="imageTransparency" type="checkbox" checked /> <span>Automatic transparency</span></label><div id="imageDropzone" class="image-dropzone" tabindex="0" role="button" aria-label="Drop an image here or browse for an image"><strong>DROP IMAGE HERE</strong><span>or</span><button id="imageBrowse" type="button">BROWSE</button><input id="imageFile" type="file" accept="image/*" hidden /></div></div></section>
-    <section id="spriteUploadPanel" class="image-upload-panel" role="dialog" aria-modal="true" aria-label="Add sprite set" hidden data-ui><div class="image-upload-card"><header><strong>ADD SPRITE SET</strong><button id="spriteUploadClose" type="button" aria-label="Close sprite upload">×</button></header><div class="image-position-grid sprite-sheet-grid"><label><span>Columns</span><input id="spriteColumns" type="number" min="1" max="16" step="1" inputmode="numeric" value="3" /></label><label><span>Rows</span><input id="spriteRows" type="number" min="1" max="16" step="1" inputmode="numeric" value="2" /></label><label><span>FPS</span><input id="spriteFps" type="number" min="1" max="30" step="1" inputmode="numeric" value="6" /></label><label><span>Frames</span><input id="spriteFrameCount" type="number" min="1" max="256" step="1" inputmode="numeric" value="6" /></label></div><p class="sprite-upload-note">Frame 1 is used while placing. Save commits the sprite to the world and starts its motion.</p><div id="spriteDropzone" class="image-dropzone" tabindex="0" role="button" aria-label="Drop a sprite sheet here or browse for a sprite sheet"><strong>DROP SPRITE SHEET HERE</strong><span>or</span><label id="spriteBrowse" class="file-browse-button" for="spriteFile" role="button" tabindex="0">BROWSE</label><input id="spriteFile" type="file" accept="image/*" hidden /></div></div></section>
-    <section id="viewerKeyboard" class="keyboard" aria-label="World Builder contextual keyboard" hidden data-ui><div class="keyboard-head"><strong>VIEWER-MOUNTED KEYBOARD · PERCEPTION / TOOLS ONLY</strong><button id="keyboardClose" type="button" aria-label="Close keyboard">×</button></div><div id="keyboardTabs" class="keyboard-tabs" role="tablist" aria-label="Keyboard modes"></div><div id="keyboardKeys" class="keyboard-keys"></div></section><div id="live" class="sr-live" role="status" aria-live="polite"></div>
+<main class="shell" aria-label="Shaelvien World Builder">
+  <section id="stage" class="stage" tabindex="0" aria-describedby="viewerShortcuts" aria-label="Interactive layered world viewer">
+    <button id="persistentSave" class="persistent-save" type="button" aria-label="Save World Builder" title="Save World Builder" data-ui>
+      <img src="../assets/ui/icons/save.svg" alt="" aria-hidden="true" draggable="false" />
+    </button>
+    <div id="world" class="world" aria-live="off">
+      <img id="surfacePlane" class="plane base" alt="Sea level world representation" draggable="false" />
+      <img id="highlandsPlane" class="plane highlands" alt="Hills and low clouds world representation" draggable="false" />
+      <img id="mountainPlane" class="plane mountains" alt="Mountains and weather world representation" draggable="false" />
+    </div>
+    <div id="grid" class="grid" aria-hidden="true"></div>
+    <div id="selection" class="selection" aria-hidden="true"></div>
+    <div id="loading" class="loading">LOADING WORLD…</div>
+    <section id="battleInstance" class="battle-instance" aria-label="Battle Instance" hidden><strong>BATTLE INSTANCE</strong><span id="battleText">Entity focus becomes a tactical viewer representation while the world coordinate identity remains unchanged.</span></section>
+    <nav class="bottom-slider" aria-label="World Builder controls" data-ui>
+      <div class="bottom-slider-track">
+        <button id="home" class="square-action" type="button" aria-label="Home — return to the Shaelvien landing page" title="Home">⌂</button>
+        <button id="imageUploadToggle" class="square-action" type="button" aria-label="Add image" aria-haspopup="dialog">▧</button>
+        <button id="tierToggle" class="square-action" type="button" aria-label="All Parallax. Open tier selector" aria-haspopup="menu" aria-expanded="false"><span id="tierGlyph" aria-hidden="true">≋</span></button>
+        <button id="keyboardToggle" class="square-action" type="button" aria-label="Open World Builder keyboard" aria-expanded="false" aria-controls="viewerKeyboard">⌨</button>
+        <button id="settingsToggle" class="square-action" type="button" aria-label="World Builder settings" aria-haspopup="dialog">⚙</button>
+        <button id="zoomOut" class="square-action" type="button" aria-label="Zoom out">−</button>
+        <button id="zoomIn" class="square-action" type="button" aria-label="Zoom in">+</button>
+        <button id="fit" class="square-action" type="button" aria-label="Fit map to screen">⛶</button>
+      </div>
+    </nav>
+    <div id="tierMenu" class="tier-menu" role="menu" aria-label="World tier selector" hidden data-ui></div>
+    <section id="viewerSettingsPanel" class="viewer-settings-panel" role="dialog" aria-modal="true" aria-label="World Builder settings" hidden data-ui>
+      <div class="viewer-settings-card">
+        <header><strong>SETTINGS</strong><button id="viewerSettingsClose" type="button" aria-label="Close settings">×</button></header>
+        <p id="viewerShortcuts">Focus the map with Tab or click its background. Arrow keys pan (Shift for larger steps), + / = and − zoom, F fits the map, T opens tiers, S settings, K the tool keyboard, and U image upload when editing is allowed. Escape closes panels. Tab moves to controls; Enter or Space activates buttons.</p>
+        <button id="settingsFit" type="button" aria-label="Fit map to screen"><span aria-hidden="true">⛶</span><strong aria-hidden="true">View</strong></button>
+        <button id="settingsResetTilt" type="button"><span aria-hidden="true">⌁</span><strong>Reset Tilt</strong></button>
+        <label class="viewer-angle-setting"><span>VIEW</span><select id="viewAngleSelect" aria-label="Viewer angle"><option value="0">0°</option><option value="15">15°</option><option value="30">30°</option><option value="45">45°</option></select><small>Perspective only; coordinates do not change.</small></label>
+        <button id="settingsUpscale" type="button" aria-pressed="false" aria-label="Enable two times high resolution rendering"><span aria-hidden="true">2×</span><strong id="settingsUpscaleLabel">Upscale</strong></button>
+        <button id="settingsStartMenu" type="button"><span aria-hidden="true">⌂</span><strong>Start Menu</strong></button>
+      </div>
+    </section>
+    <section id="imageUploadPanel" class="image-upload-panel" role="dialog" aria-modal="true" aria-label="Add image" hidden data-ui>
+      <div class="image-upload-card">
+        <header><strong>ADD IMAGE</strong><button id="imageUploadClose" type="button" aria-label="Close image upload">×</button></header>
+        <label class="image-placement-role"><span>PLACEMENT</span><select id="imagePlacementRole" aria-describedby="imagePlacementHint"><option value="world-map">World Map / Sea Level · 100% × 100%</option><option value="layer">Adjustable Layer</option></select><small id="imagePlacementHint">Choose whether this image becomes the full world map or an adjustable layer above it.</small></label>
+        <div id="imagePositionGrid" class="image-position-grid">
+          <label><span>X</span><input id="imageX" type="number" min="0" max="1" step="0.001" inputmode="decimal" /></label>
+          <label><span>Y</span><input id="imageY" type="number" min="0" max="1" step="0.001" inputmode="decimal" /></label>
+          <label><span>Tier</span><input id="imageTier" type="number" min="0" max="2" step="1" inputmode="numeric" /></label>
+          <label><span>Layer</span><input id="imageLayer" type="number" min="0" max="9" step="1" inputmode="numeric" /></label>
+        </div>
+        <label class="image-transparency"><input id="imageTransparency" type="checkbox" checked /> <span>Automatic transparency</span></label>
+        <div id="imageDropzone" class="image-dropzone" tabindex="0" role="button" aria-label="Drop an image here or browse for an image">
+          <strong>DROP IMAGE HERE</strong><span>or</span><button id="imageBrowse" type="button">BROWSE</button><input id="imageFile" type="file" accept="image/*" hidden />
+        </div>
+      </div>
+    </section>
+    <section id="spriteUploadPanel" class="image-upload-panel" role="dialog" aria-modal="true" aria-label="Add sprite set" hidden data-ui>
+      <div class="image-upload-card">
+        <header><strong>ADD SPRITE SET</strong><button id="spriteUploadClose" type="button" aria-label="Close sprite upload">×</button></header>
+        <div class="image-position-grid sprite-sheet-grid">
+          <label><span>Columns</span><input id="spriteColumns" type="number" min="1" max="16" step="1" inputmode="numeric" value="3" /></label>
+          <label><span>Rows</span><input id="spriteRows" type="number" min="1" max="16" step="1" inputmode="numeric" value="2" /></label>
+          <label><span>FPS</span><input id="spriteFps" type="number" min="1" max="30" step="1" inputmode="numeric" value="6" /></label>
+          <label><span>Frames</span><input id="spriteFrameCount" type="number" min="1" max="256" step="1" inputmode="numeric" value="6" /></label>
+        </div>
+        <p class="sprite-upload-note">Frame 1 is used while placing. Save commits the sprite to the world and starts its motion.</p>
+        <div id="spriteDropzone" class="image-dropzone" tabindex="0" role="button" aria-label="Drop a sprite sheet here or browse for a sprite sheet">
+          <strong>DROP SPRITE SHEET HERE</strong><span>or</span><label id="spriteBrowse" class="file-browse-button" for="spriteFile" role="button" tabindex="0">BROWSE</label><input id="spriteFile" type="file" accept="image/*" hidden />
+        </div>
+      </div>
+    </section>
+    <section id="viewerKeyboard" class="keyboard" aria-label="World Builder contextual keyboard" hidden data-ui>
+      <div class="keyboard-head"><strong>VIEWER-MOUNTED KEYBOARD · PERCEPTION / TOOLS ONLY</strong><button id="keyboardClose" type="button" aria-label="Close keyboard">×</button></div>
+      <div id="keyboardTabs" class="keyboard-tabs" role="tablist" aria-label="Keyboard modes"></div>
+      <div id="keyboardKeys" class="keyboard-keys"></div>
+    </section>
+    <div id="live" class="sr-live" role="status" aria-live="polite"></div>
   </section>
 </main>
-<script src="./viewer-input.js?v=20260920-desktop-input-1"></script><script src="./prototype.js?v=20261004-continuous-space-2"></script><script src="./spatial-selection-session.js?v=20261004-frozen-selection-4&fix=20261004-hex30-volume-1"></script><script src="./spatial-title-handoff.js?v=20261004-spatial-title-1"></script><script src="./spatial-depth-authority.js?v=20261004-parent-depth-4&fix=20261004-reference-xy-z-1"></script><script src="./spatial-selector-lock.js?v=20261004-map-selector-lock-1"></script><script src="./spatial-selection-enhancements.js?v=20261004-volume-selection-1"></script><script id="region-volume-tools-v3" src="./region-volume-tools.js?v=20261009-force-region-marker-5"></script>
+<script src="./viewer-input.js?v=20260920-desktop-input-1"></script>
+<script src="./prototype.js?v=20261011-world-contract-1"></script>
+<script src="./spatial-selection-session.js?v=20261004-frozen-selection-4&fix=20261004-hex30-volume-1"></script>
+<script src="./spatial-title-handoff.js?v=20261004-spatial-title-1"></script>
+<script src="./spatial-depth-authority.js?v=20261004-parent-depth-4&fix=20261004-reference-xy-z-1"></script>
+<script src="./spatial-selector-lock.js?v=20261004-map-selector-lock-1"></script>
+<script src="./spatial-selection-enhancements.js?v=20261004-volume-selection-1"></script>
+<script id="region-volume-tools-v3" src="./region-volume-tools.js?v=20261009-force-region-marker-5"></script>
 </body>
 </html>
