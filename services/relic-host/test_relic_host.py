@@ -1,4 +1,5 @@
 import os
+import sqlite3
 import tempfile
 
 import pytest
@@ -11,6 +12,7 @@ os.environ["RELIC_WRITE_TOKEN"] = "test-token"
 
 from fastapi.testclient import TestClient
 import app
+import historical_import
 
 AUTH = {"Authorization": "Bearer test-token"}
 
@@ -114,6 +116,84 @@ def test_historical_import_rejects_unresolved_prior_event_id(client):
     request["event"]["prior_event_id"] = "historical-source-id-not-live-event"
     r = client.post("/v1/historical-import", headers=AUTH, json=request)
     assert r.status_code == 400
+
+
+def test_historical_import_rolls_back_interrupted_event_and_retries_cleanly(tmp_path):
+    """Simulate interruption after event INSERT but before ledger INSERT.
+
+    This uses an isolated SQLite file, never app.DB_PATH or the live ReLiC store.
+    The first transaction deliberately raises after inserting the event. Closing
+    without commit must roll it back. The same candidate can then be retried and
+    must produce exactly one event and one ledger mapping.
+    """
+    db_path = tmp_path / "interrupted-import.db"
+    con = sqlite3.connect(db_path)
+    con.row_factory = sqlite3.Row
+    con.execute("PRAGMA foreign_keys=ON")
+    con.execute("CREATE TABLE events (id TEXT PRIMARY KEY, payload TEXT NOT NULL)")
+    historical_import.init_schema(con)
+    con.commit()
+
+    def interrupted_append():
+        con.execute("INSERT INTO events(id,payload) VALUES(?,?)", ("event-interrupted", "{}"))
+        raise RuntimeError("simulated process interruption")
+
+    with pytest.raises(RuntimeError, match="simulated process interruption"):
+        historical_import.import_once(
+            con,
+            candidate_id="PK-interrupt-001",
+            idempotency_key="interrupt-key-001",
+            payload_hash="payload-hash-001",
+            source_hash="source-hash-001",
+            approval_evidence_json='{"approver":"test"}',
+            imported_at="2026-10-11T00:00:00+00:00",
+            append_event=interrupted_append,
+        )
+    con.rollback()
+    assert con.execute("SELECT COUNT(*) FROM events").fetchone()[0] == 0
+    assert con.execute("SELECT COUNT(*) FROM historical_import_ledger").fetchone()[0] == 0
+    con.close()
+
+    retry = sqlite3.connect(db_path)
+    retry.row_factory = sqlite3.Row
+    retry.execute("PRAGMA foreign_keys=ON")
+
+    def successful_append():
+        retry.execute("INSERT INTO events(id,payload) VALUES(?,?)", ("event-retry", "{}"))
+        return "event-retry"
+
+    with retry:
+        result = historical_import.import_once(
+            retry,
+            candidate_id="PK-interrupt-001",
+            idempotency_key="interrupt-key-001",
+            payload_hash="payload-hash-001",
+            source_hash="source-hash-001",
+            approval_evidence_json='{"approver":"test"}',
+            imported_at="2026-10-11T00:01:00+00:00",
+            append_event=successful_append,
+        )
+    assert result["duplicate"] is False
+    assert result["event_id"] == "event-retry"
+    assert retry.execute("SELECT COUNT(*) FROM events").fetchone()[0] == 1
+    assert retry.execute("SELECT COUNT(*) FROM historical_import_ledger").fetchone()[0] == 1
+
+    with retry:
+        duplicate = historical_import.import_once(
+            retry,
+            candidate_id="PK-interrupt-001",
+            idempotency_key="interrupt-key-001",
+            payload_hash="payload-hash-001",
+            source_hash="source-hash-001",
+            approval_evidence_json='{"approver":"test"}',
+            imported_at="2026-10-11T00:02:00+00:00",
+            append_event=lambda: (_ for _ in ()).throw(AssertionError("duplicate retry appended an event")),
+        )
+    assert duplicate["duplicate"] is True
+    assert duplicate["event_id"] == "event-retry"
+    assert retry.execute("SELECT COUNT(*) FROM events").fetchone()[0] == 1
+    assert retry.execute("SELECT COUNT(*) FROM historical_import_ledger").fetchone()[0] == 1
+    retry.close()
 
 
 def test_proposal_refuses_mutation_until_all_three_gates_pass(client):
