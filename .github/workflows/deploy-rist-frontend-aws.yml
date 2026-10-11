@@ -160,10 +160,6 @@ jobs:
           set -euo pipefail
           BUCKET=$(aws cloudformation describe-stacks --stack-name "$FRONTEND_STACK" --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text)
 
-          # Keep prior fingerprinted Blazor resources during live development. A client may
-          # still have an older boot manifest in its browser cache; deleting those hashes
-          # turns the SPA fallback HTML into a JavaScript MIME error. New assets are
-          # published first and index.html is promoted last.
           aws s3 sync build/rist/wwwroot/ "s3://${BUCKET}/Game/" \
             --exclude 'index.html' \
             --exclude 'Launcher/*' \
@@ -171,7 +167,6 @@ jobs:
             --cache-control 'public,max-age=0,must-revalidate' \
             --only-show-errors
 
-          # Boot manifests are authorities, not immutable assets. Always revalidate them.
           if [ -f build/rist/wwwroot/_framework/blazor.boot.json ]; then
             aws s3 cp build/rist/wwwroot/_framework/blazor.boot.json "s3://${BUCKET}/Game/_framework/blazor.boot.json" \
               --cache-control 'no-cache,no-store,must-revalidate' \
@@ -201,13 +196,7 @@ jobs:
             --cache-control 'no-cache,no-store,must-revalidate' \
             --only-show-errors
 
-          # Perceiver is archived source, not a published surface. The site sync is
-          # intentionally non-destructive, so remove the old production prefix explicitly.
           aws s3 rm "s3://${BUCKET}/perceiver/" --recursive --only-show-errors || true
-
-          # Kickstarter preparation data is internal planning material, not a public
-          # website surface. Keep the repository source for later database migration,
-          # but remove any previously published static prefix.
           aws s3 rm "s3://${BUCKET}/kickstarter/" --recursive --only-show-errors || true
 
           aws s3 sync site/relic-home/ "s3://${BUCKET}/" \
@@ -223,9 +212,6 @@ jobs:
             --cache-control 'public,max-age=3600' \
             --only-show-errors
 
-          # Play and the Blazor app share one canonical account-service configuration.
-          # Publish the canonical Game config into the legacy /Play surface instead of
-          # tracking a second first-party source copy.
           aws s3 cp apps/rist-world/wwwroot/auth-config.json "s3://${BUCKET}/Play/auth-config.json" \
             --cache-control 'no-cache,no-store,must-revalidate' \
             --content-type 'application/json; charset=utf-8' \
@@ -284,16 +270,23 @@ jobs:
           grep -q 'OpenAI / ChatGPT' /tmp/relic-info.html
           grep -q 'Amazon Web Services' /tmp/relic-info.html
 
+          # /relic/ is the verified ReLiC continuity surface. Assert the current
+          # engineering contract rather than the retired interactive/research page.
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-ai.html "${URL}relic/"
-          grep -q 'One mind.' /tmp/relic-ai.html
-          grep -q 'id="mind-form"' /tmp/relic-ai.html
-          grep -q 'https://relicgamemaster.com/mcp' /tmp/relic-ai.html
-          grep -q '/research/immune-error-signal/' /tmp/relic-ai.html
+          grep -q 'Evidence intact.' /tmp/relic-ai.html
+          grep -q 'END-TO-END COMPLETE' /tmp/relic-ai.html
+          grep -q 'ReLiC Observatory + Secure MCP Continuity' /tmp/relic-ai.html
+          grep -q '9527b2e0-1a01-4e7a-ae49-956cd5a42dd6' /tmp/relic-ai.html
+          grep -q 'Observation ≠ Canon' /tmp/relic-ai.html
+          grep -q 'relic_context_pack' /tmp/relic-ai.html
+          grep -q 'href="/relic/share/"' /tmp/relic-ai.html
+
+          # The research page remains independently published and independently verified;
+          # it is no longer required to be linked from the ReLiC continuity page.
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-research.html "${URL}research/immune-error-signal/"
           grep -q 'Immune Error Signal' /tmp/relic-research.html
           grep -q 'computational hypothesis screen' /tmp/relic-research.html
-          grep -q 'AI suggestions never self-promote' /tmp/relic-ai.html
-          grep -q 'PROPOSAL → COHERENCE → SAFETY TEST → HUMAN REVIEW → EXPLICIT PROMOTION' /tmp/relic-ai.html
+
           curl --fail --location --retry 6 --retry-delay 5 --output /tmp/relic-ai-policy.json "${URL}Game/ai-policy.json"
           python - <<'PY'
           import json
