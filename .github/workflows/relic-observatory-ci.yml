@@ -52,7 +52,8 @@ jobs:
           observatory.py
           github_observer.py
           relic_collector.py
-          observatory_ingest_lambda.py
+          observatory_ingest/lambda_handler.py
+          observatory_ingest/validation.py
 
       - name: Run ReLiC host and Observatory tests
         run: >
