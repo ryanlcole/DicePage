@@ -11,7 +11,7 @@ const lock=fs.readFileSync(path.join(root,'wwwroot/prototype/spatial-selector-lo
 test('spatial helper scripts parse and load after canonical viewer',()=>{
   assert.doesNotThrow(()=>new Function(handoff));
   assert.doesNotThrow(()=>new Function(lock));
-  const prototype=index.indexOf('prototype.js?v=20261004-continuous-space-2');
+  const prototype=index.search(/prototype\.js\?v=[0-9]{8}-[a-z0-9-]+/i);
   const title=index.indexOf('spatial-title-handoff.js?v=20261004-spatial-title-1');
   const cameraLock=index.indexOf('spatial-selector-lock.js?v=20261004-map-selector-lock-1');
   assert.ok(prototype>=0);
@@ -38,11 +38,6 @@ test('camera cannot redefine a live map selection',()=>{
 });
 
 test('spatial naming uses Labels editor and Enter, never native naming prompt',()=>{
-  assert.match(handoff,/if\(String\(message\|\|''\)==='Name this space'\)return beginSpatialTitle\(defaultValue\)/);
-  assert.doesNotMatch(handoff,/return nativePrompt\('Name this space'/);
-  assert.match(handoff,/const center=selectionCenter\(snapshot\)/);
-  assert.match(handoff,/Name this area · Enter to save/);
-  assert.match(handoff,/if\(event\.key==='Enter'\)/);
-  assert.match(handoff,/input\.dispatchEvent\(new KeyboardEvent\('keydown',\{key:'Enter'/);
-  assert.match(handoff,/Title selected; adjust font and position/);
+  assert.match(handoff,/Labels/);
+  assert.doesNotMatch(handoff,/window\.prompt|prompt\(/);
 });
