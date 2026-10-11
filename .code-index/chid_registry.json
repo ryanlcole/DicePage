@@ -7104,6 +7104,18 @@
       "scope": "",
       "status": "active"
     },
+    "00d9ba4f18845e5d21f8f56d741c6bf93f31f1cc9877ab722882c1ebbbed425c": {
+      "aliases": [
+        "mode"
+      ],
+      "chid": "chid.178600",
+      "kind": "variable",
+      "name": "mode",
+      "path": "apps/rist-world/wwwroot/desktop-controller-adapter.js",
+      "qualified_name": "mode",
+      "scope": "",
+      "status": "active"
+    },
     "00da2e89feaf907aa394b76990e1abbdf6e0ac0ee2ee535a7b505219b76d8106": {
       "aliases": [
         "get_default_input"
@@ -168912,6 +168924,18 @@
       "scope": "",
       "status": "active"
     },
+    "142f728c26f793088bcff3960c50449f02ab4919aa50368061345c601801a83d": {
+      "aliases": [
+        "next"
+      ],
+      "chid": "chid.178609",
+      "kind": "variable",
+      "name": "next",
+      "path": "apps/rist-world/wwwroot/prototype/viewer-input.js",
+      "qualified_name": "next",
+      "scope": "",
+      "status": "active"
+    },
     "142fb59c840f40077f54d6dbe925a77c9eaca84f66e1cd58335ef6ce075bd6f7": {
       "aliases": [
         "contextlib"
@@ -257388,6 +257412,18 @@
       "scope": "",
       "status": "active"
     },
+    "1ea72945d5e35078a55b32c94d9d525f60995f1ad6e9c62f811784ca9c97dd5a": {
+      "aliases": [
+        "isDesktop"
+      ],
+      "chid": "chid.178594",
+      "kind": "function",
+      "name": "isDesktop",
+      "path": "apps/rist-world/wwwroot/desktop-controller-adapter.js",
+      "qualified_name": "isDesktop",
+      "scope": "",
+      "status": "active"
+    },
     "1ea73192b29b820256219eab1ecdd862070cd1c96292926aacb0ae8d63673454": {
       "aliases": [
         "json"
@@ -280797,6 +280833,18 @@
       "name": "binaries",
       "path": "libs/_pyinstaller_hooks_contrib/stdhooks/hook-shapely.py",
       "qualified_name": "binaries",
+      "scope": "",
+      "status": "active"
+    },
+    "219057ddbbec219da21ed57789380f1f768348aa9cfe0fa071457240dd973d76": {
+      "aliases": [
+        "pads"
+      ],
+      "chid": "chid.178595",
+      "kind": "function",
+      "name": "pads",
+      "path": "apps/rist-world/wwwroot/desktop-controller-adapter.js",
+      "qualified_name": "pads",
       "scope": "",
       "status": "active"
     },
@@ -533640,6 +533688,18 @@
       "scope": "ImageData.get_bytes",
       "status": "active"
     },
+    "3f8a010689b4f85b6d11a53e3ea1b56901182c304535327957955e12cfa6f996": {
+      "aliases": [
+        "bar"
+      ],
+      "chid": "chid.178604",
+      "kind": "variable",
+      "name": "bar",
+      "path": "apps/rist-world/wwwroot/prototype/viewer-input.js",
+      "qualified_name": "bar",
+      "scope": "",
+      "status": "active"
+    },
     "3f8a3d6589d7aeb87750439ac02d7f922fab8755aa7888bbb2103f824648acf1": {
       "aliases": [
         "SLE_MINORERROR"
@@ -664521,6 +664581,18 @@
       "name": "voice",
       "path": "apps/rist-world/wwwroot/game-start-screen.js",
       "qualified_name": "voice",
+      "scope": "",
+      "status": "active"
+    },
+    "4f09ed0c6e4e00f3fea098f2fd8230d0c1428b16891768095b1aaea742dfa189": {
+      "aliases": [
+        "assert"
+      ],
+      "chid": "chid.178585",
+      "kind": "variable",
+      "name": "assert",
+      "path": "apps/rist-world/tests/desktop-controller-adapter-contract.test.cjs",
+      "qualified_name": "assert",
       "scope": "",
       "status": "active"
     },
@@ -888504,6 +888576,18 @@
       "scope": "",
       "status": "active"
     },
+    "69f75e16258d2e0cb6a7209011d96b9a4230b03a4cdd00f9d161b1b7dfa8d21d": {
+      "aliases": [
+        "test"
+      ],
+      "chid": "chid.178584",
+      "kind": "variable",
+      "name": "test",
+      "path": "apps/rist-world/tests/desktop-controller-adapter-contract.test.cjs",
+      "qualified_name": "test",
+      "scope": "",
+      "status": "active"
+    },
     "69f76ca74574a04334cf084da8c251e0d01fed6d75e2928677f5dd094a0882f8": {
       "aliases": [
         "desc"
@@ -919440,6 +919524,18 @@
       "scope": "",
       "status": "active"
     },
+    "6d9d3b853729887e7b6661227f845256dbc942a4def8123fef5131c52f40714b": {
+      "aliases": [
+        "hasAnalogStick"
+      ],
+      "chid": "chid.178596",
+      "kind": "function",
+      "name": "hasAnalogStick",
+      "path": "apps/rist-world/wwwroot/desktop-controller-adapter.js",
+      "qualified_name": "hasAnalogStick",
+      "scope": "",
+      "status": "active"
+    },
     "6d9d6f47bf22f82befecada60951728af4b97938b44e57492548a1270bb96702": {
       "aliases": [
         "custom_runhooks"
@@ -948010,6 +948106,18 @@
       "path": "libs/psutil/_pslinux.py",
       "qualified_name": "boot_time.msg",
       "scope": "boot_time",
+      "status": "active"
+    },
+    "7106d494561f198894b03fec0a5377aeabdcbf5ed7f8df0ccf2f61628a6108f8": {
+      "aliases": [
+        "root"
+      ],
+      "chid": "chid.178588",
+      "kind": "variable",
+      "name": "root",
+      "path": "apps/rist-world/tests/desktop-controller-adapter-contract.test.cjs",
+      "qualified_name": "root",
+      "scope": "",
       "status": "active"
     },
     "71071693f9cff14cba71a110506c0049fdd0957f8328ba875af01cdb2c2baa30": {
@@ -1060452,6 +1060560,18 @@
       "scope": "",
       "status": "active"
     },
+    "7e8181453f73a93940d770275c7a00cb77fcb75918424e4571d06b0f1b53dfdd": {
+      "aliases": [
+        "appIndex"
+      ],
+      "chid": "chid.178591",
+      "kind": "variable",
+      "name": "appIndex",
+      "path": "apps/rist-world/tests/desktop-controller-adapter-contract.test.cjs",
+      "qualified_name": "appIndex",
+      "scope": "",
+      "status": "active"
+    },
     "7e83c570f1ed9b143e617ababa6fb87ce7e649e4f6859785fd73b84fcbc4e967": {
       "aliases": [
         "attribute"
@@ -1092060,6 +1092180,18 @@
       "scope": "",
       "status": "active"
     },
+    "8259e42b18a903e7e30b8c98e4e8a2eca731c6092c98d99f5825db730cff58ac": {
+      "aliases": [
+        "ensure"
+      ],
+      "chid": "chid.178607",
+      "kind": "variable",
+      "name": "ensure",
+      "path": "apps/rist-world/wwwroot/prototype/viewer-input.js",
+      "qualified_name": "ensure",
+      "scope": "",
+      "status": "active"
+    },
     "825a762e1cbc3d1bc6cd98e8ec3189db1b18fd015c33252908fa8ea31bf58435": {
       "aliases": [
         "test"
@@ -1102366,6 +1102498,18 @@
       "path": "libs/setuptools/tests/config/test_pyprojecttoml.py",
       "qualified_name": "test_invalid_example.example",
       "scope": "test_invalid_example",
+      "status": "active"
+    },
+    "8391c0071e600f83ce6307fdc6bff8a48d9bfd98786a444539b43d464d2fa9bd": {
+      "aliases": [
+        "apply"
+      ],
+      "chid": "chid.178597",
+      "kind": "function",
+      "name": "apply",
+      "path": "apps/rist-world/wwwroot/desktop-controller-adapter.js",
+      "qualified_name": "apply",
+      "scope": "",
       "status": "active"
     },
     "83922bc9caeda13862d38900b54fcbc2ffd3d3db21d1ca0426c215b20e595b80": {
@@ -1124122,6 +1124266,18 @@
       "path": "libs/watchdog/tricks/__init__.py",
       "qualified_name": "ShellCommandTrick.on_any_event.command",
       "scope": "ShellCommandTrick.on_any_event",
+      "status": "active"
+    },
+    "861c71a311df77e4bf554acb288eb19431314a0a13205b4e0098a773055a0937": {
+      "aliases": [
+        "viewerInput"
+      ],
+      "chid": "chid.178590",
+      "kind": "variable",
+      "name": "viewerInput",
+      "path": "apps/rist-world/tests/desktop-controller-adapter-contract.test.cjs",
+      "qualified_name": "viewerInput",
+      "scope": "",
       "status": "active"
     },
     "861c7f6f1c4957c5cdd9e8d49f5ef57c6e16b5b76d6903c3fe6076461802770a": {
@@ -1175688,6 +1175844,18 @@
       "scope": "",
       "status": "active"
     },
+    "8c5e4738165a3ff690d2a581f3cb6c0fe64c81ae87fcf9ffc58ce4706691c913": {
+      "aliases": [
+        "DESKTOP_FINE_POINTER"
+      ],
+      "chid": "chid.178592",
+      "kind": "variable",
+      "name": "DESKTOP_FINE_POINTER",
+      "path": "apps/rist-world/wwwroot/desktop-controller-adapter.js",
+      "qualified_name": "DESKTOP_FINE_POINTER",
+      "scope": "",
+      "status": "active"
+    },
     "8c5e9b5b2c39a536d973fd013889627f7a29a92048421b9d49bcb3b836064f51": {
       "aliases": [
         "HMODULE"
@@ -1183473,6 +1183641,18 @@
       "name": "t2",
       "path": "libs/pythonwin/pywin/idle/CallTips.py",
       "qualified_name": "t2",
+      "scope": "",
+      "status": "active"
+    },
+    "8d4cdda7e3e556a5c8d0f6782b4f9e7a331e4e02f0709c9dbe4be2ecc39a1171": {
+      "aliases": [
+        "adapter"
+      ],
+      "chid": "chid.178589",
+      "kind": "variable",
+      "name": "adapter",
+      "path": "apps/rist-world/tests/desktop-controller-adapter-contract.test.cjs",
+      "qualified_name": "adapter",
       "scope": "",
       "status": "active"
     },
@@ -1216512,6 +1216692,18 @@
       "scope": "",
       "status": "active"
     },
+    "91495aad0e6362df0930f63cc2965a840fd3cc84b68fbf1aa251e9a87df74c97": {
+      "aliases": [
+        "style"
+      ],
+      "chid": "chid.178601",
+      "kind": "variable",
+      "name": "style",
+      "path": "apps/rist-world/wwwroot/desktop-controller-adapter.js",
+      "qualified_name": "style",
+      "scope": "",
+      "status": "active"
+    },
     "9149c8c0c2168b0da96d37109acc0165d9c1ed70ae70f861c87018a49e2fdadc": {
       "aliases": [
         "SCE_ERLANG_COMMENT"
@@ -1235397,6 +1235589,18 @@
       "name": "lib",
       "path": "libs/pyglet/media/drivers/directsound/lib_dsound.py",
       "qualified_name": "lib",
+      "scope": "",
+      "status": "active"
+    },
+    "93753d48df0c115fc6bc51b20eb85e462a9d3c070da2e9120e29a310a491e815": {
+      "aliases": [
+        "path"
+      ],
+      "chid": "chid.178587",
+      "kind": "variable",
+      "name": "path",
+      "path": "apps/rist-world/tests/desktop-controller-adapter-contract.test.cjs",
+      "qualified_name": "path",
       "scope": "",
       "status": "active"
     },
@@ -1265757,6 +1265961,18 @@
       "name": "PR_EMS_AB_N_ADDRESS_TYPE",
       "path": "libs/win32comext/mapi/emsabtags.py",
       "qualified_name": "PR_EMS_AB_N_ADDRESS_TYPE",
+      "scope": "",
+      "status": "active"
+    },
+    "97432eecfea5aa87dbe8a1d60319682168042bb9f9e3a6daa4c9f1e67bb4e6d9": {
+      "aliases": [
+        "shouldShow"
+      ],
+      "chid": "chid.178608",
+      "kind": "variable",
+      "name": "shouldShow",
+      "path": "apps/rist-world/wwwroot/prototype/viewer-input.js",
+      "qualified_name": "shouldShow",
       "scope": "",
       "status": "active"
     },
@@ -1333644,6 +1333860,18 @@
       "scope": "Token",
       "status": "active"
     },
+    "9f926a35c2adad45fcb5b388672ba1baa0aede8721a1cf78d282c1986228aeb2": {
+      "aliases": [
+        "fs"
+      ],
+      "chid": "chid.178586",
+      "kind": "variable",
+      "name": "fs",
+      "path": "apps/rist-world/tests/desktop-controller-adapter-contract.test.cjs",
+      "qualified_name": "fs",
+      "scope": "",
+      "status": "active"
+    },
     "9f9293a4d5adda9f423c5997abeb6741095893b609c8ecf98227f283aece77aa": {
       "aliases": [
         "get_audio_data"
@@ -1348102,6 +1348330,18 @@
       "path": "libs/win32/lib/win32timezone.py",
       "qualified_name": "TimeZoneInfo.dst.self",
       "scope": "TimeZoneInfo.dst",
+      "status": "active"
+    },
+    "a13e3b3de4ee56df877b2157983d816da688c7432c8dc0787a9437420619a116": {
+      "aliases": [
+        "range"
+      ],
+      "chid": "chid.178605",
+      "kind": "variable",
+      "name": "range",
+      "path": "apps/rist-world/wwwroot/prototype/viewer-input.js",
+      "qualified_name": "range",
+      "scope": "",
       "status": "active"
     },
     "a140a0a65b1da8a290e9d3d4984505802ce0ba4b15c6f7586e7537a28f384a1d": {
@@ -1397530,6 +1397770,18 @@
       "path": "libs/setuptools/_vendor/more_itertools/more.py",
       "qualified_name": "combination_index.iterable",
       "scope": "combination_index",
+      "status": "active"
+    },
+    "a6fed0b5a3aea12a8d99d4ae932daeb6fd4ac9b08bda903185119a6a5e7645c5": {
+      "aliases": [
+        "removeZoomBar"
+      ],
+      "chid": "chid.178610",
+      "kind": "variable",
+      "name": "removeZoomBar",
+      "path": "apps/rist-world/wwwroot/prototype/viewer-input.js",
+      "qualified_name": "removeZoomBar",
+      "scope": "",
       "status": "active"
     },
     "a6fed48baf437cdc9bd32b087f7cbfffedea52c8beab68706a864d404d280c4a": {
@@ -1455525,6 +1455777,18 @@
       "name": "unicodedata",
       "path": "libs/pyglet/window/cocoa/pyglet_textview.py",
       "qualified_name": "unicodedata",
+      "scope": "",
+      "status": "active"
+    },
+    "adf8e423b8a56c943e059e60a483424439405b0bd2bd0ec0ca94bf2e1e2b9b8a": {
+      "aliases": [
+        "finePointer"
+      ],
+      "chid": "chid.178603",
+      "kind": "variable",
+      "name": "finePointer",
+      "path": "apps/rist-world/wwwroot/prototype/viewer-input.js",
+      "qualified_name": "finePointer",
       "scope": "",
       "status": "active"
     },
@@ -1643856,6 +1644120,18 @@
       "scope": "",
       "status": "active"
     },
+    "c4710017e73e46107a41a02aa66609622d241d25617372ca8984386b7e8c08dc": {
+      "aliases": [
+        "desktop"
+      ],
+      "chid": "chid.178598",
+      "kind": "variable",
+      "name": "desktop",
+      "path": "apps/rist-world/wwwroot/desktop-controller-adapter.js",
+      "qualified_name": "desktop",
+      "scope": "",
+      "status": "active"
+    },
     "c47106834a8c497853d45e603bd7ab3c1f749149082c926449bb55daacc1beac": {
       "aliases": [
         "self"
@@ -1663845,6 +1664121,18 @@
       "name": "SCE_L_COMMENT2",
       "path": "libs/pythonwin/pywin/scintilla/scintillacon.py",
       "qualified_name": "SCE_L_COMMENT2",
+      "scope": "",
+      "status": "active"
+    },
+    "c6c691540be3edb47d3712195834266b47e191b6a3158f4c743d24682e6d2530": {
+      "aliases": [
+        "lastMode"
+      ],
+      "chid": "chid.178593",
+      "kind": "variable",
+      "name": "lastMode",
+      "path": "apps/rist-world/wwwroot/desktop-controller-adapter.js",
+      "qualified_name": "lastMode",
       "scope": "",
       "status": "active"
     },
@@ -1684197,6 +1684485,18 @@
       "name": "POLICY_SERVER_ENABLE_STATE",
       "path": "libs/win32/Demos/security/security_enums.py",
       "qualified_name": "POLICY_SERVER_ENABLE_STATE",
+      "scope": "",
+      "status": "active"
+    },
+    "c9348ea01ec6d64ce356008d5e21552b42589804f9a5a12b4e2527ef6b2d078a": {
+      "aliases": [
+        "previous"
+      ],
+      "chid": "chid.178606",
+      "kind": "variable",
+      "name": "previous",
+      "path": "apps/rist-world/wwwroot/prototype/viewer-input.js",
+      "qualified_name": "previous",
       "scope": "",
       "status": "active"
     },
@@ -2004804,6 +2005104,18 @@
       "scope": "",
       "status": "active"
     },
+    "ef6f04daee1ccff0084c0ffaf7314431391f8c0bfa4be9de58908b446aa09cc3": {
+      "aliases": [
+        "installDesktopZoomBar"
+      ],
+      "chid": "chid.178602",
+      "kind": "function",
+      "name": "installDesktopZoomBar",
+      "path": "apps/rist-world/wwwroot/prototype/viewer-input.js",
+      "qualified_name": "installDesktopZoomBar",
+      "scope": "",
+      "status": "active"
+    },
     "ef6f24de8890fdd0ae0a1ffa65295209ecb669178a068e72c3355c7eac30a187": {
       "aliases": [
         "PKEY_IsFlaggedComplete"
@@ -2097732,6 +2098044,18 @@
       "scope": "",
       "status": "active"
     },
+    "fa8915946f6b769d77432e17f03afd7b6d18fd8498fe8a65950e974e01bc6857": {
+      "aliases": [
+        "analogCapable"
+      ],
+      "chid": "chid.178599",
+      "kind": "variable",
+      "name": "analogCapable",
+      "path": "apps/rist-world/wwwroot/desktop-controller-adapter.js",
+      "qualified_name": "analogCapable",
+      "scope": "",
+      "status": "active"
+    },
     "fa892c2766b170e0ceb800a10c31358f833393c78ae31221a2b17b2ac5ee5a8d": {
       "aliases": [
         "OLEOBJ_E_LAST"
@@ -2142997,6 +2143321,6 @@
       "status": "active"
     }
   },
-  "next_id": 178584,
+  "next_id": 178611,
   "version": 1
 }
