@@ -34,8 +34,7 @@ def _event(row: sqlite3.Row) -> dict[str, Any]:
 @mcp.tool()
 def relic_get_event(event_id: str) -> dict[str, Any]:
     """Fetch one ReLiC event by immutable event ID. Read-only."""
-    relic.init()
-    with relic.db() as con:
+    with relic.readonly_db() as con:
         row = con.execute("SELECT * FROM events WHERE id=?", (event_id,)).fetchone()
     if not row:
         return {"found": False, "event_id": event_id}
@@ -45,10 +44,9 @@ def relic_get_event(event_id: str) -> dict[str, Any]:
 @mcp.tool()
 def relic_search(query: str, limit: int = 20) -> dict[str, Any]:
     """Search bounded ReLiC event fields and payload text. Read-only."""
-    relic.init()
     bounded_limit = max(1, min(int(limit), 100))
     needle = f"%{query}%"
-    with relic.db() as con:
+    with relic.readonly_db() as con:
         rows = con.execute(
             """
             SELECT * FROM events
