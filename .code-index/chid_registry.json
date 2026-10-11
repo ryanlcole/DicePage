@@ -79128,6 +79128,18 @@
       "scope": "OpenALSource",
       "status": "active"
     },
+    "097469bf4b98b31b0898e4c613f818b1467022f82b6a8d900f60cd1db3032c5d": {
+      "aliases": [
+        "viewport"
+      ],
+      "chid": "chid.178545",
+      "kind": "ui-id",
+      "name": "viewport",
+      "path": "site/relic-home/relic/share/index.html",
+      "qualified_name": "viewport",
+      "scope": "",
+      "status": "active"
+    },
     "09748d4856ce2fe94da2722951641d8bbf7b8db918de2de16f0b5970a6fb0942": {
       "aliases": [
         "v1"
@@ -152086,7 +152098,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "mind-result",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "1226f9b8bd886b99d003df9dd6c9f09b3d7ad91c3126bfbd71a9ab306eaa6af2": {
       "aliases": [
@@ -196186,7 +196198,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "mind-map",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "17658a9b8e8ff0dcb90a33c88499eb91303330fcd89fc8724aa60d4cc90cee05": {
       "aliases": [
@@ -354682,7 +354694,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "connect",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "2a4241770039821e59a8e5636e96b3dce7e7cc393d1773e36f12557897b9cd8f": {
       "aliases": [
@@ -533458,7 +533470,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "capabilities-title",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "3f887bb09a582cf3670ef2099ecf24d99a52858992704264e8469904b583c8f8": {
       "aliases": [
@@ -618766,7 +618778,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "mind",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "49925ec1939b75096874515cbc305356f51b14f273779651beaee7e8be563901": {
       "aliases": [
@@ -623314,7 +623326,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "mind-title",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "4a16081cf6faeefc1e2eb7578c03fffce05be8829a7124d319eb1e94a1734e54": {
       "aliases": [
@@ -766678,7 +766690,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "mind-form",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "5b49dfb59ee0f8ba6f2d80fc78bfa6dabcfd4155274d99e3dbf6ce5a2d48a042": {
       "aliases": [
@@ -1075128,6 +1075140,18 @@
       "scope": "",
       "status": "active"
     },
+    "8048bb6adbc91139aa6eda87faac6ac34a58914404fd2e2c694b05b026cd6fe4": {
+      "aliases": [
+        "description"
+      ],
+      "chid": "chid.178546",
+      "kind": "ui-id",
+      "name": "description",
+      "path": "site/relic-home/relic/share/index.html",
+      "qualified_name": "description",
+      "scope": "",
+      "status": "active"
+    },
     "8048d346fe5ae685b1b5275c2b63be5a741f4c30df158a88b6e172ceea9a31a0": {
       "aliases": [
         "SPAPI_E_NOT_DISABLEABLE"
@@ -1163806,7 +1163830,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "mcp-url",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "8aecd89dc373d4ed4bf16c32a2699e526ca3f561cf6d9eb82cc708f8ce4eafc9": {
       "aliases": [
@@ -1170922,7 +1170946,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "mind-query",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "8bda7865347a38bea47369f1452f9e7e70baebe8b876b59c17e11550821decc0": {
       "aliases": [
@@ -1248382,6 +1248406,18 @@
       "path": "libs/pyglet/media/codecs/pyogg.py",
       "qualified_name": "MemoryFLACFileStream.__init__.path",
       "scope": "MemoryFLACFileStream.__init__",
+      "status": "active"
+    },
+    "95240ebe6c61e4c4242b45baf810d8ae445d8d829d34000d6e586f223cb0aa99": {
+      "aliases": [
+        "failures"
+      ],
+      "chid": "chid.178551",
+      "kind": "ui-id",
+      "name": "failures",
+      "path": "site/relic-home/relic/share/index.html",
+      "qualified_name": "failures",
+      "scope": "",
       "status": "active"
     },
     "95248ab1dd8bacf57d4d20e4c8a2c96a3bd1b2c4439d347b23dc10b91825b2f8": {
@@ -1380382,7 +1380418,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "purpose-title",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "a5021d10f5ccd629811d4fc8f271b7c231c43230fc589ad1201197a3e35e5f94": {
       "aliases": [
@@ -1455958,6 +1455994,18 @@
       "path": "apps/tactical/tools/cdp_verify_tabletop.py",
       "qualified_name": "dispatch_pointer.event_type",
       "scope": "dispatch_pointer",
+      "status": "active"
+    },
+    "ae0d36c9aaba64b2a3a479680a49e58b92dcde43bc4df56b9e6944ba44ecdb72": {
+      "aliases": [
+        "proof"
+      ],
+      "chid": "chid.178550",
+      "kind": "ui-id",
+      "name": "proof",
+      "path": "site/relic-home/relic/share/index.html",
+      "qualified_name": "proof",
+      "scope": "",
       "status": "active"
     },
     "ae0db121e2e8d7e7cd58fb6ebe294f3329db3386b0701483aafe111bf23542fb": {
@@ -1553340,6 +1553388,18 @@
       "scope": "",
       "status": "active"
     },
+    "b9c92872d932c06f3fc7d87539880982632f40b6d7b284f6c104c29f6a61057c": {
+      "aliases": [
+        "title"
+      ],
+      "chid": "chid.178549",
+      "kind": "ui-id",
+      "name": "title",
+      "path": "site/relic-home/relic/share/index.html",
+      "qualified_name": "title",
+      "scope": "",
+      "status": "active"
+    },
     "b9c96b4f45cb094514652125c7870e2a827697bb8a785f27746bde8d89dfc2e0": {
       "aliases": [
         "FOLDERID_PublicRingtones"
@@ -1623228,6 +1623288,18 @@
       "scope": "DebugDocumentText._Close",
       "status": "active"
     },
+    "c21c689b5c246c4413a4f484106f07317417ad57e6e892174fb2f923d0743db2": {
+      "aliases": [
+        "theme-color"
+      ],
+      "chid": "chid.178548",
+      "kind": "ui-id",
+      "name": "theme-color",
+      "path": "site/relic-home/relic/share/index.html",
+      "qualified_name": "theme-color",
+      "scope": "",
+      "status": "active"
+    },
     "c21c7fd1735e0b5515ac6a194ea406a6f75c6f00767ff0b8e6662ed334379fd6": {
       "aliases": [
         "WINHTTP_ENABLE_PASSPORT_AUTH"
@@ -1635082,7 +1635154,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "capabilities",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "c37b751131464d2c6d247baa11df5110107950ae5b5aeecd14766227df668040": {
       "aliases": [
@@ -1781134,7 +1781206,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "copy-mcp",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "d4e112c65d7fdcd4097faaa09879dc953af4a72687a2e3f018b86d985874c01c": {
       "aliases": [
@@ -1878430,7 +1878502,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "query",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "e07047337246d164268193ba3035eea7cdcf282bd813046f668e82a9f7842b38": {
       "aliases": [
@@ -1881333,6 +1881405,18 @@
       "name": "_pyi_rthook",
       "path": "libs/PyInstaller/hooks/rthooks/pyi_rth_pyqt6.py",
       "qualified_name": "_pyi_rthook",
+      "scope": "",
+      "status": "active"
+    },
+    "e0c7618b18bcdf44c77b2574182386e105b1999c42cfdbe1009d7a6831fbb346": {
+      "aliases": [
+        "robots"
+      ],
+      "chid": "chid.178547",
+      "kind": "ui-id",
+      "name": "robots",
+      "path": "site/relic-home/relic/share/index.html",
+      "qualified_name": "robots",
       "scope": "",
       "status": "active"
     },
@@ -2062186,7 +2062270,7 @@
       "path": "site/relic-home/relic/index.html",
       "qualified_name": "copy-status",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "f658dec99802005e4774e873490d35a0cf74c036d3c9c5af410b8665c0b739dc": {
       "aliases": [
@@ -2142529,6 +2142613,6 @@
       "status": "active"
     }
   },
-  "next_id": 178545,
+  "next_id": 178552,
   "version": 1
 }

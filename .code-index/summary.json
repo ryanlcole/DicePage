@@ -1,5 +1,5 @@
 {
-  "code_records": 509832,
+  "code_records": 509669,
   "comment_records": 57520,
   "exact_duplicate_groups": 8,
   "exact_source_duplicate_groups": 4,
@@ -8,12 +8,12 @@
     "config": 5,
     "docs": 144,
     "generated": 96,
-    "source": 3262,
+    "source": 3263,
     "vendor": 154
   },
-  "indexed_records": 567352,
-  "next_id": 584324,
+  "indexed_records": 567189,
+  "next_id": 584459,
   "stale_or_generated_candidates": 96,
-  "tracked_files": 4172,
+  "tracked_files": 4173,
   "version": 1
 }
