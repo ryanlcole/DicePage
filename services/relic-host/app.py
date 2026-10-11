@@ -18,6 +18,8 @@ from typing import Any
 from fastapi import FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
+import historical_import
+
 DB_PATH = Path(os.getenv("RELIC_DB_PATH", "/data/relic.db"))
 WRITE_TOKEN = os.getenv("RELIC_WRITE_TOKEN", "")
 
@@ -100,6 +102,7 @@ def init() -> None:
           status TEXT NOT NULL DEFAULT 'PROPOSED'
         );
         """)
+        historical_import.init_schema(con)
 
 
 @app.on_event("startup")
@@ -126,6 +129,15 @@ class ProposalIn(BaseModel):
 class GateIn(BaseModel):
     state: str
     evidence: dict[str, Any] = Field(default_factory=dict)
+
+
+class HistoricalImportIn(BaseModel):
+    candidate_id: str
+    idempotency_key: str
+    event: EventIn
+    source_hash: str | None = None
+    human_approved: bool = False
+    approval_evidence: dict[str, Any] = Field(default_factory=dict)
 
 
 def require_write(authorization: str | None) -> None:
@@ -164,6 +176,65 @@ def append_event(item: EventIn, authorization: str | None = Header(default=None)
             (event_id, now(), item.kind, item.status, item.subject, canonical(item.payload), payload_hash, item.prior_event_id, item.source, item.actor),
         )
     return {"id": event_id, "payload_hash": payload_hash, "append_only": True}
+
+
+@app.post("/v1/historical-import")
+def append_historical_import(item: HistoricalImportIn, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    """Append an explicitly approved historical OBSERVATION exactly once."""
+    require_write(authorization)
+    if not item.human_approved or not item.approval_evidence:
+        raise HTTPException(403, "explicit human approval evidence is required")
+    if item.event.status != "OBSERVATION":
+        raise HTTPException(400, "historical imports must remain OBSERVATION")
+    if item.event.kind != "INVESTIGATION":
+        raise HTTPException(400, "historical imports must use INVESTIGATION kind")
+    if item.event.prior_event_id is not None:
+        raise HTTPException(400, "historical candidate IDs are not live prior_event_id values")
+
+    payload_hash = digest(item.event.payload)
+    imported_at = now()
+    event_id = str(uuid.uuid4())
+
+    with db() as con:
+        try:
+            result = historical_import.import_once(
+                con,
+                candidate_id=item.candidate_id,
+                idempotency_key=item.idempotency_key,
+                payload_hash=payload_hash,
+                source_hash=item.source_hash,
+                approval_evidence_json=canonical(item.approval_evidence),
+                imported_at=imported_at,
+                append_event=lambda: _insert_historical_event(con, event_id, imported_at, item.event, payload_hash),
+            )
+        except historical_import.HistoricalImportConflict as exc:
+            raise HTTPException(409, str(exc)) from exc
+    return {**result, "append_only": True, "observation_status": "OBSERVATION"}
+
+
+def _insert_historical_event(
+    con: sqlite3.Connection,
+    event_id: str,
+    recorded_at: str,
+    item: EventIn,
+    payload_hash: str,
+) -> str:
+    con.execute(
+        "INSERT INTO events(id,recorded_at,kind,status,subject,payload,payload_hash,prior_event_id,source,actor) VALUES(?,?,?,?,?,?,?,?,?,?)",
+        (
+            event_id,
+            recorded_at,
+            item.kind,
+            "OBSERVATION",
+            item.subject,
+            canonical(item.payload),
+            payload_hash,
+            None,
+            item.source,
+            item.actor,
+        ),
+    )
+    return event_id
 
 
 @app.post("/v1/proposals")
