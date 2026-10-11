@@ -14,10 +14,7 @@ import urllib.error
 import urllib.request
 from typing import Any
 
-try:
-    from .validation import validate_envelope
-except ImportError:  # AWS Lambda packages these modules at the function root.
-    from validation import validate_envelope
+from validation import validate_envelope
 
 _TASK_REVISION_RE = re.compile(r":(?P<revision>\d+)$")
 
