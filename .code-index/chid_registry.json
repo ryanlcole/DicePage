@@ -163296,6 +163296,18 @@
       "scope": "SetEditorOption",
       "status": "active"
     },
+    "137d908db81f581d8fe1e4b45ac8824867d9e42f5634e7e917dee8ff324d02ef": {
+      "aliases": [
+        "resetDesktopMouseParallax"
+      ],
+      "chid": "chid.178583",
+      "kind": "function",
+      "name": "resetDesktopMouseParallax",
+      "path": "apps/rist-world/wwwroot/prototype/prototype.js",
+      "qualified_name": "resetDesktopMouseParallax",
+      "scope": "",
+      "status": "active"
+    },
     "137dc4aa2559354fa97b53bcf7095b10de8733b46cf3a8e0d16dd9dc710d92bb": {
       "aliases": [
         "example"
@@ -240177,6 +240189,18 @@
       "name": "fn",
       "path": "libs/PyInstaller/hooks/hook-django.db.backends.py",
       "qualified_name": "fn",
+      "scope": "",
+      "status": "active"
+    },
+    "1c8c5a694a44657fe22b76131eee760685283bff97644d2ffbf5ae098f677455": {
+      "aliases": [
+        "test"
+      ],
+      "chid": "chid.178572",
+      "kind": "variable",
+      "name": "test",
+      "path": "apps/rist-world/tests/desktop-parallax-zoom-contract.test.cjs",
+      "qualified_name": "test",
       "scope": "",
       "status": "active"
     },
@@ -376546,6 +376570,18 @@
       "path": "libs/PyInstaller/depend/analysis.py",
       "qualified_name": "get_bootstrap_modules.mod_file",
       "scope": "get_bootstrap_modules",
+      "status": "active"
+    },
+    "2cc465f3e87a6ec9118f952ec4a84332871821c74a29fe5ff9d839074745358e": {
+      "aliases": [
+        "REDUCED_MOTION"
+      ],
+      "chid": "chid.178580",
+      "kind": "variable",
+      "name": "REDUCED_MOTION",
+      "path": "apps/rist-world/wwwroot/prototype/prototype.js",
+      "qualified_name": "REDUCED_MOTION",
+      "scope": "",
       "status": "active"
     },
     "2cc5cb91e41f3ad368a4d1c5c8558508103b8d5e37a93c25c15f191929f3a05d": {
@@ -652140,6 +652176,18 @@
       "scope": "is_file_qt_plugin",
       "status": "active"
     },
+    "4d8b34c92cf8f10bd736e0cb919c6b89bfc1d2e5c5404c46a9bc620dcc4dc032": {
+      "aliases": [
+        "DESKTOP_FINE_POINTER"
+      ],
+      "chid": "chid.178579",
+      "kind": "variable",
+      "name": "DESKTOP_FINE_POINTER",
+      "path": "apps/rist-world/wwwroot/prototype/prototype.js",
+      "qualified_name": "DESKTOP_FINE_POINTER",
+      "scope": "",
+      "status": "active"
+    },
     "4d8cad4f1c9b0a5a39c90cf22d1c95f503c7fca3ddd8f46d270376758de06efb": {
       "aliases": [
         "self"
@@ -783681,6 +783729,18 @@
       "name": "SHDID_FS_FILE",
       "path": "libs/win32comext/shell/shellcon.py",
       "qualified_name": "SHDID_FS_FILE",
+      "scope": "",
+      "status": "active"
+    },
+    "5d4ee3cb8c65d0e9078fd124da6cf363baacd2f863a2ba0e9f6a4fc61855a1a2": {
+      "aliases": [
+        "root"
+      ],
+      "chid": "chid.178576",
+      "kind": "variable",
+      "name": "root",
+      "path": "apps/rist-world/tests/desktop-parallax-zoom-contract.test.cjs",
+      "qualified_name": "root",
       "scope": "",
       "status": "active"
     },
@@ -1113780,6 +1113840,18 @@
       "scope": "BaseQuery",
       "status": "active"
     },
+    "84e0c829b8a5b6245798d71f7ec8108a973061376fd506a0468e19506fe661f3": {
+      "aliases": [
+        "index"
+      ],
+      "chid": "chid.178578",
+      "kind": "variable",
+      "name": "index",
+      "path": "apps/rist-world/tests/desktop-parallax-zoom-contract.test.cjs",
+      "qualified_name": "index",
+      "scope": "",
+      "status": "active"
+    },
     "84e135439054581cb7d5c023374efc09135a1855df7ce84a72a453540244bb5c": {
       "aliases": [
         "HB_MEMORY_MODE_READONLY"
@@ -1308528,6 +1308600,18 @@
       "scope": "",
       "status": "active"
     },
+    "9c85a3014278f684e08aa1fbb25962d1d02ff14bc7538109f524488a4f83824e": {
+      "aliases": [
+        "desktopMouseParallaxActive"
+      ],
+      "chid": "chid.178581",
+      "kind": "function",
+      "name": "desktopMouseParallaxActive",
+      "path": "apps/rist-world/wwwroot/prototype/prototype.js",
+      "qualified_name": "desktopMouseParallaxActive",
+      "scope": "",
+      "status": "active"
+    },
     "9c85ecd2eb47935dde0f736664021e9158cf3cf142622c9e4ad9fe5aa5b1b6d7": {
       "aliases": [
         "msg"
@@ -1479672,6 +1479756,18 @@
       "scope": "",
       "status": "active"
     },
+    "b0e5b626d66610ae10de89386f3bcc0942f570a37a2520e251a4b5ded31a5d47": {
+      "aliases": [
+        "updateDesktopMouseParallax"
+      ],
+      "chid": "chid.178582",
+      "kind": "function",
+      "name": "updateDesktopMouseParallax",
+      "path": "apps/rist-world/wwwroot/prototype/prototype.js",
+      "qualified_name": "updateDesktopMouseParallax",
+      "scope": "",
+      "status": "active"
+    },
     "b0e5d4345193765ea87004a28af2500c324533b77bb716ecea3088bc927606b3": {
       "aliases": [
         "MakeModuleForTypelib"
@@ -1545837,6 +1545933,18 @@
       "name": "user_state_dir",
       "path": "libs/setuptools/_vendor/platformdirs/__init__.py",
       "qualified_name": "user_state_dir",
+      "scope": "",
+      "status": "active"
+    },
+    "b8dfd3ec94b0d90a312625356f8229be7d0379bae7b88b4b82360c1c47846f2e": {
+      "aliases": [
+        "assert"
+      ],
+      "chid": "chid.178573",
+      "kind": "variable",
+      "name": "assert",
+      "path": "apps/rist-world/tests/desktop-parallax-zoom-contract.test.cjs",
+      "qualified_name": "assert",
       "scope": "",
       "status": "active"
     },
@@ -1713672,6 +1713780,18 @@
       "scope": "TestMemoryLeak._check_mem",
       "status": "active"
     },
+    "ccb8d81b4bddf1b95b1afeeb8e2a5af31bdd712e5b1fc2eeaa28727e37285a75": {
+      "aliases": [
+        "proto"
+      ],
+      "chid": "chid.178577",
+      "kind": "variable",
+      "name": "proto",
+      "path": "apps/rist-world/tests/desktop-parallax-zoom-contract.test.cjs",
+      "qualified_name": "proto",
+      "scope": "",
+      "status": "active"
+    },
     "ccb8d98b22002483a7ca033b93573c4efc262b438715dd0570749e287fa72f66": {
       "aliases": [
         "self"
@@ -1849174,6 +1849294,18 @@
       "path": "libs/pyglet/font/base.py",
       "qualified_name": "Glyph.set_bearings.lsb",
       "scope": "Glyph.set_bearings",
+      "status": "active"
+    },
+    "dcc727b7aa3b3c12238bca054d13181f2d09635426163c1e5a90f575e668562a": {
+      "aliases": [
+        "path"
+      ],
+      "chid": "chid.178575",
+      "kind": "variable",
+      "name": "path",
+      "path": "apps/rist-world/tests/desktop-parallax-zoom-contract.test.cjs",
+      "qualified_name": "path",
+      "scope": "",
       "status": "active"
     },
     "dcc78fb16c05eb131f27d99fdff76274c5195427377f88805fa05900030984a8": {
@@ -2123784,6 +2123916,18 @@
       "scope": "WorkerThread.call_handler",
       "status": "active"
     },
+    "fdbf7bbb9c40ca059b8a572b1ce24eebb2224f237f6b2081f14ffef316647799": {
+      "aliases": [
+        "fs"
+      ],
+      "chid": "chid.178574",
+      "kind": "variable",
+      "name": "fs",
+      "path": "apps/rist-world/tests/desktop-parallax-zoom-contract.test.cjs",
+      "qualified_name": "fs",
+      "scope": "",
+      "status": "active"
+    },
     "fdbfc785c9c67cb25214b0574f3bc3b65033a1f431ccb6839c8e1fee0f95caf4": {
       "aliases": [
         "ROOT"
@@ -2142853,6 +2142997,6 @@
       "status": "active"
     }
   },
-  "next_id": 178572,
+  "next_id": 178584,
   "version": 1
 }
