@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <meta name="theme-color" content="#05080b" />
   <title>Shaelvien World Builder</title>
-  <link rel="stylesheet" href="./prototype.css?v=20261011-world-contract-1" />
+  <link rel="stylesheet" href="./prototype.css?v=20261011-crosshair-zoom-1" />
   <style id="region-marker-preboot-style">html.region-marker-preboot #stage .region-tier-preview,html.region-marker-preboot #stage .region-tier-preview-panel,html.region-marker-preboot #stage .tier-preview,html.region-marker-preboot #stage .tier-preview-panel,html.region-marker-preboot #stage [data-region-tier-preview]{display:none!important}html.region-marker-preboot #world{display:block!important;visibility:visible!important;opacity:1!important}</style>
   <script>(()=>{const q=new URLSearchParams(location.search);if(String(q.get('mode')||'').toLowerCase()==='regiondefiner'&&String(q.get('regionFlow')||'').toLowerCase()==='new')document.documentElement.classList.add('region-marker-preboot')})()</script>
 </head>
@@ -40,7 +40,7 @@
     <section id="viewerSettingsPanel" class="viewer-settings-panel" role="dialog" aria-modal="true" aria-label="World Builder settings" hidden data-ui>
       <div class="viewer-settings-card">
         <header><strong>SETTINGS</strong><button id="viewerSettingsClose" type="button" aria-label="Close settings">×</button></header>
-        <p id="viewerShortcuts">Desktop/laptop: move the mouse across All Parallax to inspect layer depth; mouse wheel or trackpad zooms toward the pointer. Arrow keys pan (Shift for larger steps), + / = and − zoom, F fits the map, T opens tiers, S settings, K the tool keyboard, and U image upload when editing is allowed. Escape closes panels. Tab moves to controls; Enter or Space activates buttons.</p>
+        <p id="viewerShortcuts">Desktop/laptop: move the mouse across All Parallax to inspect layer depth. The inset crosshair frame chooses the exact zoom target: drag it to move, resize it like an image, then release to zoom into that framed area. Click the gutter between the viewer border and crosshair frame to zoom back out. Mouse wheel or trackpad still zooms toward the pointer. Arrow keys pan (Shift for larger steps), + / = and − zoom, F fits the map, T opens tiers, S settings, K the tool keyboard, and U image upload when editing is allowed. Escape closes panels. Tab moves to controls; Enter or Space activates buttons.</p>
         <button id="settingsFit" type="button" aria-label="Fit map to screen"><span aria-hidden="true">⛶</span><strong aria-hidden="true">View</strong></button>
         <button id="settingsResetTilt" type="button"><span aria-hidden="true">⌁</span><strong>Reset Tilt</strong></button>
         <label class="viewer-angle-setting"><span>VIEW</span><select id="viewAngleSelect" aria-label="Viewer angle"><option value="0">0°</option><option value="15">15°</option><option value="30">30°</option><option value="45">45°</option></select><small>Perspective only; coordinates do not change.</small></label>
@@ -88,7 +88,7 @@
   </section>
 </main>
 <script src="./viewer-input.js?v=20260920-desktop-input-1"></script>
-<script src="./prototype.js?v=20261011-world-contract-1"></script>
+<script src="./prototype.js?v=20261011-crosshair-zoom-1"></script>
 <script src="./spatial-selection-session.js?v=20261004-frozen-selection-4&fix=20261004-hex30-volume-1"></script>
 <script src="./spatial-title-handoff.js?v=20261004-spatial-title-1"></script>
 <script src="./spatial-depth-authority.js?v=20261004-parent-depth-4&fix=20261004-reference-xy-z-1"></script>
