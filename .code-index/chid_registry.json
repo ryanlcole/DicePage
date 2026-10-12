@@ -38568,6 +38568,18 @@
       "scope": "",
       "status": "active"
     },
+    "04a610aa74acda9ea1f65203acd076e092a19d4b2e18978d046a77b92b1d2c5e": {
+      "aliases": [
+        "stage"
+      ],
+      "chid": "chid.178621",
+      "kind": "variable",
+      "name": "stage",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "stage",
+      "scope": "",
+      "status": "active"
+    },
     "04a6433623cc40d6b76d9bc608fdae354a64870372ff243859117c305ceec961": {
       "aliases": [
         "router"
@@ -39441,6 +39453,18 @@
       "name": "_link_function",
       "path": "libs/pyglet/gl/glxext_arb.py",
       "qualified_name": "_link_function",
+      "scope": "",
+      "status": "active"
+    },
+    "04c2415d38098a0ccc771df473950e14141593de69707cc32264e620e608f6a0": {
+      "aliases": [
+        "node"
+      ],
+      "chid": "chid.178675",
+      "kind": "variable",
+      "name": "node",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "node",
       "scope": "",
       "status": "active"
     },
@@ -90168,6 +90192,18 @@
       "scope": "SendCommandHandler.__init__",
       "status": "active"
     },
+    "0ac4262207d5e3db1abde8d2f711deaa7a62f97c719e7a5b608d8cf467b27acd": {
+      "aliases": [
+        "top"
+      ],
+      "chid": "chid.178683",
+      "kind": "variable",
+      "name": "top",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "top",
+      "scope": "",
+      "status": "active"
+    },
     "0ac4b97ab1d794949dd15573c708c26c773fb62e004b2ac68ab7a4c03db2d8aa": {
       "aliases": [
         "tarinfo"
@@ -92973,6 +93009,18 @@
       "name": "add_vtkmodules_dependencies",
       "path": "libs/_pyinstaller_hooks_contrib/stdhooks/hook-vtkmodules.vtkIOTRUCHAS.py",
       "qualified_name": "add_vtkmodules_dependencies",
+      "scope": "",
+      "status": "active"
+    },
+    "0b1bc1d27002b85b4a58ae167abd2a565343794f94cb0d79837101d678c01804": {
+      "aliases": [
+        "index"
+      ],
+      "chid": "chid.178616",
+      "kind": "variable",
+      "name": "index",
+      "path": "apps/rist-world/tests/desktop-crosshair-region-flow.test.cjs",
+      "qualified_name": "index",
       "scope": "",
       "status": "active"
     },
@@ -112032,6 +112080,18 @@
       "scope": "",
       "status": "active"
     },
+    "0d66861bd2e86809af3199da2691f8a574399f437ca29a1dc0e0c6c11b6b31ad": {
+      "aliases": [
+        "show"
+      ],
+      "chid": "chid.178691",
+      "kind": "variable",
+      "name": "show",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "show",
+      "scope": "",
+      "status": "active"
+    },
     "0d67b2902b9726db8acc935f611975be38770782cc796310f59ae8963cdaeb07": {
       "aliases": [
         "Membership"
@@ -124282,6 +124342,18 @@
       "path": "libs/pyglet/image/buffer.py",
       "qualified_name": "Framebuffer.width.self",
       "scope": "Framebuffer.width",
+      "status": "active"
+    },
+    "0ee394bac7962833e28b716e119c90f3402f0ffbbbde025697309616e9fd5656": {
+      "aliases": [
+        "button"
+      ],
+      "chid": "chid.178652",
+      "kind": "variable",
+      "name": "button",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "button",
+      "scope": "",
       "status": "active"
     },
     "0ee3df022388cf5a4c5936624d6f88c47f53781b66a6ebb86f328946bcf6ba4d": {
@@ -146673,6 +146745,18 @@
       "name": "ILLUMINANT_TUNGSTEN",
       "path": "libs/win32/lib/win32con.py",
       "qualified_name": "ILLUMINANT_TUNGSTEN",
+      "scope": "",
+      "status": "active"
+    },
+    "1194172a3b9991a7dcb74727460660c11c529eedf9faffa12693c0062e072f07": {
+      "aliases": [
+        "frame"
+      ],
+      "chid": "chid.178638",
+      "kind": "variable",
+      "name": "frame",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "frame",
       "scope": "",
       "status": "active"
     },
@@ -175980,6 +176064,18 @@
       "scope": "run",
       "status": "active"
     },
+    "150d6de9a795685dd4c8352bd2849f87e2773543bac9c4086b6bf775747d4da9": {
+      "aliases": [
+        "live"
+      ],
+      "chid": "chid.178668",
+      "kind": "variable",
+      "name": "live",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "live",
+      "scope": "",
+      "status": "active"
+    },
     "150d7405c63abc9c5e5017e1d30ff1effcbad2808a1feb6d4799bebc61be3656": {
       "aliases": [
         "TokenAuditPolicy"
@@ -180069,6 +180165,18 @@
       "name": "bypass",
       "path": "apps/rist-world/wwwroot/browser-back-authority.js",
       "qualified_name": "bypass",
+      "scope": "",
+      "status": "active"
+    },
+    "158ed9e69b2c8a32abcd10d836b816c3ea5cfad7d78a9b8490040956cc0c3afb": {
+      "aliases": [
+        "drag"
+      ],
+      "chid": "chid.178635",
+      "kind": "variable",
+      "name": "drag",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "drag",
       "scope": "",
       "status": "active"
     },
@@ -204981,6 +205089,18 @@
       "name": "FWP_E_DUPLICATE_CONDITION",
       "path": "libs/win32/lib/winerror.py",
       "qualified_name": "FWP_E_DUPLICATE_CONDITION",
+      "scope": "",
+      "status": "active"
+    },
+    "1860d3fe559c28f40f0c22aee78d1b853727f06ef0b5ce090cd30cf7e76b3e26": {
+      "aliases": [
+        "candidate"
+      ],
+      "chid": "chid.178632",
+      "kind": "variable",
+      "name": "candidate",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "candidate",
       "scope": "",
       "status": "active"
     },
@@ -262812,6 +262932,18 @@
       "scope": "_wmi_method.__call__",
       "status": "active"
     },
+    "1f59699fed8eb05f2740843b90e23f93d7dd803e3efbf071404de9ab03469794": {
+      "aliases": [
+        "path"
+      ],
+      "chid": "chid.178614",
+      "kind": "variable",
+      "name": "path",
+      "path": "apps/rist-world/tests/desktop-crosshair-region-flow.test.cjs",
+      "qualified_name": "path",
+      "scope": "",
+      "status": "active"
+    },
     "1f59d257654f0fef5d1479605e7b9df55fa5f2d42dae434c5eb12b358f9fc3c5": {
       "aliases": [
         "PR_EMS_AB_EXTENSION_NAME_A"
@@ -283596,6 +283728,18 @@
       "scope": "EnumDebugStackFrames.__init__",
       "status": "active"
     },
+    "21e8ffd0f9117d6fcfb76c2dd2e83d3d778b0bbf211ea3e9dcfec43e8b62d4ed": {
+      "aliases": [
+        "lastTargetBase"
+      ],
+      "chid": "chid.178631",
+      "kind": "variable",
+      "name": "lastTargetBase",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "lastTargetBase",
+      "scope": "",
+      "status": "active"
+    },
     "21e9c6053948f38263dee4fea7da3534f679c11af3547cabb471d5b80137f0ac": {
       "aliases": [
         "ENDS_WITH_S"
@@ -284158,6 +284302,18 @@
       "path": "apps/rist-world/ShaepManifest.cs",
       "qualified_name": "ShaepPayload.PixelWidth",
       "scope": "ShaepPayload",
+      "status": "active"
+    },
+    "21f68171ce99e5b85ac34ad0724fc6f05968141b3803f51a0f56b7b94c586dfe": {
+      "aliases": [
+        "factor"
+      ],
+      "chid": "chid.178663",
+      "kind": "variable",
+      "name": "factor",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "factor",
+      "scope": "",
       "status": "active"
     },
     "21f6d0babb561669b208cde971bd06c7a8263c1a5870f0ee471703f8282bfb8c": {
@@ -294432,6 +294588,18 @@
       "scope": "user_log_path",
       "status": "active"
     },
+    "233209bdacf9edcfdac00366f4f0d01102101e07b2c0eb46c3cc5568b7efdc3a": {
+      "aliases": [
+        "nextScope"
+      ],
+      "chid": "chid.178643",
+      "kind": "function",
+      "name": "nextScope",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "nextScope",
+      "scope": "",
+      "status": "active"
+    },
     "2332e6ae2fb6c2d7d5bd09ef3fd53184403f54d36b4c7ef97f227edb1ff1bf09": {
       "aliases": [
         "frame"
@@ -300297,6 +300465,18 @@
       "name": "CONNECT_LOCALDRIVE",
       "path": "libs/win32/lib/win32netcon.py",
       "qualified_name": "CONNECT_LOCALDRIVE",
+      "scope": "",
+      "status": "active"
+    },
+    "23e15c77b74782e8ad43dbb578e45745c8a3cb59c9ac4744ccd10073da1c7629": {
+      "aliases": [
+        "api"
+      ],
+      "chid": "chid.178623",
+      "kind": "variable",
+      "name": "api",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "api",
       "scope": "",
       "status": "active"
     },
@@ -311217,6 +311397,18 @@
       "name": "PrintDemoView",
       "path": "libs/pythonwin/pywin/Demos/app/customprint.py",
       "qualified_name": "PrintDemoView",
+      "scope": "",
+      "status": "active"
+    },
+    "25278c7a5ddb89236f4ac54ad1b1ce1bf0e51b6618ff01c7e6e2d6e8f7a68f4a": {
+      "aliases": [
+        "gutter"
+      ],
+      "chid": "chid.178687",
+      "kind": "variable",
+      "name": "gutter",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "gutter",
       "scope": "",
       "status": "active"
     },
@@ -325438,6 +325630,18 @@
       "path": "libs/pyglet/text/document.py",
       "qualified_name": "AbstractDocument.get_element.msg",
       "scope": "AbstractDocument.get_element",
+      "status": "active"
+    },
+    "26c9d3c019bd8da960e8637c4c048ba23a9ace317a444681ed970ef44cf746a6": {
+      "aliases": [
+        "rect"
+      ],
+      "chid": "chid.178682",
+      "kind": "variable",
+      "name": "rect",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "rect",
+      "scope": "",
       "status": "active"
     },
     "26c9e2e5591aa1972b439277dae5a7f144f3ffa47957f8fca95c021ec214c663": {
@@ -386784,6 +386988,18 @@
       "scope": "DocTemplate.CreateView",
       "status": "active"
     },
+    "2df36b59b9dac79218f251fb86562a4ee2e2f72c9662300d50a9274b66fcf725": {
+      "aliases": [
+        "nextScale"
+      ],
+      "chid": "chid.178665",
+      "kind": "variable",
+      "name": "nextScale",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "nextScale",
+      "scope": "",
+      "status": "active"
+    },
     "2df376dddc83b9941d8040972e4bc22c68c41d80018bd7174797dbbe723986e6": {
       "aliases": [
         "SCE_PL_WORD"
@@ -444408,6 +444624,18 @@
       "scope": "collect_delvewheel_libs_directory",
       "status": "active"
     },
+    "34daa017115badd0131f6479df60dc2e4c65e3a2231ae44f6cad63e26ada83d1": {
+      "aliases": [
+        "stageRect"
+      ],
+      "chid": "chid.178661",
+      "kind": "variable",
+      "name": "stageRect",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "stageRect",
+      "scope": "",
+      "status": "active"
+    },
     "34daee4de7bfdb9b01ac7ba737f0e09cd7fbe2b7baa392e56be961ec61d33b0d": {
       "aliases": [
         "TargetName"
@@ -493728,6 +493956,18 @@
       "scope": "",
       "status": "active"
     },
+    "3ac1523b8030abc333de362edbf46bc30a98e47f8ea07c48702ccba523af69c4": {
+      "aliases": [
+        "scopeAngle"
+      ],
+      "chid": "chid.178625",
+      "kind": "variable",
+      "name": "scopeAngle",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "scopeAngle",
+      "scope": "",
+      "status": "active"
+    },
     "3ac1644131ad521c7f2e7c8a472c2007b782b056d263078396e2874a96047261": {
       "aliases": [
         "sys"
@@ -505630,6 +505870,18 @@
       "path": "libs/win32/scripts/ControlService.py",
       "qualified_name": "ServiceDlg.OnPauseCmd.self",
       "scope": "ServiceDlg.OnPauseCmd",
+      "status": "active"
+    },
+    "3c30fef7876e7f842f1dd139cc544ff42975d94b05202af042362e19b726a74a": {
+      "aliases": [
+        "finishFramePointer"
+      ],
+      "chid": "chid.178686",
+      "kind": "function",
+      "name": "finishFramePointer",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "finishFramePointer",
+      "scope": "",
       "status": "active"
     },
     "3c314714d5a7ea64d1e5dc52780c4daedcfe4abd8967f8d444ef9f29408cf409": {
@@ -521457,6 +521709,18 @@
       "name": "EMR_POLYGON",
       "path": "libs/pyglet/libs/win32/constants.py",
       "qualified_name": "EMR_POLYGON",
+      "scope": "",
+      "status": "active"
+    },
+    "3e0c42ac4fab1a507c831d9632d655ee8c3bff1462a56f170069a4a14fbb9859": {
+      "aliases": [
+        "overlay"
+      ],
+      "chid": "chid.178637",
+      "kind": "variable",
+      "name": "overlay",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "overlay",
       "scope": "",
       "status": "active"
     },
@@ -558900,6 +559164,18 @@
       "scope": "PyCOMTest",
       "status": "active"
     },
+    "427b4c9a6028bea5c1d3f64892c2a0dc9dbb8c9a246035a410debb49ad296d6e": {
+      "aliases": [
+        "test"
+      ],
+      "chid": "chid.178611",
+      "kind": "variable",
+      "name": "test",
+      "path": "apps/rist-world/tests/desktop-crosshair-region-flow.test.cjs",
+      "qualified_name": "test",
+      "scope": "",
+      "status": "active"
+    },
     "427b8bcecb366f974820dfd723d1f90301723b223bec051ad5f284c7715fc180": {
       "aliases": [
         "paletteVGA"
@@ -560589,6 +560865,18 @@
       "name": "hiddenimports",
       "path": "libs/_pyinstaller_hooks_contrib/stdhooks/hook-falcon.py",
       "qualified_name": "hiddenimports",
+      "scope": "",
+      "status": "active"
+    },
+    "42b42cdba8488b51ff638257937dc2f6d16e2df99b35e795bea089b24d8108c8": {
+      "aliases": [
+        "normalized"
+      ],
+      "chid": "chid.178647",
+      "kind": "variable",
+      "name": "normalized",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "normalized",
       "scope": "",
       "status": "active"
     },
@@ -593292,6 +593580,18 @@
       "scope": "require_file",
       "status": "active"
     },
+    "468269cf9b067cd3095b117b6c7e7dea96d14b9a7fa715ede5d352662d8a6b2e": {
+      "aliases": [
+        "entered"
+      ],
+      "chid": "chid.178633",
+      "kind": "variable",
+      "name": "entered",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "entered",
+      "scope": "",
+      "status": "active"
+    },
     "4682829824f37c8d71a252d33909f8c55ad25f52c4902786d3dc934148e965d3": {
       "aliases": [
         "localKnown"
@@ -620865,6 +621165,18 @@
       "name": "TS_INDETERMINATE",
       "path": "libs/win32comext/shell/shellcon.py",
       "qualified_name": "TS_INDETERMINATE",
+      "scope": "",
+      "status": "active"
+    },
+    "49cc4d0fefe033be0d432919854360180fddf058e1594381a705dd180804222f": {
+      "aliases": [
+        "clearCandidate"
+      ],
+      "chid": "chid.178669",
+      "kind": "function",
+      "name": "clearCandidate",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "clearCandidate",
       "scope": "",
       "status": "active"
     },
@@ -663648,6 +663960,18 @@
       "scope": "",
       "status": "active"
     },
+    "4ee76629d195c9980a50b9b42207a5472c8b7547715f6695118368fd121d811f": {
+      "aliases": [
+        "beginFramePointer"
+      ],
+      "chid": "chid.178681",
+      "kind": "function",
+      "name": "beginFramePointer",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "beginFramePointer",
+      "scope": "",
+      "status": "active"
+    },
     "4ee766c8b6b81c85d42c9a805a0b561a1324834f63fafd141fbdbe7bab2c8eba": {
       "aliases": [
         "win32con"
@@ -670726,6 +671050,18 @@
       "path": "libs/setuptools/command/build_ext.py",
       "qualified_name": "build_ext._get_output_mapping.inplace_stub",
       "scope": "build_ext._get_output_mapping",
+      "status": "active"
+    },
+    "4fbf71d4483a67b53a444179708a6dbbedf97961000838dd530f0c83ce42edbd": {
+      "aliases": [
+        "setCamera"
+      ],
+      "chid": "chid.178653",
+      "kind": "function",
+      "name": "setCamera",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "setCamera",
+      "scope": "",
       "status": "active"
     },
     "4fc0a9064a233425cac1cf9f307a28e849cda631d085a78cabd8277916096f94": {
@@ -705237,6 +705573,18 @@
       "name": "SECPKG_CRED_DEFAULT",
       "path": "libs/win32/lib/sspicon.py",
       "qualified_name": "SECPKG_CRED_DEFAULT",
+      "scope": "",
+      "status": "active"
+    },
+    "53dcc3f13161a9fa46670b0a1be3f34513de26cf593631912954f89f1fe5f36e": {
+      "aliases": [
+        "color"
+      ],
+      "chid": "chid.178676",
+      "kind": "variable",
+      "name": "color",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "color",
       "scope": "",
       "status": "active"
     },
@@ -763500,6 +763848,18 @@
       "scope": "PygletView_Implementation.mouseDragged_",
       "status": "active"
     },
+    "5ae702e987e53b83d5fca2004f4d0aff4d472a11d7ad16c6be0dcc21d49d8b84": {
+      "aliases": [
+        "fs"
+      ],
+      "chid": "chid.178613",
+      "kind": "variable",
+      "name": "fs",
+      "path": "apps/rist-world/tests/desktop-crosshair-region-flow.test.cjs",
+      "qualified_name": "fs",
+      "scope": "",
+      "status": "active"
+    },
     "5ae745817c7dabe670c85e9c22d9555030d543e2435d52f83ab77b4d0abfe299": {
       "aliases": [
         "einfo"
@@ -795886,6 +796246,18 @@
       "path": "libs/setuptools/command/build.py",
       "qualified_name": "SubCommand.initialize_options",
       "scope": "SubCommand",
+      "status": "active"
+    },
+    "5ebfc6073d3f5bb0353b39aef6e487d2c0c3f363f70981fa709cd2d76a0463ab": {
+      "aliases": [
+        "left"
+      ],
+      "chid": "chid.178672",
+      "kind": "variable",
+      "name": "left",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "left",
+      "scope": "",
       "status": "active"
     },
     "5ebfd23e950036160d8da5a21a0f245f667982314173e7d4d6e265e7db4a77a7": {
@@ -831874,6 +832246,18 @@
       "path": "libs/pyglet/font/base.py",
       "qualified_name": "Font._initialize_renderer._zero_glyph",
       "scope": "Font._initialize_renderer",
+      "status": "active"
+    },
+    "6318029d6c370f3fbeac920f81df356169da1c3f6f7b0148b4bccf0128adc875": {
+      "aliases": [
+        "priorScope"
+      ],
+      "chid": "chid.178634",
+      "kind": "variable",
+      "name": "priorScope",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "priorScope",
+      "scope": "",
       "status": "active"
     },
     "631910eb7025b7731ffd74a0bcf5010c1b02799864c69d346d5d5782545b132a": {
@@ -868860,6 +869244,18 @@
       "scope": "StreamTest._readWrite",
       "status": "active"
     },
+    "679063a54efb1d333b801222a691051ce09fe85446b28e9829c8803731298288": {
+      "aliases": [
+        "deselectEntered"
+      ],
+      "chid": "chid.178679",
+      "kind": "function",
+      "name": "deselectEntered",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "deselectEntered",
+      "scope": "",
+      "status": "active"
+    },
     "679072383c9ab9b68539bb48126965f735d976888054e30e3d90302f33f64354": {
       "aliases": [
         "background"
@@ -874521,6 +874917,18 @@
       "name": "EventLoop",
       "path": "libs/pyglet/app/base.py",
       "qualified_name": "EventLoop",
+      "scope": "",
+      "status": "active"
+    },
+    "683ec32fe286f5c3e029e8eb7fd82e42df947046ed13e7f2456e615db65fd988": {
+      "aliases": [
+        "setTopSelectLabel"
+      ],
+      "chid": "chid.178651",
+      "kind": "function",
+      "name": "setTopSelectLabel",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "setTopSelectLabel",
       "scope": "",
       "status": "active"
     },
@@ -881998,6 +882406,18 @@
       "path": "apps/rist-world/WorldSession.Navigation.cs",
       "qualified_name": "RecursiveMapState.ResetEncounterTimer",
       "scope": "RecursiveMapState",
+      "status": "active"
+    },
+    "6928d3a1df5e6c08f1190e69f420eb52d99fba69640c9dd2105110de69cd49a1": {
+      "aliases": [
+        "r"
+      ],
+      "chid": "chid.178655",
+      "kind": "variable",
+      "name": "r",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "r",
+      "scope": "",
       "status": "active"
     },
     "6928d769730e1d90377c38b0210b7ab42ed3a40a80e0f7f9f175f6f6730dae40": {
@@ -897804,6 +898224,18 @@
       "scope": "",
       "status": "active"
     },
+    "6b0a7deef8fc4082e9334aef2490ab5c6bcadd10df8fa587c07f363a845e4097": {
+      "aliases": [
+        "originalEdit"
+      ],
+      "chid": "chid.178688",
+      "kind": "variable",
+      "name": "originalEdit",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "originalEdit",
+      "scope": "",
+      "status": "active"
+    },
     "6b0ada0ee955ce14e2761f3b79ef1a5204a987b7fabba3e0849840b4af8e87fa": {
       "aliases": [
         "lines"
@@ -912921,6 +913353,18 @@
       "name": "szOID_INFOSEC",
       "path": "libs/win32/lib/win32cryptcon.py",
       "qualified_name": "szOID_INFOSEC",
+      "scope": "",
+      "status": "active"
+    },
+    "6cd20292c706a3a3ee5dca1432a8227733b8aa47f4e7544476faf62b3d3239c7": {
+      "aliases": [
+        "spatial"
+      ],
+      "chid": "chid.178648",
+      "kind": "variable",
+      "name": "spatial",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "spatial",
       "scope": "",
       "status": "active"
     },
@@ -940896,6 +941340,18 @@
       "scope": "terminate.wait",
       "status": "active"
     },
+    "703855b0e24879ce9629b14e40d07b187a30679e7fc7db596391d04c954cde49": {
+      "aliases": [
+        "refreshVisibility"
+      ],
+      "chid": "chid.178689",
+      "kind": "function",
+      "name": "refreshVisibility",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "refreshVisibility",
+      "scope": "",
+      "status": "active"
+    },
     "7038855d7187f07a59dc72236b3db9d62ff9678718e65baa20106cab4a2d1aee": {
       "aliases": [
         "LookupAliasFromRid"
@@ -959769,6 +960225,18 @@
       "name": "ADS_SYSTEMFLAG_ATTR_IS_CONSTRUCTED",
       "path": "libs/win32comext/adsi/adsicon.py",
       "qualified_name": "ADS_SYSTEMFLAG_ATTR_IS_CONSTRUCTED",
+      "scope": "",
+      "status": "active"
+    },
+    "7264236573b5f4f525c393d9d853fe1e7cb92d9c6872648f402bb6ebab05260a": {
+      "aliases": [
+        "cameraNode"
+      ],
+      "chid": "chid.178636",
+      "kind": "variable",
+      "name": "cameraNode",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "cameraNode",
       "scope": "",
       "status": "active"
     },
@@ -987504,6 +987972,18 @@
       "scope": "",
       "status": "active"
     },
+    "75b1e070ee1abb74c42926e4e33e0259f40cf2a2cf9fe857b18e2643ea2a73c8": {
+      "aliases": [
+        "target"
+      ],
+      "chid": "chid.178678",
+      "kind": "variable",
+      "name": "target",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "target",
+      "scope": "",
+      "status": "active"
+    },
     "75b1f65ccd921f7c18bae3795f5175e007a00adeb60f64476a4a30ad5ca91ddf": {
       "aliases": [
         "refs"
@@ -1003521,6 +1004001,18 @@
       "name": "ERROR_LOG_DEDICATED",
       "path": "libs/win32/lib/winerror.py",
       "qualified_name": "ERROR_LOG_DEDICATED",
+      "scope": "",
+      "status": "active"
+    },
+    "77a14a1d0d920e903024185a58d36e39ed9bf0cfae9d07efba10eb0afc0115d9": {
+      "aliases": [
+        "o"
+      ],
+      "chid": "chid.178657",
+      "kind": "variable",
+      "name": "o",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "o",
       "scope": "",
       "status": "active"
     },
@@ -1038444,6 +1038936,18 @@
       "scope": "_win_error_to_message",
       "status": "active"
     },
+    "7be5dd8de8effa5eb24aee33066c7d5a57a5338ef6c2103f737a5a25fdbe7c4d": {
+      "aliases": [
+        "applyFrameZoom"
+      ],
+      "chid": "chid.178660",
+      "kind": "function",
+      "name": "applyFrameZoom",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "applyFrameZoom",
+      "scope": "",
+      "status": "active"
+    },
     "7be61e936df2dcff3c2f1e25d264128acb536fd04df321de448f759e330bb001": {
       "aliases": [
         "__init__"
@@ -1055865,6 +1056369,18 @@
       "name": "TestEnumAgainst",
       "path": "libs/win32com/test/testCollections.py",
       "qualified_name": "TestEnumAgainst",
+      "scope": "",
+      "status": "active"
+    },
+    "7dee85e1f9a4cf7b69a3085752a79c2995c79c4427a6d192d2d2728ce7fc8ff3": {
+      "aliases": [
+        "topSelectButton"
+      ],
+      "chid": "chid.178649",
+      "kind": "function",
+      "name": "topSelectButton",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "topSelectButton",
       "scope": "",
       "status": "active"
     },
@@ -1077696,6 +1078212,18 @@
       "scope": "XAudio2Listener.orientation",
       "status": "active"
     },
+    "808ae58a9d9e399dc29a3e78f76428b656969f0ad438547382ac94d76b1a4038": {
+      "aliases": [
+        "visibleBaseRect"
+      ],
+      "chid": "chid.178670",
+      "kind": "function",
+      "name": "visibleBaseRect",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "visibleBaseRect",
+      "scope": "",
+      "status": "active"
+    },
     "808af11bcc6c68fcb2e4324d293e1ba6cf4b07f39895efb96da9001e2005ba6c": {
       "aliases": [
         "self"
@@ -1093810,6 +1094338,18 @@
       "path": "libs/setuptools/tests/test_build_ext.py",
       "qualified_name": "TestBuildExt.test_get_output_mapping_with_stub.C",
       "scope": "TestBuildExt.test_get_output_mapping_with_stub",
+      "status": "active"
+    },
+    "828c8736d9dfc663280d08b9909eef77911d9d33a4d13acd759ce55b6df58141": {
+      "aliases": [
+        "contextEnvelope"
+      ],
+      "chid": "chid.178645",
+      "kind": "function",
+      "name": "contextEnvelope",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "contextEnvelope",
+      "scope": "",
       "status": "active"
     },
     "828cfd795fa1ae9c9d84f4f307ca773661ad6f453f2a9a6307e735067ba6c20b": {
@@ -1184232,6 +1184772,18 @@
       "scope": "url_to_file",
       "status": "active"
     },
+    "8d62e9a84a5343ad3f1a8b8616b4bb29ab87edeb9cdd3213b3f0b2716ee7acdb": {
+      "aliases": [
+        "i"
+      ],
+      "chid": "chid.178644",
+      "kind": "variable",
+      "name": "i",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "i",
+      "scope": "",
+      "status": "active"
+    },
     "8d62f883cf20e33dd5ff85b407671ad281c7740fc763d956e06a89f94f6f75e0": {
       "aliases": [
         "Protocol"
@@ -1236528,6 +1237080,18 @@
       "scope": "SerialTTY._ComPortThread",
       "status": "active"
     },
+    "9396048036d69ffa4b67a06f8d6ed8f491a4b073bdc67189f2401f87438db16b": {
+      "aliases": [
+        "css"
+      ],
+      "chid": "chid.178618",
+      "kind": "variable",
+      "name": "css",
+      "path": "apps/rist-world/tests/desktop-crosshair-region-flow.test.cjs",
+      "qualified_name": "css",
+      "scope": "",
+      "status": "active"
+    },
     "93964f54652654e948bb829949fe3b5daeba58e744168f7c14019c59e4aa02e2": {
       "aliases": [
         "src_dirname"
@@ -1267474,6 +1268038,18 @@
       "path": "libs/win32/lib/regutil.py",
       "qualified_name": "RegisterHelpFile.helpDesc",
       "scope": "RegisterHelpFile",
+      "status": "active"
+    },
+    "97721321c597d40e891cb4319e67d1cd52fb4767432b583f9e32c608f7272dba": {
+      "aliases": [
+        "defaultFrame"
+      ],
+      "chid": "chid.178628",
+      "kind": "variable",
+      "name": "defaultFrame",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "defaultFrame",
+      "scope": "",
       "status": "active"
     },
     "97721d89ff8d5bf0969754075bb8339ced96030d582b4e8b1f0c0358bd009a2e": {
@@ -1299070,6 +1299646,18 @@
       "path": "libs/pyglet/math.py",
       "qualified_name": "Vec3.__rmul__.scalar",
       "scope": "Vec3.__rmul__",
+      "status": "active"
+    },
+    "9b50edf95e2f538bb9445c82c89bdee9790ba51c59a778b70ef9963697482ea8": {
+      "aliases": [
+        "baseRectToScreen"
+      ],
+      "chid": "chid.178659",
+      "kind": "function",
+      "name": "baseRectToScreen",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "baseRectToScreen",
+      "scope": "",
       "status": "active"
     },
     "9b51317692a13e4341dcdace156555748654f7874829c5b01a1ec64a8e871c1e": {
@@ -1339392,6 +1339980,18 @@
       "scope": "COMScript",
       "status": "active"
     },
+    "a040ad9ec8e528c8107515b99c6b8879f7a113c7b396cbfc371e4c3a2995c1ac": {
+      "aliases": [
+        "buttons"
+      ],
+      "chid": "chid.178650",
+      "kind": "variable",
+      "name": "buttons",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "buttons",
+      "scope": "",
+      "status": "active"
+    },
     "a040cd01db4b489471e4f59641fe17216acf73c57ea6515f4ea39ced9852f7cb": {
       "aliases": [
         "mkpath"
@@ -1354968,6 +1355568,18 @@
       "scope": "",
       "status": "active"
     },
+    "a1ffce7469e283ce63c1fe02029033d72f0b65edf1d5b32c915b5c0e53af3dea": {
+      "aliases": [
+        "height"
+      ],
+      "chid": "chid.178685",
+      "kind": "variable",
+      "name": "height",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "height",
+      "scope": "",
+      "status": "active"
+    },
     "a2000a28560d9bfc3ba0e82142cc8fb99f8353741a455a56232ad1ec797d87e3": {
       "aliases": [
         "PSH_USECALLBACK"
@@ -1360233,6 +1360845,18 @@
       "name": "kFSEventStreamEventFlagItemIsDir",
       "path": "libs/watchdog/observers/fsevents2.py",
       "qualified_name": "kFSEventStreamEventFlagItemIsDir",
+      "scope": "",
+      "status": "active"
+    },
+    "a2a15dbdd7caa596c4d0bdd296848beb3f25863dac354c85f734797d35419efe": {
+      "aliases": [
+        "resetFrame"
+      ],
+      "chid": "chid.178654",
+      "kind": "function",
+      "name": "resetFrame",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "resetFrame",
       "scope": "",
       "status": "active"
     },
@@ -1472004,6 +1472628,18 @@
       "scope": "_CheckEngineState",
       "status": "active"
     },
+    "aff25090a4d7ccf50141dbf1f5919ca4536b9a49c6e91771d1d28baf56224cff": {
+      "aliases": [
+        "scopePrefix"
+      ],
+      "chid": "chid.178626",
+      "kind": "variable",
+      "name": "scopePrefix",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "scopePrefix",
+      "scope": "",
+      "status": "active"
+    },
     "aff25cb0d45b9ad88b02390ca2c85098275a13db58c4240abb1d232f97197803": {
       "aliases": [
         "WM_NCMOUSEMOVE"
@@ -1483437,6 +1484073,18 @@
       "name": "time",
       "path": "libs/adodbapi/test/dbapi20.py",
       "qualified_name": "time",
+      "scope": "",
+      "status": "active"
+    },
+    "b1554d11f526acb7dfe643167ca38b2ee6ee3a390690662d9af851665a539094": {
+      "aliases": [
+        "raw"
+      ],
+      "chid": "chid.178642",
+      "kind": "variable",
+      "name": "raw",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "raw",
       "scope": "",
       "status": "active"
     },
@@ -1526832,6 +1527480,18 @@
       "scope": "tricks_from",
       "status": "active"
     },
+    "b6845ac85ffe8d0523af913790889a5ed11df1c0dca3fca9343b37615c260e57": {
+      "aliases": [
+        "finePointer"
+      ],
+      "chid": "chid.178619",
+      "kind": "variable",
+      "name": "finePointer",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "finePointer",
+      "scope": "",
+      "status": "active"
+    },
     "b684bc76ed50436634df1e97c57cb332c4368e8eafe9a0f36883a260f5553d9b": {
       "aliases": [
         "splash_requirements"
@@ -1549836,6 +1550496,18 @@
       "scope": "ShellFolderRoot.CreateViewObject",
       "status": "active"
     },
+    "b954197eaf6533aff2ccf2b44c13de22e50a94f1c46c8ff0a1d8550d61b4cedb": {
+      "aliases": [
+        "panels"
+      ],
+      "chid": "chid.178673",
+      "kind": "variable",
+      "name": "panels",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "panels",
+      "scope": "",
+      "status": "active"
+    },
     "b95440833c244f7f4de1e6a749606c79235aff313954e8a8ef2680a2182faa07": {
       "aliases": [
         "auto"
@@ -1556265,6 +1556937,18 @@
       "name": "POINTER",
       "path": "libs/win32ctypes/core/ctypes/_authentication.py",
       "qualified_name": "POINTER",
+      "scope": "",
+      "status": "active"
+    },
+    "ba1262455af7c84da70be38a8b5dc00599eeed84b6f59ebf8aba05767fae16f7": {
+      "aliases": [
+        "state"
+      ],
+      "chid": "chid.178690",
+      "kind": "variable",
+      "name": "state",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "state",
       "scope": "",
       "status": "active"
     },
@@ -1570740,6 +1571424,18 @@
       "scope": "WorldSession",
       "status": "active"
     },
+    "bbd45e4cd37d2abd82b9b6b9c730f6b527a62a1c6285e474e48aeb41af532fb4": {
+      "aliases": [
+        "frameInset"
+      ],
+      "chid": "chid.178627",
+      "kind": "variable",
+      "name": "frameInset",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "frameInset",
+      "scope": "",
+      "status": "active"
+    },
     "bbd4f57c1bd40d658a545016551eedebd377ffbdbd2e46df09e415c168081d6e": {
       "aliases": [
         "ConnectableServer"
@@ -1582404,6 +1583100,18 @@
       "scope": "_project_search",
       "status": "active"
     },
+    "bd2e3eafa74b875fd84bd41eb0865c65e3698ae5e18ea46b0e4084588c735382": {
+      "aliases": [
+        "handle"
+      ],
+      "chid": "chid.178639",
+      "kind": "variable",
+      "name": "handle",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "handle",
+      "scope": "",
+      "status": "active"
+    },
     "bd2e7a38622da434865361dc9b452be057ad36230e344888ff68d4361a066910": {
       "aliases": [
         "self"
@@ -1586181,6 +1586889,18 @@
       "name": "NSArray",
       "path": "libs/pyglet/window/cocoa/pyglet_view.py",
       "qualified_name": "NSArray",
+      "scope": "",
+      "status": "active"
+    },
+    "bda25003c52b0b7683aadf8694af18c94158397d5bd5b823793c808e7b0ddffa": {
+      "aliases": [
+        "explicitScope"
+      ],
+      "chid": "chid.178641",
+      "kind": "function",
+      "name": "explicitScope",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "explicitScope",
       "scope": "",
       "status": "active"
     },
@@ -1593189,6 +1593909,18 @@
       "name": "BitmapSuccess",
       "path": "libs/pyglet/libs/x11/xlib.py",
       "qualified_name": "BitmapSuccess",
+      "scope": "",
+      "status": "active"
+    },
+    "be756d6f207c73e9262e177d9dd5aad0c82c27eb3fc649933bf993c787e733df": {
+      "aliases": [
+        "postExplicitScope"
+      ],
+      "chid": "chid.178646",
+      "kind": "function",
+      "name": "postExplicitScope",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "postExplicitScope",
       "scope": "",
       "status": "active"
     },
@@ -1601577,6 +1602309,18 @@
       "name": "win32con",
       "path": "libs/win32comext/shell/demos/shellexecuteex.py",
       "qualified_name": "win32con",
+      "scope": "",
+      "status": "active"
+    },
+    "bf677550577e147d174727e43d61362a2e6332c51faecf826fa84a5764b1040a": {
+      "aliases": [
+        "announceCrosshair"
+      ],
+      "chid": "chid.178667",
+      "kind": "function",
+      "name": "announceCrosshair",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "announceCrosshair",
       "scope": "",
       "status": "active"
     },
@@ -1636486,6 +1637230,18 @@
       "path": "libs/watchdog/observers/fsevents.py",
       "qualified_name": "FSEventsEmitter.queue_event.event",
       "scope": "FSEventsEmitter.queue_event",
+      "status": "active"
+    },
+    "c3900c3c85207cf0fec9f0c24731ec9a53899b28bcf09aba6e6b0f9b4299fdca": {
+      "aliases": [
+        "frameRect"
+      ],
+      "chid": "chid.178656",
+      "kind": "function",
+      "name": "frameRect",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "frameRect",
+      "scope": "",
       "status": "active"
     },
     "c39126c386349f10c1f7bd3235ad13903b4202014e51b892b6d333a5655bc53e": {
@@ -1680154,6 +1680910,18 @@
       "path": "libs/setuptools/command/egg_info.py",
       "qualified_name": "write_pkg_info.metadata",
       "scope": "write_pkg_info",
+      "status": "active"
+    },
+    "c8b20f7e1080754d4861c1db79473c261e03f5cbc30263b9bd6aeb09a218ad67": {
+      "aliases": [
+        "js"
+      ],
+      "chid": "chid.178617",
+      "kind": "variable",
+      "name": "js",
+      "path": "apps/rist-world/tests/desktop-crosshair-region-flow.test.cjs",
+      "qualified_name": "js",
+      "scope": "",
       "status": "active"
     },
     "c8b276a3ad48d6b0a4d5bcf2705688e405a769b21a494b38333c5f374b30a8b5": {
@@ -1762620,6 +1763388,18 @@
       "scope": "",
       "status": "active"
     },
+    "d2a8a6c3ac8de15f017858336e39f9921af150f49141624f45817481a111b5c7": {
+      "aliases": [
+        "enterCandidate"
+      ],
+      "chid": "chid.178677",
+      "kind": "function",
+      "name": "enterCandidate",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "enterCandidate",
+      "scope": "",
+      "status": "active"
+    },
     "d2a94a3bb0537044829341c67f7dc9e8e9d449cf2dd33db101fc0cf0d81392bf": {
       "aliases": [
         "result"
@@ -1791960,6 +1792740,18 @@
       "scope": "",
       "status": "active"
     },
+    "d602ff6cdcb8a15c09b69ba128b22b2171694c87348534ab12824bf9dbd17128": {
+      "aliases": [
+        "currentViewerState"
+      ],
+      "chid": "chid.178640",
+      "kind": "function",
+      "name": "currentViewerState",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "currentViewerState",
+      "scope": "",
+      "status": "active"
+    },
     "d603035b4a843ae1e67ecdb16688439085bad2a38d1f810c8de18950a6f8f290": {
       "aliases": [
         "o"
@@ -1814818,6 +1815610,18 @@
       "path": "libs/win32com/client/combrowse.py",
       "qualified_name": "HLICoClass.GetSubList.typeinfo",
       "scope": "HLICoClass.GetSubList",
+      "status": "active"
+    },
+    "d8a505acf95f2fafc4b15df050070cd4df09e9272ed9daf084bb5ddf5a483f71": {
+      "aliases": [
+        "width"
+      ],
+      "chid": "chid.178684",
+      "kind": "variable",
+      "name": "width",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "width",
+      "scope": "",
       "status": "active"
     },
     "d8a519da47dd4a0a0f2df1b486f91cd1222847167aa813d4eee696a475788a6f": {
@@ -1869960,6 +1870764,18 @@
       "scope": "get_arg_text",
       "status": "active"
     },
+    "df4390419f2cb681d789984f8c12c935dcb80289579fa843e1b03ab511797591": {
+      "aliases": [
+        "world"
+      ],
+      "chid": "chid.178622",
+      "kind": "variable",
+      "name": "world",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "world",
+      "scope": "",
+      "status": "active"
+    },
     "df4443796ff39ee22a43e1d5a45d4e1028aceae23f3b593a6cebcad5e4b0bc46": {
       "aliases": [
         "GetText"
@@ -1871625,6 +1872441,18 @@
       "name": "DMPAPER_PENV_10_ROTATED",
       "path": "libs/win32/lib/win32con.py",
       "qualified_name": "DMPAPER_PENV_10_ROTATED",
+      "scope": "",
+      "status": "active"
+    },
+    "df83a0252f30c8bd37df7d4622801fb32ea790100111f8fc7611c920e70d6c58": {
+      "aliases": [
+        "root"
+      ],
+      "chid": "chid.178615",
+      "kind": "variable",
+      "name": "root",
+      "path": "apps/rist-world/tests/desktop-crosshair-region-flow.test.cjs",
+      "qualified_name": "root",
       "scope": "",
       "status": "active"
     },
@@ -1961616,6 +1962444,18 @@
       "scope": "",
       "status": "active"
     },
+    "ea6b15fb9080bf96fd3d86247ceda44b8b8dabbcb577349150ca020a58193e72": {
+      "aliases": [
+        "parentScopeOrder"
+      ],
+      "chid": "chid.178624",
+      "kind": "variable",
+      "name": "parentScopeOrder",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "parentScopeOrder",
+      "scope": "",
+      "status": "active"
+    },
     "ea6b2eb8d0c0ee8badb510857fde0f729a52cd7e1138f34d6127156b1b1cf976": {
       "aliases": [
         "self"
@@ -1974804,6 +1975644,18 @@
       "scope": "",
       "status": "active"
     },
+    "ebe9fe92d22aa7b2910d96b7be53b943188bc7158b4d29dfa92c762e5b7836c8": {
+      "aliases": [
+        "targetBase"
+      ],
+      "chid": "chid.178662",
+      "kind": "variable",
+      "name": "targetBase",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "targetBase",
+      "scope": "",
+      "status": "active"
+    },
     "ebeb55cb5ce64be2fa2b416719b0273bcc680f0c9764347ae5c647c80fe7d624": {
       "aliases": [
         "_find_pivot"
@@ -1976292,6 +1977144,18 @@
       "scope": "",
       "status": "active"
     },
+    "ec1ab1d06080797522975e917443bafa22d4e69dd8888afb1ae9c6ce632ae0e0": {
+      "aliases": [
+        "cameraHistory"
+      ],
+      "chid": "chid.178630",
+      "kind": "variable",
+      "name": "cameraHistory",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "cameraHistory",
+      "scope": "",
+      "status": "active"
+    },
     "ec1b28a0f550da5383a396e76b0f6bea30f6928b6990dd1a99d48d5cf69d1108": {
       "aliases": [
         "memo"
@@ -1977393,6 +1978257,18 @@
       "name": "WINHTTP_QUERY_AUTHORIZATION",
       "path": "libs/win32/lib/win32inetcon.py",
       "qualified_name": "WINHTTP_QUERY_AUTHORIZATION",
+      "scope": "",
+      "status": "active"
+    },
+    "ec37f0abe1afd353ecbe765d47ec1cbb40d87735455bdffd5306d8fe87f9a89b": {
+      "aliases": [
+        "zoomOutOne"
+      ],
+      "chid": "chid.178666",
+      "kind": "function",
+      "name": "zoomOutOne",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "zoomOutOne",
       "scope": "",
       "status": "active"
     },
@@ -1992826,6 +1993702,18 @@
       "path": "libs/setuptools/tests/test_build_py.py",
       "qualified_name": "test_get_outputs.build_lib",
       "scope": "test_get_outputs",
+      "status": "active"
+    },
+    "ee04111207cfef3541fc7977a4f1cb3e7f3e69a6c8f1db1b25a513115394cdd4": {
+      "aliases": [
+        "query"
+      ],
+      "chid": "chid.178620",
+      "kind": "variable",
+      "name": "query",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "query",
+      "scope": "",
       "status": "active"
     },
     "ee043cf8775d98d35849948395d79384eee27ba3abc0ae6a1938eb3616e48d2e": {
@@ -2010082,6 +2010970,18 @@
       "path": "libs/win32/scripts/ControlService.py",
       "qualified_name": "ServiceDlg.OnStartCmd",
       "scope": "ServiceDlg",
+      "status": "active"
+    },
+    "f00f7d83d8b6b1fdf770b4cf0f21e4ecd7eee0536d2542538fcdf754d2817849": {
+      "aliases": [
+        "p"
+      ],
+      "chid": "chid.178674",
+      "kind": "variable",
+      "name": "p",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "p",
+      "scope": "",
       "status": "active"
     },
     "f00fe32b6400fe500380a7601fa0b8dbb4b42c015b89bbce7cb3d83940660291": {
@@ -2063760,6 +2064660,18 @@
       "scope": "HeadlessWindow.set_location",
       "status": "active"
     },
+    "f6747838f436156cea49b0442747208df0228ffc0bf6a64557352b73645963f3": {
+      "aliases": [
+        "selectCommand"
+      ],
+      "chid": "chid.178680",
+      "kind": "function",
+      "name": "selectCommand",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "selectCommand",
+      "scope": "",
+      "status": "active"
+    },
     "f6749caa555ab603e9caaff2a40a2f7d872f4e846195f7d26eb0610b7f8902f1": {
       "aliases": [
         "frames"
@@ -2085936,6 +2086848,18 @@
       "scope": "",
       "status": "active"
     },
+    "f919968056f3ce19455fa3e4cd68835a6ba6b7781ea3b4b6933419e188d7da9b": {
+      "aliases": [
+        "assert"
+      ],
+      "chid": "chid.178612",
+      "kind": "variable",
+      "name": "assert",
+      "path": "apps/rist-world/tests/desktop-crosshair-region-flow.test.cjs",
+      "qualified_name": "assert",
+      "scope": "",
+      "status": "active"
+    },
     "f919fc418f3920427f793d861283ab65980fe39e2798946ae3469285edb04213": {
       "aliases": [
         "annotations"
@@ -2101200,6 +2102124,18 @@
       "scope": "TestUpdatedSystemTime.test_proc_create_time",
       "status": "active"
     },
+    "fafae0edfe3a6ea5fa5be04cd62696902b80e0ea70ec8a7d167e2a45630b14a2": {
+      "aliases": [
+        "screenRectToBase"
+      ],
+      "chid": "chid.178658",
+      "kind": "function",
+      "name": "screenRectToBase",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "screenRectToBase",
+      "scope": "",
+      "status": "active"
+    },
     "fafaf1beaf9a56b66c6a04dd4372e9f7bb769d4f8bb0e1860eeabcf1a3af5dba": {
       "aliases": [
         "modifiers"
@@ -2105709,6 +2106645,18 @@
       "name": "_shcore",
       "path": "libs/pyglet/display/win32.py",
       "qualified_name": "_shcore",
+      "scope": "",
+      "status": "active"
+    },
+    "fb82fb03e7ad651e2a1003aa07b8b3e43fb38e3828adad17ad5f0e70b6e81570": {
+      "aliases": [
+        "baseCx"
+      ],
+      "chid": "chid.178664",
+      "kind": "variable",
+      "name": "baseCx",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "baseCx",
       "scope": "",
       "status": "active"
     },
@@ -2120098,6 +2121046,18 @@
       "path": "libs/setuptools/_vendor/typing_extensions.py",
       "qualified_name": "ParamSpecKwargs.__repr__.self",
       "scope": "ParamSpecKwargs.__repr__",
+      "status": "active"
+    },
+    "fd39438526909ba26931e299b6c1342f86aecc16b2a9359b36348cd161f76dac": {
+      "aliases": [
+        "drawCandidate"
+      ],
+      "chid": "chid.178671",
+      "kind": "function",
+      "name": "drawCandidate",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "drawCandidate",
+      "scope": "",
       "status": "active"
     },
     "fd3a31babfba6ee65e6b37f4d683793445dd9d039a8eac23eef6d10faa965949": {
@@ -2142852,6 +2143812,18 @@
       "scope": "DirectSoundDriver",
       "status": "active"
     },
+    "fff2dfc46088058042753858fde20f7dfd0b27b48a9d342e5e526afebe90cfde": {
+      "aliases": [
+        "camera"
+      ],
+      "chid": "chid.178629",
+      "kind": "variable",
+      "name": "camera",
+      "path": "apps/rist-world/wwwroot/prototype/crosshair-zoom.js",
+      "qualified_name": "camera",
+      "scope": "",
+      "status": "active"
+    },
     "fff312ff350e1fdd8abbd0bee00d52c2556ff06ab6ddaf1a90110a558c66a3df": {
       "aliases": [
         "method"
@@ -2143321,6 +2144293,6 @@
       "status": "active"
     }
   },
-  "next_id": 178611,
+  "next_id": 178692,
   "version": 1
 }
