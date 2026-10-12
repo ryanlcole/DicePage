@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ReLiC Projects | Project Mind</title>
+<meta name="description" content="ReLiC Projects demonstrates bounded project memory: what a project is, what it must preserve, how it changed, and what evidence supports its current state.">
+<meta name="theme-color" content="#081117">
+<link rel="canonical" href="https://relicgamemaster.com/relic/projects/">
+<link rel="stylesheet" href="/relic-home.css?v=20260828-polish2">
+<style>
+:root{--panel:#0b171d;--gold:#e0c58d;--cyan:#88bac9;--text:#c7d1d3;--muted:#91a5a8;--line:rgba(224,197,141,.25);--ok:#b9e7c8;--warn:#f2d499}
+main{max-width:1160px;margin:auto;padding:38px 18px 80px}.hero,.card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(19,40,50,.78),rgba(9,22,28,.9))}.hero,.card{padding:24px}.eyebrow{letter-spacing:.15em;text-transform:uppercase;font:800 .75rem/1.2 system-ui;color:var(--cyan)}h1{margin:.1em 0 .25em;font:700 clamp(2.5rem,8vw,5.7rem)/.92 Georgia,serif;color:#f0dfbb}h2{margin:.15em 0 .5em;font:700 clamp(1.35rem,3vw,2rem)/1.1 Georgia,serif;color:#ead9b5}p,li{color:var(--text);line-height:1.6}.lede{font-size:clamp(1.03rem,2vw,1.25rem);max-width:900px}.laws{color:#ead9b5;font-family:Georgia,serif}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.actions a{padding:10px 14px;border:1px solid rgba(224,197,141,.42);border-radius:10px;background:#142a34;color:#f3e5c8;text-decoration:none;font:800 .9rem system-ui}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}.wide{grid-column:1/-1}.project-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.project{border:1px solid rgba(136,186,201,.26);border-radius:12px;padding:16px;background:#071116}.project strong{color:#e8d6af}.project small{display:block;color:var(--muted);margin-top:8px;line-height:1.45}.flow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.flow div{border:1px solid rgba(136,186,201,.26);border-radius:10px;padding:12px;background:#071116;color:#b9c5c7;font-size:.84rem}.flow strong{display:block;color:#ead9b5;margin-bottom:5px}.tag{display:inline-block;border:1px solid rgba(185,231,200,.35);border-radius:999px;padding:7px 10px;color:var(--ok);font:800 .75rem system-ui}.warn{color:var(--warn)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#dceef2}.footer{margin-top:28px;color:var(--muted);font-size:.88rem}@media(max-width:900px){.project-grid{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr 1fr}}@media(max-width:700px){.grid,.project-grid,.flow{grid-template-columns:1fr}.wide{grid-column:auto}}
+</style>
+</head>
+<body>
+<header class="site-header"><nav aria-label="Primary navigation"><a href="/">Home</a><a href="/relic/">ReLiC</a><a href="/relic/projects/" aria-current="page">Projects</a><a href="/relic/share/">Hackathon Proof</a></nav></header>
+<main>
+<section class="hero">
+<p class="eyebrow">ReLiC Projects · Project Mind · Observer, not authority</p>
+<span class="tag">HACKATHON JUDGE PATH</span>
+<h1>The project can remember why.</h1>
+<p class="lede">ReLiC Projects is the bounded project-memory layer of ReLiC. It keeps different projects from collapsing into one AI memory and preserves the evidence needed to reconstruct what exists, what changed, what failed, what replaced it, and what remains unknown.</p>
+<p class="laws">Identity ≠ representation · Representation ≠ truth · UNKNOWN ≠ FACT · MEMORY ≠ CANON · Observation ≠ Canon</p>
+<div class="actions"><a href="#how">How it works</a><a href="#projects">Project partitions</a><a href="/relic/share/">See the end-to-end proof</a><a href="https://github.com/ryanlcole/DicePage/tree/relic-independent-service/services/relic-host">Inspect source</a></div>
+</section>
+
+<section class="grid">
+<article class="card wide">
+<p class="eyebrow">Definition</p><h2>ReLiC is the project mind, not the project database.</h2>
+<p>GitHub, AWS, source documents, tests, runtime telemetry, and other systems remain evidence and implementation. ReLiC preserves continuity between those states. Canon remains explicitly governed truth. An AI may query and reason over ReLiC, but connecting an AI does not make that AI ReLiC's persistence or canon authority.</p>
+</article>
+
+<article class="card wide" id="how">
+<p class="eyebrow">Continuity chain</p><h2>A useful project memory must survive time, not just summarize today.</h2>
+<div class="flow">
+<div><strong>1 · Observe</strong>Record a bounded event with source and status.</div>
+<div><strong>2 · Preserve</strong>Keep prior state and failures instead of silently overwriting them.</div>
+<div><strong>3 · Relate</strong>Associate evidence with the correct project partition.</div>
+<div><strong>4 · Verify</strong>Separate claims from inspected code, tests, deployment, and runtime evidence.</div>
+<div><strong>5 · Explain</strong>Reconstruct why the current state exists and what preceded it.</div>
+<div><strong>6 · Retrieve</strong>Expose bounded read-only context to ChatGPT and other clients.</div>
+</div>
+</article>
+
+<article class="card">
+<p class="eyebrow">Current implementation</p><h2>Bounded project targets</h2>
+<p><code>project_memory_targets.json</code> defines project targets and preservation rules. The drift guard maps changed paths to those targets and warns when a change deserves review.</p>
+<p><strong>WARN_ONLY matters:</strong> ReLiC may warn about drift; it does not veto an authorized human decision.</p>
+</article>
+
+<article class="card">
+<p class="eyebrow">Local project mind</p><h2>The PC work was a real predecessor.</h2>
+<p>Historical evidence includes a local ReLiC interface with named mind nodes such as Frontal, Temporal, Parietal, Limbic, Occipital, World, and WaveCore, plus a localhost launcher. That is preserved as historical project evidence, not presented here as the current ReLiC architecture.</p>
+<p class="warn">Historical representation ≠ current implementation.</p>
+</article>
+
+<article class="card wide" id="projects">
+<p class="eyebrow">Project separation</p><h2>One mind, bounded contexts.</h2>
+<div class="project-grid">
+<div class="project"><strong>ReLiC Core</strong><small>Observer-first temporal continuity and provenance.</small></div>
+<div class="project"><strong>ReLiC Observatory</strong><small>Engineering experience: change, test, deployment, report, investigation, correction, verification.</small></div>
+<div class="project"><strong>ReLiC Share</strong><small>Public hackathon demonstration without exposing private write authority.</small></div>
+<div class="project"><strong>Shaelvien</strong><small>Persistent world and worldbuilding continuity, kept distinct from representation.</small></div>
+<div class="project"><strong>RIST</strong><small>Runtime, interface, authority, accessibility, and semantic-control continuity.</small></div>
+<div class="project"><strong>RuneCore / WaveCore</strong><small>Exploratory unless explicitly promoted; experiment and interpretation remain separate.</small></div>
+<div class="project"><strong>Forsyth Tech Learning</strong><small>Learning continuity: taught material, understanding, uncertainty, practice, and technology delta.</small></div>
+</div>
+</article>
+
+<article class="card">
+<p class="eyebrow">What judges should test</p><h2>Ask for reconstruction, not recall.</h2>
+<p>A strong test is to start with a fresh AI context and ask for a project report: what exists, what is current, what failed, what became obsolete, why changes occurred, and what remains unknown. The answer should be reconstructable from durable evidence rather than depending on conversational memory.</p>
+</article>
+
+<article class="card">
+<p class="eyebrow">Known gap</p><h2>Historical migration is still part of the work.</h2>
+<p>The continuity audit found important historical project material that was not present in the recovered bounded ReLiC event snapshot. Migration candidates are designed to remain append-only, private, human-approved, and non-canon by default.</p>
+<p class="warn">A missing event is evidence of a continuity gap, not evidence that the historical event never existed.</p>
+</article>
+
+<article class="card wide">
+<p class="eyebrow">Judge navigation</p><h2>Follow the proof from concept to implementation.</h2>
+<ol>
+<li>Read this page to understand ReLiC Projects and bounded project memory.</li>
+<li>Open <a href="/relic/share/">ReLiC Share</a> for the verified GitHub → AWS → durable store → read-only MCP → ChatGPT path and preserved failure history.</li>
+<li>Inspect the source implementation and project-memory target contract.</li>
+<li>Check the limitations: observation is not canon, representation is not truth, and historical migration is not silently promoted.</li>
+</ol>
+<div class="actions"><a href="/relic/share/">Continue to ReLiC Share</a><a href="/relic/">ReLiC home</a></div>
+</article>
+</section>
+<p class="footer">ReLiC Projects is a representation of the project-memory design and inspected source state. Runtime verification remains a separate evidence step.</p>
+</main>
+</body>
+</html>
