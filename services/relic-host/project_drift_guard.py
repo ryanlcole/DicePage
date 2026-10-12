@@ -13,20 +13,24 @@ from pathlib import Path
 
 TARGETS = Path(__file__).with_name("project_memory_targets.json")
 
+# A path may legitimately belong to more than one project. Shaelvien is the
+# persistent-world project while RIST is its runtime/interface framework; do not
+# collapse those identities merely because they share implementation paths.
 PATH_PROJECTS = {
-    "services/relic-host/": "RELIC_CORE",
-    "infra/aws/relic-observatory": "RELIC_OBSERVATORY",
-    "site/relic-home/relic/share/": "RELIC_SHARE",
-    "site/relic-home/relic/": "RELIC_CORE",
-    "apps/rist-world/": "RIST",
+    "services/relic-host/": ["RELIC_CORE"],
+    "infra/aws/relic-observatory": ["RELIC_OBSERVATORY"],
+    "site/relic-home/relic/share/": ["RELIC_SHARE"],
+    "site/relic-home/relic/": ["RELIC_CORE"],
+    "site/relic-home/Game/": ["SHAELVIEN", "RIST"],
+    "apps/rist-world/": ["SHAELVIEN", "RIST"],
 }
 
 
 def classify(path: str) -> list[str]:
-    hits = []
-    for prefix, project in PATH_PROJECTS.items():
+    hits: list[str] = []
+    for prefix, projects in PATH_PROJECTS.items():
         if path.startswith(prefix):
-            hits.append(project)
+            hits.extend(projects)
     return sorted(set(hits))
 
 
