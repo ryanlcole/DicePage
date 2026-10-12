@@ -1,0 +1,23 @@
+.desktop-crosshair-camera{position:absolute;inset:0;transform-origin:0 0;pointer-events:none;will-change:transform}
+.desktop-crosshair-zoom{position:absolute;z-index:960;inset:14px;pointer-events:none;display:none}
+.desktop-crosshair-frame{position:absolute;left:22%;top:22%;width:56%;height:56%;min-width:96px;min-height:72px;border:2px solid rgba(247,221,145,.95);border-radius:10px;box-shadow:0 0 0 1px rgba(0,0,0,.78);pointer-events:auto;cursor:move;touch-action:none}
+.desktop-crosshair-frame::before,.desktop-crosshair-frame::after{content:"";position:absolute;pointer-events:none;background:rgba(247,221,145,.92)}
+.desktop-crosshair-frame::before{left:50%;top:8px;bottom:8px;width:1px;transform:translateX(-.5px)}
+.desktop-crosshair-frame::after{top:50%;left:8px;right:8px;height:1px;transform:translateY(-.5px)}
+.desktop-crosshair-center{position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);border:1px solid rgba(247,221,145,.96);border-radius:50%;pointer-events:none}
+.desktop-crosshair-handle{position:absolute;width:18px;height:18px;right:-10px;bottom:-10px;border:2px solid rgba(247,221,145,.98);border-radius:3px;background:#071018;cursor:nwse-resize;touch-action:none}
+.desktop-crosshair-label{position:absolute;left:50%;top:8px;transform:translateX(-50%);padding:4px 7px;border:1px solid rgba(128,106,56,.7);border-radius:999px;background:rgba(6,13,17,.86);color:#f4df9a;font:900 8px/1 system-ui;letter-spacing:.09em;white-space:nowrap;pointer-events:none}
+.desktop-crosshair-gutter-strip{position:absolute;pointer-events:auto;cursor:zoom-out;background:transparent}
+.desktop-crosshair-gutter-strip.top{left:-14px;right:-14px;top:-14px;height:14px}
+.desktop-crosshair-gutter-strip.bottom{left:-14px;right:-14px;bottom:-14px;height:14px}
+.desktop-crosshair-gutter-strip.left{left:-14px;top:0;bottom:0;width:14px}
+.desktop-crosshair-gutter-strip.right{right:-14px;top:0;bottom:0;width:14px}
+.stage.desktop-crosshair-visible .desktop-crosshair-zoom{display:block}
+.stage.desktop-crosshair-dragging{cursor:crosshair}
+.desktop-spatial-dimmer{position:absolute;z-index:955;pointer-events:none;backdrop-filter:grayscale(1) brightness(.48);-webkit-backdrop-filter:grayscale(1) brightness(.48);background:rgba(0,0,0,.08)}
+.desktop-spatial-color-window{position:absolute;z-index:956;pointer-events:auto;border:2px solid rgba(247,221,145,.95);border-radius:8px;box-shadow:0 0 0 1px rgba(0,0,0,.7);cursor:zoom-in;background:transparent}
+.desktop-spatial-color-window::after{content:"ENTER";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:6px 9px;border:1px solid rgba(247,221,145,.8);border-radius:999px;background:rgba(6,13,17,.76);color:#f4df9a;font:900 9px/1 system-ui;letter-spacing:.1em;opacity:0;transition:opacity .12s linear;pointer-events:none}
+.desktop-spatial-color-window:hover::after,.desktop-spatial-color-window:focus-visible::after{opacity:1}
+.stage.desktop-spatial-entered .desktop-crosshair-zoom{display:none!important}
+@media (hover:hover) and (pointer:fine){.stage.desktop-crosshair-visible:not(.region-definer-mode) .desktop-crosshair-zoom{display:block}}
+@media (prefers-reduced-motion:reduce){.desktop-crosshair-frame,.desktop-spatial-color-window::after{transition:none}}
