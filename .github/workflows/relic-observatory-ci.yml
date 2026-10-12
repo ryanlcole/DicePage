@@ -33,6 +33,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -52,6 +54,8 @@ jobs:
           mcp_server.py
           observatory.py
           github_observer.py
+          project_observer.py
+          project_drift_guard.py
           relic_collector.py
           observatory_ingest/lambda_handler.py
           observatory_ingest/validation.py
@@ -64,6 +68,23 @@ jobs:
           test_github_observer.py
           test_relic_collector.py
           test_observatory_ingest_lambda.py
+
+      - name: Fetch Shaelvien implementation branch
+        run: git fetch origin live-alpha-rist-blazor-world:refs/remotes/origin/live-alpha-rist-blazor-world
+
+      - name: Generate bounded Shaelvien project-state evidence
+        run: python project_observer.py --project SHAELVIEN --ref origin/live-alpha-rist-blazor-world --output shaelvien-project-state.json
+
+      - name: Validate Shaelvien project-state boundary
+        run: python relic_collector.py shaelvien-project-state.json --dry-run
+
+      - name: Upload Shaelvien project-state evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: relic-shaelvien-project-state-${{ github.sha }}
+          path: services/relic-host/shaelvien-project-state.json
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Generate code-change observation
         if: github.event_name == 'push'
@@ -92,7 +113,12 @@ jobs:
       - name: Append observation through private AWS boundary
         if: github.event_name == 'push' && env.RELIC_OBSERVATORY_ROLE_ARN != ''
         run: |
-          aws lambda invoke             --function-name "$RELIC_OBSERVATORY_FUNCTION"             --region "$AWS_REGION"             --cli-binary-format raw-in-base64-out             --payload fileb://observatory-code-change.json             observatory-ingest-response.json
+          aws lambda invoke \
+            --function-name "$RELIC_OBSERVATORY_FUNCTION" \
+            --region "$AWS_REGION" \
+            --cli-binary-format raw-in-base64-out \
+            --payload fileb://observatory-code-change.json \
+            observatory-ingest-response.json
 
           python - <<'PY'
           import json
@@ -114,9 +140,39 @@ jobs:
           }, sort_keys=True))
           PY
 
+      - name: Append Shaelvien project-state through private AWS boundary
+        if: github.event_name == 'push' && env.RELIC_OBSERVATORY_ROLE_ARN != ''
+        run: |
+          aws lambda invoke \
+            --function-name "$RELIC_OBSERVATORY_FUNCTION" \
+            --region "$AWS_REGION" \
+            --cli-binary-format raw-in-base64-out \
+            --payload fileb://shaelvien-project-state.json \
+            shaelvien-project-ingest-response.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          response = json.loads(Path("shaelvien-project-ingest-response.json").read_text(encoding="utf-8"))
+          if response.get("stored") is not True:
+              raise SystemExit(f"Shaelvien project-state ingestion did not report stored=true: {response}")
+          if response.get("observation_status") != "OBSERVATION":
+              raise SystemExit(f"unexpected Shaelvien observation status: {response}")
+          if response.get("canon_promoted") is not False:
+              raise SystemExit(f"invalid Shaelvien canon promotion result: {response}")
+          print(json.dumps({
+              "stored": True,
+              "id": response.get("id"),
+              "payload_hash": response.get("payload_hash"),
+              "observation_status": response.get("observation_status"),
+              "canon_promoted": response.get("canon_promoted"),
+          }, sort_keys=True))
+          PY
+
       - name: Report private ingestion not configured
         if: github.event_name == 'push' && env.RELIC_OBSERVATORY_ROLE_ARN == ''
         run: >
-          echo 'Observation verified and retained as CI evidence;
+          echo 'Observations verified and retained as CI evidence;
           private AWS ingestion is not configured until the
           RELIC_OBSERVATORY_ROLE_ARN repository variable is set.'
