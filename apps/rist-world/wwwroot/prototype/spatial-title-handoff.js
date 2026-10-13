@@ -4,10 +4,6 @@
 const query=new URLSearchParams(location.search);
 if(window.parent===window||query.get('live-worldbuilder')!=='1'||String(query.get('mode')||'worldbuilder').toLowerCase()==='regiondefiner')return;
 
-const host=window.parent;
-const nativePromptKey='__ristNativePromptV1';
-if(typeof host[nativePromptKey]!=='function')host[nativePromptKey]=host.prompt.bind(host);
-const nativePrompt=host[nativePromptKey];
 const baseApi=window.ShaelvienPrototype;
 const WORLD_GRID_COLUMNS=300;
 const WORLD_GRID_ROWS=300;
@@ -276,6 +272,7 @@ function createDraftTitle(snapshot){
 
 function openLabelsComposer(){
   const keyboard=document.getElementById('viewerKeyboard');
+  if(keyboard)keyboard.dataset.spatialTitle='active';
   const toggle=document.getElementById('keyboardToggle');
   if(keyboard?.hidden)toggle?.click();
   let labels=[...document.querySelectorAll('#keyboardTabs button')].find(button=>String(button.textContent||'').trim().toLowerCase()==='labels');
@@ -287,6 +284,9 @@ function openLabelsComposer(){
 
 function removePendingDraft(){
   if(!pending)return;
+  pending.resolve?.('');
+  const keyboard=document.getElementById('viewerKeyboard');
+  if(keyboard)delete keyboard.dataset.spatialTitle;
   clearInterval(pending.pollId);
   if(pending.input&&pending.captureKeydown)pending.input.removeEventListener('keydown',pending.captureKeydown,true);
   if(pending.input&&pending.onInput)pending.input.removeEventListener('input',pending.onInput);
@@ -392,7 +392,7 @@ function beginSpatialTitle(defaultValue=''){
         resolve('');
       }
     };
-    pending={snapshot,draft,input,onInput,captureKeydown,name:'',awaitingSave:false,pollId:0};
+    pending={snapshot,draft,input,onInput,captureKeydown,resolve,name:'',awaitingSave:false,pollId:0};
     input.addEventListener('input',onInput);
     input.addEventListener('keydown',captureKeydown,true);
     requestAnimationFrame(()=>{
@@ -403,15 +403,12 @@ function beginSpatialTitle(defaultValue=''){
   });
 }
 
-const promptProxy=(message,defaultValue)=>{
-  if(String(message||'')==='Name this space')return beginSpatialTitle(defaultValue);
-  return nativePrompt(message,defaultValue);
-};
-
-host.prompt=promptProxy;
+// The parent module calls this view-only composer directly. Never replace a
+// parent global with an iframe-realm function: Blazor's invocation resolver
+// cannot reliably treat that function as a callable in the parent's realm.
+window.RistSpatialTitle={request:beginSpatialTitle};
 window.addEventListener('pagehide',()=>{
   removePendingDraft();
   releaseSelectorFromMap();
-  try{if(host.prompt===promptProxy)host.prompt=nativePrompt}catch{}
 },{once:true});
 })();

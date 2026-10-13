@@ -205,3 +205,12 @@
 .stage.embedded-controller .region-mode-reference{
  display:none!important;
 }
+
+/* The parent requests the existing title editor during spatial naming. */
+.stage.embedded-controller #viewerKeyboard[data-spatial-title="active"]:not([hidden]){
+ display:grid!important;
+ background:#071018f5;
+}
+
+.stage.embedded-controller #imageUploadPanel:not([hidden]),
+.stage.embedded-controller #spriteUploadPanel:not([hidden]){display:grid!important}

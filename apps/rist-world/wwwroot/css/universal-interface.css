@@ -3263,3 +3263,16 @@ body.rist-viewer-overlays-off .universal-shell .viewer-readout{
   height:190px;
  }
 }
+
+/* Keep active toolbar targets usable on small touch displays. The toolbar
+   scrolls horizontally within the viewer; it must not widen the document. */
+@media (max-width:700px) and (orientation:portrait){
+ .viewer-menu-bar{display:flex!important;overflow-x:auto!important;overscroll-behavior-x:contain;scrollbar-width:thin;}
+ .viewer-menu-bar button{flex:0 0 auto!important;min-width:44px!important;min-height:44px!important;padding:6px!important;font-size:9px!important;}
+ .single-analog-deck .analog-mode-button,.single-analog-deck .analog-start-button{min-height:44px!important;min-width:44px!important;}
+ .universal-worldbuilder-viewer .depth-pip,.universal-worldbuilder-viewer .viewer-compass{top:64px!important;}
+}
+
+/* Map editors own their viewport while open; passive parent summaries must not cover them. */
+.universal-worldbuilder-viewer:has(.universal-worldbuilder-frame[data-viewer-tool-open="true"]) .asset-context-pip,
+.universal-worldbuilder-viewer:has(.universal-worldbuilder-frame[data-viewer-tool-open="true"]) .viewer-legend{display:none}

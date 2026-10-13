@@ -1,3 +1,4 @@
+@inject NavigationManager Navigation
 <ErrorBoundary>
  <ChildContent>
   <RistWorld.Components.AuthenticatedWorld />
@@ -7,12 +8,15 @@
   <RistWorld.Components.WorldBuilderAssetKeyboardBridge />
  </ChildContent>
  <ErrorContent Context="error">
-  <main style="box-sizing:border-box;min-height:100dvh;display:grid;place-items:center;padding:24px;background:#05090c;color:#d7be80;font:700 15px/1.5 system-ui,-apple-system,sans-serif;text-align:center" role="alert">
+  <main style="box-sizing:border-box;height:100dvh;overflow:auto;display:grid;place-items:center;padding:24px;background:#05090c;color:#d7be80;font:700 15px/1.5 system-ui,-apple-system,sans-serif;text-align:center" role="alert">
    <section style="max-width:720px">
-    <h1 style="margin:0 0 12px;font-size:22px">RIST startup error</h1>
-    <p style="margin:0;color:#e7edf0;white-space:pre-wrap;overflow-wrap:anywhere">@error.Message</p>
-    <p style="margin:12px 0 0;color:#9eb0b9;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere">@error.GetType().FullName</p>
+    <h1 style="margin:0 0 12px;font-size:22px">RIST needs to reload</h1>
+    <p style="margin:0;color:#e7edf0">The application could not complete this action. Reload to return to your saved work.</p>
+    <button style="min-width:44px;min-height:44px;margin-top:20px;padding:10px 20px" @onclick="Reload">Reload RIST</button>
    </section>
   </main>
  </ErrorContent>
 </ErrorBoundary>
+@code {
+ void Reload()=>Navigation.NavigateTo(Navigation.Uri,forceLoad:true);
+}
