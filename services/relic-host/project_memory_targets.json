@@ -1,26 +1,48 @@
 {
   "schema": "RELIC-PROJECT-MEMORY/1",
+  "name": "Projectlopedia",
+  "purpose": "Pointer-first project knowledge. Preserve identity once, record change, connect applicable knowledge, and compile current representation without duplicating source content.",
   "doctrine": {
     "identity_is_not_representation": true,
     "representation_is_not_truth": true,
     "unknown_is_not_fact": true,
     "memory_is_not_canon": true,
     "drift_warning_is_not_prevention": true,
-    "history_is_not_current_implementation": true
+    "history_is_not_current_implementation": true,
+    "duplicate_knowledge_by_default": false
   },
   "behavior": {
     "drift_policy": "WARN_ONLY",
     "capture_before_push": true,
     "automatic_canon_promotion": false,
     "preserve_prior_state": true,
-    "current_repository_state_controls_current_behavior": true
+    "current_repository_state_controls_current_behavior": true,
+    "backup_mode": "DELTA_BY_DEFAULT",
+    "full_backup_requires_explicit_request": true,
+    "canonical_rewrite_in_place": true,
+    "parallel_versioned_implementations": false
+  },
+  "source_domains": {
+    "repository": {"status": "CONNECTED", "authority": "Current inspected repository state is implementation truth for current software behavior."},
+    "relic_event_store": {"status": "CONNECTED", "authority": "Durable observed evidence; observation is not canon."},
+    "google_drive": {"status": "CONNECTED_DISCOVERY", "authority": "Referenced source content only; Drive presence does not promote content to canon."},
+    "aws": {"status": "UNVERIFIED", "authority": "UNKNOWN until an authorized AWS runtime or connector inspects it."},
+    "onedrive": {"status": "UNAVAILABLE_TO_CURRENT_CONNECTOR", "authority": "UNKNOWN until an authorized connector inspects it."}
+  },
+  "external_references": {
+    "NEURON_WORKING_MEMORY": {"source": "google_drive", "file_id": "1aT9V_eKZOar6unevS7tay2aNRDXxDt0CGg2vm5Whbn4", "title": "NEURON_WORKING_MEMORY"},
+    "RELIC_RIST_AI_POLICY": {"source": "google_drive", "file_id": "1-5x_DtA6tgX3UiTX5NILKwSoZmU2j1EM1leL5r7SNa8", "title": "ReLiC RIST — AI Participation, Canon, Resource & Legal Access Policy"},
+    "RELIC_OBSERVER_SCRIPT_ARCHIVE": {"source": "google_drive", "file_id": "1Jo4LfLvR24XCOFuyTXKExY-68NMTG6Ux", "title": "scripts__relic_observer.py.txt"},
+    "RELIC_OBSERVATION_SCHEMA_ARCHIVE": {"source": "google_drive", "file_id": "1VAP2r22Nkty0UplE_p2e9sx7ujybN4_-", "title": "schemas__relic_observation.schema.json.txt"},
+    "RELIC_PROOF_PACKET_2026_09_27": {"source": "google_drive", "file_id": "1FM13YbbhJzASna380-iwF4B-rV5OvXfJ", "title": "Shaelvien_ReLiC_Proof_Packet_2026-09-27.pdf"}
   },
   "projects": {
     "RELIC_CORE": {
       "target": "Observer-first temporal continuity and provenance service for AI and software engineering.",
       "authority": "Durable evidence with status, provenance, sequence and hashes preserved.",
       "must_preserve": ["observer-only AI access", "OBSERVATION is not CANON", "append history instead of silent overwrite", "UNKNOWN remains UNKNOWN"],
-      "must_not_become": ["autonomous canon authority", "permission authority", "silent mutation layer"]
+      "must_not_become": ["autonomous canon authority", "permission authority", "silent mutation layer"],
+      "connects": ["NEURON_WORKING_MEMORY", "RELIC_RIST_AI_POLICY", "RELIC_OBSERVER_SCRIPT_ARCHIVE", "RELIC_OBSERVATION_SCHEMA_ARCHIVE", "RELIC_PROOF_PACKET_2026_09_27"]
     },
     "RELIC_OBSERVATORY": {
       "target": "Record engineering experience across code change, build/test, deployment, runtime report, investigation, correction and verification.",
@@ -35,12 +57,14 @@
     "SHAELVIEN": {
       "target": "Persistent world and worldbuilding system whose canon, rules, world state and representations remain distinguishable.",
       "authority": "Approved Shaelvien canon plus currently inspected implementation for current software behavior.",
-      "must_preserve": ["Canon -> Rules -> World State -> Representation -> Generated Content", "unknowns are preserved", "AI invention does not auto-promote", "historical changes remain traceable"]
+      "must_preserve": ["Canon -> Rules -> World State -> Representation -> Generated Content", "unknowns are preserved", "AI invention does not auto-promote", "historical changes remain traceable"],
+      "connects": ["NEURON_WORKING_MEMORY", "RELIC_RIST_AI_POLICY"]
     },
     "RIST": {
       "target": "Runtime/interface and authority framework for Shaelvien roleplay and GameMaster experiences across input methods and accessibility needs.",
       "authority": "Current tested implementation and explicit project canon.",
-      "must_preserve": ["authority boundaries", "accessibility", "canonical semantic controls", "no partial-patch drift across duplicate implementations"]
+      "must_preserve": ["authority boundaries", "accessibility", "canonical semantic controls", "no partial-patch drift across duplicate implementations"],
+      "connects": ["RELIC_RIST_AI_POLICY"]
     },
     "RUNECORE_WAVECORE": {
       "status": "EXPLORATORY_UNLESS_PROMOTED",
