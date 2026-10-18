@@ -32,6 +32,21 @@ def sha256_text(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def tracked_path_listing(commit: str, path: str) -> list[str]:
+    """Return tracked entries below path without depending on the worktree.
+
+    `git ls-tree -r <commit> -- <path>` can resolve the path against the current
+    index/worktree context in surprising ways when the inspected commit is from
+    another fetched branch. `git ls-tree -r --name-only <commit>` gives the
+    commit's complete tree directly; filtering that immutable listing keeps the
+    observation tied to the inspected commit.
+    """
+    normalized = path.rstrip("/")
+    all_paths = git("ls-tree", "-r", "--name-only", commit).splitlines()
+    prefix = f"{normalized}/"
+    return [entry for entry in all_paths if entry == normalized or entry.startswith(prefix)]
+
+
 def build(project: str, ref: str | None = None) -> dict[str, Any]:
     cfg = PROJECTS[project]
     requested_ref = ref or cfg["branch"]
@@ -42,8 +57,7 @@ def build(project: str, ref: str | None = None) -> dict[str, Any]:
 
     path_evidence: list[dict[str, Any]] = []
     for path in cfg["paths"]:
-        listing = git("ls-tree", "-r", commit, "--", path)
-        lines = [line for line in listing.splitlines() if line.strip()]
+        lines = tracked_path_listing(commit, path)
         path_evidence.append({
             "path": path,
             "tracked_entries": len(lines),
