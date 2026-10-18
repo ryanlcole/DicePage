@@ -75,6 +75,26 @@ jobs:
       - name: Generate bounded Shaelvien project-state evidence
         run: python project_observer.py --project SHAELVIEN --ref origin/live-alpha-rist-blazor-world --output shaelvien-project-state.json
 
+      - name: Assert configured Shaelvien paths were enumerated
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          document = json.loads(Path("shaelvien-project-state.json").read_text(encoding="utf-8"))
+          paths = document["event"]["payload"]["paths"]
+          expected = {"apps/rist-world/", "site/relic-home/Game/", "docs/"}
+          observed = {item["path"] for item in paths}
+          if observed != expected:
+              raise SystemExit(
+                  f"project-state path set mismatch: expected={sorted(expected)} observed={sorted(observed)}"
+              )
+          empty = [item["path"] for item in paths if item.get("tracked_entries", 0) <= 0]
+          if empty:
+              raise SystemExit(f"configured project paths produced no tracked entries: {empty}")
+          print(json.dumps({item["path"]: item["tracked_entries"] for item in paths}, sort_keys=True))
+          PY
+
       - name: Validate Shaelvien project-state boundary
         run: python relic_collector.py shaelvien-project-state.json --dry-run
 
