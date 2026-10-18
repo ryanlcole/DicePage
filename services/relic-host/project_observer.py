@@ -62,6 +62,11 @@ def build(project: str, ref: str | None = None) -> dict[str, Any]:
         "committed_at": committed_at,
         "observed_at": datetime.now(timezone.utc).isoformat(),
         "paths": path_evidence,
+        "doctrine": {
+            "observation_is_canon": False,
+            "representation_is_truth": False,
+            "temporal_association_is_causation": False,
+        },
         "truth_boundary": {
             "current_repository_state_is_implementation_evidence": True,
             "repository_state_proves_runtime": False,
@@ -72,8 +77,7 @@ def build(project: str, ref: str | None = None) -> dict[str, Any]:
         },
         "purpose": "Bounded Shaelvien project-mind evidence for continuity and reconstruction.",
     }
-    return {
-        "schema": "RELIC-OBSERVATORY/1",
+    event = {
         "kind": "CODE_CHANGE",
         "status": "OBSERVATION",
         "subject": cfg["subject"],
@@ -81,6 +85,10 @@ def build(project: str, ref: str | None = None) -> dict[str, Any]:
         "prior_event_id": None,
         "source": "GIT_REPOSITORY",
         "actor": "RELIC_PROJECT_OBSERVER",
+    }
+    return {
+        "schema": "RELIC-OBSERVATORY/1",
+        "event": event,
     }
 
 
