@@ -9,11 +9,14 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from pathlib import Path
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
 import app as relic
+
+PROJECTLOPEDIA_PATH = Path(__file__).with_name("project_memory_targets.json")
 
 mcp = FastMCP(
     "ReLiC",
@@ -29,6 +32,12 @@ def _event(row: sqlite3.Row) -> dict[str, Any]:
     result = dict(row)
     result["payload"] = json.loads(result["payload"])
     return result
+
+
+def _projectlopedia() -> dict[str, Any]:
+    if not PROJECTLOPEDIA_PATH.is_file():
+        return {}
+    return json.loads(PROJECTLOPEDIA_PATH.read_text(encoding="utf-8"))
 
 
 @mcp.tool()
@@ -71,11 +80,7 @@ def relic_search(query: str, limit: int = 20) -> dict[str, Any]:
 
 @mcp.tool()
 def relic_context_pack(query: str, limit: int = 20) -> dict[str, Any]:
-    """Return a bounded continuity pack relevant to a query. Read-only.
-
-    The pack preserves each stored event's status and provenance. It is context
-    for an AI client, not automatic canon and not permission to mutate anything.
-    """
+    """Return a bounded continuity pack relevant to a query. Read-only."""
     result = relic_search(query=query, limit=limit)
     return {
         "format": "RELIC-CONTEXT/1",
@@ -90,6 +95,57 @@ def relic_context_pack(query: str, limit: int = 20) -> dict[str, Any]:
         "observer_only": True,
         "events": result["events"],
         "count": result["count"],
+    }
+
+
+@mcp.tool()
+def relic_project_context(project: str = "RELIC_CORE", query: str = "", limit: int = 20) -> dict[str, Any]:
+    """Read bounded Projectlopedia pointers and project methodology. Read-only.
+
+    Source content is not copied into this response. External knowledge remains
+    at its source identity and is returned as a connector/reference only.
+    """
+    data = _projectlopedia()
+    if not data:
+        return {"available": False, "project": project, "observer_only": True}
+    bounded_limit = max(1, min(int(limit), 100))
+    projects = data.get("projects", {})
+    selected = projects.get(project)
+    if selected is None:
+        return {
+            "available": True,
+            "found": False,
+            "project": project,
+            "known_projects": list(projects)[:bounded_limit],
+            "observer_only": True,
+        }
+    refs = data.get("external_references", {})
+    connected = []
+    for identity in selected.get("connects", []):
+        if identity in refs:
+            connected.append({"identity": identity, **refs[identity]})
+    needle = query.casefold().strip()
+    if needle:
+        connected = [
+            item for item in connected
+            if needle in item["identity"].casefold()
+            or needle in item.get("title", "").casefold()
+            or needle in item.get("source", "").casefold()
+        ]
+    return {
+        "available": True,
+        "found": True,
+        "schema": data.get("schema"),
+        "name": data.get("name", "Projectlopedia"),
+        "project": project,
+        "query": query,
+        "project_definition": selected,
+        "connected_sources": connected[:bounded_limit],
+        "source_domains": data.get("source_domains", {}),
+        "behavior": data.get("behavior", {}),
+        "observer_only": True,
+        "representation_is_truth": False,
+        "source_content_copied": False,
     }
 
 
