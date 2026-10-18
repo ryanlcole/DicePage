@@ -33,18 +33,31 @@ def sha256_text(value: str) -> str:
 
 
 def tracked_path_listing(commit: str, path: str) -> list[str]:
-    """Return tracked entries below path without depending on the worktree.
+    """Return tracked entries below ``path`` from the inspected commit.
 
-    `git ls-tree -r <commit> -- <path>` can resolve the path against the current
-    index/worktree context in surprising ways when the inspected commit is from
-    another fetched branch. `git ls-tree -r --name-only <commit>` gives the
-    commit's complete tree directly; filtering that immutable listing keeps the
-    observation tied to the inspected commit.
+    Git commands in CI run from ``services/relic-host`` rather than the
+    repository root. Without ``--full-tree``, ``git ls-tree`` can report names
+    relative to that current prefix, which made valid root-relative Shaelvien
+    paths appear empty. ``--full-tree`` makes the immutable commit tree the
+    namespace authority regardless of the caller's working directory.
     """
-    normalized = path.rstrip("/")
-    all_paths = git("ls-tree", "-r", "--name-only", commit).splitlines()
+    normalized = path.strip("/")
+    if not normalized:
+        raise ValueError("configured project path must not be repository root")
+
+    all_paths = git(
+        "ls-tree",
+        "-r",
+        "--full-tree",
+        "--name-only",
+        commit,
+    ).splitlines()
     prefix = f"{normalized}/"
-    return [entry for entry in all_paths if entry == normalized or entry.startswith(prefix)]
+    return [
+        entry
+        for entry in all_paths
+        if entry == normalized or entry.startswith(prefix)
+    ]
 
 
 def build(project: str, ref: str | None = None) -> dict[str, Any]:
@@ -58,6 +71,11 @@ def build(project: str, ref: str | None = None) -> dict[str, Any]:
     path_evidence: list[dict[str, Any]] = []
     for path in cfg["paths"]:
         lines = tracked_path_listing(commit, path)
+        if not lines:
+            raise RuntimeError(
+                "configured project path produced no tracked entries at "
+                f"{commit}: {path}. Refusing to emit incomplete project-state evidence."
+            )
         path_evidence.append({
             "path": path,
             "tracked_entries": len(lines),
