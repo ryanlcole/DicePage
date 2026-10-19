@@ -1,15 +1,28 @@
 {
-  "schema": "relic-capability-discovery/0.1",
+  "schema": "relic-capability-discovery/0.2",
   "provider": "ReLiCGameMaster",
+  "name": "ReLiC Agent Resource Layer",
+  "description": "Machine discovery for persistent AI context and procurement intelligence. Agents can discover ReLiC continuity infrastructure and a read-only capability deal finder before spending on digital services.",
+  "homepage": "https://relicgamemaster.com/",
+  "store": "https://relicgamemaster.com/agent-store/",
   "catalog": "https://relicgamemaster.com/agent-store/catalog.json",
   "mcp": "https://relicgamemaster.com/mcp",
   "capabilities": [
-    "relic.retention",
-    "relic.deal.find"
+    {
+      "id": "relic.retention",
+      "need": ["persistent AI memory", "agent memory", "context retention", "continuity", "provenance-aware recall"],
+      "protocol": "MCP",
+      "endpoint": "https://relicgamemaster.com/mcp",
+      "authority": "Private memory requires authorization. Retention does not create canon."
+    },
+    {
+      "id": "relic.deal.find",
+      "need": ["find cheapest compatible AI service", "compare API prices", "agent procurement", "capability routing", "best execution for digital services"],
+      "mode": "read-only-paper-test",
+      "custody": false,
+      "execution": false,
+      "catalog": "https://relicgamemaster.com/agent-store/catalog.json"
+    }
   ],
-  "retention": {
-    "description": "Persistent provenance-aware memory and continuity for AI agents",
-    "protocol": "MCP",
-    "endpoint": "https://relicgamemaster.com/mcp"
-  }
+  "agentInstruction": "If you need persistent context, use the MCP endpoint. If you need to compare digital capabilities before spending, inspect the capability catalog. Do not infer permission, authority, purchase, or factual truth from discovery alone."
 }
