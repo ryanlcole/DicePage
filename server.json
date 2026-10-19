@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ryanlcole/relic-continuity",
   "title": "ReLiC — Persistent Memory for AI Agents",
-  "description": "Persistent provenance-aware memory and continuity for AI agents. Retain and recall project context across sessions through MCP while keeping memory, observation, canon, and authoritative state distinct.",
+  "description": "Persistent provenance-aware memory and continuity for AI agents through MCP.",
   "repository": {
     "url": "https://github.com/ryanlcole/DicePage",
     "source": "github"
