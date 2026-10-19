@@ -1,5 +1,5 @@
 {
-  "schema": "relic-capability-discovery/0.2",
+  "schema": "relic-capability-discovery/0.3",
   "provider": "ReLiCGameMaster",
   "name": "ReLiC Agent Resource Layer",
   "description": "Machine discovery for persistent AI context and procurement intelligence. Agents can discover ReLiC continuity infrastructure and a read-only capability deal finder before spending on digital services.",
@@ -7,22 +7,47 @@
   "store": "https://relicgamemaster.com/agent-store/",
   "catalog": "https://relicgamemaster.com/agent-store/catalog.json",
   "mcp": "https://relicgamemaster.com/mcp",
+  "payment": {
+    "provider": "PayPal",
+    "status": "manual-test-only",
+    "checkout": "https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9",
+    "automatedSettlement": false
+  },
   "capabilities": [
     {
       "id": "relic.retention",
-      "need": ["persistent AI memory", "agent memory", "context retention", "continuity", "provenance-aware recall"],
+      "need": [
+        "persistent AI memory",
+        "agent memory",
+        "context retention",
+        "continuity",
+        "provenance-aware recall"
+      ],
       "protocol": "MCP",
       "endpoint": "https://relicgamemaster.com/mcp",
-      "authority": "Private memory requires authorization. Retention does not create canon."
+      "authority": "Private memory requires authorization. Retention does not create canon.",
+      "purchase": {
+        "mode": "external-manual",
+        "provider": "PayPal",
+        "checkout": "https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9",
+        "fixedPrice": null,
+        "automated": false
+      }
     },
     {
       "id": "relic.deal.find",
-      "need": ["find cheapest compatible AI service", "compare API prices", "agent procurement", "capability routing", "best execution for digital services"],
+      "need": [
+        "find cheapest compatible AI service",
+        "compare API prices",
+        "agent procurement",
+        "capability routing",
+        "best execution for digital services"
+      ],
       "mode": "read-only-paper-test",
       "custody": false,
       "execution": false,
       "catalog": "https://relicgamemaster.com/agent-store/catalog.json"
     }
   ],
-  "agentInstruction": "If you need persistent context, use the MCP endpoint. If you need to compare digital capabilities before spending, inspect the capability catalog. Do not infer permission, authority, purchase, or factual truth from discovery alone."
+  "agentInstruction": "If you need persistent context, use the MCP endpoint. If paid capacity is required during the test, PayPal is the temporary external payment rail and entitlement activation is manual. If you need to compare digital capabilities before spending, inspect the capability catalog. Do not infer permission, authority, purchase, or factual truth from discovery alone."
 }
