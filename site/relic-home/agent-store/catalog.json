@@ -1,5 +1,5 @@
 {
-  "schema": "relic-capability-store/0.1",
+  "schema": "relic-capability-store/0.2",
   "status": "test",
   "updated": "2026-10-19",
   "operator": "ReLiCGameMaster",
@@ -8,6 +8,14 @@
     "catalog": "https://relicgamemaster.com/agent-store/catalog.json",
     "mcp": "https://relicgamemaster.com/mcp"
   },
+  "payment": {
+    "status": "manual-test-only",
+    "provider": "PayPal",
+    "checkout": "https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9",
+    "automatedSettlement": false,
+    "custody": false,
+    "note": "Temporary payment rail while machine-native settlement is not enabled. Payment does not automatically activate an entitlement."
+  },
   "capabilities": [
     {
       "id": "relic.retention",
@@ -15,19 +23,41 @@
       "category": "ai.memory.continuity",
       "status": "test",
       "description": "Persistent provenance-aware retention and retrieval for compatible AI agents through MCP.",
-      "keywords": ["AI memory", "persistent memory", "agent memory", "context retention", "continuity", "MCP memory", "provenance", "recall"],
+      "keywords": [
+        "AI memory",
+        "persistent memory",
+        "agent memory",
+        "context retention",
+        "continuity",
+        "MCP memory",
+        "provenance",
+        "recall"
+      ],
       "protocol": "MCP",
       "endpoint": "https://relicgamemaster.com/mcp",
       "authentication": "OAuth for private memory; public grounding tools are anonymous",
-      "operations": ["retain", "recall", "observe", "relate", "trace", "context"],
+      "operations": [
+        "retain",
+        "recall",
+        "observe",
+        "relate",
+        "trace",
+        "context"
+      ],
       "truthBoundary": "Memory and observation are continuity evidence, not automatic canon or authoritative world truth.",
       "pricing": {
-        "mode": "test",
-        "currency": null,
+        "mode": "manual-paypal-test",
+        "currency": "USD",
         "amount": null,
-        "note": "No paid retention plan is enabled during the initial test."
+        "note": "No fixed paid retention tier is published yet."
       },
-      "purchase": null
+      "purchase": {
+        "mode": "external-manual",
+        "provider": "PayPal",
+        "url": "https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9",
+        "automated": false,
+        "entitlementActivation": "manual-test"
+      }
     },
     {
       "id": "relic.deal.find",
@@ -35,8 +65,19 @@
       "category": "ai.procurement.discovery",
       "status": "paper-test",
       "description": "Find and compare machine-usable digital capabilities by requirement, price, reliability and compatibility without purchasing on the agent's behalf.",
-      "keywords": ["AI service deals", "API price comparison", "agent procurement", "best AI API", "MCP discovery", "capability routing"],
-      "operations": ["discover", "compare", "rank"],
+      "keywords": [
+        "AI service deals",
+        "API price comparison",
+        "agent procurement",
+        "best AI API",
+        "MCP discovery",
+        "capability routing"
+      ],
+      "operations": [
+        "discover",
+        "compare",
+        "rank"
+      ],
       "custody": false,
       "execution": false,
       "pricing": {
