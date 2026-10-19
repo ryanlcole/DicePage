@@ -317544,6 +317544,18 @@
       "scope": "TestOptions.test_nowarn_accidental_env_marker_misconfig",
       "status": "active"
     },
+    "25dc6d88311f9718dafdfe9d1435051ff5dc1ef56eb5024192c53e1f20bb0e93": {
+      "aliases": [
+        "robots"
+      ],
+      "chid": "chid.178694",
+      "kind": "ui-id",
+      "name": "robots",
+      "path": "site/relic-home/deals/index.html",
+      "qualified_name": "robots",
+      "scope": "",
+      "status": "active"
+    },
     "25dc91fbce71021cecb7fb30fdf6fd11ca06933e1da47e9f465e4afad3a0ce1b": {
       "aliases": [
         "PR_GIVEN_NAME"
@@ -382102,6 +382114,18 @@
       "path": "libs/win32comext/shell/test/testShellItem.py",
       "qualified_name": "TestShellItem.test_create_item_with_parent.self",
       "scope": "TestShellItem.test_create_item_with_parent",
+      "status": "active"
+    },
+    "2d68ad70b5b937d2d6bda99f56e4d74687933ae9da99f57103247eea3479f298": {
+      "aliases": [
+        "out"
+      ],
+      "chid": "chid.178698",
+      "kind": "ui-id",
+      "name": "out",
+      "path": "site/relic-home/deals/index.html",
+      "qualified_name": "out",
+      "scope": "",
       "status": "active"
     },
     "2d690e91b79fbe6c12fbcf0776596807991b95517c8932dfa82b26b82976c71f": {
@@ -1389348,6 +1389372,18 @@
       "scope": "_ReplaceIt",
       "status": "active"
     },
+    "a5ec76205db6eefc23d7fa40497cb7d7f5c7e5fc5cddb17ddcd991253d64165a": {
+      "aliases": [
+        "viewport"
+      ],
+      "chid": "chid.178692",
+      "kind": "ui-id",
+      "name": "viewport",
+      "path": "site/relic-home/deals/index.html",
+      "qualified_name": "viewport",
+      "scope": "",
+      "status": "active"
+    },
     "a5ecb7676e9941a19d813a69536673ef3e42234711e4de1cb2bea5dc15359ba7": {
       "aliases": [
         "prefix"
@@ -1404370,6 +1404406,18 @@
       "path": "libs/setuptools/_vendor/typeguard/_pytest_plugin.py",
       "qualified_name": "pytest_configure.collection_check_strategy",
       "scope": "pytest_configure",
+      "status": "active"
+    },
+    "a7b6b19689915beda56d9e6c98a114846af4861e8cc544540dd926f1d141d1f3": {
+      "aliases": [
+        "description"
+      ],
+      "chid": "chid.178693",
+      "kind": "ui-id",
+      "name": "description",
+      "path": "site/relic-home/deals/index.html",
+      "qualified_name": "description",
+      "scope": "",
       "status": "active"
     },
     "a7b740782f3827c10714b2ee119d7065627475e2b1ee6ef956c50df2d86662a1": {
@@ -1696872,6 +1696920,18 @@
       "scope": "",
       "status": "active"
     },
+    "ca8eec589ce5d3e127b557ab5f9794595b6ec71bfa13ff5ca9a61ece53ab5e37": {
+      "aliases": [
+        "q"
+      ],
+      "chid": "chid.178697",
+      "kind": "ui-id",
+      "name": "q",
+      "path": "site/relic-home/deals/index.html",
+      "qualified_name": "q",
+      "scope": "",
+      "status": "active"
+    },
     "ca901902ea5c48aab08de86d0042bf9579432ba4cf61433e2be0f3b5c7573525": {
       "aliases": [
         "TAPE_RESET_STATISTICS"
@@ -1829928,6 +1829988,18 @@
       "scope": "ScriptItem.__init__",
       "status": "active"
     },
+    "da54257f82d9d7c1c76869478fcae4d702b7f8002f11e739d80c6807f6c55cfd": {
+      "aliases": [
+        "search"
+      ],
+      "chid": "chid.178696",
+      "kind": "ui-id",
+      "name": "search",
+      "path": "site/relic-home/deals/index.html",
+      "qualified_name": "search",
+      "scope": "",
+      "status": "active"
+    },
     "da546305fb44cc57f9043f0f1e18f8185e2acfc23e2c0284dd395fab94a40547": {
       "aliases": [
         "__build_path__"
@@ -1867990,6 +1868062,18 @@
       "path": "libs/pyglet/media/drivers/openal/interface.py",
       "qualified_name": "OpenALListener._get_3floats.self",
       "scope": "OpenALListener._get_3floats",
+      "status": "active"
+    },
+    "def14d1fcbd5fdc7429e7d78fd97032fd8a74c5320f2bd1f19465aeb1c0f1dc0": {
+      "aliases": [
+        "machine"
+      ],
+      "chid": "chid.178695",
+      "kind": "ui-id",
+      "name": "machine",
+      "path": "site/relic-home/deals/index.html",
+      "qualified_name": "machine",
+      "scope": "",
       "status": "active"
     },
     "def234d505a4fd730d4290faa5dea5628764a7d402285fa411a4b41dfb4c9004": {
@@ -2144293,6 +2144377,6 @@
       "status": "active"
     }
   },
-  "next_id": 178692,
+  "next_id": 178699,
   "version": 1
 }
