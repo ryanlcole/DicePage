@@ -22,12 +22,12 @@
       "category": "ai.memory.continuity",
       "catalog": "https://relicgamemaster.com/agent-store/catalog.json",
       "discovery": "https://relicgamemaster.com/.well-known/relic-capabilities.json",
-      "payment": {
-        "status": "manual-test-only",
-        "provider": "PayPal",
-        "checkout": "https://www.paypal.com/qrcodes/managed/c40871d1-e65b-4281-b970-0acacbdddbc9",
+      "commerce": {
+        "status": "not-enabled",
+        "providerPreference": "PayPal",
+        "salesCheckout": null,
         "automatedSettlement": false,
-        "note": "Temporary payment rail only. Pricing and entitlement activation are not yet automated through MCP."
+        "note": "A dedicated PayPal sales checkout must be configured before paid ReLiC entitlements are offered. The existing site PayPal donation link is not used for sales."
       },
       "truthBoundary": "Retained memory and observations are continuity evidence, not automatic canon or authoritative world truth."
     }
