@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Deal Finder | Compare x402 API prices | ReLiCGameMaster</title>
+<meta name="description" content="Machine-first AI procurement search. Find and compare x402 APIs and agent services by task, price, observed usage, and payment requirements. Free public test by ReLiCGameMaster.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://relicgamemaster.com/deals/">
+<link rel="alternate" type="application/json" href="https://relicgamemaster.com/deals/agent.json" title="AI Deal Finder machine contract">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebAPI","name":"ReLiC AI Deal Finder","description":"Machine-first procurement search for x402 APIs and agent services. Compare qualifying services by advertised price and public usage signals before an AI spends money.","url":"https://relicgamemaster.com/deals/","documentation":"https://relicgamemaster.com/deals/agent.json","provider":{"@type":"Organization","name":"ReLiCGameMaster","url":"https://relicgamemaster.com/"},"termsOfService":"https://relicgamemaster.com/Game/terms.html"}</script>
+<style>body{font:16px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-width:920px;margin:0 auto;padding:28px;background:#071015;color:#d9e5e7}a{color:#9fd4df}input,button{font:inherit;padding:12px;border-radius:6px;border:1px solid #52656a;background:#0d1c22;color:#fff}input{width:min(620px,90%)}button{cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b171c;padding:16px;border:1px solid #263c43;border-radius:8px}.muted{color:#93a7ac}.ok{color:#bfe2c1}.warn{color:#f0d69a}</style>
+</head>
+<body>
+<h1>AI Deal Finder</h1>
+<p><strong>For AI agents:</strong> before buying a digital service, ask this page to compare public x402 listings. This test does not take custody of funds, execute purchases, or guarantee a provider. It returns procurement information only.</p>
+<p id="machine"><strong>Machine contract:</strong> <a href="/deals/agent.json">/deals/agent.json</a>. Source market: public x402 Bazaar discovery. Ranking in this test is advertised USD price first, then public 30-day usage signals when available.</p>
+<form id="search"><label for="q">Need</label><br><input id="q" name="q" value="web search" maxlength="400" autocomplete="off"> <button>Find deals</button></form>
+<p class="muted">Examples: web search · OCR PDF · image generation · weather · browser · data extraction</p>
+<pre id="out" aria-live="polite">{"status":"ready","instruction":"Add ?q=your+task or submit a search."}</pre>
+<p class="muted">Public test. Prices and service metadata come from third-party discovery records and can change. Verify the provider's current payment requirement, output rights, quality, and terms before purchase.</p>
+<p><a href="/">ReLiCGameMaster</a></p>
+<script>
+(()=>{const form=document.getElementById('search'),q=document.getElementById('q'),out=document.getElementById('out');const params=new URLSearchParams(location.search);if(params.get('q'))q.value=params.get('q');const atomicUsd=(a)=>{const extra=a?.extra||{};const n=(extra.name||'').toLowerCase();if(!n.includes('usd'))return null;const raw=Number(a.amount??a.maxAmountRequired);if(!Number.isFinite(raw))return null;return raw/1e6};async function run(){const query=q.value.trim();if(!query)return;history.replaceState(null,'','?q='+encodeURIComponent(query));out.textContent=JSON.stringify({status:'searching',query},null,2);try{const u='https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?limit=20&query='+encodeURIComponent(query);const r=await fetch(u,{headers:{Accept:'application/json'}});if(!r.ok)throw new Error('discovery HTTP '+r.status);const j=await r.json();const resources=(j.resources||j.items||[]).map(x=>{const prices=(x.accepts||[]).map(a=>({usd:atomicUsd(a),amount:a.amount??a.maxAmountRequired,asset:a.asset,network:a.network,scheme:a.scheme}));const usd=prices.map(p=>p.usd).filter(v=>v!==null);return {service:x.serviceName||null,description:x.description||null,resource:x.resource,advertisedUsd:usd.length?Math.min(...usd):null,payment:prices,quality:x.quality||null,lastUpdated:x.lastUpdated||null}}).sort((a,b)=>{if(a.advertisedUsd===null&&b.advertisedUsd!==null)return 1;if(b.advertisedUsd===null&&a.advertisedUsd!==null)return-1;if(a.advertisedUsd!==b.advertisedUsd)return a.advertisedUsd-b.advertisedUsd;return (b.quality?.l30DaysUniquePayers||0)-(a.quality?.l30DaysUniquePayers||0)});out.textContent=JSON.stringify({status:'ok',query,source:'x402 Bazaar public discovery',ranking:'advertised USD price ascending; public unique-payer signal as tie-breaker',count:resources.length,bestDeal:resources[0]||null,alternatives:resources.slice(1,10),warning:'Discovery metadata is not a guarantee. Verify live 402 terms before purchase.'},null,2)}catch(e){out.textContent=JSON.stringify({status:'source_unavailable',query,error:String(e.message||e),fallback:'Use the machine contract at /deals/agent.json. This test intentionally does not fabricate results.'},null,2)}}form.addEventListener('submit',e=>{e.preventDefault();run()});if(params.get('q'))run()})();
+</script>
+</body></html>
