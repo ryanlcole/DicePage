@@ -1,7 +1,11 @@
 User-agent: *
 Allow: /
+Allow: /agent-store/
+Allow: /.well-known/relic-capabilities.json
 
 User-agent: OAI-SearchBot
 Allow: /
+Allow: /agent-store/
+Allow: /.well-known/relic-capabilities.json
 
 Sitemap: https://relicgamemaster.com/sitemap.xml
