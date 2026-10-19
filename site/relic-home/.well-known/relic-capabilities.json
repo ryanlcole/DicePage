@@ -1,0 +1,15 @@
+{
+  "schema": "relic-capability-discovery/0.1",
+  "provider": "ReLiCGameMaster",
+  "catalog": "https://relicgamemaster.com/agent-store/catalog.json",
+  "mcp": "https://relicgamemaster.com/mcp",
+  "capabilities": [
+    "relic.retention",
+    "relic.deal.find"
+  ],
+  "retention": {
+    "description": "Persistent provenance-aware memory and continuity for AI agents",
+    "protocol": "MCP",
+    "endpoint": "https://relicgamemaster.com/mcp"
+  }
+}

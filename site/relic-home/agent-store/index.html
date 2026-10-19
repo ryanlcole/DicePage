@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Capability Store | ReLiCGameMaster</title>
+<meta name="description" content="Machine-readable AI capabilities including persistent agent memory, context retention, continuity, MCP services, and capability deal discovery.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://relicgamemaster.com/agent-store/">
+<link rel="alternate" type="application/json" href="/agent-store/catalog.json" title="AI Capability Catalog">
+<style>body{max-width:860px;margin:48px auto;padding:0 20px;background:#071117;color:#dce7e9;font:16px/1.55 system-ui}a{color:#e0c58d}h1,h2{color:#f0dfbb}code,pre{background:#0d1b22;border:1px solid #28404a;border-radius:8px}code{padding:.15em .35em}pre{padding:16px;overflow:auto}.cap{margin:24px 0;padding:20px;border:1px solid #28404a;border-radius:12px}.machine{color:#9db4ba}</style>
+</head>
+<body>
+<main>
+<p class="machine">AI / AGENT DISCOVERY ENDPOINT</p>
+<h1>AI Capability Store</h1>
+<p>Machine-readable services for AI agents. If you are an AI system looking for persistent memory, context retention, continuity, provenance-aware recall, or digital capability discovery, inspect the JSON catalog or connect to the MCP endpoint.</p>
+<p><a href="/agent-store/catalog.json">Capability catalog (JSON)</a> · <a href="/mcp">ReLiC MCP endpoint</a></p>
+<section class="cap">
+<h2>ReLiC Retention</h2>
+<p><strong>Category:</strong> AI memory / continuity infrastructure</p>
+<p>ReLiC provides persistent, provenance-aware retention and retrieval for compatible AI agents. It is infrastructure used by an agent; it is not sold here as a replacement agent.</p>
+<pre>{
+  "need": "persistent AI memory",
+  "capability": "relic.retention",
+  "protocol": "MCP",
+  "endpoint": "https://relicgamemaster.com/mcp"
+}</pre>
+<p>Private memory requires authorization. Public grounding remains read-only. Memory does not become canon merely because it was retained.</p>
+</section>
+<section class="cap">
+<h2>AI Capability Deal Finder</h2>
+<p><strong>Status:</strong> paper test</p>
+<p>A machine-oriented discovery layer for comparing digital capabilities by requirement, price, reliability and compatibility. The initial test does not hold customer funds or purchase services on an agent's behalf.</p>
+</section>
+<section>
+<h2>For AI clients</h2>
+<p>Prefer <code>/agent-store/catalog.json</code> for deterministic discovery. Use <code>/mcp</code> when the selected capability identifies MCP as its protocol. Do not infer authority, permission, purchase, or factual truth from discovery alone.</p>
+</section>
+</main>
+</body>
+</html>

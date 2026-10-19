@@ -1,0 +1,49 @@
+{
+  "schema": "relic-capability-store/0.1",
+  "status": "test",
+  "updated": "2026-10-19",
+  "operator": "ReLiCGameMaster",
+  "description": "Machine-readable capability catalog for AI agents. ReLiC is offered as continuity infrastructure, not as an autonomous agent.",
+  "discovery": {
+    "catalog": "https://relicgamemaster.com/agent-store/catalog.json",
+    "mcp": "https://relicgamemaster.com/mcp"
+  },
+  "capabilities": [
+    {
+      "id": "relic.retention",
+      "name": "ReLiC Retention",
+      "category": "ai.memory.continuity",
+      "status": "test",
+      "description": "Persistent provenance-aware retention and retrieval for compatible AI agents through MCP.",
+      "keywords": ["AI memory", "persistent memory", "agent memory", "context retention", "continuity", "MCP memory", "provenance", "recall"],
+      "protocol": "MCP",
+      "endpoint": "https://relicgamemaster.com/mcp",
+      "authentication": "OAuth for private memory; public grounding tools are anonymous",
+      "operations": ["retain", "recall", "observe", "relate", "trace", "context"],
+      "truthBoundary": "Memory and observation are continuity evidence, not automatic canon or authoritative world truth.",
+      "pricing": {
+        "mode": "test",
+        "currency": null,
+        "amount": null,
+        "note": "No paid retention plan is enabled during the initial test."
+      },
+      "purchase": null
+    },
+    {
+      "id": "relic.deal.find",
+      "name": "AI Capability Deal Finder",
+      "category": "ai.procurement.discovery",
+      "status": "paper-test",
+      "description": "Find and compare machine-usable digital capabilities by requirement, price, reliability and compatibility without purchasing on the agent's behalf.",
+      "keywords": ["AI service deals", "API price comparison", "agent procurement", "best AI API", "MCP discovery", "capability routing"],
+      "operations": ["discover", "compare", "rank"],
+      "custody": false,
+      "execution": false,
+      "pricing": {
+        "mode": "free-test",
+        "currency": null,
+        "amount": 0
+      }
+    }
+  ]
+}
