@@ -26112,6 +26112,18 @@
       "scope": "",
       "status": "active"
     },
+    "0310a079af7fcd41a42d87ffdb5e18c3e03d3985da82a033d4a2f5aa620c314d": {
+      "aliases": [
+        "genesis"
+      ],
+      "chid": "chid.178722",
+      "kind": "function",
+      "name": "genesis",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "genesis",
+      "scope": "",
+      "status": "active"
+    },
     "0310a8dd463ac31bd8171e2b6f2fc2e450a2fec9d26739082db0ff043991a84a": {
       "aliases": [
         "PHYSICALHEIGHT"
@@ -88416,6 +88428,18 @@
       "scope": "",
       "status": "active"
     },
+    "0a9161827e7da6f6b220b3495bbf25664d7821ccb3adca9e9cdd26dd07105097": {
+      "aliases": [
+        "log"
+      ],
+      "chid": "chid.178712",
+      "kind": "ui-id",
+      "name": "log",
+      "path": "site/relic-home/open-reality/index.html",
+      "qualified_name": "log",
+      "scope": "",
+      "status": "active"
+    },
     "0a9191cba1410645c358ea849b55c661d7545610ed3f6185d48641ba7fd93d6c": {
       "aliases": [
         "WINHTTP_OPTION_PASSPORT_RETURN_URL"
@@ -114370,6 +114394,18 @@
       "path": "libs/setuptools/_distutils/command/bdist.py",
       "qualified_name": "bdist.initialize_options.bdist_base",
       "scope": "bdist.initialize_options",
+      "status": "active"
+    },
+    "0daea933b41689c391d99b18f838972d2a335dbaeba58742a317193b581128c5": {
+      "aliases": [
+        "world"
+      ],
+      "chid": "chid.178715",
+      "kind": "variable",
+      "name": "world",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "world",
+      "scope": "",
       "status": "active"
     },
     "0daed502720a21c6acf6fea5cecd7fdb13ba2b33b4bee551c048c5c367977fe8": {
@@ -153226,6 +153262,18 @@
       "path": "libs/setuptools/tests/test_sdist.py",
       "qualified_name": "TestSdistTest.test_manifest_is_written_with_utf8_encoding.self",
       "scope": "TestSdistTest.test_manifest_is_written_with_utf8_encoding",
+      "status": "active"
+    },
+    "124adbca24724073aacc929a86cdbf42e471c430e8621b8b27ec64a21fb6241b": {
+      "aliases": [
+        "log"
+      ],
+      "chid": "chid.178717",
+      "kind": "variable",
+      "name": "log",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "log",
+      "scope": "",
       "status": "active"
     },
     "124ae330a021b6fa719ed2ef29d7cdd95b65a63de9e4d7c7f58c21eac62fbffc": {
@@ -247488,6 +247536,18 @@
       "scope": "",
       "status": "active"
     },
+    "1d71526d091f28e4214daa56d7a9d43e03d81333ba4e72b40fa2b2c065c6719e": {
+      "aliases": [
+        "glyphCount"
+      ],
+      "chid": "chid.178708",
+      "kind": "ui-id",
+      "name": "glyphCount",
+      "path": "site/relic-home/open-reality/index.html",
+      "qualified_name": "glyphCount",
+      "scope": "",
+      "status": "active"
+    },
     "1d71dd9d33ff2c64cd5fe75f6c1f5f4cd76c90d7631716e16f59c1e0bd8ea5f4": {
       "aliases": [
         "package_dir"
@@ -274066,6 +274126,18 @@
       "path": "libs/pyglet/resource.py",
       "qualified_name": "Loader._get_texture_atlas_bin",
       "scope": "Loader",
+      "status": "active"
+    },
+    "20b742e9cb95defb9b56104d6f8d653f8dc4bb24906c06cf213e66690bb43737": {
+      "aliases": [
+        "event"
+      ],
+      "chid": "chid.178728",
+      "kind": "variable",
+      "name": "event",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "event",
+      "scope": "",
       "status": "active"
     },
     "20b7da78152d86035e6dde7264f971d571f4b754dfb0861169e615996068336f": {
@@ -341472,6 +341544,18 @@
       "scope": "_safe_cached_translate",
       "status": "active"
     },
+    "289e8525431e51bd5abe4c087a18fe6f603904588e917a0099b4201b65d5f282": {
+      "aliases": [
+        "buildWater"
+      ],
+      "chid": "chid.178723",
+      "kind": "function",
+      "name": "buildWater",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "buildWater",
+      "scope": "",
+      "status": "active"
+    },
     "289ff63d8cff6c8b29854831933a2f1728310367e4421db80cc889ae1c3c026f": {
       "aliases": [
         "KP_PADDING"
@@ -354202,6 +354286,18 @@
       "path": "libs/pyglet/input/win32/xinput.py",
       "qualified_name": "XInputControllerManager.__init__.on_disconnect",
       "scope": "XInputControllerManager.__init__",
+      "status": "active"
+    },
+    "2a299baace435691cdeb9479ff9988cb52c62e08fb91e5e0c406aab1fb9983f8": {
+      "aliases": [
+        "research"
+      ],
+      "chid": "chid.178724",
+      "kind": "function",
+      "name": "research",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "research",
+      "scope": "",
       "status": "active"
     },
     "2a29c9ee76bde1008fbaf8d2ee4b284cc477a9e5d8b4dfa3deba62d7cccf2ef5": {
@@ -449136,6 +449232,18 @@
       "scope": "BaseObserver.schedule",
       "status": "active"
     },
+    "355fb30a272f6514c3083708dabe22681d23cd5d05edab93f761cc29f4ee8ec1": {
+      "aliases": [
+        "field"
+      ],
+      "chid": "chid.178704",
+      "kind": "ui-id",
+      "name": "field",
+      "path": "site/relic-home/open-reality/index.html",
+      "qualified_name": "field",
+      "scope": "",
+      "status": "active"
+    },
     "355fb7c4a39bce83d0130f5918ec415eb3e185138291ddf1e29ea2821e1917f4": {
       "aliases": [
         "y_pixels_per_unit"
@@ -466233,6 +466341,18 @@
       "name": "_functions_map",
       "path": "libs/setuptools/_vendor/typeguard/_utils.py",
       "qualified_name": "_functions_map",
+      "scope": "",
+      "status": "active"
+    },
+    "375eb291b659792e5259df06dd62832a5809027d1f85837218533b2c6c467ec6": {
+      "aliases": [
+        "runeCount"
+      ],
+      "chid": "chid.178707",
+      "kind": "ui-id",
+      "name": "runeCount",
+      "path": "site/relic-home/open-reality/index.html",
+      "qualified_name": "runeCount",
       "scope": "",
       "status": "active"
     },
@@ -629316,6 +629436,18 @@
       "scope": "glTexImage2D",
       "status": "active"
     },
+    "4ac2dd167187712fecc7d7e80fbc11bc717e8714a2cbdc8f3e38fbb42d4b4599": {
+      "aliases": [
+        "shaepCount"
+      ],
+      "chid": "chid.178709",
+      "kind": "ui-id",
+      "name": "shaepCount",
+      "path": "site/relic-home/open-reality/index.html",
+      "qualified_name": "shaepCount",
+      "scope": "",
+      "status": "active"
+    },
     "4ac310933d8482f9c5426ab6fa95f446a8853c8734bacc80ede903dd6693f1eb": {
       "aliases": [
         "self"
@@ -763236,6 +763368,18 @@
       "scope": "",
       "status": "active"
     },
+    "5ad2f1ebb1caa79560da9e4545e8c4fb58627838b6b4a0d7c85cc18450ab0975": {
+      "aliases": [
+        "r"
+      ],
+      "chid": "chid.178730",
+      "kind": "variable",
+      "name": "r",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "r",
+      "scope": "",
+      "status": "active"
+    },
     "5ad3ddb53042a747caff2647592a933df772830f9e6a01433fe548f9dbe51c02": {
       "aliases": [
         "colortype"
@@ -783106,6 +783250,18 @@
       "path": "libs/pyglet/text/layout/base.py",
       "qualified_name": "_GlyphBox.place.layout",
       "scope": "_GlyphBox.place",
+      "status": "active"
+    },
+    "5d2bbc47140fab085f193f31d71797ac9986e081680fcc92c4299ffadb121dce": {
+      "aliases": [
+        "commit"
+      ],
+      "chid": "chid.178720",
+      "kind": "function",
+      "name": "commit",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "commit",
+      "scope": "",
       "status": "active"
     },
     "5d2c3ce3750c8b19871ce659db9ec94ef7fcaf33939fcb62d80ae8f837f58b8e": {
@@ -804009,6 +804165,18 @@
       "name": "SCE_GAP_KEYWORD",
       "path": "libs/pythonwin/pywin/scintilla/scintillacon.py",
       "qualified_name": "SCE_GAP_KEYWORD",
+      "scope": "",
+      "status": "active"
+    },
+    "5fa352145cefbd0e7b247d14beaf9b6a475dfa36971e862dd4d0377da4d35d95": {
+      "aliases": [
+        "key"
+      ],
+      "chid": "chid.178726",
+      "kind": "variable",
+      "name": "key",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "key",
       "scope": "",
       "status": "active"
     },
@@ -951108,6 +951276,18 @@
       "scope": "",
       "status": "active"
     },
+    "715429b408cd6cd22f98515fadda361128576c82f234941ecf13a168678cea53": {
+      "aliases": [
+        "observe"
+      ],
+      "chid": "chid.178729",
+      "kind": "function",
+      "name": "observe",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "observe",
+      "scope": "",
+      "status": "active"
+    },
     "7154cd485fa8038817b7e6bb79146391f6355a14c39615d3d4bdcc317c53bdee": {
       "aliases": [
         "_validate_password"
@@ -1000209,6 +1000389,18 @@
       "name": "_reqs",
       "path": "libs/setuptools/dist.py",
       "qualified_name": "_reqs",
+      "scope": "",
+      "status": "active"
+    },
+    "772bd411ea85c93bf8e6240aca9f0cfa4d97a90681c4fa5bc611936cf76fd183": {
+      "aliases": [
+        "before"
+      ],
+      "chid": "chid.178721",
+      "kind": "variable",
+      "name": "before",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "before",
       "scope": "",
       "status": "active"
     },
@@ -1102752,6 +1102944,18 @@
       "scope": "",
       "status": "active"
     },
+    "8387d82dd3d3e617013d483e82e93820a3a9790bbe3ba10cfd8904c3296e0366": {
+      "aliases": [
+        "clone"
+      ],
+      "chid": "chid.178713",
+      "kind": "variable",
+      "name": "clone",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "clone",
+      "scope": "",
+      "status": "active"
+    },
     "838813e999f246f7694d7f5a1c0f6a424144d74ca6f043b93ead6b0d5693ee8e": {
       "aliases": [
         "SetuptoolsInfo"
@@ -1113034,6 +1113238,18 @@
       "path": "libs/setuptools/_distutils/command/install_lib.py",
       "qualified_name": "install_lib._mutate_outputs.build_files",
       "scope": "install_lib._mutate_outputs",
+      "status": "active"
+    },
+    "84b227c3bdee9fa60880991505b1cb62b3f019180c03ccde3fac6cadb7235945": {
+      "aliases": [
+        "viewport"
+      ],
+      "chid": "chid.178702",
+      "kind": "ui-id",
+      "name": "viewport",
+      "path": "site/relic-home/open-reality/index.html",
+      "qualified_name": "viewport",
+      "scope": "",
       "status": "active"
     },
     "84b26c4bcdb54c1bc2437e54d9215eea26db667ca1d0a63df0250390dc514356": {
@@ -1194864,6 +1195080,18 @@
       "scope": "",
       "status": "active"
     },
+    "8e947f4bfc20132f98525b5ba0bca49b2f8f79555873449b55af51b77fcd2b74": {
+      "aliases": [
+        "seed"
+      ],
+      "chid": "chid.178714",
+      "kind": "variable",
+      "name": "seed",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "seed",
+      "scope": "",
+      "status": "active"
+    },
     "8e950d2b55f6b542a5988e22bd9c5705e91e28bd9d460751a1908b29f524c068": {
       "aliases": [
         "req"
@@ -1197070,6 +1197298,18 @@
       "path": "libs/win32/lib/win32timezone.py",
       "qualified_name": "_RegKeyDict._enumerate_reg_values",
       "scope": "_RegKeyDict",
+      "status": "active"
+    },
+    "8ed78533f10baf55facc4d5883ccd019f5f8533b5212a3f00a1c2ad93f3ec6fa": {
+      "aliases": [
+        "historyCount"
+      ],
+      "chid": "chid.178711",
+      "kind": "ui-id",
+      "name": "historyCount",
+      "path": "site/relic-home/open-reality/index.html",
+      "qualified_name": "historyCount",
+      "scope": "",
       "status": "active"
     },
     "8ed7c2fee6755c7cfe8d142778b5f6b193a978f1f34534038c5ada93ff152275": {
@@ -1250566,6 +1250806,18 @@
       "path": "libs/pyglet/font/base.py",
       "qualified_name": "get_grapheme_clusters.clusters",
       "scope": "get_grapheme_clusters",
+      "status": "active"
+    },
+    "9549853c1f79175f8281c7bfb3ebc3b8f31454263a5a0c601424f64f26cf87c6": {
+      "aliases": [
+        "rewind"
+      ],
+      "chid": "chid.178727",
+      "kind": "function",
+      "name": "rewind",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "rewind",
+      "scope": "",
       "status": "active"
     },
     "95498d1d8755dced107641441230902969bef3edc20e16ea3a1adcfbf8448903": {
@@ -1372269,6 +1372521,18 @@
       "name": "GL_MODULATE",
       "path": "libs/pyglet/gl/gl_compat.py",
       "qualified_name": "GL_MODULATE",
+      "scope": "",
+      "status": "active"
+    },
+    "a3ed08ed315ded87f83707f9ab4f2d7867a21d4c84a902230ff8fa6cd9a6a35b": {
+      "aliases": [
+        "saved"
+      ],
+      "chid": "chid.178732",
+      "kind": "variable",
+      "name": "saved",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "saved",
       "scope": "",
       "status": "active"
     },
@@ -1568496,6 +1568760,18 @@
       "scope": "",
       "status": "active"
     },
+    "bb79e4a259a60a3f136fa01c4d6df9aabbfc9b5f2fee8c1ec99229cf1630869b": {
+      "aliases": [
+        "render"
+      ],
+      "chid": "chid.178731",
+      "kind": "function",
+      "name": "render",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "render",
+      "scope": "",
+      "status": "active"
+    },
     "bb7a174f344d2c45a05df76f593ce756fa29f7a5075657340c543e5e6d142e9a": {
       "aliases": [
         "glEnableVertexAttribArray"
@@ -1574505,6 +1574781,18 @@
       "name": "KEY_COMPOSE",
       "path": "libs/pyglet/input/linux/evdev_constants.py",
       "qualified_name": "KEY_COMPOSE",
+      "scope": "",
+      "status": "active"
+    },
+    "bc2e85a8dbfdd1ad5161e31495a97670487e84848ee742da1b9fadda3dfbc6cf": {
+      "aliases": [
+        "description"
+      ],
+      "chid": "chid.178703",
+      "kind": "ui-id",
+      "name": "description",
+      "path": "site/relic-home/open-reality/index.html",
+      "qualified_name": "description",
       "scope": "",
       "status": "active"
     },
@@ -1749864,6 +1750152,18 @@
       "scope": "HeadlessConfig.match",
       "status": "active"
     },
+    "d0f3be2dfec6abe8e30ca67b947f06dd3ca95d20a568fbeae1a8b230c47b7d96": {
+      "aliases": [
+        "knowledgeCount"
+      ],
+      "chid": "chid.178710",
+      "kind": "ui-id",
+      "name": "knowledgeCount",
+      "path": "site/relic-home/open-reality/index.html",
+      "qualified_name": "knowledgeCount",
+      "scope": "",
+      "status": "active"
+    },
     "d0f3f8d39cf0a62b1d03f95c5cb0b5e8af2ec35bcd05015193a63cfe839a87ff": {
       "aliases": [
         "WHITESPACE"
@@ -1767153,6 +1767453,18 @@
       "name": "Registering",
       "path": "libs/win32com/HTML/QuickStartServerCom.html",
       "qualified_name": "Registering",
+      "scope": "",
+      "status": "active"
+    },
+    "d319246a96d9aaa6b0cb1cb31ddd45755afa2de4f7a83e3247786af5f2fee195": {
+      "aliases": [
+        "shaep"
+      ],
+      "chid": "chid.178719",
+      "kind": "variable",
+      "name": "shaep",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "shaep",
       "scope": "",
       "status": "active"
     },
@@ -1806228,6 +1806540,18 @@
       "scope": "",
       "status": "active"
     },
+    "d794e2dc96401ed26825147d253ab581dfdc8048d033f1d3fb72442e5b8ebd37": {
+      "aliases": [
+        "target"
+      ],
+      "chid": "chid.178725",
+      "kind": "variable",
+      "name": "target",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "target",
+      "scope": "",
+      "status": "active"
+    },
     "d7951c7ec59e253e5f1121007949701297d14f9bf2f7747596f9c26db3ccf132": {
       "aliases": [
         "SCN_MARGINCLICK"
@@ -1816497,6 +1816821,18 @@
       "name": "_LayoutContext",
       "path": "libs/pyglet/text/layout/incremental.py",
       "qualified_name": "_LayoutContext",
+      "scope": "",
+      "status": "active"
+    },
+    "d8bbaaf6328560fb23646219ad0d8bf88bf6fada1504ea0867c30904edf06473": {
+      "aliases": [
+        "el"
+      ],
+      "chid": "chid.178718",
+      "kind": "variable",
+      "name": "el",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "el",
       "scope": "",
       "status": "active"
     },
@@ -1856086,6 +1856422,18 @@
       "path": "libs/pythonwin/pywin/Demos/dlgtest.py",
       "qualified_name": "test.modal",
       "scope": "test",
+      "status": "active"
+    },
+    "dd6f7e4ffd385b74d47dba1240ea30834780587e94599f1d039c9d34eb8fbb13": {
+      "aliases": [
+        "state"
+      ],
+      "chid": "chid.178705",
+      "kind": "ui-id",
+      "name": "state",
+      "path": "site/relic-home/open-reality/index.html",
+      "qualified_name": "state",
+      "scope": "",
       "status": "active"
     },
     "dd6fa96bd0603223353aaaafb6429056443fe51a17d9ef23bc5f033ab1c7ada6": {
@@ -1912762,6 +1913110,18 @@
       "path": "libs/pyglet/shapes.py",
       "qualified_name": "ShapeBase.blend_mode._blend_dest",
       "scope": "ShapeBase.blend_mode",
+      "status": "active"
+    },
+    "e44049d3e6789991f1f322b08658f30ee1c93e980ef164eacb44c2e7b2f3d7b2": {
+      "aliases": [
+        "$"
+      ],
+      "chid": "chid.178716",
+      "kind": "variable",
+      "name": "$",
+      "path": "site/relic-home/open-reality/reality.js",
+      "qualified_name": "$",
+      "scope": "",
       "status": "active"
     },
     "e4405f60637e10ff42be17d3380bc48978cf23126bd3bd9bce29b0619a2bc717": {
@@ -2011330,6 +2011690,18 @@
       "path": "libs/setuptools/command/editable_wheel.py",
       "qualified_name": "_StaticPth.__call__.wheel",
       "scope": "_StaticPth.__call__",
+      "status": "active"
+    },
+    "f016da51f757d4f4b5f8b53e3c3599ca5fe419134d33048f1f0ca78824e248fb": {
+      "aliases": [
+        "revision"
+      ],
+      "chid": "chid.178706",
+      "kind": "ui-id",
+      "name": "revision",
+      "path": "site/relic-home/open-reality/index.html",
+      "qualified_name": "revision",
+      "scope": "",
       "status": "active"
     },
     "f0172b1a9a227e801180c224025f1b4e3b76e6101ca67cc6168b06e915bb40b9": {
@@ -2144413,6 +2144785,6 @@
       "status": "active"
     }
   },
-  "next_id": 178702,
+  "next_id": 178733,
   "version": 1
 }
