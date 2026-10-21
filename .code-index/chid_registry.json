@@ -63012,6 +63012,18 @@
       "scope": "WorldSession",
       "status": "active"
     },
+    "078e8dfbde51ace227f655367a51e36773b13c9d61b7495c859839c27afb0011": {
+      "aliases": [
+        "answer"
+      ],
+      "chid": "chid.178835",
+      "kind": "function",
+      "name": "answer",
+      "path": "site/relic-home/open-reality/os-prototype.js",
+      "qualified_name": "answer",
+      "scope": "",
+      "status": "active"
+    },
     "078f16040e0d6e271841f7df9e85e28b04cb3a9d982f4a56cac2fdfc2321d86f": {
       "aliases": [
         "output_dir"
@@ -455280,6 +455292,18 @@
       "scope": "_GlyphBox",
       "status": "active"
     },
+    "361a104816e8d2af90baf79af3efc08e873d423cc50ba435797352af382c16a6": {
+      "aliases": [
+        "wrap"
+      ],
+      "chid": "chid.178837",
+      "kind": "function",
+      "name": "wrap",
+      "path": "site/relic-home/open-reality/os-prototype.js",
+      "qualified_name": "wrap",
+      "scope": "",
+      "status": "active"
+    },
     "361a1db491d5a2890cb9f902e17a0e88be57c21682543cf39bbc64040cedf886": {
       "aliases": [
         "visible"
@@ -647590,6 +647614,18 @@
       "path": "libs/win32comext/shell/demos/servers/folder_view.py",
       "qualified_name": "get_schema_fname.me",
       "scope": "get_schema_fname",
+      "status": "active"
+    },
+    "4cdf25a01329ab7a7421769d1200eae359136a6f422ea99fb80b7dccb70003d3": {
+      "aliases": [
+        "l"
+      ],
+      "chid": "chid.178839",
+      "kind": "variable",
+      "name": "l",
+      "path": "site/relic-home/open-reality/os-prototype.js",
+      "qualified_name": "l",
+      "scope": "",
       "status": "active"
     },
     "4cdf3f4be9fdc0a082ab1406df30f287229601e2fd1d9a87020ee4eb3725691c": {
@@ -989652,6 +989688,18 @@
       "scope": "",
       "status": "active"
     },
+    "75d0a49c38be14fd581679c79253174ae02bb20292488d93bc52404b5be05e85": {
+      "aliases": [
+        "start"
+      ],
+      "chid": "chid.178840",
+      "kind": "variable",
+      "name": "start",
+      "path": "site/relic-home/open-reality/os-prototype.js",
+      "qualified_name": "start",
+      "scope": "",
+      "status": "active"
+    },
     "75d0a561a40b74b637051d6a6780011aadc02a283cf9ae56ea959b9d6cbc8e77": {
       "aliases": [
         "get_key_state"
@@ -1188238,7 +1188286,7 @@
       "path": "site/relic-home/open-reality/os-prototype.js",
       "qualified_name": "formDraw",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "8dad344234f244fa604016bde574f13d3c662d70e5f8a2921fff95bbbe0f663e": {
       "aliases": [
@@ -1634976,6 +1635024,18 @@
       "scope": "WorldSession",
       "status": "active"
     },
+    "c3262bda8e2a0d0f232f13d584474b544457b62b5110387010a3a1bf9f29c3d6": {
+      "aliases": [
+        "respond"
+      ],
+      "chid": "chid.178836",
+      "kind": "function",
+      "name": "respond",
+      "path": "site/relic-home/open-reality/os-prototype.js",
+      "qualified_name": "respond",
+      "scope": "",
+      "status": "active"
+    },
     "c32691f78642d3af862cae3fd311aa1c4e78f0dac8163d7427a2ff3b795f71fc": {
       "aliases": [
         "CRYPT_KEYID_SET_NEW_FLAG"
@@ -2069376,6 +2069436,18 @@
       "scope": "",
       "status": "active"
     },
+    "f6da072764c0c0a504fbd3a600150c9e7301b3b9a70b835f43d33c3a27b139cb": {
+      "aliases": [
+        "responseDraw"
+      ],
+      "chid": "chid.178838",
+      "kind": "function",
+      "name": "responseDraw",
+      "path": "site/relic-home/open-reality/os-prototype.js",
+      "qualified_name": "responseDraw",
+      "scope": "",
+      "status": "active"
+    },
     "f6dab4254d953ab1e42192ffabac1b5c0122c96082dfac2bc6862fdc2040f745": {
       "aliases": [
         "RPC_S_INVALID_ASYNC_HANDLE"
@@ -2107774,7 +2107846,7 @@
       "path": "site/relic-home/open-reality/os-prototype.js",
       "qualified_name": "text",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "fb70e82b200c68a8e0e6950630c38fa192b0bb4467c2a412ee1d9efd84091f7a": {
       "aliases": [
@@ -2146009,6 +2146081,6 @@
       "status": "active"
     }
   },
-  "next_id": 178835,
+  "next_id": 178841,
   "version": 1
 }
