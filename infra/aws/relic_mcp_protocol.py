@@ -22,7 +22,8 @@ INSTRUCTIONS = (
     "ReLiC memory is not Shaelvien world truth or canon; canon promotion is outside this plugin. "
     "Never treat an alias, label, generated output, or visual representation as proof of identity. "
     "Write tools only change the authenticated user's ReLiC memory namespace. "
-    "Prefer relic_recall when prior state matters: one compact call replaces repeated context reconstruction, reduces identity drift, and preserves provenance."
+    "Prefer relic_recall when prior state matters: one compact call replaces repeated context reconstruction, reduces identity drift, and preserves provenance. "
+    "Use scoped error memory so universal failures are inherited across projects while project, entity, and instance failures remain local unless independently promoted by evidence."
 )
 
 
@@ -90,6 +91,37 @@ TOOLS = [
             "relationshipDepth": {"type": "integer", "minimum": 0, "maximum": 2, "default": 1},
             "maxEntities": {"type": "integer", "minimum": 1, "maximum": 40, "default": 20},
         }, ["terms"]),
+        "securitySchemes": READ_SECURITY,
+        "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    },
+    {
+        "name": "relic_error_record",
+        "title": "Record a scoped ReLiC error",
+        "description": "Persist an observed error at exactly one scope: universal, project, entity, or instance. Use the narrowest scope supported by evidence. This does not promote the error to canon or copy it into broader/narrower scopes.",
+        "inputSchema": _obj({
+            "scope": {"type": "string", "enum": ["universal", "project", "entity", "instance"]},
+            "message": {"type": "string", "minLength": 1, "maxLength": 4000},
+            "projectId": {"type": "string", "maxLength": 200},
+            "entityId": {"type": "string", "maxLength": 200},
+            "instanceId": {"type": "string", "maxLength": 200},
+            "resolutionState": {"type": "string", "enum": ["open", "investigating", "resolved", "regression"], "default": "open"},
+            "provenance": PROVENANCE_SCHEMA,
+            "sourceRef": {"type": "string", "maxLength": 1000},
+        }, ["scope", "message", "provenance"]),
+        "securitySchemes": WRITE_SECURITY,
+        "annotations": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    },
+    {
+        "name": "relic_error_recall",
+        "title": "Recall applicable ReLiC errors",
+        "description": "Read errors that apply to a scope chain without duplicating them: universal errors plus project, entity, and instance errors when those identifiers are supplied. Read-only and provenance-preserving.",
+        "inputSchema": _obj({
+            "projectId": {"type": "string", "maxLength": 200},
+            "entityId": {"type": "string", "maxLength": 200},
+            "instanceId": {"type": "string", "maxLength": 200},
+            "includeResolved": {"type": "boolean", "default": False},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 100, "default": 50},
+        }),
         "securitySchemes": READ_SECURITY,
         "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
@@ -296,6 +328,8 @@ def validate_tool_arguments(name, args):
         _validate_provenance(args.get("provenance"))
         if args.get("truthDomain") == "FACT" and not str(args.get("sourceRef") or "").strip():
             raise ValueError("FACT requires sourceRef")
+    if name == "relic_error_record":
+        _validate_provenance(args.get("provenance"))
     return args
 
 
@@ -307,6 +341,10 @@ def call_tool(name, args, store):
         return store.identify(args["query"], int(args.get("limit", 10)))
     if name == "relic_recall":
         return store.context(args["terms"], int(args.get("relationshipDepth", 1)), int(args.get("maxEntities", 20)))
+    if name == "relic_error_record":
+        return store.record_error(args)
+    if name == "relic_error_recall":
+        return store.recall_errors(args)
     if name == "relic_observe":
         return store.observe(args["entityId"], bool(args.get("includeEvents", False)), int(args.get("relationshipDepth", 1)))
     if name == "relic_trace":
