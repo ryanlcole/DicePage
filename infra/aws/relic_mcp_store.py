@@ -38,6 +38,31 @@ def _plain(value):
     return value
 
 
+ERROR_SCOPES = ("universal", "project", "entity", "instance")
+
+
+def _error_fingerprint(message):
+    normalized = _normalise(message)
+    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+    return normalized, digest
+
+
+def _error_scope_components(scope, project_id="", entity_id="", instance_id=""):
+    scope = str(scope or "").strip().casefold()
+    if scope not in ERROR_SCOPES:
+        raise ValueError("Invalid error scope")
+    project_id = str(project_id or "").strip()
+    entity_id = str(entity_id or "").strip()
+    instance_id = str(instance_id or "").strip()
+    if scope in {"project", "entity", "instance"} and not project_id:
+        raise ValueError("projectId is required for project/entity/instance error scope")
+    if scope in {"entity", "instance"} and not entity_id:
+        raise ValueError("entityId is required for entity/instance error scope")
+    if scope == "instance" and not instance_id:
+        raise ValueError("instanceId is required for instance error scope")
+    return scope, project_id, entity_id, instance_id
+
+
 def _compact_profile(item):
     if not item:
         return None
@@ -66,6 +91,29 @@ class DynamoRelicStore:
 
     def _entity_pk(self, entity_id):
         return f"USER#{self.actor}#ENTITY#{entity_id}"
+
+    def _error_scope_pk(self, scope, project_id="", entity_id="", instance_id=""):
+        scope, project_id, entity_id, instance_id = _error_scope_components(
+            scope, project_id, entity_id, instance_id
+        )
+        parts = [f"USER#{self.actor}", "ERRORS", scope.upper()]
+        if project_id:
+            parts.extend(["PROJECT", project_id])
+        if entity_id:
+            parts.extend(["ENTITY", entity_id])
+        if instance_id:
+            parts.extend(["INSTANCE", instance_id])
+        return "#".join(parts)
+
+    def _error_scope_chain(self, project_id="", entity_id="", instance_id=""):
+        chain = [("universal", "", "", "")]
+        if project_id:
+            chain.append(("project", project_id, "", ""))
+        if project_id and entity_id:
+            chain.append(("entity", project_id, entity_id, ""))
+        if project_id and entity_id and instance_id:
+            chain.append(("instance", project_id, entity_id, instance_id))
+        return chain
 
     def _alias_pk(self, term):
         digest = hashlib.sha256(_normalise(term).encode("utf-8")).hexdigest()
@@ -200,6 +248,91 @@ class DynamoRelicStore:
             "entityCount": len(entities),
             "truthBoundary": "ReLiC memory; not automatic external fact or Shaelvien canon",
             "identityRule": "identity-is-not-output-equivalence",
+        }
+
+    def record_error(self, args):
+        scope, project_id, entity_id, instance_id = _error_scope_components(
+            args.get("scope"),
+            args.get("projectId"),
+            args.get("entityId"),
+            args.get("instanceId"),
+        )
+        message = str(args.get("message") or "").strip()
+        if not message:
+            raise ValueError("message is required")
+        normalized, fingerprint = _error_fingerprint(message)
+        now = _now_ms()
+        pk = self._error_scope_pk(scope, project_id, entity_id, instance_id)
+        sk = f"ERROR#{fingerprint}"
+        existing = self.table.get_item(Key={"pk": pk, "sk": sk}, ConsistentRead=True).get("Item")
+        count = int(existing.get("occurrenceCount", 0)) + 1 if existing else 1
+        item = {
+            "pk": pk,
+            "sk": sk,
+            "errorId": "err." + fingerprint[:20],
+            "fingerprint": fingerprint,
+            "normalizedMessage": normalized,
+            "lastMessage": message[:4000],
+            "scope": scope,
+            "projectId": project_id,
+            "entityId": entity_id,
+            "instanceId": instance_id,
+            "occurrenceCount": count,
+            "firstSeen": int(existing.get("firstSeen", now)) if existing else now,
+            "lastSeen": now,
+            "resolutionState": str(args.get("resolutionState") or (existing or {}).get("resolutionState") or "open"),
+            "provenance": _ddb_safe(args.get("provenance") or {}),
+            "sourceRef": str(args.get("sourceRef") or "").strip(),
+            "actor": self.actor,
+            "canonStatus": "non-canonical-relic-memory",
+        }
+        self.table.put_item(Item=item)
+        return {
+            "error": _plain({k: v for k, v in item.items() if k not in {"pk", "sk"}}),
+            "created": existing is None,
+            "repeat": count > 1,
+            "storageRule": "stored-once-at-declared-scope",
+            "canonPromoted": False,
+            "worldTruthChanged": False,
+        }
+
+    def recall_errors(self, args):
+        project_id = str(args.get("projectId") or "").strip()
+        entity_id = str(args.get("entityId") or "").strip()
+        instance_id = str(args.get("instanceId") or "").strip()
+        limit = max(1, min(int(args.get("limit", 50)), 100))
+        include_resolved = bool(args.get("includeResolved", False))
+        records = []
+        seen = set()
+        for scope, pid, eid, iid in self._error_scope_chain(project_id, entity_id, instance_id):
+            pk = self._error_scope_pk(scope, pid, eid, iid)
+            result = self.table.query(
+                KeyConditionExpression=Key("pk").eq(pk) & Key("sk").begins_with("ERROR#"),
+                Limit=limit,
+                ScanIndexForward=False,
+            )
+            for raw in result.get("Items", []):
+                item = _plain(raw)
+                fingerprint = item.get("fingerprint")
+                if not fingerprint or fingerprint in seen:
+                    continue
+                if not include_resolved and item.get("resolutionState") == "resolved":
+                    continue
+                seen.add(fingerprint)
+                item.pop("pk", None)
+                item.pop("sk", None)
+                item["inheritedFromScope"] = scope
+                records.append(item)
+                if len(records) >= limit:
+                    break
+            if len(records) >= limit:
+                break
+        return {
+            "errors": records,
+            "count": len(records),
+            "scopeChain": [scope for scope, _, _, _ in self._error_scope_chain(project_id, entity_id, instance_id)],
+            "inheritanceRule": "instance -> entity -> project -> universal; records are referenced, not copied downward",
+            "truthBoundary": "error memory is evidence of observed failure, not automatic canon or causal proof",
         }
 
     def _event(self, entity_id, event_type, data):
