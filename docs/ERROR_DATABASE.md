@@ -60,6 +60,23 @@ linked symbol: chid.000042 characterName
 
 That warning tells an editor or LLM to inspect the previous occurrences and resolution before proposing another fix.
 
+## ReLiC scope hierarchy
+
+Runtime and continuity errors use the same evidence-first rule, but are stored at the narrowest scope where the observation is known to apply:
+
+- `universal` — applies across projects and entities in the authenticated ReLiC namespace;
+- `project` — applies to one project such as RIST, Shaelvien, WebWeavers, or another bounded project;
+- `entity` — applies to one project entity such as an NPC, NHC, ProjectMind, agent, service, or other persistent identity;
+- `instance` — applies only to one concrete run, session, deployment, conversation, battle, search, or experiment.
+
+Recall walks upward through the scope chain:
+
+`instance -> entity -> project -> universal`
+
+A broader error is referenced during recall; it is not copied into every lower scope. Repetition increments the stored signature at its declared scope. Broader promotion is never automatic: repeated local observations can support a proposal that an error belongs at a broader scope, but evidence and an authorized decision are required before that broader record is created.
+
+This preserves the original observation boundary. An MCP gateway failure can be universal without making every project “broken”; a RIST world-state failure can remain project-local; and a repeated NPC inference error can remain attached to that entity until evidence demonstrates a wider rule.
+
 ## Persistent sources
 
 The database ingests configured error sources, including:
