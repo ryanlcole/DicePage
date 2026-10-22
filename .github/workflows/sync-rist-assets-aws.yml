@@ -108,7 +108,9 @@ jobs:
         run: aws s3 sync build/aws-assets/ "s3://${ASSET_BUCKET}/" --only-show-errors
       - name: Refresh CloudFront
         run: |
-          ID=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths '/assets/*' '/worlds/*' '/atlas/*' '/cards/*' --query 'Invalidation.Id' --output text)
+          # One wildcard invalidation counts as one path while preserving the
+          # previous guarantee that every changed runtime asset is immediately fresh.
+          ID=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths '/*' --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$ID"
       - name: Verify critical CDN assets
         shell: bash
