@@ -66936,6 +66936,18 @@
       "scope": "",
       "status": "active"
     },
+    "080c6c9b9ea39f456098048588982fac82c749f6a9517a48fc8ef76f5ff2c139": {
+      "aliases": [
+        "item"
+      ],
+      "chid": "chid.178890",
+      "kind": "variable",
+      "name": "item",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.item",
+      "scope": "DynamoRelicStore.recall_errors",
+      "status": "active"
+    },
     "080e3515dcff9332deb7c65cbb99f91727cf55c4fa5c7700dfddef4cf0e8a169": {
       "aliases": [
         "GL_MAX_MESH_OUTPUT_PRIMITIVES_NV"
@@ -128412,6 +128424,18 @@
       "scope": "HIDDevice.get_value",
       "status": "active"
     },
+    "0f60ec3cdd34cc7293bc7a7be152bb72d409c0958772eb5119673aa721685d88": {
+      "aliases": [
+        "include_resolved"
+      ],
+      "chid": "chid.178885",
+      "kind": "variable",
+      "name": "include_resolved",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.include_resolved",
+      "scope": "DynamoRelicStore.recall_errors",
+      "status": "active"
+    },
     "0f6101dfdd2015d4b5990f510776e4a9e6147aa17f02521dfa182d20383dd758": {
       "aliases": [
         "win32api"
@@ -157284,6 +157308,18 @@
       "scope": "_find_packages_within",
       "status": "active"
     },
+    "12c5c71a524862654701f63687655f97d3ead50debcf1107b37712afd46d7456": {
+      "aliases": [
+        "_error_scope_chain"
+      ],
+      "chid": "chid.178862",
+      "kind": "method",
+      "name": "_error_scope_chain",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_chain",
+      "scope": "DynamoRelicStore",
+      "status": "active"
+    },
     "12c64c8b754714657bf1fef7feea87ee8b9524d90c45529775dc8538cfedebaa": {
       "aliases": [
         "self"
@@ -157366,6 +157402,18 @@
       "path": "libs/pyglet/window/win32/__init__.py",
       "qualified_name": "Win32Window._create_cursor_from_image.biWidth",
       "scope": "Win32Window._create_cursor_from_image",
+      "status": "active"
+    },
+    "12c771d29e3059ca9782d168492d7b52e31461d3dd6208c44aedc38a400b13de": {
+      "aliases": [
+        "project_id"
+      ],
+      "chid": "chid.178864",
+      "kind": "parameter",
+      "name": "project_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_chain.project_id",
+      "scope": "DynamoRelicStore._error_scope_chain",
       "status": "active"
     },
     "12c77b4f374821b52d50d70f05681f95c65d64983524123d389c4cfaf319d3f1": {
@@ -208534,6 +208582,18 @@
       "path": "libs/pyglet/graphics/shader.py",
       "qualified_name": "ComputeShaderProgram.max_work_group_size",
       "scope": "ComputeShaderProgram",
+      "status": "active"
+    },
+    "18b8164d7f0d81b787e780db2c19461f2b920f1f3b1704c056816d088084e3c9": {
+      "aliases": [
+        "limit"
+      ],
+      "chid": "chid.178884",
+      "kind": "variable",
+      "name": "limit",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.limit",
+      "scope": "DynamoRelicStore.recall_errors",
       "status": "active"
     },
     "18b8600a0f86c1b9474e3a17b4669369fbcac794eafcae8ee861c4e33016aedd": {
@@ -276276,6 +276336,18 @@
       "scope": "",
       "status": "active"
     },
+    "20f21376bd5515dc21b856e37d89ed7ff15ee87085dfdcd27bf8b543aa3891e1": {
+      "aliases": [
+        "count"
+      ],
+      "chid": "chid.178876",
+      "kind": "variable",
+      "name": "count",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.record_error.count",
+      "scope": "DynamoRelicStore.record_error",
+      "status": "active"
+    },
     "20f218e3e034b6b0ab0ef434eafca69b5eef0add62a91d746fba44f7ddc8d252": {
       "aliases": [
         "DC_MEDIAREADY"
@@ -330936,6 +331008,18 @@
       "scope": "_GlyphBox",
       "status": "active"
     },
+    "27578e2b6e3d650bac7c3c2cc2eeadca9b300839a20ca02644c2c1e9d8420614": {
+      "aliases": [
+        "scope"
+      ],
+      "chid": "chid.178857",
+      "kind": "parameter",
+      "name": "scope",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_pk.scope",
+      "scope": "DynamoRelicStore._error_scope_pk",
+      "status": "active"
+    },
     "27582066a78f4983b2f8108ac42a237fdb96e7fa270e37ff88536f216967f617": {
       "aliases": [
         "__init__"
@@ -350556,6 +350640,18 @@
       "scope": "bdist_egg.initialize_options",
       "status": "active"
     },
+    "29a77f29c2d7b1e7ab03e9831c54f67c9ac640a75b0167b6477d9cbb6efd68c4": {
+      "aliases": [
+        "_error_fingerprint"
+      ],
+      "chid": "chid.178842",
+      "kind": "function",
+      "name": "_error_fingerprint",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_fingerprint",
+      "scope": "",
+      "status": "active"
+    },
     "29a7863b7d7dd506e910f60c36056c92d0084e96a573588a702cca76195002c9": {
       "aliases": [
         "other"
@@ -363564,6 +363660,18 @@
       "scope": "",
       "status": "active"
     },
+    "2b265957c55169b036c227ecf767870cf0f936cf60437df9cfcbc5e24a0b1efc": {
+      "aliases": [
+        "record_error"
+      ],
+      "chid": "chid.178868",
+      "kind": "method",
+      "name": "record_error",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.record_error",
+      "scope": "DynamoRelicStore",
+      "status": "active"
+    },
     "2b266ec0c65a0f13e4394b5b91db34988c7fa438a2d80f724b5e8674c65b1f09": {
       "aliases": [
         "view"
@@ -366514,6 +366622,18 @@
       "path": "libs/pyglet/window/__init__.py",
       "qualified_name": "BaseWindow._screen",
       "scope": "BaseWindow",
+      "status": "active"
+    },
+    "2b83b9305654512a6b32bed9ff1d23b693021db574296c37a30a942f4313b804": {
+      "aliases": [
+        "message"
+      ],
+      "chid": "chid.178871",
+      "kind": "variable",
+      "name": "message",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.record_error.message",
+      "scope": "DynamoRelicStore.record_error",
       "status": "active"
     },
     "2b8417f1f138636671b8b3bca3da16c75247726a0809624167cf5136a9e3e572": {
@@ -379786,6 +379906,18 @@
       "path": "libs/isapi/install.py",
       "qualified_name": "GetLoaderModuleName",
       "scope": "",
+      "status": "active"
+    },
+    "2d0ed73ec757a229819472bc4e6ae24bfc5caec8361749091a7c54192782c158": {
+      "aliases": [
+        "project_id"
+      ],
+      "chid": "chid.178852",
+      "kind": "variable",
+      "name": "project_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_scope_components.project_id",
+      "scope": "_error_scope_components",
       "status": "active"
     },
     "2d0f088e136bd3fd328a27f736fe36c806dd7bc4d10da20bc913268a59f263fb": {
@@ -410170,6 +410302,18 @@
       "path": "libs/psutil/_psosx.py",
       "qualified_name": "net_if_stats.flags",
       "scope": "net_if_stats",
+      "status": "active"
+    },
+    "30aaf6f5d5c1fd8819c5d37ed6210aff79243be8294dac3a19ade5222df12668": {
+      "aliases": [
+        "recall"
+      ],
+      "chid": "chid.178895",
+      "kind": "variable",
+      "name": "recall",
+      "path": "infra/aws/test_rist_relic_mcp.py",
+      "qualified_name": "ReLiCMcpTests.test_scoped_error_tools_preserve_locality_and_inheritance_contract.recall",
+      "scope": "ReLiCMcpTests.test_scoped_error_tools_preserve_locality_and_inheritance_contract",
       "status": "active"
     },
     "30ab2d89dfec0437ad04b1f5a1dcc4a664d1a9b47476c6f5418b8c7e6b4fc209": {
@@ -466834,6 +466978,18 @@
       "path": "libs/pyglet/gl/gl_compat.py",
       "qualified_name": "GL_NORMAL_ARRAY_STRIDE",
       "scope": "",
+      "status": "active"
+    },
+    "3765196d6434778c52335d8165f533bb195e34f7ec7aaa7c5be13eaeef008fb9": {
+      "aliases": [
+        "chain"
+      ],
+      "chid": "chid.178867",
+      "kind": "variable",
+      "name": "chain",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_chain.chain",
+      "scope": "DynamoRelicStore._error_scope_chain",
       "status": "active"
     },
     "37656092dd891060983e7ce8e64e92667298f9dab80aa579ecab1006a39c0fa7": {
@@ -563556,6 +563712,18 @@
       "scope": "TestWSAEnumNetworkEvents.test_functional",
       "status": "active"
     },
+    "42f83729b640eba0f7c4b1ffcc3e36f2163a3aa633ffa35be2c86a47c145ddf5": {
+      "aliases": [
+        "instance_id"
+      ],
+      "chid": "chid.178866",
+      "kind": "parameter",
+      "name": "instance_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_chain.instance_id",
+      "scope": "DynamoRelicStore._error_scope_chain",
+      "status": "active"
+    },
     "42f879a415eee1c350b86287465cbe295bea7974381d35d8d9d888c61714f5ce": {
       "aliases": [
         "wheel_path"
@@ -564430,6 +564598,18 @@
       "path": "libs/pyglet/__init__.py",
       "qualified_name": "font",
       "scope": "",
+      "status": "active"
+    },
+    "431130d14cfadd53e0f870d0a8474feef024e72f229dd1b36e8513b075fb3379": {
+      "aliases": [
+        "instance_id"
+      ],
+      "chid": "chid.178850",
+      "kind": "parameter",
+      "name": "instance_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_scope_components.instance_id",
+      "scope": "_error_scope_components",
       "status": "active"
     },
     "431136f8699070fafd6a2b4f3a3d8c8a15351bea7759ea4744768ab21a71238a": {
@@ -573586,6 +573766,18 @@
       "path": "libs/PyInstaller/hooks/hook-PySide6.QtQuickWidgets.py",
       "qualified_name": "add_qt6_dependencies",
       "scope": "",
+      "status": "active"
+    },
+    "4423d5afce593e6e4979a8437b4677a1bdfbbf2cb60a45215c55d446912a3ba8": {
+      "aliases": [
+        "scope"
+      ],
+      "chid": "chid.178847",
+      "kind": "parameter",
+      "name": "scope",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_scope_components.scope",
+      "scope": "_error_scope_components",
       "status": "active"
     },
     "442497a593f6033692034e2b9b86694d9ba9c3af4a40617e2965f0309cf78cfb": {
@@ -596184,6 +596376,18 @@
       "scope": "TestSdistTest.test_package_data_in_sdist",
       "status": "active"
     },
+    "46c884ff004eba45e7e193d938074c8625e824118703e4d7e15548b758961c80": {
+      "aliases": [
+        "pk"
+      ],
+      "chid": "chid.178888",
+      "kind": "variable",
+      "name": "pk",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.pk",
+      "scope": "DynamoRelicStore.recall_errors",
+      "status": "active"
+    },
     "46c88a6fd6d529fc92338da2f3e55a17cb76612fe927be7284ab256c3449666d": {
       "aliases": [
         "self"
@@ -618346,6 +618550,18 @@
       "path": "libs/pythonwin/pywin/Demos/ocx/demoutils.py",
       "qualified_name": "NeedAppMsg",
       "scope": "",
+      "status": "active"
+    },
+    "496205a8675afd9ff5d33ac8b5de72de97225a21da038f9ebd6423bdd2bed8f1": {
+      "aliases": [
+        "self"
+      ],
+      "chid": "chid.178869",
+      "kind": "parameter",
+      "name": "self",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.record_error.self",
+      "scope": "DynamoRelicStore.record_error",
       "status": "active"
     },
     "496216755179a919bd7df5935dc0052347072575011909244ef7de7213b426c7": {
@@ -695364,6 +695580,18 @@
       "scope": "",
       "status": "active"
     },
+    "529468a1fcd3716f9ac93f4fba279aa8cff16982ecbc0a63901474576ca1e8ee": {
+      "aliases": [
+        "now"
+      ],
+      "chid": "chid.178872",
+      "kind": "variable",
+      "name": "now",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.record_error.now",
+      "scope": "DynamoRelicStore.record_error",
+      "status": "active"
+    },
     "52947214af96ba69b1aaf1cdcd2386adcf000a5eeef8f2e3e32728604419e6fb": {
       "aliases": [
         "self"
@@ -751570,6 +751798,18 @@
       "path": "libs/pyglet/libs/win32/constants.py",
       "qualified_name": "SECURITY_NETWORK_RID",
       "scope": "",
+      "status": "active"
+    },
+    "5951ad59adaaa9a12ca511b208be466ac8599b80a51b69db02792b57a534c9e4": {
+      "aliases": [
+        "message"
+      ],
+      "chid": "chid.178843",
+      "kind": "parameter",
+      "name": "message",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_fingerprint.message",
+      "scope": "_error_fingerprint",
       "status": "active"
     },
     "5951fc9962598a0d63b55d08ef63d39136a288553f63ed3f52d101bb60f288e3": {
@@ -817704,6 +817944,18 @@
       "scope": "",
       "status": "active"
     },
+    "6135eb3622985411f618449a032991b74760aad2cff2c800c988d4ab62fea091": {
+      "aliases": [
+        "records"
+      ],
+      "chid": "chid.178886",
+      "kind": "variable",
+      "name": "records",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.records",
+      "scope": "DynamoRelicStore.recall_errors",
+      "status": "active"
+    },
     "613769d70ed1fa765a41cceeb64f62c3de6f92f179d996064741acabe9c9b928": {
       "aliases": [
         "th"
@@ -826654,6 +826906,18 @@
       "path": "libs/pyglet/gl/gl_compat.py",
       "qualified_name": "GL_COLOR_ARRAY_SIZE",
       "scope": "",
+      "status": "active"
+    },
+    "624f7de1ea854b120a4b25d55c3d8d385863d1439761ac3244ec8acee92ec302": {
+      "aliases": [
+        "result"
+      ],
+      "chid": "chid.178889",
+      "kind": "variable",
+      "name": "result",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.result",
+      "scope": "DynamoRelicStore.recall_errors",
       "status": "active"
     },
     "624f874e7bed8e52673904fbe638a0b74264bb795cc1a486f9f3f393c326c00a": {
@@ -845098,6 +845362,18 @@
       "path": "apps/tactical/js/perception.js",
       "qualified_name": "fog",
       "scope": "",
+      "status": "active"
+    },
+    "648724c26d7750a7099309000ac34acd7007d7b09c0fd808eb6e127f18267964": {
+      "aliases": [
+        "item"
+      ],
+      "chid": "chid.178877",
+      "kind": "variable",
+      "name": "item",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.record_error.item",
+      "scope": "DynamoRelicStore.record_error",
       "status": "active"
     },
     "6487c249dc5591d553e38aa2faabc402e6121a252096ed2cf93316c6b27010bd": {
@@ -967020,6 +967296,18 @@
       "scope": "AwsTests.tearDown",
       "status": "active"
     },
+    "7320e27621ba3d622299593e6d9c7a862e8c9e191168d2f27166ef0ca70a593c": {
+      "aliases": [
+        "entity_id"
+      ],
+      "chid": "chid.178865",
+      "kind": "parameter",
+      "name": "entity_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_chain.entity_id",
+      "scope": "DynamoRelicStore._error_scope_chain",
+      "status": "active"
+    },
     "7321566e1243776d8bc2c70a90e32697ba7226b3d94466c1d4116b9f2decc1ac": {
       "aliases": [
         "LVM_GETITEMTEXTW"
@@ -970582,6 +970870,18 @@
       "path": "libs/pyglet/media/drivers/openal/lib_openal.py",
       "qualified_name": "LPALGETSOURCEIV",
       "scope": "",
+      "status": "active"
+    },
+    "739722bc211c9b01ef186601b04cc2b4ef75d9c6661c31aaab0754d0cfebd780": {
+      "aliases": [
+        "seen"
+      ],
+      "chid": "chid.178887",
+      "kind": "variable",
+      "name": "seen",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.seen",
+      "scope": "DynamoRelicStore.recall_errors",
       "status": "active"
     },
     "739731699eea575bd332a1a8f5f15282355fec617295b9565ff7d86f44fd4e44": {
@@ -1018728,6 +1019028,18 @@
       "scope": "SUCCEEDED",
       "status": "active"
     },
+    "79475bed613e147ecd92a01f505236dc7c4427f7191911396c32bb29e1e320e7": {
+      "aliases": [
+        "digest"
+      ],
+      "chid": "chid.178845",
+      "kind": "variable",
+      "name": "digest",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_fingerprint.digest",
+      "scope": "_error_fingerprint",
+      "status": "active"
+    },
     "794792b2804ce2d4bb9bf4dbc7ed345044b2504d17831122c9023d53c356ef4a": {
       "aliases": [
         "USER_PRIV_ADMIN"
@@ -1036858,6 +1037170,18 @@
       "path": "libs/pyglet/libs/darwin/cocoapy/cocoatypes.py",
       "qualified_name": "NSZoneEncoding",
       "scope": "",
+      "status": "active"
+    },
+    "7b875e35778d9e4e803c262712e60a95e06828ea18bf074423231377765d1e35": {
+      "aliases": [
+        "project_id"
+      ],
+      "chid": "chid.178881",
+      "kind": "variable",
+      "name": "project_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.project_id",
+      "scope": "DynamoRelicStore.recall_errors",
       "status": "active"
     },
     "7b87b75aa901c280db195327fc35ed7bd82a4bdff3d4c488267ff4c91238d43e": {
@@ -1073076,6 +1073400,18 @@
       "scope": "TestLinkTree.test_generated_tree",
       "status": "active"
     },
+    "7fdd43dd0f1032604b628586cab88592e0543197830f8229e98b2712c0e5697d": {
+      "aliases": [
+        "self"
+      ],
+      "chid": "chid.178893",
+      "kind": "parameter",
+      "name": "self",
+      "path": "infra/aws/test_rist_relic_mcp.py",
+      "qualified_name": "ReLiCMcpTests.test_scoped_error_tools_preserve_locality_and_inheritance_contract.self",
+      "scope": "ReLiCMcpTests.test_scoped_error_tools_preserve_locality_and_inheritance_contract",
+      "status": "active"
+    },
     "7fdd75d3a53983fd3b4371f2d79dcbecb2355d26e7648b25cd949299e4e75964": {
       "aliases": [
         "CERT_DSS_R_LEN"
@@ -1106026,6 +1106362,18 @@
       "path": "libs/PyInstaller/hooks/hook-PySide2.QtQml.py",
       "qualified_name": "pyside2_library_info",
       "scope": "",
+      "status": "active"
+    },
+    "83d6660fa70fde79ceffd78714bb0d972a13a63135062f400f7331607af90bd1": {
+      "aliases": [
+        "args"
+      ],
+      "chid": "chid.178880",
+      "kind": "parameter",
+      "name": "args",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.args",
+      "scope": "DynamoRelicStore.recall_errors",
       "status": "active"
     },
     "83d6a83eb4e6fa339d19b4e1ea34b99de856ee2cd6aa080e9cf9e6648db653c4": {
@@ -1210716,6 +1211064,18 @@
       "scope": "",
       "status": "active"
     },
+    "9061f3ecd2a38702787b5f0d2ca3a444051ca34e030566441ed31c3bb22d1cad": {
+      "aliases": [
+        "instance_id"
+      ],
+      "chid": "chid.178860",
+      "kind": "parameter",
+      "name": "instance_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_pk.instance_id",
+      "scope": "DynamoRelicStore._error_scope_pk",
+      "status": "active"
+    },
     "9062de329f52554b9e1aa24b5d8a845870e45db462bffbe5938137276d04d7f9": {
       "aliases": [
         "STATEREPOSITORY_E_BUSY_TIMEOUT_EXCEEDED"
@@ -1281768,6 +1282128,18 @@
       "scope": "",
       "status": "active"
     },
+    "9900ecc8433acf461005ae10fe55a7589bdd6b2701880aef342e37e809aee405": {
+      "aliases": [
+        "instance_id"
+      ],
+      "chid": "chid.178883",
+      "kind": "variable",
+      "name": "instance_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.instance_id",
+      "scope": "DynamoRelicStore.recall_errors",
+      "status": "active"
+    },
     "9901133d604ac4f0349c664b10a6d607f68b19cb24afa35dd75f2d3dbf387b41": {
       "aliases": [
         "self"
@@ -1296610,6 +1296982,18 @@
       "path": "libs/pythonwin/pywin/docking/DockingBar.py",
       "qualified_name": "DockingBar.__init__.cxBorder",
       "scope": "DockingBar.__init__",
+      "status": "active"
+    },
+    "9accf545a38870dad25c3d56a980f2325f7345b4513c7895a1aef9994c54c50b": {
+      "aliases": [
+        "ERROR_SCOPES"
+      ],
+      "chid": "chid.178841",
+      "kind": "variable",
+      "name": "ERROR_SCOPES",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "ERROR_SCOPES",
+      "scope": "",
       "status": "active"
     },
     "9acd21c5439409824ec7c819c1dd8134534de2031cf91b6af5e21365117b6fb2": {
@@ -1350154,6 +1350538,18 @@
       "path": "libs/pyglet/gl/gl_compat.py",
       "qualified_name": "glDeleteVertexArrays",
       "scope": "",
+      "status": "active"
+    },
+    "a14114dcbccb5cc185b08daefdd81bfb819e58f5682eb75eb5f22ebe2a2769d3": {
+      "aliases": [
+        "project_id"
+      ],
+      "chid": "chid.178848",
+      "kind": "parameter",
+      "name": "project_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_scope_components.project_id",
+      "scope": "_error_scope_components",
       "status": "active"
     },
     "a1414a58fd161b77951d6d255010fbba7a1aceec6e31fb7d8533f9e90e4ebb8f": {
@@ -1410240,6 +1410636,18 @@
       "scope": "ExtractionError",
       "status": "active"
     },
+    "a843775e0b398f70e7cbc5cff51cfbc76ebcdd58e4db0eac7539b5336614bd91": {
+      "aliases": [
+        "recall_errors"
+      ],
+      "chid": "chid.178878",
+      "kind": "method",
+      "name": "recall_errors",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors",
+      "scope": "DynamoRelicStore",
+      "status": "active"
+    },
     "a843eea88d01e6c049c1c30cb8cba2447c02322f2f41f26f11b80882bc9aa337": {
       "aliases": [
         "option"
@@ -1451614,6 +1452022,18 @@
       "path": "libs/pythonwin/pywin/framework/app.py",
       "qualified_name": "CApp.HandleOnFileNew",
       "scope": "CApp",
+      "status": "active"
+    },
+    "ad3a90175b66a0afbbf7d6423f5df44387ac781e84844af56546501bd227700d": {
+      "aliases": [
+        "self"
+      ],
+      "chid": "chid.178856",
+      "kind": "parameter",
+      "name": "self",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_pk.self",
+      "scope": "DynamoRelicStore._error_scope_pk",
       "status": "active"
     },
     "ad3bd985ec3bbff5e5e7ba61362df8ba781db976c562b03ece7a6fa9953cc07b": {
@@ -1496734,6 +1497154,18 @@
       "path": "libs/pythonwin/pywin/Demos/dlgtest.py",
       "qualified_name": "TestDialog.KillFocus",
       "scope": "TestDialog",
+      "status": "active"
+    },
+    "b2b43f7e64e21987a9744d5e551f159db920e9d23dea257c68a43991af58060f": {
+      "aliases": [
+        "normalized"
+      ],
+      "chid": "chid.178844",
+      "kind": "variable",
+      "name": "normalized",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_fingerprint.normalized",
+      "scope": "_error_fingerprint",
       "status": "active"
     },
     "b2b4845ea3e059dba1554eb545bb082979781cdf213907beba2a248acfe8b620": {
@@ -1543680,6 +1544112,18 @@
       "scope": "",
       "status": "active"
     },
+    "b85f1da98de1e4123ebba66735d8eb9007c0986f8d558fbf7bed85a077e367ae": {
+      "aliases": [
+        "entity_id"
+      ],
+      "chid": "chid.178882",
+      "kind": "variable",
+      "name": "entity_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.entity_id",
+      "scope": "DynamoRelicStore.recall_errors",
+      "status": "active"
+    },
     "b8601475ab1c7c24dcc117d473e3c943510183065114d00b4643c92a6da76fea": {
       "aliases": [
         "glProgramUniform1f"
@@ -1573762,6 +1574206,18 @@
       "path": "libs/setuptools/_distutils/command/bdist_rpm.py",
       "qualified_name": "bdist_rpm._make_spec_file.self",
       "scope": "bdist_rpm._make_spec_file",
+      "status": "active"
+    },
+    "bbf0231c42156a04c7a2057b59cf0ef523dba28adf16ab0dd51e248bdbaa65c6": {
+      "aliases": [
+        "args"
+      ],
+      "chid": "chid.178870",
+      "kind": "parameter",
+      "name": "args",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.record_error.args",
+      "scope": "DynamoRelicStore.record_error",
       "status": "active"
     },
     "bbf1949b2784f3e1e3590ec3cd3dbadb3a15e2277f98130efabc5f7ead9fd8b2": {
@@ -1612872,6 +1613328,18 @@
       "scope": "DatabaseAPI20Test.tearDown",
       "status": "active"
     },
+    "c08fe0e791098910e9f2697bb8614abd15b6653ae6ba1554b285fce1bb7f047e": {
+      "aliases": [
+        "existing"
+      ],
+      "chid": "chid.178875",
+      "kind": "variable",
+      "name": "existing",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.record_error.existing",
+      "scope": "DynamoRelicStore.record_error",
+      "status": "active"
+    },
     "c0903a7e15469530832f5cb96022a67d9d8e12b0aceae60c8b2255e1a45792fc": {
       "aliases": [
         "INTERNET_OPTION_KEEP_CONNECTION"
@@ -1638648,6 +1639116,18 @@
       "scope": "",
       "status": "active"
     },
+    "c39205a8b486951645c16e3d3408469dd9bbfb2a71624aa2c051c8670d148b33": {
+      "aliases": [
+        "entity_id"
+      ],
+      "chid": "chid.178859",
+      "kind": "parameter",
+      "name": "entity_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_pk.entity_id",
+      "scope": "DynamoRelicStore._error_scope_pk",
+      "status": "active"
+    },
     "c39215d9b30e8ae885b065dd38a36a009e47545b5589d74e825762c2b8cf530c": {
       "aliases": [
         "__init__"
@@ -1664004,6 +1664484,18 @@
       "scope": "",
       "status": "active"
     },
+    "c684e6820f9d38ba6785f221f26720b0ed8c72c13dd5a0fb59f726688603f6a4": {
+      "aliases": [
+        "parts"
+      ],
+      "chid": "chid.178861",
+      "kind": "variable",
+      "name": "parts",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_pk.parts",
+      "scope": "DynamoRelicStore._error_scope_pk",
+      "status": "active"
+    },
     "c6854513794c399a91fa72cb168cedf641cf325b840eeefa6d688ab553683816": {
       "aliases": [
         "self"
@@ -1664578,6 +1665070,18 @@
       "path": "libs/pythonwin/pywin/scintilla/control.py",
       "qualified_name": "CScintillaEdit.CreateWindow.self",
       "scope": "CScintillaEdit.CreateWindow",
+      "status": "active"
+    },
+    "c6933dcc536e77da0c885c8b9208d845de4985d35e240a14afd98aa0bdebf133": {
+      "aliases": [
+        "fingerprint"
+      ],
+      "chid": "chid.178891",
+      "kind": "variable",
+      "name": "fingerprint",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.fingerprint",
+      "scope": "DynamoRelicStore.recall_errors",
       "status": "active"
     },
     "c6936177e4ec09814f418598e3d315c365a57776e91833400c40d57c381a7d32": {
@@ -1704384,6 +1704888,18 @@
       "scope": "ConfigManager._load_general",
       "status": "active"
     },
+    "cb43d41955abef4051e79d4dfcf683dcc9de52bbd9f1bc3c34259c02e99d74ae": {
+      "aliases": [
+        "scope"
+      ],
+      "chid": "chid.178851",
+      "kind": "variable",
+      "name": "scope",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_scope_components.scope",
+      "scope": "_error_scope_components",
+      "status": "active"
+    },
     "cb445879413a61089286698b11e817f42587018b79a383fd132f9153e2036635": {
       "aliases": [
         "DSBCAPS_PRIMARYBUFFER"
@@ -1717812,6 +1718328,18 @@
       "scope": "ConfigDiscovery",
       "status": "active"
     },
+    "cce906946c64e4400ab4793ad749128c756bdeb23fcd2e2588da70b3b6239669": {
+      "aliases": [
+        "instance_id"
+      ],
+      "chid": "chid.178854",
+      "kind": "variable",
+      "name": "instance_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_scope_components.instance_id",
+      "scope": "_error_scope_components",
+      "status": "active"
+    },
     "cce9b41986a3ff7b16c3e19f55cec0f4375178cd5f6d43e1b68c36787254d475": {
       "aliases": [
         "start_length"
@@ -1723762,6 +1724290,18 @@
       "path": "libs/setuptools/command/build_ext.py",
       "qualified_name": "build_ext.write_stub.self",
       "scope": "build_ext.write_stub",
+      "status": "active"
+    },
+    "cda1001c88d82e80232b6059f9ea6eba95521b57271dc25c9abb313b9b4004aa": {
+      "aliases": [
+        "_error_scope_components"
+      ],
+      "chid": "chid.178846",
+      "kind": "function",
+      "name": "_error_scope_components",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_scope_components",
+      "scope": "",
       "status": "active"
     },
     "cda1c7997f1143c17b2afbb81e7d0d46b8e01bd2f9683a274f5e1f31cb1e2737": {
@@ -1738366,6 +1738906,18 @@
       "path": "libs/pythonwin/pywin/scintilla/scintillacon.py",
       "qualified_name": "SCE_L_CMDOPT",
       "scope": "",
+      "status": "active"
+    },
+    "cf69d7649729fd25f5758acb9577109e4cef6a3ffc5959f556d6751b16951d0b": {
+      "aliases": [
+        "entity_id"
+      ],
+      "chid": "chid.178849",
+      "kind": "parameter",
+      "name": "entity_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_scope_components.entity_id",
+      "scope": "_error_scope_components",
       "status": "active"
     },
     "cf6a7de698c03ea522c2931318c575a40b8444cf0c273712e0b639342ae441a3": {
@@ -1791876,6 +1792428,18 @@
       "scope": "generic_symbol",
       "status": "active"
     },
+    "d5c2564766e73913d6b6c265499c06f53789c56d08e51f9d79ad2f43dcda5318": {
+      "aliases": [
+        "self"
+      ],
+      "chid": "chid.178863",
+      "kind": "parameter",
+      "name": "self",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_chain.self",
+      "scope": "DynamoRelicStore._error_scope_chain",
+      "status": "active"
+    },
     "d5c25a9b87fc28d31ad2e1c5f3c6872072a2449e119616ddbf45e5bb2a8eb796": {
       "aliases": [
         "t"
@@ -1805110,6 +1805674,18 @@
       "path": "libs/pefile.py",
       "qualified_name": "PE.dump_dict.section_dict",
       "scope": "PE.dump_dict",
+      "status": "active"
+    },
+    "d7416f42b831a29c9325c478f7538715d88fea806e6ef54c355b40ba36e04b99": {
+      "aliases": [
+        "_error_scope_pk"
+      ],
+      "chid": "chid.178855",
+      "kind": "method",
+      "name": "_error_scope_pk",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_pk",
+      "scope": "DynamoRelicStore",
       "status": "active"
     },
     "d742337258661735fa3c83c6ed80369117bddae22c6842914b1203c8479a5157": {
@@ -1853806,6 +1854382,18 @@
       "path": "libs/win32/lib/netbios.py",
       "qualified_name": "ASYNCH",
       "scope": "",
+      "status": "active"
+    },
+    "dcfa4d88e377f27d631c5900eef2088a52b9d957e8daea93a24a59d3c4931b18": {
+      "aliases": [
+        "record"
+      ],
+      "chid": "chid.178894",
+      "kind": "variable",
+      "name": "record",
+      "path": "infra/aws/test_rist_relic_mcp.py",
+      "qualified_name": "ReLiCMcpTests.test_scoped_error_tools_preserve_locality_and_inheritance_contract.record",
+      "scope": "ReLiCMcpTests.test_scoped_error_tools_preserve_locality_and_inheritance_contract",
       "status": "active"
     },
     "dcfc9882fb6d01f263f9b9791984f7e743bfa8e792724bad5040464634dbb253": {
@@ -1919616,6 +1920204,18 @@
       "scope": "Arc.__init__",
       "status": "active"
     },
+    "e4e32bae7597b685f4240abf47de922af429886195dd6c360f4683cc62785d03": {
+      "aliases": [
+        "sk"
+      ],
+      "chid": "chid.178874",
+      "kind": "variable",
+      "name": "sk",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.record_error.sk",
+      "scope": "DynamoRelicStore.record_error",
+      "status": "active"
+    },
     "e4e39b44c2eb2d10fbd8767b257dbbd2303e625a95df60758b634f466168c4d4": {
       "aliases": [
         "Compiler"
@@ -1921006,6 +1921606,18 @@
       "path": "libs/PyInstaller/hooks/hook-gi.repository.GdkPixbuf.py",
       "qualified_name": "hook.loader_libs",
       "scope": "hook",
+      "status": "active"
+    },
+    "e5110496a14c06fec1c8b38888264a5779e973c457e3fc92784e9cdcd0c2c2e2": {
+      "aliases": [
+        "self"
+      ],
+      "chid": "chid.178879",
+      "kind": "parameter",
+      "name": "self",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.recall_errors.self",
+      "scope": "DynamoRelicStore.recall_errors",
       "status": "active"
     },
     "e51127826176d2b4641d812f8a79f11723464543b8ebfa0fafab82c274028583": {
@@ -1991278,6 +1991890,18 @@
       "path": "libs/win32/Demos/win32gui_dialog.py",
       "qualified_name": "commctrl",
       "scope": "",
+      "status": "active"
+    },
+    "ed8634b057641a822642d0c9591bbd1bbf620dbbac4006fa07100f522e32b7dc": {
+      "aliases": [
+        "entity_id"
+      ],
+      "chid": "chid.178853",
+      "kind": "variable",
+      "name": "entity_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "_error_scope_components.entity_id",
+      "scope": "_error_scope_components",
       "status": "active"
     },
     "ed873be18eb9c5b963616d812dcd53edb523c765a7f1981c9bf58f7dccd94c31": {
@@ -2070192,6 +2070816,18 @@
       "scope": "",
       "status": "active"
     },
+    "f6ec4db55de4709571827034b237303773dd6c0f0e15c64d340c62fa8f95b18d": {
+      "aliases": [
+        "project_id"
+      ],
+      "chid": "chid.178858",
+      "kind": "parameter",
+      "name": "project_id",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore._error_scope_pk.project_id",
+      "scope": "DynamoRelicStore._error_scope_pk",
+      "status": "active"
+    },
     "f6ec8c3b0c128e5ea4193ee1d543355261f13a9a478278f74e61a281f6674958": {
       "aliases": [
         "cmd"
@@ -2078758,6 +2079394,18 @@
       "path": "libs/setuptools/_vendor/typeguard/_transformer.py",
       "qualified_name": "Expr",
       "scope": "",
+      "status": "active"
+    },
+    "f7e94fb561cca732abcc590776372779e3fe635596f7d7f7ae7037495aa6139b": {
+      "aliases": [
+        "test_scoped_error_tools_preserve_locality_and_inheritance_contract"
+      ],
+      "chid": "chid.178892",
+      "kind": "method",
+      "name": "test_scoped_error_tools_preserve_locality_and_inheritance_contract",
+      "path": "infra/aws/test_rist_relic_mcp.py",
+      "qualified_name": "ReLiCMcpTests.test_scoped_error_tools_preserve_locality_and_inheritance_contract",
+      "scope": "ReLiCMcpTests",
       "status": "active"
     },
     "f7e99fc68f65fd1f2a533656bad4fa53655c6217b4bf4b0645061e39e228f48f": {
@@ -2110162,6 +2110810,18 @@
       "path": "libs/pyglet/experimental/jobs.py",
       "qualified_name": "JobExecutor.__repr__.self",
       "scope": "JobExecutor.__repr__",
+      "status": "active"
+    },
+    "fbb521e951aa1805c3a5f4bc33407a5d0eac9b36d3de4d3ae3d3d90fe2305d7a": {
+      "aliases": [
+        "pk"
+      ],
+      "chid": "chid.178873",
+      "kind": "variable",
+      "name": "pk",
+      "path": "infra/aws/relic_mcp_store.py",
+      "qualified_name": "DynamoRelicStore.record_error.pk",
+      "scope": "DynamoRelicStore.record_error",
       "status": "active"
     },
     "fbb661e290e52dec4c5466549c084b5b2d03bd7257cf840898166d47b93ee340": {
@@ -2146081,6 +2146741,6 @@
       "status": "active"
     }
   },
-  "next_id": 178841,
+  "next_id": 178896,
   "version": 1
 }
