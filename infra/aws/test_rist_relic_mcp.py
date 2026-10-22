@@ -34,7 +34,7 @@ class ReLiCMcpTests(unittest.TestCase):
         tools = body(r)["result"]["tools"]
         names = {t["name"] for t in tools}
         self.assertTrue({"relic_context","relic_validate","relic_canon","relic_health","relic_project_search","relic_project_fetch","relic_context_pack"}.issubset(names))
-        self.assertTrue({"relic_profile","relic_recall","relic_identify","relic_observe","relic_trace","relic_translate","relic_imagine","relic_remember","relic_relate","relic_instantiate","relic_transition"}.issubset(names))
+        self.assertTrue({"relic_profile","relic_recall","relic_identify","relic_observe","relic_trace","relic_translate","relic_imagine","relic_remember","relic_relate","relic_instantiate","relic_transition","relic_error_record","relic_error_recall"}.issubset(names))
         public = next(t for t in tools if t["name"] == "relic_context")
         private = next(t for t in tools if t["name"] == "relic_recall")
         self.assertEqual(public["securitySchemes"][0]["type"], "noauth")
@@ -47,6 +47,19 @@ class ReLiCMcpTests(unittest.TestCase):
                 self.assertNotIn(phrase, description, tool["name"])
         self.assertIn("use this when", public["description"].lower())
         self.assertIn("use this when", private["description"].lower())
+
+    def test_scoped_error_tools_preserve_locality_and_inheritance_contract(self):
+        record = next(t for t in m.TOOL_DEFS if t["name"] == "relic_error_record")
+        recall = next(t for t in m.TOOL_DEFS if t["name"] == "relic_error_recall")
+        self.assertEqual(record["securitySchemes"][0]["scopes"], ["relic.read", "relic.write"])
+        self.assertFalse(record["annotations"]["readOnlyHint"])
+        self.assertEqual(
+            record["inputSchema"]["properties"]["scope"]["enum"],
+            ["universal", "project", "entity", "instance"],
+        )
+        self.assertEqual(recall["securitySchemes"][0]["scopes"], ["relic.read"])
+        self.assertTrue(recall["annotations"]["readOnlyHint"])
+        self.assertIn("without duplicating", recall["description"])
 
     def test_profile_tool_matches_chatgpt_contract(self):
         profile = next(t for t in m.TOOL_DEFS if t["name"] == "relic_profile")
