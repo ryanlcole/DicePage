@@ -929902,7 +929902,7 @@
       "path": "apps/rist-world/wwwroot/tavern3d.html",
       "qualified_name": "run",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "6eb2bb3f9bd59e40cf3bbecb133bc1dcf96b91bc91d949549851bc9d1e4e3b49": {
       "aliases": [
@@ -1109040,6 +1109040,18 @@
       "scope": "PsutilTestCase.assert_proc_gone",
       "status": "active"
     },
+    "8420d6db4404e8033a98aeb53a6af7591bf0618b1b2a2c6628b56e88d7d227ce": {
+      "aliases": [
+        "v"
+      ],
+      "chid": "chid.178902",
+      "kind": "ui-id",
+      "name": "v",
+      "path": "site/relic-home/rion/tavern3d.html",
+      "qualified_name": "v",
+      "scope": "",
+      "status": "active"
+    },
     "8421082065646c57d317736ec9606a737fd409ae847d866c54d0a443db4240af": {
       "aliases": [
         "_pl_special_verb"
@@ -1201486,7 +1201498,7 @@
       "path": "apps/rist-world/wwwroot/tavern3d.html",
       "qualified_name": "v",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "8f39766fdfba9dfdb280e2f126d6e4b977bfdc350b49b362692a2057c9593e89": {
       "aliases": [
@@ -1366644,6 +1366656,18 @@
       "scope": "",
       "status": "active"
     },
+    "a31d6682bf063b633eb17bf5b6b1969aefae671cfd98bb81b6a29ad5e69efd6f": {
+      "aliases": [
+        "readout"
+      ],
+      "chid": "chid.178903",
+      "kind": "ui-id",
+      "name": "readout",
+      "path": "site/relic-home/rion/tavern3d.html",
+      "qualified_name": "readout",
+      "scope": "",
+      "status": "active"
+    },
     "a31d74476d71fac1bb078f1f14b8ae61a3b695da1554cd7e227ab838b4653204": {
       "aliases": [
         "make_item_enum"
@@ -1389034,6 +1389058,18 @@
       "path": "libs/ordlookup/__init__.py",
       "qualified_name": "ordLookup.names",
       "scope": "ordLookup",
+      "status": "active"
+    },
+    "a5b566510383bc5dda8ac66c81ac9ad3eb5e2a309be1e57ed742a2f2ee39930b": {
+      "aliases": [
+        "run"
+      ],
+      "chid": "chid.178904",
+      "kind": "ui-id",
+      "name": "run",
+      "path": "site/relic-home/rion/tavern3d.html",
+      "qualified_name": "run",
+      "scope": "",
       "status": "active"
     },
     "a5b59031e383ae17745fc3fe32ab837bea263fdf2b68d46b976cf54d0a0aae90": {
@@ -1485418,7 +1485454,7 @@
       "path": "apps/rist-world/wwwroot/tavern3d.html",
       "qualified_name": "reset",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "b149b5dd51aa00281f9780c523e323507b6594f72381854088cb514eea5123aa": {
       "aliases": [
@@ -1629886,7 +1629922,7 @@
       "path": "apps/rist-world/wwwroot/tavern3d.html",
       "qualified_name": "readout",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "c2809ab429e962b586dd6a196753b366dd09abcf0d6570ef6ea16d8e1eff9ada": {
       "aliases": [
@@ -1743166,7 +1743202,7 @@
       "path": "apps/rist-world/wwwroot/tavern3d.html",
       "qualified_name": "viewport",
       "scope": "",
-      "status": "active"
+      "status": "retired"
     },
     "cfed6e6e7e767b509a87967257011c313b2570754d36802af384049f858bb1f1": {
       "aliases": [
@@ -1792869,6 +1792905,18 @@
       "name": "DNS_ERROR_RCODE_NO_ERROR",
       "path": "libs/win32/lib/winerror.py",
       "qualified_name": "DNS_ERROR_RCODE_NO_ERROR",
+      "scope": "",
+      "status": "active"
+    },
+    "d5ccafa67a557c222abf0d82f861ce179d07808a1495e837d801abc33096268e": {
+      "aliases": [
+        "reset"
+      ],
+      "chid": "chid.178905",
+      "kind": "ui-id",
+      "name": "reset",
+      "path": "site/relic-home/rion/tavern3d.html",
+      "qualified_name": "reset",
       "scope": "",
       "status": "active"
     },
@@ -2113548,6 +2113596,18 @@
       "scope": "",
       "status": "active"
     },
+    "fc08cbaf58532427c5c3173db289cc828f36067d8813a304407055146e5facad": {
+      "aliases": [
+        "viewport"
+      ],
+      "chid": "chid.178901",
+      "kind": "ui-id",
+      "name": "viewport",
+      "path": "site/relic-home/rion/tavern3d.html",
+      "qualified_name": "viewport",
+      "scope": "",
+      "status": "active"
+    },
     "fc08e0e2c479f1e05da87a1f000ce493a39151c1446a4178f32ac4ace0ce0485": {
       "aliases": [
         "ERROR_VID_INVALID_CHILD_GPA_PAGE_SET"
@@ -2146801,6 +2146861,6 @@
       "status": "active"
     }
   },
-  "next_id": 178901,
+  "next_id": 178906,
   "version": 1
 }
