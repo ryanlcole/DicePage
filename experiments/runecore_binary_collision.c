@@ -31,16 +31,19 @@ static int test_exhaustive(unsigned n) {
 
 static int test_mass_conservation(void) {
     for (unsigned n = 1; n <= 63; ++n) {
-        uint64_t state = 0;
-        uint64_t all = (UINT64_C(1) << n) - 1;
+        const uint64_t membership = (UINT64_C(1) << n) - 1;
         for (unsigned k = 0; k <= n; ++k) {
-            uint64_t mask = k == 0 ? 0 : ((UINT64_C(1) << k) - 1);
-            uint64_t out = state ^ mask;
-            (void)out;
-            if (n != n) return 0; /* collision cannot alter constituent count */
+            const uint64_t state = 0;
+            const uint64_t mask = k == 0 ? 0 : ((UINT64_C(1) << k) - 1);
+            const uint64_t out = state ^ mask;
+
+            /* Collision may flip state bits, but it may not add/remove Rions.
+               Membership is deliberately independent from directional state. */
+            const uint64_t membership_after = membership;
+            if (popcount64(membership_after) != n) return 0;
+            if ((out & ~membership_after) != 0) return 0;
             if (popcount64(mask) != k) return 0;
         }
-        (void)all;
     }
     return 1;
 }
