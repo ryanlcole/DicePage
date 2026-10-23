@@ -1,0 +1,26 @@
+name: RuneCore Origin Freeze Hardware Test
+
+on:
+  push:
+    branches:
+      - tavern3d-binary-observer
+    paths:
+      - 'experiments/runecore_origin_freeze.c'
+      - '.github/workflows/runecore-origin-freeze-hardware.yml'
+  workflow_dispatch:
+
+jobs:
+  origin-freeze:
+    name: Absolute origin freeze on GitHub runner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Show runner CPU
+        run: |
+          uname -a
+          lscpu
+      - name: Compile native C
+        run: gcc -O2 -std=c11 -Wall -Wextra -Werror experiments/runecore_origin_freeze.c -o runecore_origin_freeze
+      - name: Execute origin freeze test
+        run: ./runecore_origin_freeze
