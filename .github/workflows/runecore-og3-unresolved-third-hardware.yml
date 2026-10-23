@@ -6,6 +6,7 @@ on:
       - rion-og3-unresolved-third-test
     paths:
       - experiments/runecore_og3_unresolved_third.c
+      - experiments/runecore_s118_triad_successor.c
       - .github/workflows/runecore-og3-unresolved-third-hardware.yml
   workflow_dispatch:
 
@@ -23,5 +24,10 @@ jobs:
           cc -std=c11 -O2 -Wall -Wextra -Werror \
             experiments/runecore_og3_unresolved_third.c \
             -o /tmp/runecore_og3_unresolved_third
+          cc -std=c11 -O2 -Wall -Wextra -Werror \
+            experiments/runecore_s118_triad_successor.c \
+            -o /tmp/runecore_s118_triad_successor
       - name: Execute S118 triad experiment on runner hardware
         run: /tmp/runecore_og3_unresolved_third
+      - name: Execute unresolved successor audit on runner hardware
+        run: /tmp/runecore_s118_triad_successor
