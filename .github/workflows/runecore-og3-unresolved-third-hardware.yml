@@ -1,0 +1,27 @@
+name: RuneCore S118 Triad Hardware Test
+
+on:
+  push:
+    branches:
+      - rion-og3-unresolved-third-test
+    paths:
+      - experiments/runecore_og3_unresolved_third.c
+      - .github/workflows/runecore-og3-unresolved-third-hardware.yml
+  workflow_dispatch:
+
+jobs:
+  hardware-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record hardware
+        run: |
+          uname -a
+          lscpu | sed -n '1,24p'
+      - name: Compile strict native C
+        run: |
+          cc -std=c11 -O2 -Wall -Wextra -Werror \
+            experiments/runecore_og3_unresolved_third.c \
+            -o /tmp/runecore_og3_unresolved_third
+      - name: Execute S118 triad experiment on runner hardware
+        run: /tmp/runecore_og3_unresolved_third
