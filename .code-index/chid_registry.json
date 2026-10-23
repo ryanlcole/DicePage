@@ -929892,6 +929892,18 @@
       "scope": "Win32DirectWriteFont.unpack_localized_string",
       "status": "active"
     },
+    "6eb22ea6a87c73e415952fbf6c2bd9fc3563883702b974173ef510c07fb35c18": {
+      "aliases": [
+        "run"
+      ],
+      "chid": "chid.178899",
+      "kind": "ui-id",
+      "name": "run",
+      "path": "apps/rist-world/wwwroot/tavern3d.html",
+      "qualified_name": "run",
+      "scope": "",
+      "status": "active"
+    },
     "6eb2bb3f9bd59e40cf3bbecb133bc1dcf96b91bc91d949549851bc9d1e4e3b49": {
       "aliases": [
         "pa_operation_set_state_callback"
@@ -1201462,6 +1201474,18 @@
       "path": "libs/adodbapi/apibase.py",
       "qualified_name": "pythonTimeConverter.Time.self",
       "scope": "pythonTimeConverter.Time",
+      "status": "active"
+    },
+    "8f393749611952536ff453dbb352ac731dabd3c7e2c0246d5ef89f3f7a4235d9": {
+      "aliases": [
+        "v"
+      ],
+      "chid": "chid.178897",
+      "kind": "ui-id",
+      "name": "v",
+      "path": "apps/rist-world/wwwroot/tavern3d.html",
+      "qualified_name": "v",
+      "scope": "",
       "status": "active"
     },
     "8f39766fdfba9dfdb280e2f126d6e4b977bfdc350b49b362692a2057c9593e89": {
@@ -1485384,6 +1485408,18 @@
       "scope": "",
       "status": "active"
     },
+    "b149a14eb48f29ba64f93c18d41165e74ad7d525efb468e84cd2abc1191e8afa": {
+      "aliases": [
+        "reset"
+      ],
+      "chid": "chid.178900",
+      "kind": "ui-id",
+      "name": "reset",
+      "path": "apps/rist-world/wwwroot/tavern3d.html",
+      "qualified_name": "reset",
+      "scope": "",
+      "status": "active"
+    },
     "b149b5dd51aa00281f9780c523e323507b6594f72381854088cb514eea5123aa": {
       "aliases": [
         "value"
@@ -1629840,6 +1629876,18 @@
       "scope": "",
       "status": "active"
     },
+    "c2808014f310ee94ef43e44ca2507dfda9e5f779b3b903e6064441c975ca6243": {
+      "aliases": [
+        "readout"
+      ],
+      "chid": "chid.178898",
+      "kind": "ui-id",
+      "name": "readout",
+      "path": "apps/rist-world/wwwroot/tavern3d.html",
+      "qualified_name": "readout",
+      "scope": "",
+      "status": "active"
+    },
     "c2809ab429e962b586dd6a196753b366dd09abcf0d6570ef6ea16d8e1eff9ada": {
       "aliases": [
         "DMPAPER_NOTE"
@@ -1743106,6 +1743154,18 @@
       "path": "libs/setuptools/_vendor/tomli/_parser.py",
       "qualified_name": "parse_basic_str.multiline",
       "scope": "parse_basic_str",
+      "status": "active"
+    },
+    "cfed4def247f539cf7f3ad11f13a68ce9dfd25456ed843ff89206ae2bdd3153d": {
+      "aliases": [
+        "viewport"
+      ],
+      "chid": "chid.178896",
+      "kind": "ui-id",
+      "name": "viewport",
+      "path": "apps/rist-world/wwwroot/tavern3d.html",
+      "qualified_name": "viewport",
+      "scope": "",
       "status": "active"
     },
     "cfed6e6e7e767b509a87967257011c313b2570754d36802af384049f858bb1f1": {
@@ -2146741,6 +2146801,6 @@
       "status": "active"
     }
   },
-  "next_id": 178896,
+  "next_id": 178901,
   "version": 1
 }
