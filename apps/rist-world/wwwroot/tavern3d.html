@@ -1,33 +1,13 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tavern3D — Binary Observer</title>
-<style>
-html,body{margin:0;height:100%;background:#030507;color:#dce7e7;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow:hidden}#v{width:100%;height:100%;display:block;touch-action:none}.hud{position:fixed;left:12px;top:12px;padding:10px 12px;background:#05090bcc;border:1px solid #304046;border-radius:10px;max-width:min(520px,calc(100vw - 48px));font-size:12px;line-height:1.45;pointer-events:none}.hud b{font-size:14px}.zero{color:#8fb4c4}.one{color:#f0c987}.boundary{color:#ff9f86}.controls{position:fixed;right:12px;bottom:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.controls button{background:#091014;color:#dce7e7;border:1px solid #42545b;border-radius:999px;padding:10px 13px;font:inherit}.controls button:active{transform:scale(.97)}
-</style></head>
-<body>
-<canvas id="v"></canvas>
-<div class="hud"><b>TAVERN 3D · BINARY OBSERVER</b><br><span class="zero">0</span> / <span class="one">1</span> are Rion flow states. Lines are relationships. <span class="boundary">Bright breaks</span> are neighboring disagreement.<br>No gravity · no velocity · no forces · no repair/fracture · no chemistry.<br><span id="readout"></span></div>
-<div class="controls"><button id="step">collision</button><button id="all">reverse all</button><button id="reset">reset</button></div>
-<script>
-(()=>{
-'use strict';
-const c=document.querySelector('#v'),g=c.getContext('2d'),readout=document.querySelector('#readout');
-const N=24; let bits=new Uint8Array(N), tick=0, rx=.58, ry=-.62, dragging=false, px=0,py=0;
-// Geometry is observer-only: binary state does not contain x/y/z. A closed 3D ring is used only to display the tested relationship topology.
-const pts=Array.from({length:N},(_,i)=>{const a=i/N*Math.PI*2;return [Math.cos(a)*1.7,Math.sin(a)*1.7,Math.sin(a*3)*.62];});
-function resize(){const d=devicePixelRatio||1;c.width=innerWidth*d;c.height=innerHeight*d;c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';g.setTransform(d,0,0,d,0,0)} addEventListener('resize',resize);resize();
-function rot(p){let[x,y,z]=p;let cy=Math.cos(ry),sy=Math.sin(ry),cx=Math.cos(rx),sx=Math.sin(rx);let X=x*cy-z*sy,Z=x*sy+z*cy,Y=y;let Y2=Y*cx-Z*sx,Z2=Y*sx+Z*cx;return[X,Y2,Z2]}
-function proj(p){let [x,y,z]=rot(p),s=Math.min(innerWidth,innerHeight)*.19/(3.8-z);return[innerWidth/2+x*s,innerHeight/2+y*s,z,s]}
-function disagreements(){let n=0;for(let i=0;i<N;i++)if(bits[i]!==bits[(i+1)%N])n++;return n}
-function draw(){g.clearRect(0,0,innerWidth,innerHeight);let q=pts.map(proj);let order=[...Array(N).keys()].sort((a,b)=>q[a][2]-q[b][2]);
- for(let i=0;i<N;i++){let j=(i+1)%N,a=q[i],b=q[j],bad=bits[i]!==bits[j];g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.lineWidth=bad?3:1;g.strokeStyle=bad?'rgba(255,145,115,.95)':'rgba(110,145,154,.38)';g.stroke()}
- for(const i of order){let [x,y,z,s]=q[i];let r=Math.max(4,s*.12);g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fillStyle=bits[i]?'#f0c987':'#8fb4c4';g.fill();g.strokeStyle=bits[i]?'#fff0c2':'#c6efff';g.stroke();g.fillStyle='#020405';g.font=Math.max(9,r*1.25)+'px monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(bits[i],x,y)}
- let ones=bits.reduce((a,b)=>a+b,0),net=N-2*ones,coherent=(ones===0||ones===N);readout.textContent=`mass=${N}  1s=${ones}  net=${net}/${N}  boundaries=${disagreements()}  coherent=${coherent?'yes':'no'}  collisions=${tick}`;requestAnimationFrame(draw)}
- function collide(i){bits[i]^=1;tick++}
- document.querySelector('#step').onclick=()=>collide(tick%N);document.querySelector('#all').onclick=()=>{for(let i=0;i<N;i++)bits[i]^=1;tick+=N};document.querySelector('#reset').onclick=()=>{bits.fill(0);tick=0};
- c.addEventListener('pointerdown',e=>{dragging=true;px=e.clientX;py=e.clientY;c.setPointerCapture(e.pointerId)});c.addEventListener('pointermove',e=>{if(!dragging)return;ry+=(e.clientX-px)*.008;rx+=(e.clientY-py)*.008;px=e.clientX;py=e.clientY});c.addEventListener('pointerup',()=>dragging=false);
- draw();
-})();
-</script></body></html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tavern3D — Origin Freeze</title>
+<style>html,body{margin:0;height:100%;background:#020304;color:#dce7e7;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow:hidden}#v{width:100%;height:100%;display:block;touch-action:none}.hud{position:fixed;left:12px;top:12px;padding:10px 12px;background:#05090bdd;border:1px solid #304046;border-radius:10px;max-width:min(650px,calc(100vw - 48px));font-size:12px;line-height:1.5;pointer-events:none}.hud b{font-size:14px}.ok{color:#9fd5b3}.unknown{color:#f0c987}.stop{color:#ff9f86}.controls{position:fixed;right:12px;bottom:12px;display:flex;gap:8px}.controls button{background:#091014;color:#dce7e7;border:1px solid #42545b;border-radius:999px;padding:10px 13px;font:inherit}.controls button:disabled{opacity:.4}</style></head>
+<body><canvas id="v"></canvas><div class="hud"><b>TAVERN 3D · ABSOLUTE ORIGIN OBSERVER</b><br><span class="ok">EXECUTING earned state only.</span> Origin begins R1. One mass-1 Rion is inserted per step. Satomicnumbermax=118 is a configured stop ceiling, not a derived law.<br><span class="unknown">UNKNOWN:</span> same-origin spatial response. Therefore every member remains at the same relational origin; display offsets are observer-only.<br><span class="stop">NO R119 · NO EXPLOSION · NO POST-FREEZE TRANSITION.</span><br><span id="readout"></span></div><div class="controls"><button id="run">execute</button><button id="reset">reset</button></div>
+<script>(()=>{'use strict';const MAX=118,c=document.querySelector('#v'),g=c.getContext('2d'),readout=document.querySelector('#readout'),run=document.querySelector('#run');let count=1,frozen=false,auto=true,rx=.42,ry=-.55,drag=false,px=0,py=0,last=0;
+function resize(){let d=devicePixelRatio||1;c.width=innerWidth*d;c.height=innerHeight*d;c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';g.setTransform(d,0,0,d,0,0)}addEventListener('resize',resize);resize();
+/* Observer-only shell: these coordinates are NOT RuneCore physics. They merely let 118 co-origin members be individually visible. */
+const display=Array.from({length:MAX},(_,i)=>{if(i===0)return[0,0,0];let k=i+1,phi=Math.acos(1-2*(k-.5)/MAX),theta=Math.PI*(1+Math.sqrt(5))*k,r=.18+1.55*Math.cbrt(k/MAX);return[r*Math.sin(phi)*Math.cos(theta),r*Math.sin(phi)*Math.sin(theta),r*Math.cos(phi)]});
+function rot(p){let[x,y,z]=p,cy=Math.cos(ry),sy=Math.sin(ry),cx=Math.cos(rx),sx=Math.sin(rx),X=x*cy-z*sy,Z=x*sy+z*cy,Y=y;return[X,Y*cx-Z*sx,Y*sx+Z*cx]}
+function proj(p){let[x,y,z]=rot(p),s=Math.min(innerWidth,innerHeight)*.27/(3.7-z);return[innerWidth/2+x*s,innerHeight/2+y*s,z,s]}
+function step(){if(frozen)return false;if(count<MAX){count++;if(count===MAX){frozen=true;auto=false;run.disabled=true}return true}frozen=true;return false}
+function draw(t){g.clearRect(0,0,innerWidth,innerHeight);let q=display.slice(0,count).map(proj),ord=[...q.keys()].sort((a,b)=>q[a][2]-q[b][2]);let center=proj([0,0,0]);for(let i=1;i<count;i++){let p=q[i];g.beginPath();g.moveTo(center[0],center[1]);g.lineTo(p[0],p[1]);g.strokeStyle='rgba(105,140,150,.10)';g.stroke()}for(const i of ord){let[x,y,z,s]=q[i],r=i===0?7:Math.max(2.2,s*.045);g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fillStyle=i===0?'#f0c987':'#8fb4c4';g.fill();if(i===0){g.strokeStyle='#fff0c2';g.stroke()}}readout.textContent=`origin=R1  members=${count}/${MAX}  mass=${count}  flow=0  frozen=${frozen?'YES':'no'}  next=${frozen?'REFUSED':'R'+(count+1)}`;if(auto&&!frozen&&t-last>45){step();last=t}requestAnimationFrame(draw)}
+run.onclick=()=>{auto=true;run.textContent='executing…'};document.querySelector('#reset').onclick=()=>{count=1;frozen=false;auto=false;run.disabled=false;run.textContent='execute'};c.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;c.setPointerCapture(e.pointerId)});c.addEventListener('pointermove',e=>{if(!drag)return;ry+=(e.clientX-px)*.008;rx+=(e.clientY-py)*.008;px=e.clientX;py=e.clientY});c.addEventListener('pointerup',()=>drag=false);requestAnimationFrame(draw)})();</script></body></html>
