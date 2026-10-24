@@ -1,0 +1,65 @@
+@inject WorldSession Session
+
+<section class="published-worlds-panel" role="dialog" aria-modal="true" aria-label="Published world cards">
+ <header>
+  <div><strong>PUBLISHED WORLDS</strong><small>Published world cards from your authenticated card collection.</small></div>
+  <button type="button" @onclick="Close" aria-label="Close published worlds">×</button>
+ </header>
+
+ @if(_loading)
+ {
+  <p class="published-status">Loading published world cards…</p>
+ }
+ else if(_cards.Count==0)
+ {
+  <div class="published-empty"><strong>No published worlds found.</strong><span>Publish a world map card from World Builder to make it available here.</span></div>
+ }
+ else
+ {
+  <div class="published-grid">
+   @foreach(var card in _cards)
+   {
+    <article>
+     <div class="published-copy">
+      <small>WORLD · @card.Visibility.ToUpperInvariant()</small>
+      <strong>@card.Name</strong>
+      <span>@card.WorldId</span>
+      <em>Updated @card.UpdatedAtUtc.ToLocalTime().ToString("g")</em>
+     </div>
+     <div class="published-actions">
+      <button type="button" disabled="@(!string.Equals(card.WorldId,Session.WorldId,StringComparison.Ordinal))" @onclick="()=>OpenCardAsync(card)">@(string.Equals(card.WorldId,Session.WorldId,StringComparison.Ordinal)?"OPEN":"OTHER WORLD")</button>
+     </div>
+    </article>
+   }
+  </div>
+ }
+</section>
+
+<style>
+ .published-worlds-panel{position:absolute;z-index:90;inset:12px;display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid #846c39;border-radius:12px;background:#061016f2;color:#e8dec5;box-shadow:0 12px 36px #000d;overflow:auto}.published-worlds-panel>header{display:flex;align-items:center;justify-content:space-between;gap:12px}.published-worlds-panel>header div{display:grid;gap:3px}.published-worlds-panel>header strong{color:#f0d99d;font-size:12px;letter-spacing:.08em}.published-worlds-panel>header small{color:#90a5af;font-size:9px}.published-worlds-panel>header button{width:38px;height:38px;border:1px solid #526671;border-radius:8px;background:#0d1820;color:#eee4cf;font-size:22px}.published-status,.published-empty{padding:12px;border:1px solid #354a54;border-radius:9px;background:#0a151b;color:#9fb0b8}.published-empty{display:grid;gap:4px}.published-empty strong{color:#e8d6a6}.published-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px}.published-grid article{display:flex;justify-content:space-between;gap:10px;padding:10px;border:1px solid #3d515b;border-radius:10px;background:#09141a}.published-copy{min-width:0;display:grid;gap:4px}.published-copy small{color:#7fa7bb;font-size:8px;font-weight:900;letter-spacing:.08em}.published-copy strong{color:#f0ddb0}.published-copy span,.published-copy em{color:#8fa2ac;font-size:8px;overflow-wrap:anywhere}.published-copy em{font-style:normal}.published-actions{display:flex;align-items:center}.published-actions button{min-height:38px;padding:0 10px;border:1px solid #826d3c;border-radius:7px;background:#171a13;color:#eed89b;font-weight:900;font-size:9px}.published-actions button:disabled{opacity:.35}
+</style>
+
+@code {
+ [Parameter] public EventCallback OnClose{get;set;}
+ readonly List<RistCardEnvelope> _cards=[];
+ bool _loading=true;
+ protected override async Task OnInitializedAsync()
+ {
+  await ReloadAsync();
+ }
+ async Task ReloadAsync()
+ {
+  _loading=true;
+  _cards.Clear();
+  await Session.LoadOwnedCardEnvelopesAsync();
+  _cards.AddRange(Session.OwnedCardEnvelopes.Where(card=>card.CardType==RistCardType.World&&card.Published).OrderByDescending(card=>card.UpdatedAtUtc));
+  _loading=false;
+ }
+ Task Close()=>OnClose.InvokeAsync();
+ async Task OpenCardAsync(RistCardEnvelope card)
+ {
+  if(!string.Equals(card.WorldId,Session.WorldId,StringComparison.Ordinal))return;
+  await Session.LoadActiveMapCardAsync();
+  await Close();
+ }
+}

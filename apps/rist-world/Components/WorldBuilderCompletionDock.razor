@@ -1,0 +1,69 @@
+@inject WorldSession Session
+
+@if(!EmbeddedRoleplay)
+{
+ <aside class="worldbuilder-completion-dock" aria-label="World Builder publishing and region tools">
+  <button type="button" @onclick="PublishAsync" disabled="@(_busy||!Session.IsLoggedIn||!Session.HasWorldBuilderEditAuthority)">
+   <strong>@(_busy?"PUBLISHING…":"PUBLISH WORLD")</strong>
+   <small>@(Session.ActiveMapCardPublished?"Published map card":"Create published map card")</small>
+  </button>
+  <button type="button" @onclick="TogglePublished" disabled="@(!Session.IsLoggedIn)">
+   <strong>PUBLISHED</strong>
+   <small>World cards</small>
+  </button>
+  <button type="button" @onclick="OpenRegions">
+   <strong>REGIONS</strong>
+   <small>Define / edit</small>
+  </button>
+  @if(!string.IsNullOrWhiteSpace(_status))
+  {
+   <span class="worldbuilder-completion-status" role="status">@_status</span>
+  }
+ </aside>
+
+ @if(_publishedOpen)
+ {
+  <div class="worldbuilder-completion-overlay">
+   <WorldBuilderPublishedWorlds OnClose="ClosePublished" />
+  </div>
+ }
+ @if(_regionsOpen)
+ {
+  <div class="worldbuilder-completion-overlay regions" aria-label="Region Definer overlay">
+   <RegionDefinerWorkspace NewRegionFlow="false" OnHome="CloseRegions" OnStartMenu="CloseRegions" />
+   <button type="button" class="worldbuilder-completion-close" @onclick="CloseRegions" aria-label="Close Region Definer">×</button>
+  </div>
+ }
+}
+
+<style>
+ .worldbuilder-completion-dock{box-sizing:border-box;position:absolute;z-index:31;right:12px;top:12px;display:flex;gap:6px;align-items:center;max-width:calc(100% - 24px);overflow-x:auto;padding:6px;border:1px solid #725d30;border-radius:10px;background:#071016e8;box-shadow:0 7px 24px #0009;backdrop-filter:blur(5px);font-family:system-ui,-apple-system,sans-serif}.worldbuilder-completion-dock>button{flex:0 0 auto;min-height:40px;padding:5px 10px;border:1px solid #526671;border-radius:7px;background:#0d1820;color:#e8dfc7;display:grid;gap:2px;place-items:center;touch-action:manipulation}.worldbuilder-completion-dock>button:first-child{border-color:#a3843d;background:#221c0f}.worldbuilder-completion-dock>button strong{font:900 9px/1 system-ui;letter-spacing:.06em}.worldbuilder-completion-dock>button small{font:700 7px/1 system-ui;color:#91a4ad}.worldbuilder-completion-dock>button:disabled{opacity:.4}.worldbuilder-completion-status{flex:0 0 auto;max-width:220px;color:#e6c879;font:700 8px/1.25 system-ui}.worldbuilder-completion-overlay{position:absolute;z-index:2147482500;inset:0;background:#03080cf0}.worldbuilder-completion-overlay.regions{background:#05090c}.worldbuilder-completion-close{position:absolute;z-index:2147483000;right:10px;top:10px;width:42px;height:42px;border:1px solid #846c39;border-radius:8px;background:#081117;color:#f0ddb0;font-size:24px}@@media(max-width:680px){.worldbuilder-completion-dock{left:6px;right:6px;top:6px}.worldbuilder-completion-dock>button{min-height:42px;padding:5px 8px}.worldbuilder-completion-status{display:none}}
+</style>
+
+@code {
+ [Parameter] public bool EmbeddedRoleplay{get;set;}
+ bool _busy;
+ bool _publishedOpen;
+ bool _regionsOpen;
+ string _status="";
+ async Task PublishAsync()
+ {
+  if(_busy||!Session.IsLoggedIn||!Session.HasWorldBuilderEditAuthority)return;
+  _busy=true;
+  _status="Publishing the current world card…";
+  try
+  {
+   await Session.PublishActiveMapCardAsync();
+   _status="World published. The published card is now available from this account.";
+  }
+  catch(Exception ex)
+  {
+   _status="Publish failed: "+ex.Message;
+  }
+  finally{_busy=false;}
+ }
+ void TogglePublished(){_regionsOpen=false;_publishedOpen=!_publishedOpen;}
+ void ClosePublished()=>_publishedOpen=false;
+ void OpenRegions(){_publishedOpen=false;_regionsOpen=true;}
+ void CloseRegions()=>_regionsOpen=false;
+}
