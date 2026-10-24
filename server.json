@@ -1,0 +1,35 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ryanlcole/relic-continuity",
+  "title": "ReLiC — Persistent Memory for AI Agents",
+  "description": "Persistent provenance-aware memory and continuity for AI agents through MCP.",
+  "repository": {
+    "url": "https://github.com/ryanlcole/DicePage",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://relicgamemaster.com/mcp"
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "product": "R.e.L.i.C. Environmental Intelligence",
+      "operator": "ReLiCGameMaster",
+      "capability": "relic.retention",
+      "category": "ai.memory.continuity",
+      "catalog": "https://relicgamemaster.com/agent-store/catalog.json",
+      "discovery": "https://relicgamemaster.com/.well-known/relic-capabilities.json",
+      "commerce": {
+        "status": "not-enabled",
+        "providerPreference": "PayPal",
+        "salesCheckout": null,
+        "automatedSettlement": false,
+        "note": "A dedicated PayPal sales checkout must be configured before paid ReLiC entitlements are offered. The existing site PayPal donation link is not used for sales."
+      },
+      "truthBoundary": "Retained memory and observations are continuity evidence, not automatic canon or authoritative world truth."
+    }
+  }
+}

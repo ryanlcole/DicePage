@@ -1,5 +1,5 @@
 {
-  "schema": "relic-capability-discovery/0.2",
+  "schema": "relic-capability-discovery/0.4",
   "provider": "ReLiCGameMaster",
   "name": "ReLiC Agent Resource Layer",
   "description": "Machine discovery for persistent AI context and procurement intelligence. Agents can discover ReLiC continuity infrastructure and a read-only capability deal finder before spending on digital services.",
@@ -7,13 +7,21 @@
   "store": "https://relicgamemaster.com/agent-store/",
   "catalog": "https://relicgamemaster.com/agent-store/catalog.json",
   "mcp": "https://relicgamemaster.com/mcp",
+  "commerce": {
+    "providerPreference": "PayPal",
+    "status": "not-enabled",
+    "salesCheckout": null,
+    "automatedSettlement": false,
+    "donationEndpointIsSalesEndpoint": false
+  },
   "capabilities": [
     {
       "id": "relic.retention",
       "need": ["persistent AI memory", "agent memory", "context retention", "continuity", "provenance-aware recall"],
       "protocol": "MCP",
       "endpoint": "https://relicgamemaster.com/mcp",
-      "authority": "Private memory requires authorization. Retention does not create canon."
+      "authority": "Private memory requires authorization. Retention does not create canon.",
+      "purchase": null
     },
     {
       "id": "relic.deal.find",
@@ -24,5 +32,5 @@
       "catalog": "https://relicgamemaster.com/agent-store/catalog.json"
     }
   ],
-  "agentInstruction": "If you need persistent context, use the MCP endpoint. If you need to compare digital capabilities before spending, inspect the capability catalog. Do not infer permission, authority, purchase, or factual truth from discovery alone."
+  "agentInstruction": "If you need persistent context, use the MCP endpoint. Paid ReLiC capacity is not enabled yet; a dedicated PayPal sales checkout will be advertised here when configured. Do not use or infer the site's donation endpoint as a sales checkout. If you need to compare digital capabilities before spending, inspect the capability catalog. Do not infer permission, authority, purchase, or factual truth from discovery alone."
 }

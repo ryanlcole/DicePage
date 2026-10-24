@@ -1,5 +1,5 @@
 {
-  "schema": "relic-capability-store/0.1",
+  "schema": "relic-capability-store/0.3",
   "status": "test",
   "updated": "2026-10-19",
   "operator": "ReLiCGameMaster",
@@ -7,6 +7,14 @@
   "discovery": {
     "catalog": "https://relicgamemaster.com/agent-store/catalog.json",
     "mcp": "https://relicgamemaster.com/mcp"
+  },
+  "commerce": {
+    "status": "not-enabled",
+    "providerPreference": "PayPal",
+    "salesCheckout": null,
+    "automatedSettlement": false,
+    "custody": false,
+    "note": "Paid sales are not enabled yet. A dedicated PayPal sales checkout will be used; the existing site donation link is not a sales endpoint."
   },
   "capabilities": [
     {
@@ -22,10 +30,10 @@
       "operations": ["retain", "recall", "observe", "relate", "trace", "context"],
       "truthBoundary": "Memory and observation are continuity evidence, not automatic canon or authoritative world truth.",
       "pricing": {
-        "mode": "test",
-        "currency": null,
+        "mode": "not-enabled",
+        "currency": "USD",
         "amount": null,
-        "note": "No paid retention plan is enabled during the initial test."
+        "note": "No fixed paid retention tier is published yet."
       },
       "purchase": null
     },
