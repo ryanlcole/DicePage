@@ -1,0 +1,403 @@
+{
+  "startedAt": "2026-10-06T03:39:20.851Z",
+  "mode": "authentication",
+  "checks": [
+    {
+      "name": "Guest direct /Game/index.html",
+      "pass": true
+    },
+    {
+      "name": "Guest direct /Game/",
+      "pass": true
+    },
+    {
+      "name": "Guest Launcher release controls stay locked",
+      "pass": true
+    },
+    {
+      "name": "Private HTTP APIs reject unauthenticated requests",
+      "pass": true
+    },
+    {
+      "name": "user private start and reload",
+      "pass": true
+    },
+    {
+      "name": "user authenticated nested Launcher direct navigation",
+      "pass": true
+    },
+    {
+      "name": "gm private start and reload",
+      "pass": true
+    },
+    {
+      "name": "gm authenticated nested Launcher direct navigation",
+      "pass": true
+    }
+  ],
+  "states": [],
+  "findings": [],
+  "consoleErrors": [
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "user-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "label": "gm-auth",
+      "text": "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    }
+  ],
+  "exceptions": [],
+  "networkErrors": [
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    }
+  ],
+  "blockedExternal": [
+    {
+      "label": "user-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "user-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    },
+    {
+      "label": "gm-auth",
+      "url": "https://d2d6rnm6fnsp89.cloudfront.net/music/ten-fairies/Ten_Fairies_Part_1.mp3",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    }
+  ],
+  "expectedNetworkErrors": [
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "user-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/api/authority/telemetry/visit",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    },
+    {
+      "label": "gm-auth",
+      "url": "http://127.0.0.1:8765/translation-config.json",
+      "status": 404,
+      "method": "GET",
+      "resourceType": "fetch"
+    }
+  ],
+  "unexpectedNetworkErrors": [],
+  "completedAt": "2026-10-06T03:39:29.093Z"
+}
