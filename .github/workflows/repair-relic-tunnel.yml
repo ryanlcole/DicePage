@@ -1,0 +1,235 @@
+name: Repair ReLiC MCP Tunnel
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/repair-relic-tunnel.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: repair-relic-mcp-tunnel
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::797661578124:role/RIST-GitHub-Deploy
+  AWS_ACCOUNT_ID: '797661578124'
+  ECS_CLUSTER: relic-host
+  ECS_FAMILY: relic-host
+  TUNNEL_CONTAINER: relic-tunnel
+  ECR_REPOSITORY: relic-tunnel
+  OPENAI_TUNNEL_IMAGE: ghcr.io/openai/tunnel-client:v0.0.18
+  ECR_TAG: openai-v0.0.18
+  FALLBACK_SUBNET: subnet-0464cc5362565c0f1
+  FALLBACK_SECURITY_GROUP: sg-094e95108ceba861d
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Configure AWS through existing GitHub OIDC role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Discover current ReLiC task and validate access
+        id: current
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws sts get-caller-identity
+          aws ecs describe-clusters --clusters "$ECS_CLUSTER" --query 'clusters[0].{name:clusterName,status:status,running:runningTasksCount}' --output json
+          aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" --query 'repositories[0].repositoryUri' --output text
+
+          TASK_ARN=$(aws ecs list-tasks --cluster "$ECS_CLUSTER" --family "$ECS_FAMILY" --desired-status RUNNING --query 'taskArns[0]' --output text)
+          if [[ -z "$TASK_ARN" || "$TASK_ARN" == "None" ]]; then
+            echo "No running $ECS_FAMILY task found in $ECS_CLUSTER; refusing to guess deployment state."
+            exit 20
+          fi
+
+          TASK_JSON=$(aws ecs describe-tasks --cluster "$ECS_CLUSTER" --tasks "$TASK_ARN")
+          CURRENT_TD=$(jq -r '.tasks[0].taskDefinitionArn' <<<"$TASK_JSON")
+          ENI=$(jq -r '[.tasks[0].attachments[]? | select(.type=="ElasticNetworkInterface") | .details[]? | select(.name=="networkInterfaceId") | .value][0] // empty' <<<"$TASK_JSON")
+
+          echo "task_arn=$TASK_ARN" >> "$GITHUB_OUTPUT"
+          echo "task_definition=$CURRENT_TD" >> "$GITHUB_OUTPUT"
+          echo "eni=$ENI" >> "$GITHUB_OUTPUT"
+
+          echo "Current task: $TASK_ARN"
+          echo "Current task definition: $CURRENT_TD"
+          aws ecs describe-task-definition --task-definition "$CURRENT_TD" \
+            --query 'taskDefinition.containerDefinitions[].{name:name,image:image}' --output table
+
+          COUNT=$(aws ecs describe-task-definition --task-definition "$CURRENT_TD" \
+            --query "length(taskDefinition.containerDefinitions[?name=='$TUNNEL_CONTAINER'])" --output text)
+          if [[ "$COUNT" != "1" ]]; then
+            echo "Expected exactly one $TUNNEL_CONTAINER container; found $COUNT. No changes made."
+            exit 21
+          fi
+
+      - name: Resolve current task network
+        id: network
+        shell: bash
+        run: |
+          set -euo pipefail
+          ENI='${{ steps.current.outputs.eni }}'
+          SUBNET=""
+          SGS=""
+          ASSIGN_PUBLIC_IP="ENABLED"
+
+          if [[ -n "$ENI" ]]; then
+            if NET_JSON=$(aws ec2 describe-network-interfaces --network-interface-ids "$ENI" 2>/dev/null); then
+              SUBNET=$(jq -r '.NetworkInterfaces[0].SubnetId // empty' <<<"$NET_JSON")
+              SGS=$(jq -r '[.NetworkInterfaces[0].Groups[].GroupId] | join(",")' <<<"$NET_JSON")
+              if [[ $(jq -r '.NetworkInterfaces[0].Association.PublicIp // empty' <<<"$NET_JSON") == "" ]]; then
+                ASSIGN_PUBLIC_IP="DISABLED"
+              fi
+            fi
+          fi
+
+          if [[ -z "$SUBNET" ]]; then SUBNET="$FALLBACK_SUBNET"; fi
+          if [[ -z "$SGS" ]]; then SGS="$FALLBACK_SECURITY_GROUP"; fi
+
+          echo "subnet=$SUBNET" >> "$GITHUB_OUTPUT"
+          echo "security_groups=$SGS" >> "$GITHUB_OUTPUT"
+          echo "assign_public_ip=$ASSIGN_PUBLIC_IP" >> "$GITHUB_OUTPUT"
+          echo "Using subnet=$SUBNET security_groups=$SGS assign_public_ip=$ASSIGN_PUBLIC_IP"
+
+      - name: Mirror OpenAI tunnel-client v0.0.18 into existing ECR repository
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          ECR_HOST="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          ECR_IMAGE="${ECR_HOST}/${ECR_REPOSITORY}"
+
+          aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_HOST"
+          docker pull "$OPENAI_TUNNEL_IMAGE"
+          docker tag "$OPENAI_TUNNEL_IMAGE" "${ECR_IMAGE}:${ECR_TAG}"
+          docker push "${ECR_IMAGE}:${ECR_TAG}"
+
+          DIGEST=$(aws ecr describe-images --repository-name "$ECR_REPOSITORY" --image-ids imageTag="$ECR_TAG" --query 'imageDetails[0].imageDigest' --output text)
+          PINNED_IMAGE="${ECR_IMAGE}@${DIGEST}"
+          echo "pinned_image=$PINNED_IMAGE" >> "$GITHUB_OUTPUT"
+          echo "Pinned tunnel image: $PINNED_IMAGE"
+
+      - name: Register task revision changing only relic-tunnel image
+        id: taskdef
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT_TD='${{ steps.current.outputs.task_definition }}'
+          PINNED_IMAGE='${{ steps.image.outputs.pinned_image }}'
+
+          aws ecs describe-task-definition --task-definition "$CURRENT_TD" --query taskDefinition > /tmp/current-taskdef.json
+
+          jq --arg name "$TUNNEL_CONTAINER" --arg image "$PINNED_IMAGE" '
+            del(
+              .taskDefinitionArn,
+              .revision,
+              .status,
+              .requiresAttributes,
+              .compatibilities,
+              .registeredAt,
+              .registeredBy
+            )
+            | (.containerDefinitions[] | select(.name == $name) | .image) = $image
+          ' /tmp/current-taskdef.json > /tmp/new-taskdef.json
+
+          # Guardrail: verify no other container image changed.
+          jq -r '.containerDefinitions[] | [.name,.image] | @tsv' /tmp/current-taskdef.json | sort > /tmp/before-images.txt
+          jq -r '.containerDefinitions[] | [.name,.image] | @tsv' /tmp/new-taskdef.json | sort > /tmp/after-images.txt
+          echo 'Container image diff:'
+          diff -u /tmp/before-images.txt /tmp/after-images.txt || true
+
+          NEW_TD=$(aws ecs register-task-definition --cli-input-json file:///tmp/new-taskdef.json --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "task_definition=$NEW_TD" >> "$GITHUB_OUTPUT"
+          echo "Registered $NEW_TD"
+
+      - name: Start replacement task before retiring old tunnel
+        id: launch
+        shell: bash
+        run: |
+          set -euo pipefail
+          NEW_TD='${{ steps.taskdef.outputs.task_definition }}'
+          SUBNET='${{ steps.network.outputs.subnet }}'
+          SGS='${{ steps.network.outputs.security_groups }}'
+          ASSIGN='${{ steps.network.outputs.assign_public_ip }}'
+
+          IFS=',' read -ra SG_ARRAY <<< "$SGS"
+          SG_JSON=$(printf '"%s",' "${SG_ARRAY[@]}")
+          SG_JSON="[${SG_JSON%,}]"
+
+          NETWORK="awsvpcConfiguration={subnets=[$SUBNET],securityGroups=$SG_JSON,assignPublicIp=$ASSIGN}"
+          RUN=$(aws ecs run-task \
+            --cluster "$ECS_CLUSTER" \
+            --task-definition "$NEW_TD" \
+            --launch-type FARGATE \
+            --platform-version LATEST \
+            --network-configuration "$NETWORK")
+
+          FAILURES=$(jq '.failures | length' <<<"$RUN")
+          if [[ "$FAILURES" != "0" ]]; then
+            jq '.failures' <<<"$RUN"
+            exit 30
+          fi
+
+          NEW_TASK=$(jq -r '.tasks[0].taskArn // empty' <<<"$RUN")
+          if [[ -z "$NEW_TASK" ]]; then
+            echo 'ECS returned no replacement task ARN.'
+            exit 31
+          fi
+
+          echo "task_arn=$NEW_TASK" >> "$GITHUB_OUTPUT"
+          echo "Replacement task: $NEW_TASK"
+          aws ecs wait tasks-running --cluster "$ECS_CLUSTER" --tasks "$NEW_TASK"
+
+          # Give the tunnel client time to complete startup discovery/registration.
+          sleep 45
+          STATUS=$(aws ecs describe-tasks --cluster "$ECS_CLUSTER" --tasks "$NEW_TASK")
+          jq '.tasks[0] | {lastStatus,healthStatus,stopCode,stoppedReason,containers:[.containers[]|{name,lastStatus,healthStatus,reason,exitCode}]}' <<<"$STATUS"
+
+          LAST=$(jq -r '.tasks[0].lastStatus' <<<"$STATUS")
+          TUNNEL_LAST=$(jq -r --arg n "$TUNNEL_CONTAINER" '.tasks[0].containers[] | select(.name==$n) | .lastStatus' <<<"$STATUS")
+          if [[ "$LAST" != "RUNNING" || "$TUNNEL_LAST" != "RUNNING" ]]; then
+            echo 'Replacement did not remain running. Old task will NOT be stopped.'
+            exit 32
+          fi
+
+      - name: Retire old broken task after replacement is running
+        shell: bash
+        run: |
+          set -euo pipefail
+          OLD_TASK='${{ steps.current.outputs.task_arn }}'
+          NEW_TASK='${{ steps.launch.outputs.task_arn }}'
+
+          if [[ "$OLD_TASK" == "$NEW_TASK" ]]; then
+            echo 'Guardrail: old and new task ARNs match; refusing stop.'
+            exit 40
+          fi
+
+          aws ecs stop-task \
+            --cluster "$ECS_CLUSTER" \
+            --task "$OLD_TASK" \
+            --reason 'Replace stale OpenAI tunnel-client with v0.0.18 after persistent MCP 429' \
+            >/dev/null
+
+          aws ecs wait tasks-stopped --cluster "$ECS_CLUSTER" --tasks "$OLD_TASK"
+          echo "Retired old task: $OLD_TASK"
+          echo "Active replacement: $NEW_TASK"
+
+      - name: Final status
+        shell: bash
+        run: |
+          set -euo pipefail
+          NEW_TASK='${{ steps.launch.outputs.task_arn }}'
+          aws ecs describe-tasks --cluster "$ECS_CLUSTER" --tasks "$NEW_TASK" \
+            --query 'tasks[0].{task:taskArn,taskDefinition:taskDefinitionArn,lastStatus:lastStatus,health:healthStatus,containers:containers[].{name:name,status:lastStatus,health:healthStatus,exitCode:exitCode,reason:reason}}' \
+            --output json
