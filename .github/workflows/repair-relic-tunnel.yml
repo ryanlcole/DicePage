@@ -1,3 +1,4 @@
+# repair trigger: 2026-10-28
 name: Repair ReLiC MCP Tunnel
 
 on:
@@ -143,7 +144,6 @@ jobs:
             | (.containerDefinitions[] | select(.name == $name) | .image) = $image
           ' /tmp/current-taskdef.json > /tmp/new-taskdef.json
 
-          # Guardrail: verify no other container image changed.
           jq -r '.containerDefinitions[] | [.name,.image] | @tsv' /tmp/current-taskdef.json | sort > /tmp/before-images.txt
           jq -r '.containerDefinitions[] | [.name,.image] | @tsv' /tmp/new-taskdef.json | sort > /tmp/after-images.txt
           echo 'Container image diff:'
@@ -191,7 +191,6 @@ jobs:
           echo "Replacement task: $NEW_TASK"
           aws ecs wait tasks-running --cluster "$ECS_CLUSTER" --tasks "$NEW_TASK"
 
-          # Give the tunnel client time to complete startup discovery/registration.
           sleep 45
           STATUS=$(aws ecs describe-tasks --cluster "$ECS_CLUSTER" --tasks "$NEW_TASK")
           jq '.tasks[0] | {lastStatus,healthStatus,stopCode,stoppedReason,containers:[.containers[]|{name,lastStatus,healthStatus,reason,exitCode}]}' <<<"$STATUS"
