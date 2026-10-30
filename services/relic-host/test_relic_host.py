@@ -18,7 +18,9 @@ AUTH = {"Authorization": "Bearer test-token"}
 
 
 @pytest.fixture
-def client():
+def client(tmp_path, monkeypatch):
+    monkeypatch.setattr(app, "DB_PATH", tmp_path / "host.db")
+    monkeypatch.setattr(app, "WRITE_TOKEN", "test-token")
     # Enter TestClient as a context manager so FastAPI's startup lifecycle
     # runs and initializes the SQLite schema before requests are sent.
     with TestClient(app.app) as test_client:

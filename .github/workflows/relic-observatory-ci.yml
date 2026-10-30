@@ -51,6 +51,8 @@ jobs:
           python -m py_compile
           app.py
           historical_import.py
+          continuity_writer.py
+          continuity_client.py
           mcp_server.py
           observatory.py
           github_observer.py
@@ -64,6 +66,8 @@ jobs:
         run: >
           pytest -q
           test_relic_host.py
+          test_continuity_writer.py
+          test_continuity_deploy.py
           test_observatory.py
           test_github_observer.py
           test_relic_collector.py
@@ -196,3 +200,4 @@ jobs:
           echo 'Observations verified and retained as CI evidence;
           private AWS ingestion is not configured until the
           RELIC_OBSERVATORY_ROLE_ARN repository variable is set.'
+

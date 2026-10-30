@@ -19,6 +19,7 @@ from fastapi import FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 import historical_import
+import continuity_writer
 
 DB_PATH = Path(os.getenv("RELIC_DB_PATH", "/data/relic.db"))
 WRITE_TOKEN = os.getenv("RELIC_WRITE_TOKEN", "")
@@ -103,6 +104,7 @@ def init() -> None:
         );
         """)
         historical_import.init_schema(con)
+        continuity_writer.init_schema(con)
 
 
 @app.on_event("startup")
@@ -279,3 +281,8 @@ def proposal(proposal_id: str) -> dict[str, Any]:
             result[key] = json.loads(result[key])
     result["mutation_allowed"] = result["necessity_state"] == "PROVEN" and result["accuracy_state"] == "PROVEN" and result["approval_state"] == "APPROVED"
     return result
+
+
+# The dedicated capability cannot call the general event/proposal endpoints.
+import sys
+continuity_writer.install(sys.modules[__name__])
