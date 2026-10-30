@@ -54,6 +54,39 @@ Validation responses omit submitted values.
 
 ## Deployment
 
+### Standalone Fargate deployment (confirmed 2026-10-30)
+
+The owner's CloudShell inspection found a HEALTHY standalone task in cluster
+`relic-host`, group `family:relic-host`, running task definition `relic-host:9`.
+There is no service named `relic-host`. Use `--task TASK_ID` to replace that task;
+the service path is not appropriate for this deployment.
+
+The standalone path reads the running ENI, preserves its subnet, security groups,
+public-IP assignment, platform version, and execute-command setting. A public IP
+does not itself establish port exposure. The script checks all attached security
+groups and stops before deployment if MCP port 8000 permits network ingress or
+host port 8080 permits CIDR/prefix-list ingress. It never changes ingress rules.
+Private host ingestion from security-group references remains allowed.
+
+Image build, isolated container import/schema smoke check, secret configuration,
+and task registration finish before stopping the healthy task. A final preflight
+rejects changed task/network state. A rollback request is saved in the operator's
+home directory. The old task stops before the replacement starts, avoiding two
+writers/tunnels. Three healthy observations are required. A failed replacement
+is stopped before the previous task definition is restarted on the same network.
+An unresolved AWS response/cleanup failure stops automatic recovery rather than
+creating concurrent writers. The old public/private IP is not preserved; the
+repository's Observatory Lambda discovers the current host task dynamically.
+
+The operator's existing private owner-scoped tunnel must remain in place. Run:
+
+```bash
+python services/relic-host/deploy_continuity.py --task TASK_ID --private-tunnel-confirmed
+```
+
+Standalone rollback behavior is tested with simulated AWS responses; production
+rollout and live append verification remain separate evidence.
+
 Run the tests in `services/relic-host`: `python -m pytest -q`.
 
 In an authorized AWS CloudShell with AWS CLI, Docker, and a clean checkout of this

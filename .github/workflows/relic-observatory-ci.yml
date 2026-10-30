@@ -68,6 +68,7 @@ jobs:
           test_relic_host.py
           test_continuity_writer.py
           test_continuity_deploy.py
+          test_standalone_deploy.py
           test_observatory.py
           test_github_observer.py
           test_relic_collector.py

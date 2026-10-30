@@ -9,11 +9,15 @@ import json
 import re
 import secrets
 import subprocess
+import sys
 from pathlib import Path
+# Importing deployment helpers must not dirty an otherwise clean checkout.
+sys.dont_write_bytecode = True
+import standalone_deploy
 
 
 def aws(*args, payload=None):
-    command = ["aws", "--region", REGION, *args, "--output", "json"]
+    command = ["aws", "--region", REGION, *args, "--output", "json", "--no-cli-pager"]
     if payload is not None:
         command += ["--cli-input-json", "file:///dev/stdin"]
     result = subprocess.run(command, input=json.dumps(payload) if payload is not None else None,
@@ -26,7 +30,7 @@ def aws(*args, payload=None):
 
 def prepare_task(task, image, secret_arn):
     task = copy.deepcopy(task)
-    if task.get("runtimePlatform", {}).get("cpuArchitecture", "X86_64") != "X86_64":
+    if (task.get("runtimePlatform") or {}).get("cpuArchitecture", "X86_64") != "X86_64":
         raise ValueError("deployment image is built for X86_64; inspect task architecture")
     for key in ("taskDefinitionArn", "revision", "status", "requiresAttributes",
                 "compatibilities", "registeredAt", "registeredBy", "deregisteredAt"):
@@ -61,6 +65,7 @@ def main():
     parser.add_argument("--region", default="us-east-1")
     parser.add_argument("--cluster", default="relic-host")
     parser.add_argument("--service", default="relic-host")
+    parser.add_argument("--task", help="Replace this existing standalone task instead of an ECS service")
     parser.add_argument("--private-tunnel-confirmed", action="store_true",
                         help="Operator verified this is the existing private owner-scoped tunnel, not a public/shared MCP")
     args = parser.parse_args()
@@ -73,13 +78,18 @@ def main():
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
     if subprocess.check_output(["git", "status", "--porcelain"], cwd=root, text=True).strip():
         raise RuntimeError("deploy only a clean committed checkout")
-    services = aws("ecs", "describe-services", "--cluster", args.cluster, "--services", args.service)
-    if services.get("failures") or len(services.get("services", [])) != 1:
-        raise RuntimeError("existing ECS service not found; no infrastructure created")
-    service = services["services"][0]
-    if service["desiredCount"] != 1 or service.get("loadBalancers"):
-        raise RuntimeError("expected one private task with no load balancer")
-    old_arn = service["taskDefinition"]
+    if args.task:
+        old, network = standalone_deploy.inspect_standalone(aws, args.cluster, args.task)
+        old_arn = old["taskDefinitionArn"]
+        print("Standalone task and security-group checks passed; preparing replacement.", flush=True)
+    else:
+        services = aws("ecs", "describe-services", "--cluster", args.cluster, "--services", args.service)
+        if services.get("failures") or len(services.get("services", [])) != 1:
+            raise RuntimeError("existing ECS service not found; no infrastructure created")
+        service = services["services"][0]
+        if service["desiredCount"] != 1 or service.get("loadBalancers"):
+            raise RuntimeError("expected one private task with no load balancer")
+        old_arn = service["taskDefinition"]
     task = aws("ecs", "describe-task-definition", "--task-definition", old_arn)["taskDefinition"]
     # Validate the existing boundary before creating any cloud resources.
     prepare_task(task, "validation-only", "validation-only")
@@ -87,6 +97,8 @@ def main():
     tag = "continuity-" + revision
     image = repo + ":" + tag
     subprocess.run(["docker", "build", "--platform", "linux/amd64", "-t", image, str(root)], check=True)
+    subprocess.run(["docker", "run", "--rm", "--entrypoint", "python", image,
+                    "-c", "import app,mcp_server; app.init(); print('Container imports and isolated database initialization PASS')"], check=True)
     login = subprocess.run(["aws", "--region", REGION, "ecr", "get-login-password"], capture_output=True, check=True)
     subprocess.run(["docker", "login", "--username", "AWS", "--password-stdin", repo.split("/")[0]], input=login.stdout, check=True)
     subprocess.run(["docker", "push", image], check=True)
@@ -113,6 +125,10 @@ def main():
     new_arn = aws("ecs", "register-task-definition", payload=new_task)["taskDefinition"]["taskDefinitionArn"]
     print(json.dumps({"previous_task_definition": old_arn, "new_task_definition": new_arn,
                       "source_commit": revision, "image_digest": digest}))
+    if args.task:
+        standalone_deploy.rollout(aws, args.cluster, old, network, new_arn, REGION)
+        print("Refresh MCP tools; verify append, retry, and retrieval before claiming end-to-end persistence.")
+        return
     aws("ecs", "update-service", "--cluster", args.cluster, "--service", args.service,
         "--task-definition", new_arn, "--deployment-configuration",
         "minimumHealthyPercent=0,maximumPercent=100,deploymentCircuitBreaker={enable=true,rollback=true}")
