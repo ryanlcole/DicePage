@@ -10,6 +10,7 @@ import re
 import secrets
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 # Importing deployment helpers must not dirty an otherwise clean checkout.
 sys.dont_write_bytecode = True
@@ -18,13 +19,30 @@ import standalone_deploy
 
 def aws(*args, payload=None):
     command = ["aws", "--region", REGION, *args, "--output", "json", "--no-cli-pager"]
-    if payload is not None:
-        command += ["--cli-input-json", "file:///dev/stdin"]
-    result = subprocess.run(command, input=json.dumps(payload) if payload is not None else None,
-                            text=True, capture_output=True)
+    # AWS CLI file loaders can require a seekable file; /dev/stdin is a pipe.
+    # NamedTemporaryFile is mode 0600 and is removed even on subprocess failure.
+    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8", suffix=".json") as request_file:
+        if payload is not None:
+            json.dump(payload, request_file)
+            request_file.flush()
+            command += ["--cli-input-json", "file://" + request_file.name]
+        result = subprocess.run(command, text=True, capture_output=True)
     if result.returncode:
-        # Never echo payloads, which may contain a newly generated capability token.
-        raise RuntimeError(f"AWS operation failed: {' '.join(args[:2])}; exit {result.returncode}")
+        # Redact all submitted string values, including escaped representations,
+        # before showing CLI errors that may echo an invalid request.
+        values = []
+        def collect(value):
+            if isinstance(value, str) and value:
+                values.extend([value, json.dumps(value)[1:-1]])
+            elif isinstance(value, dict):
+                for child in value.values(): collect(child)
+            elif isinstance(value, list):
+                for child in value: collect(child)
+        collect(payload)
+        detail = result.stderr or "No diagnostic returned"
+        for value in sorted(set(values), key=len, reverse=True):
+            detail = detail.replace(value, "[REDACTED]")
+        raise RuntimeError(f"AWS operation failed: {' '.join(args[:2])}; exit {result.returncode}: {detail[:2000]}")
     return json.loads(result.stdout) if result.stdout.strip() else {}
 
 

@@ -1,6 +1,37 @@
 import copy
+import json
+import os
+from pathlib import Path
+from types import SimpleNamespace
 import pytest
+import deploy_continuity as deployment
 from deploy_continuity import prepare_task
+
+
+@pytest.mark.parametrize("fail", [False, True])
+def test_cli_payload_uses_private_seekable_file_and_cleans_up(monkeypatch, fail):
+    monkeypatch.setattr(deployment, "REGION", "us-east-1", raising=False)
+    observed = []
+    secret = "test-secret-do-not-display"
+    def run(command, **kwargs):
+        path = Path(command[command.index("--cli-input-json") + 1].removeprefix("file://"))
+        observed.append(path)
+        assert os.stat(path).st_mode & 0o777 == 0o600
+        with path.open() as handle:
+            assert handle.seekable()
+            assert json.load(handle)["SecretString"] == secret
+        assert "input" not in kwargs
+        return SimpleNamespace(returncode=252 if fail else 0, stdout='{"ARN":"test-arn"}',
+                               stderr="Invalid input: " + secret)
+    monkeypatch.setattr(deployment.subprocess, "run", run)
+    if fail:
+        with pytest.raises(RuntimeError) as exc:
+            deployment.aws("secretsmanager", "create-secret", payload={"SecretString": secret})
+        assert secret not in str(exc.value)
+        assert "[REDACTED]" in str(exc.value)
+    else:
+        assert deployment.aws("secretsmanager", "create-secret", payload={"SecretString": secret}) == {"ARN": "test-arn"}
+    assert not observed[0].exists()
 
 
 def fixture():
