@@ -1,13 +1,12 @@
-"""Read-only MCP interface for the independent ReLiC continuity host.
+"""Read-only retrieval plus an opt-in, scoped continuity submission bridge.
 
-This adapter exposes bounded retrieval tools over MCP. It deliberately does not
-expose append, proposal-gate, delete, shell, database, or external mutation
-operations. ReLiC remains the continuity authority; MCP is a representation and
-retrieval boundary only.
+Database access remains read-only. Only the independent host commits events.
+No proposal-gate, delete, shell, or external mutation operations are exposed.
 """
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -15,6 +14,8 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 
 import app as relic
+from continuity_writer import ContinuityEvent
+from continuity_client import submit
 
 PROJECTLOPEDIA_PATH = Path(__file__).with_name("project_memory_targets.json")
 
@@ -149,5 +150,23 @@ def relic_project_context(project: str = "RELIC_CORE", query: str = "", limit: i
     }
 
 
+if os.getenv("RELIC_MCP_APPEND_ENABLED") == "1":
+    @mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False,
+                           "idempotentHint": True, "openWorldHint": False})
+    def relic_append_event(event: ContinuityEvent) -> dict[str, Any]:
+        """Append authorized continuity through the dedicated ReLiC host writer.
+
+        Supply only significant, authorized project history and source pointers.
+        Omit credentials and unnecessary personal information. Keep the exact same
+        record and idempotency_key when retrying. A changed record needs a new key.
+        Corrections reference prior_event_id; they never overwrite history.
+        Classification describes the submitted claim, not independent verification.
+        Persistence is confirmed only by stored=true and an immutable event_id.
+        This tool cannot promote canon or modify observed systems.
+        """
+        return submit(event)
+
+
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")
+
