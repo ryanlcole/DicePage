@@ -1,0 +1,276 @@
+/* Universal Roll20 Sheet v0.1 | CSE; no external font or stylesheet dependencies. */
+.ucs-shell{--navy:#0d192c;--navy2:#13263b;--panel:#172b41;--panel2:#1a3148;--gold:#e5c486;--text:#f3f0e7;--muted:#b2c3d2;--line:#395066;--blue:#234960;color:var(--text);background:linear-gradient(135deg,#0e1c30,#182d43);border:1px solid #536276;border-radius:14px;box-shadow:0 4px 18px #050c16a8;font:14px/1.4 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;display:grid;grid-template-columns:198px minmax(0,1fr);width:100%;max-width:100%;min-width:0;overflow:hidden;box-sizing:border-box;}
+.ucs-shell *{box-sizing:border-box;}
+.ucs-route-input{position:absolute!important;opacity:0!important;pointer-events:none!important;width:1px!important;height:1px!important;left:-9000px!important;}
+.ucs-shell button,.ucs-shell input,.ucs-shell textarea,.ucs-shell select{font:inherit;}
+.ucs-sidebar{background:linear-gradient(170deg,#0b1727,#102439);border-right:1px solid var(--line);min-width:0;display:flex;flex-direction:column;}
+.ucs-logo{padding:18px 13px 16px;display:flex;gap:10px;align-items:center;border-bottom:1px solid #2a4055;}
+.ucs-logo strong{display:block;color:#f6e1b6;font-weight:800;letter-spacing:1.2px;font-size:13px;line-height:1.3;}
+.ucs-logo small{display:block;color:#9eb3c4;font-size:9px;letter-spacing:1.2px;margin-top:3px;}
+.ucs-crest{width:37px;height:37px;display:grid;place-items:center;border-radius:8px;font-size:23px;color:#101d2e;background:linear-gradient(140deg,#f9e4aa,#bf9250);box-shadow:inset 0 0 0 1px #c9a86b;flex-shrink:0;}
+.ucs-navdetails{flex:1;min-height:0;}
+.ucs-navdetails>summary{display:none;}
+.ucs-nav{padding:11px 8px 16px;display:block;}
+.ucs-navgroup{margin-bottom:12px;}
+.ucs-navgroupname{margin:10px 9px 5px!important;color:#90a9bb!important;text-transform:uppercase;font-size:9px!important;font-weight:800!important;letter-spacing:1.35px;}
+.ucs-navitem{display:flex!important;align-items:center;gap:9px;min-height:34px;padding:8px 11px!important;color:#cdd6de!important;font-weight:600!important;border-radius:7px;cursor:pointer;font-size:12px!important;margin:2px 0!important;border:1px solid transparent;transition:background .1s ease;}
+.ucs-navitem:hover{background:#203c53;color:#fff!important;}
+.ucs-navicon{font-size:15px;width:19px;text-align:center;color:#d6bc8e;}
+.ucs-sidebarfoot{margin-top:auto;padding:13px;border-top:1px solid #2a4055;color:#a9bbc9;display:flex;gap:4px;flex-direction:column;font-size:10px;}
+.ucs-sidebarfoot small{color:#d5b57c;}
+.ucs-content{min-width:0;min-height:0;}
+.ucs-characterbar{border-bottom:1px solid #475c6b;background:linear-gradient(105deg,#1a3349,#0f2439);padding:14px 21px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:74px;}
+.ucs-characterbadge{width:42px;height:42px;border:1px solid #a98250;border-radius:10px;display:grid;place-items:center;color:#f5d9a2;font-size:24px;background:#283a4c;}
+.ucs-identity{flex:1;min-width:150px;}
+.ucs-toptag,.ucs-eyebrow{font-size:10px;font-weight:750;letter-spacing:1.35px;color:#d7b77a;display:block;text-transform:uppercase;}
+.ucs-nameinput{width:100%!important;max-width:370px!important;background:transparent!important;border:0!important;border-bottom:1px solid #5b6d79!important;border-radius:0!important;color:#fff!important;font:700 21px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;padding:2px 0!important;height:auto!important;outline:none;}
+.ucs-nameinput::placeholder{color:#d0dae3;opacity:.7;}
+.ucs-headerstats{display:flex;gap:6px;flex-wrap:wrap;}
+.ucs-headerstats label{display:flex!important;flex-direction:column;align-items:center;color:#d5bb86!important;background:#10283c;border:1px solid #456177;border-radius:7px;padding:5px 10px;gap:3px;margin:0!important;min-width:60px!important;line-height:1.1!important;}
+.ucs-headerstats label span{font-size:9px;letter-spacing:1.1px;font-weight:800;}
+.ucs-headerstats input{color:#fff!important;background:transparent!important;border:0!important;text-align:center!important;font-size:15px!important;font-weight:800!important;width:54px!important;padding:1px!important;height:20px!important;box-shadow:none!important;}
+.ucs-main{padding:19px 22px 25px;min-height:550px;}
+.ucs-page{display:none;}
+.ucs-pagetitle{display:flex;gap:10px;justify-content:space-between;align-items:end;margin-bottom:16px;}
+.ucs-pagetitle h2{margin:3px 0 5px!important;color:#f4e0b7!important;font-size:24px!important;line-height:1.2!important;font-weight:780!important;letter-spacing:.1px;}
+.ucs-pagetitle p{color:#bdcad5!important;margin:0!important;max-width:660px;font-size:12px!important;}
+.ucs-panel{border:1px solid #436076;border-radius:10px;background:linear-gradient(150deg,#19334b,#14283b);padding:16px;margin:0 0 14px;min-width:0;}
+.ucs-panelhead{display:flex;justify-content:space-between;gap:15px;align-items:start;border-bottom:1px solid #3b5467;padding-bottom:10px;margin-bottom:13px;}
+.ucs-panelhead h3{font-size:16px!important;font-weight:750!important;margin:0 0 3px!important;color:#f7ead4!important;}
+.ucs-panelhead p{font-size:12px!important;color:#a9bdca!important;margin:0!important;}
+.ucs-micro{font-size:9px;text-transform:uppercase;color:#c6d7e2;letter-spacing:.4px;padding:5px 7px;border-radius:20px;background:#254a5f;white-space:nowrap;}
+.ucs-formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(174px,1fr));gap:11px;min-width:0;}
+.ucs-statsstrip{display:flex;flex-wrap:wrap;gap:12px;align-items:end;}
+.ucs-statsstrip>.ucs-field{width:140px;flex:1 1 120px;}
+.ucs-field{display:flex!important;flex-direction:column;gap:5px;color:#d7e3eb!important;font-size:11px!important;font-weight:650!important;line-height:1.4!important;text-align:left!important;margin:0!important;min-width:0!important;max-width:100%!important;}
+.ucs-field>span{display:block;color:#d6e0e8!important;}
+.ucs-input{width:100%!important;max-width:100%!important;min-width:0!important;color:#fff!important;background:#0d2031!important;border:1px solid #4d677e!important;border-radius:6px!important;min-height:34px!important;padding:6px 9px!important;box-shadow:none!important;font-size:13px!important;font-weight:500!important;line-height:1.3!important;height:auto!important;}
+.ucs-input::placeholder{color:#8ca6b9;opacity:1;}
+.ucs-input:focus{outline:2px solid #e4c58a!important;outline-offset:0!important;border-color:#e4c58a!important;}
+.ucs-input option{background:#0d2031;color:#fff;}
+.ucs-multiline{resize:vertical!important;min-height:68px!important;}
+.ucs-num{max-width:100%!important;}
+.ucs-readonly{background:#273d50!important;color:#e8c888!important;}
+.ucs-code{font-family:ui-monospace,Consolas,monospace!important;min-height:60px!important;font-size:11px!important;}
+.ucs-check{display:flex!important;align-items:center;gap:8px;min-height:34px;color:#e0e8ed!important;font-size:12px!important;margin:18px 0 0!important;padding:4px!important;font-weight:600!important;cursor:pointer;}
+.ucs-check input{height:18px!important;width:18px!important;margin:0!important;accent-color:#dec28a;}
+.ucs-helper{font-size:12px!important;line-height:1.55!important;color:#c9d7e1!important;margin:10px 0 0!important;}
+.ucs-info{border:1px solid #637386;border-left:3px solid #dabd81;color:#dce7ec;background:#122b3f;border-radius:6px;padding:12px;margin-bottom:15px;font-size:12px;line-height:1.6;}
+.ucs-info code,.ucs-helper code{padding:1px 4px;background:#102234;color:#f0d3a0;border-radius:3px;}
+.ucs-repeatrow{background:#10283b;border:1px solid #36556c;padding:12px;border-radius:7px;margin:7px 0;min-width:0;}
+.ucs-roll{cursor:pointer!important;background:linear-gradient(180deg,#e5c584,#b58e4f)!important;color:#122239!important;border:1px solid #f3d7a0!important;min-height:35px!important;padding:6px 14px!important;margin:11px 0 0!important;border-radius:7px!important;font-size:12px!important;font-weight:800!important;text-shadow:none!important;box-shadow:none!important;}
+.ucs-roll:hover{filter:brightness(1.1);}
+.ucs-roll:focus-visible{outline:3px solid #fff!important;outline-offset:2px!important;}
+.ucs-footer{border-top:1px solid #37576d;margin:0 22px;padding:12px 0 19px;color:#b1c3cf;font-size:11px;text-align:center;}
+/* The browser preview shows the fieldset; Roll20 replaces its contents with rendered repeating rows and Add/Modify controls. */
+.ucs-shell .repcontainer{margin:9px 0;}
+.ucs-shell .repcontrol{padding:7px 2px;}
+.ucs-shell .repcontrol button{border-radius:5px!important;color:#e4d5b5!important;background:#233b51!important;border:1px solid #557185!important;min-height:30px!important;}
+.ucs-shell .repitem{margin-bottom:8px;}
+.ucs-shell fieldset[class^="repeating_"]{border:0!important;margin:0!important;padding:0!important;min-width:0!important;}
+/* Routes: pure CSS, saved as a character attribute; no DOM JavaScript or outside resources. */
+.ucs-route-input[value="artwork"]:checked ~ .ucs-shell .ucs-page--artwork{display:block;}
+.ucs-route-input[value="artwork"]:checked ~ .ucs-shell .ucs-navitem--artwork{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="bio"]:checked ~ .ucs-shell .ucs-page--bio{display:block;}
+.ucs-route-input[value="bio"]:checked ~ .ucs-shell .ucs-navitem--bio{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="classes"]:checked ~ .ucs-shell .ucs-page--classes{display:block;}
+.ucs-route-input[value="classes"]:checked ~ .ucs-shell .ucs-navitem--classes{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="base"]:checked ~ .ucs-shell .ucs-page--base{display:block;}
+.ucs-route-input[value="base"]:checked ~ .ucs-shell .ucs-navitem--base{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="flavor"]:checked ~ .ucs-shell .ucs-page--flavor{display:block;}
+.ucs-route-input[value="flavor"]:checked ~ .ucs-shell .ucs-navitem--flavor{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="gear"]:checked ~ .ucs-shell .ucs-page--gear{display:block;}
+.ucs-route-input[value="gear"]:checked ~ .ucs-shell .ucs-navitem--gear{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="loot"]:checked ~ .ucs-shell .ucs-page--loot{display:block;}
+.ucs-route-input[value="loot"]:checked ~ .ucs-shell .ucs-navitem--loot{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="actions"]:checked ~ .ucs-shell .ucs-page--actions{display:block;}
+.ucs-route-input[value="actions"]:checked ~ .ucs-shell .ucs-navitem--actions{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="effects"]:checked ~ .ucs-shell .ucs-page--effects{display:block;}
+.ucs-route-input[value="effects"]:checked ~ .ucs-shell .ucs-navitem--effects{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="spellbook"]:checked ~ .ucs-shell .ucs-page--spellbook{display:block;}
+.ucs-route-input[value="spellbook"]:checked ~ .ucs-shell .ucs-navitem--spellbook{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="dicebag"]:checked ~ .ucs-shell .ucs-page--dicebag{display:block;}
+.ucs-route-input[value="dicebag"]:checked ~ .ucs-shell .ucs-navitem--dicebag{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="knowledge"]:checked ~ .ucs-shell .ucs-page--knowledge{display:block;}
+.ucs-route-input[value="knowledge"]:checked ~ .ucs-shell .ucs-navitem--knowledge{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="profession"]:checked ~ .ucs-shell .ucs-page--profession{display:block;}
+.ucs-route-input[value="profession"]:checked ~ .ucs-shell .ucs-navitem--profession{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="journal"]:checked ~ .ucs-shell .ucs-page--journal{display:block;}
+.ucs-route-input[value="journal"]:checked ~ .ucs-shell .ucs-navitem--journal{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="player"]:checked ~ .ucs-shell .ucs-page--player{display:block;}
+.ucs-route-input[value="player"]:checked ~ .ucs-shell .ucs-navitem--player{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+.ucs-route-input[value="custom"]:checked ~ .ucs-shell .ucs-page--custom{display:block;}
+.ucs-route-input[value="custom"]:checked ~ .ucs-shell .ucs-navitem--custom{background:#31516a!important;border-color:#b39258!important;color:#ffe2aa!important;}
+@media (max-width:830px){
+.ucs-shell{grid-template-columns:165px minmax(0,1fr)}.ucs-main{padding:16px 14px}.ucs-navitem{font-size:11px!important;padding:7px 8px!important}.ucs-logo{padding:15px 8px}.ucs-panel{padding:12px}.ucs-micro{white-space:normal;text-align:center}
+}
+@media (max-width:650px){
+.ucs-shell{display:block;border-radius:8px}.ucs-sidebar{display:block;border-right:0;border-bottom:1px solid #43596c}.ucs-logo{padding:9px 13px}.ucs-crest{width:29px;height:29px;font-size:18px}.ucs-logo strong{font-size:11px}.ucs-logo small{font-size:8px}
+.ucs-navdetails>summary{display:block;cursor:pointer;border-top:1px solid #314c64;background:#112639;padding:9px 13px;color:#edcf9b;font-weight:750;font-size:12px;}
+.ucs-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 7px;max-height:225px;overflow:auto;padding:6px 8px 10px}
+.ucs-navgroup{margin:0}.ucs-navitem{padding:6px 8px!important;min-height:29px;font-size:11px!important}.ucs-navgroupname{margin:5px 8px!important}.ucs-sidebarfoot{display:none}
+.ucs-characterbar{padding:9px 11px;gap:8px}.ucs-characterbadge{width:29px;height:33px;font-size:18px}.ucs-nameinput{font-size:17px!important;max-width:100%!important}.ucs-toptag{font-size:8px}.ucs-headerstats{width:100%;gap:4px}.ucs-headerstats label{min-width:0!important;flex:1;padding:3px 7px}.ucs-headerstats input{height:18px!important}
+.ucs-main{min-height:450px;padding:13px 10px}.ucs-pagetitle h2{font-size:21px!important}.ucs-pagetitle p{font-size:11px!important}.ucs-panel{padding:11px;margin-bottom:10px}.ucs-panelhead h3{font-size:14px!important}.ucs-panelhead p{font-size:11px!important}.ucs-micro{font-size:8px}
+.ucs-formgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ucs-field{font-size:11px!important}.ucs-input{font-size:12px!important;min-height:32px!important;padding:5px 7px!important}.ucs-statsstrip{gap:8px}.ucs-statsstrip>.ucs-field{flex-basis:85px}.ucs-footer{margin:0 10px}
+}
+@media (max-width:390px){.ucs-formgrid{grid-template-columns:minmax(0,1fr)}.ucs-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.ucs-statsstrip>.ucs-field{flex-basis:100px}}
+.ucs-dice-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0;}
+.ucs-dice-actions .ucs-roll{margin:0!important;min-height:42px!important;padding:9px 19px!important;font-size:13px!important;}
+.ucs-dice-actions>span{font-size:11px;color:#b8c9d2;}
+.ucs-advanced{margin-top:10px;border-top:1px solid #426078;padding-top:8px;}
+.ucs-advanced>summary{padding:8px 4px;cursor:pointer;color:#e8cc9a;font-size:12px;font-weight:700;}
+.ucs-advanced>.ucs-formgrid{padding-top:10px;}
+.ucs-advanced[open]>summary{margin-bottom:5px;}
+
+
+/* v0.2 artwork-first overlay. Referenced tileset crops came from the user-supplied images.
+   Hosted URLs are required for final Roll20 art; relative asset paths work in the local preview only. */
+.ucs-shell{--navy:#f7f1e8;--navy2:#f5e8d5;--panel:#faf3e8;--panel2:#f7ecda;--gold:#9d793d;--text:#51371f;--muted:#705b42;--line:#c4aa7b;--blue:#d4e8f5; color:#4c3827!important;background:#f4ecdf url('assets/parchment.jpg') repeat!important;border:2px solid #bea476!important;border-radius:10px!important;box-shadow:0 3px 12px #78634555!important;font-family:Georgia, 'Times New Roman',serif!important;}
+.ucs-sidebar{background:linear-gradient(165deg,#f7f0e5,#e7d7bc)!important;border-right:1px solid #c9b389!important;}
+.ucs-logo{border-color:#c5a778!important;}.ucs-logo strong,.ucs-logo small,.ucs-navgroupname,.ucs-navitem,.ucs-sidebarfoot,.ucs-sidebarfoot small{color:#684b29!important;}
+.ucs-navitem:hover{background:#e5d9be!important;color:#4f3820!important;}.ucs-navicon{color:#997a49!important;}
+.ucs-characterbar{background:#f6ebdd url('assets/title-frame.jpg') center center/100% 100% no-repeat!important;border-bottom:1px solid #c29b65!important;}
+.ucs-characterbadge{background:#f1e6d7!important;border:1px solid #bf995f!important;color:#88663b!important;}
+.ucs-toptag,.ucs-eyebrow{color:#866843!important;}
+.ucs-nameinput{color:#4e3420!important;border-bottom:1px solid #af9065!important;}.ucs-nameinput::placeholder{color:#978269!important;}
+.ucs-headerstats label{background:#f7eddf!important;color:#806038!important;border-color:#c2a777!important;}.ucs-headerstats input{color:#4a3322!important;}
+.ucs-main{padding-bottom:26px!important;}
+.ucs-pagetitle{border:1px solid #be9f70;border-radius:25px;background:linear-gradient(110deg,#fff8ed,#f3e4ce,#fff7ee);padding:9px 17px;box-shadow:inset 0 2px 5px #b99a7155,0 2px 3px #aa977a33;}
+.ucs-pagetitle h2,.ucs-panelhead h3{color:#644524!important;font-family:Georgia,'Times New Roman',serif!important;}
+.ucs-pagetitle p,.ucs-panelhead p,.ucs-helper,.ucs-field,.ucs-field>span,.ucs-check,.ucs-info{color:#634a32!important;}
+.ucs-panel{background:#f7eee3 url('assets/parchment.jpg') repeat!important;border:2px solid #bda072!important;border-radius:17px!important;box-shadow:inset 0 0 0 3px #faf2e5,0 2px 6px #95806a44!important;}
+.ucs-panelhead{border-color:#dac39c!important;}.ucs-micro{color:#74572e!important;background:#ede0cc!important;}
+.ucs-input{background:#fffaf2!important;color:#382916!important;border:1px solid #b89b70!important;border-radius:9px!important;box-shadow:inset 0 2px 5px #b3a18925!important;}
+.ucs-input::placeholder{color:#a39480!important;}.ucs-input option{background:#fffaf2;color:#3d2e21;}
+.ucs-input:focus{outline:2px solid #90b7ce!important;border-color:#5b98bd!important;}
+.ucs-readonly{background:#f2e6d1!important;color:#59401f!important;}.ucs-repeatrow{background:#fffaf1 url('assets/parchment.jpg') repeat!important;border:1px solid #c3a474!important;border-radius:13px!important;}
+.ucs-info{background:#f5ebda!important;border:1px solid #c3a879!important;border-left:3px solid #a48b5e!important;}
+.ucs-info code,.ucs-helper code{background:#ebd9c1!important;color:#65451d!important;}
+.ucs-roll{background:linear-gradient(#fff8e7,#e9d4aa)!important;color:#503d26!important;border:1px solid #a88850!important;}
+.ucs-advanced>summary,.ucs-bag-edit>summary{color:#71502d!important;}.ucs-advanced{border-color:#d8c198!important;}
+.ucs-shell .repcontrol button{background:#eee1cf!important;color:#5a4327!important;border:1px solid #b89e76!important;}
+.ucs-footer{color:#755b3e!important;border-color:#cfb48a!important;}
+.ucs-route-input:checked ~ .ucs-shell .ucs-navitem{color:#60452a!important;}
+/* One shared five-icon dock for every route: no per-section copies. */
+.ucs-bottomdock{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;align-items:center;padding:7px 7px 5px;margin:12px 8px 4px;background:linear-gradient(#f7f0e6,#dfc6a1);border:2px solid #b69668;border-radius:24px;box-shadow:0 -2px 12px #96794e55;}
+.ucs-dockitem{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0!important;margin:0!important;padding:2px!important;cursor:pointer;border-radius:20px;transition:background .15s ease;}
+.ucs-dockart{width:clamp(38px,9vw,76px);height:clamp(38px,9vw,76px);display:block;background-size:contain;background-position:center;background-repeat:no-repeat;border-radius:50%;}
+.ucs-dockart--character{background-image:url('assets/nav-character.png')}.ucs-dockart--base{background-image:url('assets/nav-base.png')}.ucs-dockart--abilities{background-image:url('assets/nav-abilities.png')}.ucs-dockart--gear{background-image:url('assets/nav-gear.png')}.ucs-dockart--linked{background-image:url('assets/nav-linked.png')}
+.ucs-dockart--abilities{filter:grayscale(.8) sepia(.25) saturate(.7);}
+.ucs-docklabel{display:block;color:#5b452a;font-size:10px;line-height:1.1;font-weight:700;letter-spacing:.2px;}
+.ucs-dockitem:hover{background:#f3e3c9;}
+.ucs-route-input[value='bio']:checked ~ .ucs-shell .ucs-dockitem--bio .ucs-dockart,
+.ucs-route-input[value='base']:checked ~ .ucs-shell .ucs-dockitem--base .ucs-dockart,
+.ucs-route-input[value='spellbook']:checked ~ .ucs-shell .ucs-dockitem--spellbook .ucs-dockart,
+.ucs-route-input[value='gear']:checked ~ .ucs-shell .ucs-dockitem--gear .ucs-dockart,
+.ucs-route-input[value='knowledge']:checked ~ .ucs-shell .ucs-dockitem--knowledge .ucs-dockart{filter:none!important;box-shadow:0 0 0 3px #78b8e6,0 0 14px 3px #7fc5f5!important;}
+.ucs-inlinebag{position:relative;display:block;margin:9px 0 4px;max-width:100%;}
+.ucs-inlinebag>summary{display:inline-flex;align-items:center;cursor:pointer;gap:7px;padding:5px 13px 5px 6px;min-height:44px;border-radius:50px;border:2px solid #b59660;background:linear-gradient(#fff9ec,#dfc699);font-size:13px;color:#513a22;list-style:none;font-weight:700;}
+.ucs-inlinebag>summary::-webkit-details-marker{display:none;}.ucs-mini-bag{display:grid;place-items:center;font-size:0;width:36px;height:36px;background:url('assets/nav-gear.png') center/cover no-repeat;border-radius:50%;}
+.ucs-inlinebag-popover{position:relative;z-index:5;margin:7px 0;padding:12px;border:2px solid #b18b50;border-radius:14px;background:#f8efdf url('assets/parchment.jpg') repeat;box-shadow:0 5px 12px #7b624a44;max-width:100%;}
+.ucs-bag-title{font-weight:700;font-size:17px;margin:1px 0 10px;color:#604526;}
+.ucs-bag-fields{grid-template-columns:repeat(2,minmax(0,1fr));}.ucs-confirm-roll{min-height:44px!important;}
+.ucs-bag-edit{border-top:1px solid #c6ad85;padding:8px 0;margin-top:10px;}.ucs-bag-edit summary{cursor:pointer;font-weight:700;color:#67492a;}.ucs-bag-edit .ucs-field{margin-top:10px!important;}
+.ucs-bag-edit .ucs-roll{margin-top:8px!important;}
+.ucs-inlinebag[open]>.ucs-inlinebag-trigger{box-shadow:0 0 0 2px #96c6eb;}
+@media (max-width:650px){
+.ucs-sidebar{background:#f6ead8!important;}.ucs-navdetails>summary{background:#efe2cc!important;color:#654927!important;border-color:#bea578!important;}
+.ucs-navitem{color:#63462e!important;}.ucs-characterbar{background-size:cover!important;}
+.ucs-main{padding:12px 10px 120px!important;}
+.ucs-bottomdock{position:fixed;z-index:999;bottom:4px;left:50%;transform:translateX(-50%);width:calc(100vw - 14px);max-width:600px;margin:0;padding:4px 5px;border-radius:28px;}
+.ucs-dockart{width:clamp(44px,13vw,69px);height:clamp(44px,13vw,69px);}
+.ucs-docklabel{font-size:9px;}.ucs-bag-fields{grid-template-columns:minmax(0,1fr)}
+}
+
+
+/* v0.3: A CSS-only, Roll20-native Focus viewer. Host overlay behavior
+   stays controlled by Roll20; there is no unrestricted JavaScript. */
+.ucs-viewstate,.ucs-zoomstate,.ucs-compactstate,.ucs-cardstate{position:absolute!important;opacity:0!important;pointer-events:none!important;width:1px!important;height:1px!important;left:-9000px!important;}
+.ucs-viewerbar{display:flex;align-items:center;justify-content:space-between;gap:5px;padding:6px 9px;background:#f1e5d0;border-bottom:1px solid #bd9b62;flex-wrap:wrap;min-width:0;}
+.ucs-modepick,.ucs-zoomcontrol{display:flex;align-items:center;gap:3px;min-width:0;}
+.ucs-viewerbar label{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:5px 9px;background:#fff9f0;border:1px solid #bb9f70;border-radius:17px;font-family:Georgia,serif;font-size:12px;color:#67482b;font-weight:700;white-space:nowrap;}
+.ucs-zoomcontrol label{min-width:33px;padding:4px 6px;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-modebutton--focus,#ucs-mode-edit:checked ~ .ucs-shell .ucs-modebutton--edit,#ucs-compact:checked ~ .ucs-shell .ucs-modebutton--compact{background:#d4e9fa;border-color:#568db1;box-shadow:0 0 0 1px #7dafcb inset;}
+#ucs-zoom-80:checked ~ .ucs-shell .ucs-zoomcontrol label[for="ucs-zoom-80"],#ucs-zoom-100:checked ~ .ucs-shell .ucs-zoomcontrol label[for="ucs-zoom-100"],#ucs-zoom-120:checked ~ .ucs-shell .ucs-zoomcontrol label[for="ucs-zoom-120"]{background:#d6eaf7;border-color:#6194b5;}
+.ucs-pocketnote{display:none;background:#fff7e8;border:1px solid #b99a67;border-radius:12px;padding:14px;margin:12px;color:#62452a;font-size:12px;line-height:1.6;}
+.ucs-pocketnote label{display:inline-flex;padding:6px 12px;border-radius:19px;margin-left:5px;border:1px solid #a68b5b;background:#e9d8bc;cursor:pointer;font-weight:700;}
+#ucs-compact:checked ~ .ucs-shell .ucs-main,#ucs-compact:checked ~ .ucs-shell .ucs-bottomdock,#ucs-compact:checked ~ .ucs-shell .ucs-sidebar{display:none!important;}
+#ucs-compact:checked ~ .ucs-shell .ucs-pocketnote{display:block!important;}
+#ucs-compact:checked ~ .ucs-shell .ucs-characterbar{padding:5px 12px;min-height:0;}
+#ucs-compact:checked ~ .ucs-shell .ucs-headerstats{display:none;}
+/* Focus mode shows one thematic card at a time; Full Edit retains every panel. */
+.ucs-cardpager{display:none;min-width:0;max-width:100%;margin-bottom:7px;}
+.ucs-pagertrack{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+.ucs-cardtab{display:inline-flex;min-height:32px;align-items:center;justify-content:center;cursor:pointer;font-weight:700;font-size:12px;color:#685034;border-radius:18px;border:1px solid #c4a36e;padding:5px 9px;background:#f7efdf;white-space:normal;text-align:center;}
+.ucs-cardtab--only{cursor:default;}
+.ucs-viewcard{min-width:0;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-cardpager{display:block;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-contexthelp{display:none;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-viewcard{display:none;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-viewcard--1{display:block;}
+#ucs-card-base-1:checked ~ .ucs-shell .ucs-page--base .ucs-viewcard--1{display:block;}
+#ucs-card-base-1:checked ~ .ucs-shell .ucs-page--base .ucs-cardtab--1{background:#d7ebf7;border-color:#6798b8;color:#375870;}
+#ucs-card-base-2:checked ~ .ucs-shell .ucs-page--base .ucs-viewcard--1{display:none;}
+#ucs-card-base-2:checked ~ .ucs-shell .ucs-page--base .ucs-viewcard--2{display:block;}
+#ucs-card-base-2:checked ~ .ucs-shell .ucs-page--base .ucs-cardtab--2{background:#d7ebf7;border-color:#6798b8;color:#375870;}
+#ucs-card-base-3:checked ~ .ucs-shell .ucs-page--base .ucs-viewcard--1{display:none;}
+#ucs-card-base-3:checked ~ .ucs-shell .ucs-page--base .ucs-viewcard--3{display:block;}
+#ucs-card-base-3:checked ~ .ucs-shell .ucs-page--base .ucs-cardtab--3{background:#d7ebf7;border-color:#6798b8;color:#375870;}
+#ucs-card-base-4:checked ~ .ucs-shell .ucs-page--base .ucs-viewcard--1{display:none;}
+#ucs-card-base-4:checked ~ .ucs-shell .ucs-page--base .ucs-viewcard--4{display:block;}
+#ucs-card-base-4:checked ~ .ucs-shell .ucs-page--base .ucs-cardtab--4{background:#d7ebf7;border-color:#6798b8;color:#375870;}
+#ucs-card-base-5:checked ~ .ucs-shell .ucs-page--base .ucs-viewcard--1{display:none;}
+#ucs-card-base-5:checked ~ .ucs-shell .ucs-page--base .ucs-viewcard--5{display:block;}
+#ucs-card-base-5:checked ~ .ucs-shell .ucs-page--base .ucs-cardtab--5{background:#d7ebf7;border-color:#6798b8;color:#375870;}
+#ucs-card-gear-1:checked ~ .ucs-shell .ucs-page--gear .ucs-viewcard--1{display:block;}
+#ucs-card-gear-1:checked ~ .ucs-shell .ucs-page--gear .ucs-cardtab--1{background:#d7ebf7;border-color:#6798b8;color:#375870;}
+#ucs-card-gear-2:checked ~ .ucs-shell .ucs-page--gear .ucs-viewcard--1{display:none;}
+#ucs-card-gear-2:checked ~ .ucs-shell .ucs-page--gear .ucs-viewcard--2{display:block;}
+#ucs-card-gear-2:checked ~ .ucs-shell .ucs-page--gear .ucs-cardtab--2{background:#d7ebf7;border-color:#6798b8;color:#375870;}
+#ucs-card-spellbook-1:checked ~ .ucs-shell .ucs-page--spellbook .ucs-viewcard--1{display:block;}
+#ucs-card-spellbook-1:checked ~ .ucs-shell .ucs-page--spellbook .ucs-cardtab--1{background:#d7ebf7;border-color:#6798b8;color:#375870;}
+#ucs-card-spellbook-2:checked ~ .ucs-shell .ucs-page--spellbook .ucs-viewcard--1{display:none;}
+#ucs-card-spellbook-2:checked ~ .ucs-shell .ucs-page--spellbook .ucs-viewcard--2{display:block;}
+#ucs-card-spellbook-2:checked ~ .ucs-shell .ucs-page--spellbook .ucs-cardtab--2{background:#d7ebf7;border-color:#6798b8;color:#375870;}
+#ucs-card-dicebag-1:checked ~ .ucs-shell .ucs-page--dicebag .ucs-viewcard--1{display:block;}
+#ucs-card-dicebag-1:checked ~ .ucs-shell .ucs-page--dicebag .ucs-cardtab--1{background:#d7ebf7;border-color:#6798b8;color:#375870;}
+#ucs-card-dicebag-2:checked ~ .ucs-shell .ucs-page--dicebag .ucs-viewcard--1{display:none;}
+#ucs-card-dicebag-2:checked ~ .ucs-shell .ucs-page--dicebag .ucs-viewcard--2{display:block;}
+#ucs-card-dicebag-2:checked ~ .ucs-shell .ucs-page--dicebag .ucs-cardtab--2{background:#d7ebf7;border-color:#6798b8;color:#375870;}
+
+/* Zoom is a CSS rendering preference only; Roll20's title-bar magnifier zooms the entire character overlay. */
+#ucs-zoom-80:checked ~ .ucs-shell .ucs-content .ucs-main{zoom:.8;}
+#ucs-zoom-100:checked ~ .ucs-shell .ucs-content .ucs-main{zoom:1;}
+#ucs-zoom-120:checked ~ .ucs-shell .ucs-content .ucs-main{zoom:1.2;}
+/* One card at a time, with native touch panning inside the card if its contents exceed the viewport. */
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-page .ucs-viewstage{height:auto;max-height:clamp(240px,48vh,650px);min-height:120px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;touch-action:pan-x pan-y;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-viewcard .ucs-panel{margin:0 0 9px;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-main{padding-top:10px;min-height:0;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-pagetitle{margin-bottom:5px;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-pagetitle p{display:none;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-pagetitle h2{font-size:20px!important;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-sidebar .ucs-logo,#ucs-mode-focus:checked ~ .ucs-shell .ucs-sidebarfoot{display:none;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-characterbar{min-height:42px;padding:5px 10px;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-headerstats{display:none;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-characterbadge{display:none;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-toptag{display:none;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-nameinput{font-size:16px!important;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-panelhead p{display:none;}
+#ucs-mode-focus:checked ~ .ucs-shell .ucs-panel{padding:10px;}
+@media (max-width:650px){
+ .ucs-viewerbar{gap:4px;padding:4px 5px;}
+ .ucs-viewerbar label{min-height:32px;font-size:11px;padding:4px 8px;}
+ .ucs-viewerbar .ucs-zoomcontrol label{min-width:26px;padding:4px;}
+ .ucs-cardtab{font-size:11px;min-height:29px;padding:4px 7px;}
+ #ucs-mode-focus:checked ~ .ucs-shell .ucs-main{padding:6px 7px 12px!important;}
+ #ucs-mode-focus:checked ~ .ucs-shell .ucs-page .ucs-viewstage{height:auto;max-height:clamp(210px,45vh,490px);min-height:120px;}
+ #ucs-mode-focus:checked ~ .ucs-shell .ucs-pagetitle{padding:5px 11px;}
+ #ucs-mode-focus:checked ~ .ucs-shell .ucs-pagetitle h2{font-size:17px!important;}
+ #ucs-mode-focus:checked ~ .ucs-shell .ucs-bottomdock{position:sticky;bottom:0;left:auto;transform:none;width:auto;margin:6px 0 0;z-index:20;}
+ #ucs-mode-focus:checked ~ .ucs-shell .ucs-content{display:flex;flex-direction:column;}
+ #ucs-mode-focus:checked ~ .ucs-shell .ucs-content .ucs-main{flex:1 1 auto;min-height:0;}
+ #ucs-mode-focus:checked ~ .ucs-shell .ucs-content .ucs-footer{display:none;}
+}
+/* Explicitly restore every card for the full editor even when a different
+   card is selected in Focus mode. */
+#ucs-mode-edit:checked ~ .ucs-shell .ucs-page .ucs-viewcard{display:block!important;}
