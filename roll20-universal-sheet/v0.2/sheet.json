@@ -1,0 +1,8 @@
+{
+  "html": "universal.html",
+  "css": "universal.css",
+  "authors": "Universal Sheet Project",
+  "legacy": false,
+  "preview": "preview.png",
+  "instructions": "v0.2 artwork-first universal sheet. Bottom navigation is shared across every section; Dice Bag on each rollable item. Artwork must be hosted at public URLs for Roll20; included relative assets are preview-only."
+}

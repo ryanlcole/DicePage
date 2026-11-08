@@ -1,0 +1,307 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Universal Roll20 character sheet artwork preview v0.2</title><link rel="stylesheet" href="universal.css"><style>body{margin:0;background:#e4d6bf;color:#4e3a22;font-family:Georgia,serif} .preview-note{max-width:1180px;margin:0 auto 10px;padding:10px;color:#4d3725;font-size:13px}.preview-wrap{max-width:1180px;margin:auto}@media(max-width:650px){.preview-note{padding:5px 9px}}</style></head><body><div class="preview-note">Standalone visual check only — Roll20 runs actual sheet workers, repeating rows and rolls.</div><div class="preview-wrap"><!-- Universal Roll20 Sheet — CSE-native HTML fragment, release v0.2 -->
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-artwork" value="artwork">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-bio" value="bio">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-classes" value="classes">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-base" value="base">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-flavor" value="flavor">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-gear" value="gear">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-loot" value="loot">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-actions" value="actions" checked="checked">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-effects" value="effects">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-spellbook" value="spellbook">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-dicebag" value="dicebag">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-knowledge" value="knowledge">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-profession" value="profession">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-journal" value="journal">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-player" value="player">
+<input class="ucs-route-input" type="radio" name="attr_ucs_tab" id="ucs-tab-custom" value="custom">
+<div class="ucs-shell">
+<aside class="ucs-sidebar"><div class="ucs-logo"><div class="ucs-crest">⚄</div><div><strong>UNIVERSAL</strong><small>ROLL20 CHARACTER SHEET</small></div></div>
+<details class="ucs-navdetails" open="open"><summary>Navigate sections</summary><nav class="ucs-nav" aria-label="Character sections"><div class="ucs-navgroup"><p class="ucs-navgroupname">Identity</p><label class="ucs-navitem ucs-navitem--artwork" for="ucs-tab-artwork"><span class="ucs-navicon">▧</span><span>Artwork</span></label><label class="ucs-navitem ucs-navitem--bio" for="ucs-tab-bio"><span class="ucs-navicon">✦</span><span>Bio</span></label><label class="ucs-navitem ucs-navitem--classes" for="ucs-tab-classes"><span class="ucs-navicon">◈</span><span>Classes</span></label><label class="ucs-navitem ucs-navitem--base" for="ucs-tab-base"><span class="ucs-navicon">▤</span><span>Base</span></label></div><div class="ucs-navgroup"><p class="ucs-navgroupname">Character</p><label class="ucs-navitem ucs-navitem--flavor" for="ucs-tab-flavor"><span class="ucs-navicon">✧</span><span>Flavor</span></label><label class="ucs-navitem ucs-navitem--gear" for="ucs-tab-gear"><span class="ucs-navicon">⬡</span><span>Gear</span></label><label class="ucs-navitem ucs-navitem--loot" for="ucs-tab-loot"><span class="ucs-navicon">◇</span><span>Loot</span></label></div><div class="ucs-navgroup"><p class="ucs-navgroupname">Gameplay</p><label class="ucs-navitem ucs-navitem--actions" for="ucs-tab-actions"><span class="ucs-navicon">⚡</span><span>Actions</span></label><label class="ucs-navitem ucs-navitem--effects" for="ucs-tab-effects"><span class="ucs-navicon">±</span><span>Buffs / Debuffs</span></label><label class="ucs-navitem ucs-navitem--spellbook" for="ucs-tab-spellbook"><span class="ucs-navicon">✺</span><span>Spellbook</span></label><label class="ucs-navitem ucs-navitem--dicebag" for="ucs-tab-dicebag"><span class="ucs-navicon">⚄</span><span>Dice Bag</span></label></div><div class="ucs-navgroup"><p class="ucs-navgroupname">Campaign</p><label class="ucs-navitem ucs-navitem--knowledge" for="ucs-tab-knowledge"><span class="ucs-navicon">⌕</span><span>Knowledge</span></label><label class="ucs-navitem ucs-navitem--profession" for="ucs-tab-profession"><span class="ucs-navicon">⚒</span><span>Profession</span></label><label class="ucs-navitem ucs-navitem--journal" for="ucs-tab-journal"><span class="ucs-navicon">≡</span><span>Journal</span></label><label class="ucs-navitem ucs-navitem--player" for="ucs-tab-player"><span class="ucs-navicon">◎</span><span>Player</span></label></div><div class="ucs-navgroup"><p class="ucs-navgroupname">Extensions</p><label class="ucs-navitem ucs-navitem--custom" for="ucs-tab-custom"><span class="ucs-navicon">+</span><span>Custom</span></label></div></nav></details>
+<div class="ucs-sidebarfoot"><span>Custom rules • No presets</span><small>v0.1 / CSE</small></div></aside>
+<div class="ucs-content">
+<header class="ucs-characterbar"><div class="ucs-characterbadge">✦</div><div class="ucs-identity"><span class="ucs-toptag">CHARACTER</span><input type="text" class="ucs-nameinput" name="attr_display_name" value="" placeholder="Character alias"></div><div class="ucs-headerstats"><label><span>HP</span><input type="number" name="attr_health_current" value="0"></label><label><span>LEVEL</span><input type="number" name="attr_character_level" value="1"></label><label><span>POINTS</span><input type="number" name="attr_player_points" value="0"></label></div></header>
+<main class="ucs-main"><section class="ucs-page ucs-page--artwork" aria-label="Artwork"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Artwork</h2><p>Artwork links and visual notes. Roll20 avatar and token uploads are managed in the character journal.</p></div></div><div class="ucs-info">Paste a hosted image URL for reference or attach a link. This sheet does not upload image files or replace the Roll20 avatar/token controls.</div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Art library</h3><p>Portraits, tokens, weapons, spells, equipment and scenes.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_artwork"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Name</span><input class="ucs-input" type="text" name="attr_art_name" value="" placeholder="Shield design"></label><label class="ucs-field"><span>Category</span><select name="attr_art_category" class="ucs-input"><option value="Portrait">Portrait</option><option value="Token">Token</option><option value="Sprite">Sprite</option><option value="Item">Item</option><option value="Spell">Spell</option><option value="Ability">Ability</option><option value="Maneuver">Maneuver</option><option value="Gear">Gear</option><option value="Weapon">Weapon</option><option value="Other">Other</option></select></label><label class="ucs-field"><span>Image URL</span><input class="ucs-input" type="text" name="attr_art_url" value="" placeholder="https://…"></label><label class="ucs-field"><span>Notes</span><textarea class="ucs-input ucs-multiline" name="attr_art_notes" rows="3" placeholder=""></textarea></label></div></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--bio" aria-label="Identity &amp; biography"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Identity &amp; biography</h2><p>Your player-facing name and character story.</p></div></div><div class="ucs-panel"><div class="ucs-formgrid"><label class="ucs-field"><span>Displayed alias</span><input class="ucs-input" type="text" name="attr_display_name" value="" placeholder="Name shown on your sheet"></label><label class="ucs-field"><span>Character name</span><input class="ucs-input" type="text" name="attr_character_full_name" value="" placeholder=""></label><label class="ucs-field"><span>Ancestry / species</span><input class="ucs-input" type="text" name="attr_ancestry" value="" placeholder=""></label><label class="ucs-field"><span>Origin</span><input class="ucs-input" type="text" name="attr_homeland" value="" placeholder=""></label><label class="ucs-field"><span>Public biography</span><textarea class="ucs-input ucs-multiline" name="attr_public_bio" rows="3" placeholder=""></textarea></label><label class="ucs-field"><span>Character history</span><textarea class="ucs-input ucs-multiline" name="attr_history" rows="3" placeholder=""></textarea></label><label class="ucs-field"><span>Notes</span><textarea class="ucs-input ucs-multiline" name="attr_bio_notes" rows="3" placeholder=""></textarea></label></div><div class="ucs-info">Important: fields on the sheet are not private from users who can view the character. Use Roll20 GM Notes for GM-only secrets.</div></div></section><section class="ucs-page ucs-page--classes" aria-label="Classes &amp; advancement"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Classes &amp; advancement</h2><p>Record classes, levels, archetypes, roles or any homebrew progression.</p></div></div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Class entries</h3><p>No preset classes or mandatory character builder.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_classes"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Class / role</span><input class="ucs-input" type="text" name="attr_class_name" value="" placeholder="Fighter"></label><label class="ucs-field"><span>Level</span><input name="attr_class_level" type="number" value="1" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>Archetype / specialization</span><input class="ucs-input" type="text" name="attr_class_path" value="" placeholder=""></label><label class="ucs-field"><span>Source / rules link</span><input class="ucs-input" type="text" name="attr_class_source" value="" placeholder=""></label><label class="ucs-field"><span>Features and advancement</span><textarea class="ucs-input ucs-multiline" name="attr_class_notes" rows="3" placeholder=""></textarea></label></div></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--base" aria-label="Base &amp; resources"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Base &amp; resources</h2><p>System-neutral values. Your game supplies the meanings and formulas.</p></div></div><div class="ucs-panel"><div class="ucs-statsstrip"><label class="ucs-field"><span>Total level</span><input name="attr_character_level" type="number" value="1" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>XP</span><input name="attr_experience" type="number" value="0" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>Next level XP</span><input name="attr_next_level" type="number" value="0" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>HP / health</span><input name="attr_health_current" type="number" value="0" class="ucs-input ucs-num"></label><label class="ucs-field"><span>Max HP</span><input name="attr_health_max" type="number" value="0" class="ucs-input ucs-num"></label></div></div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Attributes</h3><p>Name any primary value and its modifier.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_stats"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Attribute</span><input class="ucs-input" type="text" name="attr_stat_name" value="" placeholder="Strength"></label><label class="ucs-field"><span>Score</span><input name="attr_stat_value" type="number" value="0" class="ucs-input ucs-num"></label><label class="ucs-field"><span>Modifier</span><input name="attr_stat_modifier" type="number" value="0" class="ucs-input ucs-num"></label><label class="ucs-field"><span>Notes / origin</span><input class="ucs-input" type="text" name="attr_stat_source" value="" placeholder=""></label></div></div></fieldset>
+    </div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Skills</h3><p>Record ranks or proficiency and create an action roll.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_skills"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Skill</span><input class="ucs-input" type="text" name="attr_skill_name" value="" placeholder="Perception"></label><label class="ucs-field"><span>Ranks</span><input name="attr_skill_rank" type="number" value="0" class="ucs-input ucs-num"></label><label class="ucs-field"><span>Total modifier</span><input name="attr_skill_bonus" type="number" value="0" class="ucs-input ucs-num"></label><label class="ucs-field"><span>Roll20 command</span><input class="ucs-input" type="text" name="attr_skill_macro" value="/roll 1d20" placeholder="/roll 1d20+3"></label></div><details class="ucs-inlinebag">
+    <summary class="ucs-inlinebag-trigger" title="Open Dice Bag for this entry" aria-label="Open roll options for this item"><span class="ucs-mini-bag" aria-hidden="true">♧</span><span>Dice Bag</span></summary>
+    <div class="ucs-inlinebag-popover">
+      <p class="ucs-bag-title">Roll with this character</p>
+      <div class="ucs-formgrid ucs-bag-fields">
+        <label class="ucs-field"><span>Additional bonus / penalty</span><input class="ucs-input" type="number" name="attr_skill_roll_bonus" value="0"></label>
+        <label class="ucs-field"><span>Difficulty / target DC</span><input class="ucs-input" type="number" name="attr_skill_roll_dc" value="10"></label>
+      </div>
+      <button class="ucs-roll ucs-confirm-roll" type="roll" name="roll_skill" value="&amp;{template:default} {{name=@{skill_name}}} {{character=@{character_name}}} {{Roll=[[@{skill_roll_expression}+@{skill_roll_bonus}]]}} {{Difficulty=@{skill_roll_dc}}}">⚄ Roll</button>
+      <details class="ucs-bag-edit"><summary>✎ Edit this Dice Bag recipe</summary>
+        <label class="ucs-field"><span>Roll expression (without /roll)</span><input class="ucs-input" type="text" name="attr_skill_roll_expression" value="1d20 + @{skill_bonus}"></label>
+        <p class="ucs-helper">Direct macro can be edited in this item’s fields above.</p>
+        <button class="ucs-roll" type="roll" name="roll_skill_manual" value="@{skill_macro}">Execute direct macro</button>
+      </details>
+    </div>
+  </details></div></fieldset>
+    </div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Defenses &amp; resistances</h3><p>Any armor, saving throw, defense or resistance.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_defenses"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Defense</span><input class="ucs-input" type="text" name="attr_def_name" value="" placeholder="Armor class"></label><label class="ucs-field"><span>Value</span><input name="attr_def_value" type="number" value="0" class="ucs-input ucs-num"></label><label class="ucs-field"><span>Notes</span><input class="ucs-input" type="text" name="attr_def_notes" value="" placeholder=""></label></div></div></fieldset>
+    </div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Resources</h3><p>Track any points, charges, stamina or counters.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_resources"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Resource</span><input class="ucs-input" type="text" name="attr_resource_name" value="" placeholder="Mana"></label><label class="ucs-field"><span>Current</span><input name="attr_resource_current" type="number" value="0" class="ucs-input ucs-num"></label><label class="ucs-field"><span>Maximum</span><input name="attr_resource_max" type="number" value="0" class="ucs-input ucs-num"></label><label class="ucs-field"><span>Refresh and restrictions</span><input class="ucs-input" type="text" name="attr_resource_notes" value="" placeholder=""></label></div></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--flavor" aria-label="Features &amp; flavor"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Features &amp; flavor</h2><p>Feats, traits, maneuvers, boons, bloodlines, powers and other rules.</p></div></div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Features</h3><p>Keep player decisions explicit. Modifiers are recorded, not automatically assumed to stack.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_features"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Name</span><input class="ucs-input" type="text" name="attr_feature_name" value="" placeholder="Power Attack"></label><label class="ucs-field"><span>Type</span><select name="attr_feature_type" class="ucs-input"><option value="Feat">Feat</option><option value="Trait">Trait</option><option value="Ability">Ability</option><option value="Maneuver">Maneuver</option><option value="Bloodline">Bloodline</option><option value="Boon">Boon</option><option value="Mythic">Mythic</option><option value="Other">Other</option></select></label><label class="ucs-field"><span>Requirement</span><input class="ucs-input" type="text" name="attr_feature_requirement" value="" placeholder=""></label><label class="ucs-field"><span>Modifier / effect</span><input class="ucs-input" type="text" name="attr_feature_modifier" value="" placeholder=""></label><label class="ucs-field"><span>Action macro</span><input class="ucs-input" type="text" name="attr_feature_macro" value="/roll 1d20" placeholder="/roll 1d20"></label><label class="ucs-field"><span>Description</span><textarea class="ucs-input ucs-multiline" name="attr_feature_notes" rows="3" placeholder=""></textarea></label></div><details class="ucs-inlinebag">
+    <summary class="ucs-inlinebag-trigger" title="Open Dice Bag for this entry" aria-label="Open roll options for this item"><span class="ucs-mini-bag" aria-hidden="true">♧</span><span>Dice Bag</span></summary>
+    <div class="ucs-inlinebag-popover">
+      <p class="ucs-bag-title">Roll with this character</p>
+      <div class="ucs-formgrid ucs-bag-fields">
+        <label class="ucs-field"><span>Additional bonus / penalty</span><input class="ucs-input" type="number" name="attr_feature_roll_bonus" value="0"></label>
+        <label class="ucs-field"><span>Difficulty / target DC</span><input class="ucs-input" type="number" name="attr_feature_roll_dc" value="10"></label>
+      </div>
+      <button class="ucs-roll ucs-confirm-roll" type="roll" name="roll_feature" value="&amp;{template:default} {{name=@{feature_name}}} {{character=@{character_name}}} {{Roll=[[@{feature_roll_expression}+@{feature_roll_bonus}]]}} {{Difficulty=@{feature_roll_dc}}}">⚄ Roll</button>
+      <details class="ucs-bag-edit"><summary>✎ Edit this Dice Bag recipe</summary>
+        <label class="ucs-field"><span>Roll expression (without /roll)</span><input class="ucs-input" type="text" name="attr_feature_roll_expression" value="1d20"></label>
+        <p class="ucs-helper">Direct macro can be edited in this item’s fields above.</p>
+        <button class="ucs-roll" type="roll" name="roll_feature_manual" value="@{feature_macro}">Execute direct macro</button>
+      </details>
+    </div>
+  </details></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--gear" aria-label="Equipment &amp; loadout"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Equipment &amp; loadout</h2><p>Carry status, location, weight and usable item actions.</p></div></div><div class="ucs-panel"><div class="ucs-statsstrip"><label class="ucs-field"><span>Total carried weight</span><input class="ucs-input ucs-num ucs-readonly" type="number" name="attr_carried_weight" value="0" readonly="readonly"></label><label class="ucs-field"><span>Weight unit</span><input class="ucs-input" type="text" name="attr_weight_unit" value="lb" placeholder="lb"></label><label class="ucs-field"><span>Quick access rules / slots</span><input class="ucs-input" type="text" name="attr_gear_notes" value="" placeholder=""></label></div><p class="ucs-helper">Only marked carried items count toward weight. Equip and activate effects according to your game rules.</p></div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Gear slots and inventory</h3><p>Weapons, armor, tools, wands, rods, staves, consumables.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_gear"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Item</span><input class="ucs-input" type="text" name="attr_gear_name" value="" placeholder="Short sword"></label><label class="ucs-field"><span>Slot</span><select name="attr_gear_slot" class="ucs-input"><option value="Main hand">Main hand</option><option value="Off hand">Off hand</option><option value="Head">Head</option><option value="Body">Body</option><option value="Arms">Arms</option><option value="Hands">Hands</option><option value="Feet">Feet</option><option value="Neck">Neck</option><option value="Ring">Ring</option><option value="Belt">Belt</option><option value="Back">Back</option><option value="Pack">Pack</option><option value="Belt pouch">Belt pouch</option><option value="Other">Other</option></select></label><label class="ucs-field"><span>Quantity</span><input name="attr_gear_qty" type="number" value="1" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>Unit weight</span><input name="attr_gear_weight" type="number" value="0" class="ucs-input ucs-num" min="0" step="0.01"></label><label class="ucs-check"><input type="checkbox" name="attr_gear_carried" value="1" checked="checked"><span>Carried</span></label><label class="ucs-check"><input type="checkbox" name="attr_gear_equipped" value="1"><span>Equipped</span></label><label class="ucs-field"><span>Magic / bonus</span><input class="ucs-input" type="text" name="attr_gear_effect" value="" placeholder=""></label><label class="ucs-field"><span>Use macro</span><input class="ucs-input" type="text" name="attr_gear_macro" value="/roll 1d20" placeholder="/roll 1d20"></label><label class="ucs-field"><span>Notes</span><textarea class="ucs-input ucs-multiline" name="attr_gear_notes" rows="3" placeholder=""></textarea></label></div><details class="ucs-inlinebag">
+    <summary class="ucs-inlinebag-trigger" title="Open Dice Bag for this entry" aria-label="Open roll options for this item"><span class="ucs-mini-bag" aria-hidden="true">♧</span><span>Dice Bag</span></summary>
+    <div class="ucs-inlinebag-popover">
+      <p class="ucs-bag-title">Roll with this character</p>
+      <div class="ucs-formgrid ucs-bag-fields">
+        <label class="ucs-field"><span>Additional bonus / penalty</span><input class="ucs-input" type="number" name="attr_gear_roll_bonus" value="0"></label>
+        <label class="ucs-field"><span>Difficulty / target DC</span><input class="ucs-input" type="number" name="attr_gear_roll_dc" value="10"></label>
+      </div>
+      <button class="ucs-roll ucs-confirm-roll" type="roll" name="roll_gear" value="&amp;{template:default} {{name=@{gear_name}}} {{character=@{character_name}}} {{Roll=[[@{gear_roll_expression}+@{gear_roll_bonus}]]}} {{Difficulty=@{gear_roll_dc}}}">⚄ Roll</button>
+      <details class="ucs-bag-edit"><summary>✎ Edit this Dice Bag recipe</summary>
+        <label class="ucs-field"><span>Roll expression (without /roll)</span><input class="ucs-input" type="text" name="attr_gear_roll_expression" value="1d20"></label>
+        <p class="ucs-helper">Direct macro can be edited in this item’s fields above.</p>
+        <button class="ucs-roll" type="roll" name="roll_gear_manual" value="@{gear_macro}">Execute direct macro</button>
+      </details>
+    </div>
+  </details></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--loot" aria-label="Loot &amp; storage"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Loot &amp; storage</h2><p>Group possessions, mounts, vehicles, caches and property elsewhere.</p></div></div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Stored possessions</h3><p>Not included in personal carried weight.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_loot"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Item</span><input class="ucs-input" type="text" name="attr_loot_name" value="" placeholder=""></label><label class="ucs-field"><span>Owner / holder</span><input class="ucs-input" type="text" name="attr_loot_owner" value="" placeholder=""></label><label class="ucs-field"><span>Location</span><input class="ucs-input" type="text" name="attr_loot_location" value="" placeholder="Cart"></label><label class="ucs-field"><span>Quantity</span><input name="attr_loot_quantity" type="number" value="1" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>Unit weight</span><input name="attr_loot_weight" type="number" value="0" class="ucs-input ucs-num" min="0" step="0.01"></label><label class="ucs-field"><span>Notes</span><input class="ucs-input" type="text" name="attr_loot_notes" value="" placeholder=""></label></div></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--actions" aria-label="Actions"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Actions</h2><p>One-click character moves grouped by timing and equipped availability.</p></div></div><div class="ucs-info">Create an action for every move you actually want to use. Its command can call attributes with <code>@{attribute_name}</code>. Roll20 executes the roll; resource consumption remains manual unless a compatible Mod is installed.</div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Action library</h3><p>Type your Roll20 command and use the button.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_actions"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Action name</span><input class="ucs-input" type="text" name="attr_action_name" value="" placeholder="Attack"></label><label class="ucs-field"><span>Action time</span><select name="attr_action_speed" class="ucs-input"><option value="Free">Free</option><option value="Immediate">Immediate</option><option value="Swift">Swift</option><option value="Bonus">Bonus</option><option value="Reaction">Reaction</option><option value="Move">Move</option><option value="Standard">Standard</option><option value="Full-round">Full-round</option><option value="Full action">Full action</option><option value="Other">Other</option></select></label><label class="ucs-field"><span>From (gear / feature / spell)</span><input class="ucs-input" type="text" name="attr_action_source" value="" placeholder=""></label><label class="ucs-field"><span>Uses left</span><input name="attr_action_uses" type="number" value="0" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>Resource cost</span><input class="ucs-input" type="text" name="attr_action_cost" value="" placeholder=""></label><label class="ucs-field"><span>Roll20 command</span><input class="ucs-input" type="text" name="attr_action_macro" value="/roll 1d20" placeholder="/roll 1d20+3"></label><label class="ucs-field"><span>Description</span><textarea class="ucs-input ucs-multiline" name="attr_action_notes" rows="3" placeholder=""></textarea></label></div><details class="ucs-inlinebag">
+    <summary class="ucs-inlinebag-trigger" title="Open Dice Bag for this entry" aria-label="Open roll options for this item"><span class="ucs-mini-bag" aria-hidden="true">♧</span><span>Dice Bag</span></summary>
+    <div class="ucs-inlinebag-popover">
+      <p class="ucs-bag-title">Roll with this character</p>
+      <div class="ucs-formgrid ucs-bag-fields">
+        <label class="ucs-field"><span>Additional bonus / penalty</span><input class="ucs-input" type="number" name="attr_action_roll_bonus" value="0"></label>
+        <label class="ucs-field"><span>Difficulty / target DC</span><input class="ucs-input" type="number" name="attr_action_roll_dc" value="10"></label>
+      </div>
+      <button class="ucs-roll ucs-confirm-roll" type="roll" name="roll_action" value="&amp;{template:default} {{name=@{action_name}}} {{character=@{character_name}}} {{Roll=[[@{action_roll_expression}+@{action_roll_bonus}]]}} {{Difficulty=@{action_roll_dc}}}">⚄ Roll</button>
+      <details class="ucs-bag-edit"><summary>✎ Edit this Dice Bag recipe</summary>
+        <label class="ucs-field"><span>Roll expression (without /roll)</span><input class="ucs-input" type="text" name="attr_action_roll_expression" value="1d20"></label>
+        <p class="ucs-helper">Direct macro can be edited in this item’s fields above.</p>
+        <button class="ucs-roll" type="roll" name="roll_action_manual" value="@{action_macro}">Execute direct macro</button>
+      </details>
+    </div>
+  </details></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--effects" aria-label="Buffs &amp; debuffs"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Buffs &amp; debuffs</h2><p>Explicit active effects, duration and bonuses; do not assume any game-specific stacking.</p></div></div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Active &amp; inactive effects</h3><p>Track effect source and typed modifier without changing base values silently.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_effects"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-check"><input type="checkbox" name="attr_effect_active" value="1"><span>Active</span></label><label class="ucs-field"><span>Effect</span><input class="ucs-input" type="text" name="attr_effect_name" value="" placeholder="Bless"></label><label class="ucs-field"><span>Kind</span><select name="attr_effect_type" class="ucs-input"><option value="Buff">Buff</option><option value="Debuff">Debuff</option><option value="Condition">Condition</option><option value="Environmental">Environmental</option><option value="Other">Other</option></select></label><label class="ucs-field"><span>Source</span><input class="ucs-input" type="text" name="attr_effect_source" value="" placeholder=""></label><label class="ucs-field"><span>Modifier &amp; type</span><input class="ucs-input" type="text" name="attr_effect_modifier" value="" placeholder=""></label><label class="ucs-field"><span>Duration / expires</span><input class="ucs-input" type="text" name="attr_effect_duration" value="" placeholder=""></label><label class="ucs-field"><span>Notes</span><textarea class="ucs-input ucs-multiline" name="attr_effect_notes" rows="3" placeholder=""></textarea></label></div></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--spellbook" aria-label="Spellbook"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Spellbook</h2><p>Flexible spell knowledge, preparation and daily uses for any casting system.</p></div></div><div class="ucs-panel"><div class="ucs-statsstrip"><label class="ucs-field"><span>Slots / capacity</span><input name="attr_spell_slots_total" type="number" value="0" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>Spent</span><input name="attr_spell_slots_used" type="number" value="0" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>Prepared count</span><input class="ucs-input ucs-readonly" type="number" name="attr_prepared_total" value="0" readonly="readonly"></label><label class="ucs-field"><span>Casting rules</span><input class="ucs-input" type="text" name="attr_spellcasting_notes" value="" placeholder="Prepared / spontaneous / custom"></label></div><p class="ucs-helper">The prepared count is a simple sum of marked quantities, not a class-rule validator.</p></div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Spells</h3><p>Use level 0 for cantrips or any custom progression label.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_spells"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Spell name</span><input class="ucs-input" type="text" name="attr_spell_name" value="" placeholder="Magic Missile"></label><label class="ucs-field"><span>School / group</span><input class="ucs-input" type="text" name="attr_spell_school" value="" placeholder=""></label><label class="ucs-field"><span>Level / tier</span><input class="ucs-input" type="text" name="attr_spell_level" value="" placeholder="1"></label><label class="ucs-field"><span>Prepared copies</span><input name="attr_spell_prepared" type="number" value="0" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>Uses spent</span><input name="attr_spell_used" type="number" value="0" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>Rule reference / link</span><input class="ucs-input" type="text" name="attr_spell_source" value="" placeholder=""></label><label class="ucs-field"><span>Cast command</span><input class="ucs-input" type="text" name="attr_spell_macro" value="/roll 1d4+1" placeholder="/roll 1d4+1"></label><label class="ucs-field"><span>Details</span><textarea class="ucs-input ucs-multiline" name="attr_spell_notes" rows="3" placeholder=""></textarea></label></div><details class="ucs-inlinebag">
+    <summary class="ucs-inlinebag-trigger" title="Open Dice Bag for this entry" aria-label="Open roll options for this item"><span class="ucs-mini-bag" aria-hidden="true">♧</span><span>Dice Bag</span></summary>
+    <div class="ucs-inlinebag-popover">
+      <p class="ucs-bag-title">Roll with this character</p>
+      <div class="ucs-formgrid ucs-bag-fields">
+        <label class="ucs-field"><span>Additional bonus / penalty</span><input class="ucs-input" type="number" name="attr_spell_roll_bonus" value="0"></label>
+        <label class="ucs-field"><span>Difficulty / target DC</span><input class="ucs-input" type="number" name="attr_spell_roll_dc" value="10"></label>
+      </div>
+      <button class="ucs-roll ucs-confirm-roll" type="roll" name="roll_spell" value="&amp;{template:default} {{name=@{spell_name}}} {{character=@{character_name}}} {{Roll=[[@{spell_roll_expression}+@{spell_roll_bonus}]]}} {{Difficulty=@{spell_roll_dc}}}">⚄ Roll</button>
+      <details class="ucs-bag-edit"><summary>✎ Edit this Dice Bag recipe</summary>
+        <label class="ucs-field"><span>Roll expression (without /roll)</span><input class="ucs-input" type="text" name="attr_spell_roll_expression" value="1d20"></label>
+        <p class="ucs-helper">Direct macro can be edited in this item’s fields above.</p>
+        <button class="ucs-roll" type="roll" name="roll_spell_manual" value="@{spell_macro}">Execute direct macro</button>
+      </details>
+    </div>
+  </details></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--knowledge" aria-label="Knowledge"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Knowledge</h2><p>What a character has learned in the campaign.</p></div></div><div class="ucs-info">GM-only unrevealed information should stay in Roll20 GM Notes; anything entered here is potentially visible to character viewers.</div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Known facts</h3><p>GM or player can record disclosed lore.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_knowledge"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Subject</span><input class="ucs-input" type="text" name="attr_knowledge_title" value="" placeholder=""></label><label class="ucs-field"><span>Where learned</span><input class="ucs-input" type="text" name="attr_knowledge_source" value="" placeholder=""></label><label class="ucs-field"><span>What is known</span><textarea class="ucs-input ucs-multiline" name="attr_knowledge_details" rows="3" placeholder=""></textarea></label></div></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--profession" aria-label="Profession &amp; crafting"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Profession &amp; crafting</h2><p>Skills, recipes, projects and business or trade activities.</p></div></div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Activities</h3><p>Crafting and work use game-defined formulas.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_profession"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Profession / craft</span><input class="ucs-input" type="text" name="attr_profession_name" value="" placeholder=""></label><label class="ucs-field"><span>Current project</span><input class="ucs-input" type="text" name="attr_profession_project" value="" placeholder=""></label><label class="ucs-field"><span>Progress / resources</span><input class="ucs-input" type="text" name="attr_profession_progress" value="" placeholder=""></label><label class="ucs-field"><span>Check macro</span><input class="ucs-input" type="text" name="attr_profession_macro" value="/roll 1d20" placeholder="/roll 1d20"></label><label class="ucs-field"><span>Notes</span><textarea class="ucs-input ucs-multiline" name="attr_profession_notes" rows="3" placeholder=""></textarea></label></div><details class="ucs-inlinebag">
+    <summary class="ucs-inlinebag-trigger" title="Open Dice Bag for this entry" aria-label="Open roll options for this item"><span class="ucs-mini-bag" aria-hidden="true">♧</span><span>Dice Bag</span></summary>
+    <div class="ucs-inlinebag-popover">
+      <p class="ucs-bag-title">Roll with this character</p>
+      <div class="ucs-formgrid ucs-bag-fields">
+        <label class="ucs-field"><span>Additional bonus / penalty</span><input class="ucs-input" type="number" name="attr_profession_roll_bonus" value="0"></label>
+        <label class="ucs-field"><span>Difficulty / target DC</span><input class="ucs-input" type="number" name="attr_profession_roll_dc" value="10"></label>
+      </div>
+      <button class="ucs-roll ucs-confirm-roll" type="roll" name="roll_profession" value="&amp;{template:default} {{name=@{profession_name}}} {{character=@{character_name}}} {{Roll=[[@{profession_roll_expression}+@{profession_roll_bonus}]]}} {{Difficulty=@{profession_roll_dc}}}">⚄ Roll</button>
+      <details class="ucs-bag-edit"><summary>✎ Edit this Dice Bag recipe</summary>
+        <label class="ucs-field"><span>Roll expression (without /roll)</span><input class="ucs-input" type="text" name="attr_profession_roll_expression" value="1d20"></label>
+        <p class="ucs-helper">Direct macro can be edited in this item’s fields above.</p>
+        <button class="ucs-roll" type="roll" name="roll_profession_manual" value="@{profession_macro}">Execute direct macro</button>
+      </details>
+    </div>
+  </details></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--journal" aria-label="Journal"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Journal</h2><p>A compact session log and record of choices.</p></div></div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Session notes</h3><p>Session and milestone records.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_journal"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Date / session</span><input class="ucs-input" type="text" name="attr_journal_date" value="" placeholder=""></label><label class="ucs-field"><span>Entry title</span><input class="ucs-input" type="text" name="attr_journal_title" value="" placeholder=""></label><label class="ucs-field"><span>Notes</span><textarea class="ucs-input ucs-multiline" name="attr_journal_body" rows="3" placeholder=""></textarea></label></div></div></fieldset>
+    </div></section><section class="ucs-page ucs-page--player" aria-label="Player &amp; table"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Player &amp; table</h2><p>Optional game-specific player points and scheduling.</p></div></div><div class="ucs-panel"><div class="ucs-formgrid"><label class="ucs-field"><span>Player display name</span><input class="ucs-input" type="text" name="attr_player_label" value="" placeholder=""></label><label class="ucs-field"><span>Player points</span><input name="attr_player_points" type="number" value="0" class="ucs-input ucs-num"></label><label class="ucs-field"><span>Session availability</span><input class="ucs-input" type="text" name="attr_player_schedule" value="" placeholder=""></label><label class="ucs-field"><span>Table notes</span><textarea class="ucs-input ucs-multiline" name="attr_player_preferences" rows="3" placeholder=""></textarea></label></div><div class="ucs-info">Do not enter private contact information here. Character sheets are not designed as private contact storage.</div></div></section><section class="ucs-page ucs-page--dicebag" aria-label="Dice Bag"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Saved recipes</h2><p>Optional advanced roll recipes. Open the Dice Bag beside any rollable entry for day-to-day play.</p></div></div><div class="ucs-panel"><div class="ucs-panelhead"><div><h3>How it works</h3><p>Save any dice pool or custom chat command. No separate dice engine.</p></div><span class="ucs-micro">ROLL20 NATIVE</span></div><p class="ucs-helper">Build dice expressions and press Roll. Open Advanced for manual commands (including <code>@{attribute_name}</code>), GM whispers, rerolls, custom sides and the active macro. Rolls do not auto-spend resources.</p></div><div class="ucs-panel"><div class="ucs-panelhead"><div><h3>Saved dice recipes</h3><p>Use +Add for each recipe; saved roll buttons can be dragged to Roll20’s macro bar.</p></div><span class="ucs-micro">REPEATING RECIPES</span></div><fieldset class="repeating_dicebag"><div class="ucs-repeatrow ucs-dicerow"><div class="ucs-formgrid"><label class="ucs-field"><span>Recipe name</span><input class="ucs-input" type="text" name="attr_recipe_name" value="Perception check" placeholder="Perception check"></label><label class="ucs-field"><span>Recipe mode</span><select name="attr_recipe_mode" class="ucs-input"><option value="structured" selected="selected">Dice builder</option><option value="manual">Manual command</option></select></label><label class="ucs-field"><span>Number of dice</span><select name="attr_recipe_count" class="ucs-input"><option value="1" selected="selected">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option></select></label><label class="ucs-field"><span>Die type</span><select name="attr_recipe_sides" class="ucs-input"><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="10">10</option><option value="12">12</option><option value="20" selected="selected">20</option><option value="100">100</option><option value="F">F</option><option value="custom">custom</option></select></label><label class="ucs-field"><span>Keep / drop</span><select name="attr_recipe_keep" class="ucs-input"><option value="none" selected="selected">All dice</option><option value="kh">Keep highest</option><option value="kl">Keep lowest</option><option value="dh">Drop highest</option><option value="dl">Drop lowest</option></select></label><label class="ucs-field"><span>Flat bonus / penalty</span><input name="attr_recipe_bonus" type="number" value="0" class="ucs-input ucs-num"></label></div><div class="ucs-dice-actions"><button class="ucs-roll" type="roll" name="roll_dicebag" value="@{recipe_command}">⚄ Roll recipe</button><span>Saved recipe • Roll20 handles the result</span></div><details class="ucs-advanced"><summary>Advanced / manual macro options</summary><div class="ucs-formgrid"><label class="ucs-field"><span>Custom sides</span><input name="attr_recipe_customsides" type="number" value="6" class="ucs-input ucs-num" min="2"></label><label class="ucs-field"><span>Keep / drop count</span><input name="attr_recipe_keepcount" type="number" value="1" class="ucs-input ucs-num" min="1"></label><label class="ucs-field"><span>Reroll</span><select name="attr_recipe_reroll" class="ucs-input"><option value="none" selected="selected">None</option><option value="r1">Reroll 1</option><option value="ro1">Reroll 1 once</option></select></label><label class="ucs-check"><input type="checkbox" name="attr_recipe_explode" value="1"><span>Exploding dice</span></label><label class="ucs-field"><span>Success at / above</span><input name="attr_recipe_target" type="number" value="" class="ucs-input ucs-num" min="0"></label><label class="ucs-field"><span>Send to</span><select name="attr_recipe_visibility" class="ucs-input"><option value="public" selected="selected">Public chat</option><option value="gm">Whisper to GM</option></select></label><label class="ucs-field"><span>Manual Roll20 command</span><input class="ucs-input" type="text" name="attr_recipe_manual" value="/roll 1d20" placeholder="/roll 2d20kh1+3"></label><label class="ucs-field"><span>Generated / active command</span><textarea class="ucs-input ucs-multiline ucs-code" name="attr_recipe_command" rows="2" readonly="readonly">&amp;{template:default} {{name=Perception check}} {{Roll=[[1d20]]}}</textarea></label><label class="ucs-field"><span>Status</span><input class="ucs-input ucs-readonly" type="text" name="attr_recipe_status" value="Ready" readonly="readonly"></label></div></details></div></fieldset></div></section><section class="ucs-page ucs-page--custom" aria-label="Custom data"><div class="ucs-pagetitle"><div><span class="ucs-eyebrow">CHARACTER RECORD</span><h2>Custom data</h2><p>Create new fields and categories without changing the character sheet code.</p></div></div><div class="ucs-panel">
+    <div class="ucs-panelhead"><div><h3>Custom entries</h3><p>Add any homebrew rule, currency, vehicle, potion, talent or relationship.</p></div><span class="ucs-micro">Add a row with +Add</span></div>
+    <fieldset class="repeating_custom"><div class="ucs-repeatrow"><div class="ucs-formgrid"><label class="ucs-field"><span>Name</span><input class="ucs-input" type="text" name="attr_custom_name" value="" placeholder=""></label><label class="ucs-field"><span>Category</span><input class="ucs-input" type="text" name="attr_custom_category" value="" placeholder=""></label><label class="ucs-field"><span>Value / state</span><input class="ucs-input" type="text" name="attr_custom_value" value="" placeholder=""></label><label class="ucs-field"><span>Rule / source</span><input class="ucs-input" type="text" name="attr_custom_source" value="" placeholder=""></label><label class="ucs-field"><span>Action command</span><input class="ucs-input" type="text" name="attr_custom_macro" value="/roll 1d20" placeholder="/roll 1d20"></label><label class="ucs-field"><span>Notes</span><textarea class="ucs-input ucs-multiline" name="attr_custom_notes" rows="3" placeholder=""></textarea></label></div><details class="ucs-inlinebag">
+    <summary class="ucs-inlinebag-trigger" title="Open Dice Bag for this entry" aria-label="Open roll options for this item"><span class="ucs-mini-bag" aria-hidden="true">♧</span><span>Dice Bag</span></summary>
+    <div class="ucs-inlinebag-popover">
+      <p class="ucs-bag-title">Roll with this character</p>
+      <div class="ucs-formgrid ucs-bag-fields">
+        <label class="ucs-field"><span>Additional bonus / penalty</span><input class="ucs-input" type="number" name="attr_custom_roll_bonus" value="0"></label>
+        <label class="ucs-field"><span>Difficulty / target DC</span><input class="ucs-input" type="number" name="attr_custom_roll_dc" value="10"></label>
+      </div>
+      <button class="ucs-roll ucs-confirm-roll" type="roll" name="roll_custom" value="&amp;{template:default} {{name=@{custom_name}}} {{character=@{character_name}}} {{Roll=[[@{custom_roll_expression}+@{custom_roll_bonus}]]}} {{Difficulty=@{custom_roll_dc}}}">⚄ Roll</button>
+      <details class="ucs-bag-edit"><summary>✎ Edit this Dice Bag recipe</summary>
+        <label class="ucs-field"><span>Roll expression (without /roll)</span><input class="ucs-input" type="text" name="attr_custom_roll_expression" value="1d20"></label>
+        <p class="ucs-helper">Direct macro can be edited in this item’s fields above.</p>
+        <button class="ucs-roll" type="roll" name="roll_custom_manual" value="@{custom_macro}">Execute direct macro</button>
+      </details>
+    </div>
+  </details></div></fieldset>
+    </div></section></main>
+
+<nav class="ucs-bottomdock" aria-label="Universal sheet primary navigation">
+  <label class="ucs-dockitem ucs-dockitem--bio" for="ucs-tab-bio" title="Character"><span class="ucs-dockart ucs-dockart--character"></span><span class="ucs-docklabel">Character</span></label>
+  <label class="ucs-dockitem ucs-dockitem--base" for="ucs-tab-base" title="Base"><span class="ucs-dockart ucs-dockart--base"></span><span class="ucs-docklabel">Base</span></label>
+  <label class="ucs-dockitem ucs-dockitem--spellbook" for="ucs-tab-spellbook" title="Abilities"><span class="ucs-dockart ucs-dockart--abilities"></span><span class="ucs-docklabel">Abilities</span></label>
+  <label class="ucs-dockitem ucs-dockitem--gear" for="ucs-tab-gear" title="Gear"><span class="ucs-dockart ucs-dockart--gear"></span><span class="ucs-docklabel">Gear</span></label>
+  <label class="ucs-dockitem ucs-dockitem--knowledge" for="ucs-tab-knowledge" title="Linked"><span class="ucs-dockart ucs-dockart--linked"></span><span class="ucs-docklabel">Linked</span></label>
+</nav>
+<footer class="ucs-footer">Universal • System neutral • Use the Dice Bag to send rolls to Roll20 chat.</footer></div></div>
+<script type="text/worker">
+/* Universal Roll20 Sheet v0.1 — script copied into <script type="text/worker">.
+   Only Roll20 sheet worker APIs. Never touches the DOM or runs user macros. */
+(function () {
+  'use strict';
+
+  function numberOr(value, fallback) {
+    if (value === '' || value === null || typeof value === 'undefined') return fallback;
+    var n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+  function validNumber(value, fallback, min, max) {
+    var n = numberOr(value, fallback);
+    return Number.isInteger(n) && n >= min && n <= max ? n : null;
+  }
+  function safeLabel(value) {
+    var label = String(value || 'Dice roll').replace(/[\r\n{}[\]<>|]/g, ' ').replace(/\s+/g, ' ').trim();
+    return (label || 'Dice roll').slice(0, 80);
+  }
+  function computeRecipe(v) {
+    if (v.recipe_mode === 'manual') {
+      var raw = String(v.recipe_manual || '').trim();
+      // Roll20 roll buttons expect one chat command per entry. Reject accidental multiline macros.
+      if (!raw || raw.length > 650 || /[\r\n]/.test(raw)) {
+        return {command: '/em Dice recipe needs a single valid command', status: 'Fix manual command'};
+      }
+      if (!/^(\/roll\s|\/r\s|\/w\s|\/em\s|&\{template:|!\S|%\{|#[A-Za-z0-9_-]+)/i.test(raw)) {
+        return {command: '/em Dice recipe needs a Roll20 command', status: 'Use /roll, /r, /w, /em, a template, %Ability, #macro or !Mod'};
+      }
+      return {command: raw, status: 'Manual command ready'};
+    }
+    var qty = validNumber(v.recipe_count, 1, 1, 100);
+    var sidesChoice = String(v.recipe_sides || '20');
+    var sides = sidesChoice === 'custom' ? validNumber(v.recipe_customsides, 6, 2, 1000) :
+       (sidesChoice === 'F' ? 'F' : validNumber(sidesChoice, 20, 2, 1000));
+    if (qty === null || sides === null) return {command:'/em Invalid dice',status:'Check number of dice and sides'};
+    var keep = String(v.recipe_keep || 'none');
+    if (!/^(none|kh|kl|dh|dl)$/.test(keep)) keep = 'none';
+    var keepCount = validNumber(v.recipe_keepcount, 1, 1, qty);
+    if (keep !== 'none' && (qty < 2 || keepCount === null || (keep[0] === 'd' && keepCount >= qty))) {
+      return {command:'/em Invalid keep/drop',status:'Check keep/drop count'};
+    }
+    var reroll = String(v.recipe_reroll || 'none');
+    if (!/^(none|r1|ro1)$/.test(reroll)) reroll = 'none';
+    var bonus = validNumber(v.recipe_bonus, 0, -100000, 100000);
+    if (bonus === null) return {command:'/em Invalid bonus',status:'Bonus must be an integer'};
+    var targetInput = v.recipe_target;
+    var hasTarget = !(targetInput === '' || targetInput === null || typeof targetInput === 'undefined');
+    var target = hasTarget ? validNumber(targetInput, 1, 0, 1000) : null;
+    if (hasTarget && target === null) return {command:'/em Invalid target',status:'Target must be a nonnegative integer'};
+    if (sides === 'F' && (reroll !== 'none' || v.recipe_explode === '1' || hasTarget)) {
+      return {command:'/em Unsupported Fate modifiers',status:'Use Manual mode for advanced Fate rolls'};
+    }
+    var expr = qty + 'd' + sides;
+    if (v.recipe_explode === '1') expr += '!';
+    if (reroll !== 'none') expr += reroll;
+    if (keep !== 'none') expr += keep + keepCount;
+    if (hasTarget) expr += '>' + target;
+    if (bonus > 0) expr += '+' + bonus;
+    if (bonus < 0) expr += String(bonus);
+    var label = safeLabel(v.recipe_name);
+    var prefix = v.recipe_visibility === 'gm' ? '/w gm ' : '';
+    return {command: prefix + '&{template:default} {{name=' + label + '}} {{Roll=[[' + expr + ']]}}', status:'Ready: ' + expr};
+  }
+
+  function refreshRecipe(event) {
+    var source = event && event.sourceAttribute || '';
+    var match = /^repeating_dicebag_([^_]+)_/.exec(source);
+    if (!match) return;
+    var pre = 'repeating_dicebag_' + match[1] + '_';
+    var fields = ['recipe_name','recipe_mode','recipe_count','recipe_sides','recipe_customsides','recipe_keep','recipe_keepcount','recipe_bonus','recipe_reroll','recipe_explode','recipe_target','recipe_visibility','recipe_manual'];
+    getAttrs(fields.map(function (f) {return pre + f;}), function (raw) {
+      var v = {};
+      fields.forEach(function (f) {v[f] = raw[pre+f];});
+      var result = computeRecipe(v);
+      var update = {};
+      update[pre+'recipe_command'] = result.command;
+      update[pre+'recipe_status'] = result.status;
+      setAttrs(update, {silent: true});
+    });
+  }
+
+  on('change:repeating_dicebag:recipe_name change:repeating_dicebag:recipe_mode change:repeating_dicebag:recipe_count change:repeating_dicebag:recipe_sides change:repeating_dicebag:recipe_customsides change:repeating_dicebag:recipe_keep change:repeating_dicebag:recipe_keepcount change:repeating_dicebag:recipe_bonus change:repeating_dicebag:recipe_reroll change:repeating_dicebag:recipe_explode change:repeating_dicebag:recipe_target change:repeating_dicebag:recipe_visibility change:repeating_dicebag:recipe_manual', refreshRecipe);
+
+  function sumRepeating(section, fieldNames, calculator, output) {
+    getSectionIDs('repeating_' + section, function (ids) {
+      var attrs = [];
+      ids.forEach(function (id) { fieldNames.forEach(function (f) {attrs.push('repeating_'+section+'_'+id+'_'+f);}); });
+      if (!attrs.length) { var empty = {}; empty[output] = 0; setAttrs(empty, {silent:true}); return; }
+      getAttrs(attrs, function (v) {
+        var total = 0;
+        ids.forEach(function (id) {
+          var obj = {};
+          fieldNames.forEach(function (f) {obj[f] = v['repeating_'+section+'_'+id+'_'+f];});
+          total += calculator(obj);
+        });
+        var update = {}; update[output] = Math.round(total*100)/100;
+        setAttrs(update, {silent:true});
+      });
+    });
+  }
+  function sumGear() {
+    sumRepeating('gear', ['gear_carried','gear_qty','gear_weight'], function (v) {
+      if (v.gear_carried !== '1') return 0;
+      var qty = numberOr(v.gear_qty, 0), weight = numberOr(v.gear_weight, 0);
+      return Number.isFinite(qty * weight) && qty >= 0 && weight >= 0 ? qty*weight : 0;
+    }, 'carried_weight');
+  }
+  function sumPrepared() {
+    sumRepeating('spells', ['spell_prepared'], function (v) {
+      var count = numberOr(v.spell_prepared, 0);
+      return Number.isInteger(count) && count > 0 ? count : 0;
+    }, 'prepared_total');
+  }
+  on('change:repeating_gear:gear_carried change:repeating_gear:gear_qty change:repeating_gear:gear_weight remove:repeating_gear', sumGear);
+  on('change:repeating_spells:spell_prepared remove:repeating_spells', sumPrepared);
+  on('sheet:opened', function () {sumGear(); sumPrepared();});
+})();
+
+</script>
+</div></body></html>
