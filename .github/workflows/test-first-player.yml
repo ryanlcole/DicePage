@@ -1,0 +1,26 @@
+name: Test Endemar First Player
+on:
+  push:
+    branches:
+      - feature/endemar-rion-first-player-20261120
+    paths:
+      - 'apps/rist-world/wwwroot/first-player/**'
+      - 'tests/test_first_player.mjs'
+      - '.github/workflows/test-first-player.yml'
+  pull_request:
+    branches:
+      - live-alpha-rist-blazor-world
+    paths:
+      - 'apps/rist-world/wwwroot/first-player/**'
+      - 'tests/test_first_player.mjs'
+permissions:
+  contents: read
+jobs:
+  rion-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/test_first_player.mjs
