@@ -1,0 +1,22 @@
+name: Test Endemar authority contract
+on:
+  pull_request:
+    paths:
+      - 'apps/rist-world/wwwroot/first-player/authority-contract.mjs'
+      - 'tests/test_first_player_authority.mjs'
+      - '.github/workflows/test-first-player-authority.yml'
+  push:
+    branches:
+      - 'feature/endemar-authority-contract-20261121'
+permissions:
+  contents: read
+jobs:
+  authority-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/test_first_player_authority.mjs
