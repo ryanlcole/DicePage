@@ -33,3 +33,21 @@ test('non-GET request to health also fails closed', async () => {
     assert.equal(response.status, 404);
   }
 });
+
+test('Wrangler Git build is scoped to the existing health-only Worker', async () => {
+  const {readFile} = await import('node:fs/promises');
+  const configUrl = new URL('../tools/cloudflare-setup/wrangler.jsonc', import.meta.url);
+  const config = JSON.parse(await readFile(configUrl, 'utf8'));
+  assert.deepEqual(Object.keys(config).sort(), [
+    'compatibility_date', 'main', 'name', 'observability', 'workers_dev',
+  ]);
+  assert.equal(config.name, 'shaelvien-endemar-preflight');
+  assert.equal(config.main, './preflight-worker.mjs');
+  assert.equal(config.workers_dev, true);
+  assert.deepEqual(config.observability, {enabled:false});
+  assert.equal(typeof config.compatibility_date, 'string');
+  for (const prohibited of ['routes', 'route', 'durable_objects', 'vars',
+    'kv_namespaces', 'r2_buckets', 'd1_databases', 'assets', 'account_id']) {
+    assert.equal(Object.hasOwn(config, prohibited), false, prohibited);
+  }
+});
