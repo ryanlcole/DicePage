@@ -66,3 +66,28 @@ def composite(acceptor:Atom,donors:tuple[Atom,...],links,tick:int):
             mask[start+i]=bit
     return {'exposure':raw,'contacts':''.join(mask),
             'contact':''.join('1' if r=='1' or m=='1' else '0' for r,m in zip(raw,mask))}
+
+
+def shaeps_from_links(atoms:tuple[Atom,...],links)->tuple:
+    """Connected Rune structures are provisional Shaeps, not proven molecules."""
+    from runecore_language import Shaep
+    by_slot={a.slot:a for a in atoms}
+    parent={a.slot:a.slot for a in atoms}
+    def root(x):
+        while parent[x]!=x:x=parent[x]
+        return x
+    for link in links:
+        if link.donor not in by_slot or link.acceptor not in by_slot:
+            raise ValueError('link references absent Rune')
+        a,b=root(link.donor),root(link.acceptor)
+        if a!=b:parent[max(a,b)]=min(a,b)
+    groups={}
+    for slot in by_slot:groups.setdefault(root(slot),[]).append(slot)
+    out=[]
+    for slots in groups.values():
+        if len(slots)<2:continue
+        members=tuple(sorted(slots))
+        contacts=tuple(sorted((x.donor,x.acceptor,x.sector) for x in links
+                              if x.donor in members and x.acceptor in members))
+        out.append(Shaep(members,contacts))
+    return tuple(sorted(out,key=lambda s:s.members))
