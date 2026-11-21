@@ -84,3 +84,50 @@ Verify `GET /health` returns `classification: NONCANONICAL_PREFLIGHT` and `GET /
 This is distinct from PR #61's proposed Durable Object first-player server. Its dedicated bootstrap secret, authenticated user/permission integration, and explicit release review are still required before any server pilot deployment. Existing PR #57/60/61/62 review chains remain unmerged. No ReLiC or canonical database writes were performed.
 
 Code and checks are ChatGPT-assisted; Cloudflare observations were made with the owner's connected browser and verified with independent HTTP content retrieval.
+
+## Alternative to blocked Monaco editor: Workers Builds from GitHub
+
+Cloudflare officially supports GitHub integration on existing Workers:
+https://developers.cloudflare.com/workers/ci-cd/builds/
+
+The preflight source is in `tools/cloudflare-setup/preflight-worker.mjs`, and
+the dedicated `tools/cloudflare-setup/wrangler.jsonc` names exactly the already
+created `shaelvien-endemar-preflight` Worker. GitHub test coverage checks that
+the config has **no** custom domains, routes, runtime bindings, secrets,
+Durable Objects, accounts, or assets. It is intentionally separate from the
+experimental game server in `apps/rist-world/experimental-authority/`.
+
+Use only these settings when connecting an existing Worker under
+**Workers & Pages → shaelvien-endemar-preflight → Settings → Builds**:
+
+- GitHub repository: `ryanlcole/DicePage`
+- Production branch: `feature/cloudflare-agent-setup-20261121` (**never `main`**)
+- Root directory: `tools/cloudflare-setup`
+- Build command: empty
+- Deploy command: `npx wrangler deploy`
+- Preview builds: off
+
+**2026-11-21 verified blocker:** Cloudflare redirected the browser to the
+official GitHub OAuth/install screen for the **Cloudflare Workers and Pages**
+GitHub App. The saved browser profile had no GitHub session. No app was
+installed, no GitHub permission approved, no build started, and no Worker
+code changed. The human owner must authenticate directly with GitHub and
+review the installation's repository access and Cloudflare token scopes
+before authorization.
+
+Caution: Cloudflare documents that Workers Builds automatically generates
+an API token by default, and its default scope may include edit permissions
+for Workers scripts, Workers KV and R2, and Workers routes across zones.
+The owner must review that scope, or explicitly select an appropriately
+restricted token, rather than silently accepting broad permissions. No
+token may be pasted into chat, the repository, or a public deployment log.
+
+After authorized Git linkage, a branch commit may trigger the first build.
+Confirm the build's actual status in Cloudflare and independently verify:
+`GET /health` yields JSON `NONCANONICAL_PREFLIGHT`, and `GET /` yields
+JSON 404 `NOT_FOUND`. Until both results are observed, the public Worker
+is **not verified** to be running the intended source.
+
+There is still no shared Shaelvien MMO deployment, real user authentication,
+or authoritative player/world integration. Do not promote these pilot
+results to canon.
