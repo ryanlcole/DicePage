@@ -63,13 +63,23 @@ export class EndemarRoom {
         const state=await txn.get(KEY);
         if(!validSession(state,hash,now))return {code:401,data:{error:'SESSION_UNAVAILABLE'}};
         // A request ID is scoped to the current server-issued capability, not claimed identity.
+        // Exact retries are idempotent; a changed action may NEVER inherit an old success.
+        // Canonical parsed fields exclude untrusted data, tokens, clocks, and representation.
+        const fingerprint=JSON.stringify([parsed.intent.verb, Object.hasOwn(parsed.intent,'arg')?parsed.intent.arg:null]);
         const previous=Object.hasOwn(state.processed,parsed.intent.requestId) ? state.processed[parsed.intent.requestId] : null;
-        if(previous)return {code:200,data:{...previous,replayed:true}};
+        if(previous){
+          // Fail closed on records from an unknown or older schema: no false replay claims.
+          if(typeof previous.fingerprint!=='string'||!previous.response)
+            return {code:409,data:{error:'REQUEST_ID_UNVERIFIABLE'}};
+          if(previous.fingerprint!==fingerprint)
+            return {code:409,data:{error:'REQUEST_ID_CONFLICT'}};
+          return {code:200,data:{...previous.response,replayed:true}};
+        }
         if(state.operations>=MAX_REQUESTS)return {code:429,data:{error:'SESSION_REQUEST_LIMIT'}};
         const action=intent(state.world,parsed.intent.verb,parsed.intent.arg);
         if(action.ok)state.revision++;
         const response={classification:'VERIFIED_SIMULATION_RESULT',action,revision:state.revision,tick:state.world.tick,playerId:state.world.player.id};
-        state.processed[parsed.intent.requestId]=response;
+        state.processed[parsed.intent.requestId]={fingerprint,response};
         state.operations++;
         await txn.put(KEY,state);
         return {code:200,data:response};
