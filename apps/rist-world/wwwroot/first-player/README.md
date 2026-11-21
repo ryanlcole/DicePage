@@ -17,3 +17,48 @@ RIOT is a simulated project planner; it cannot impersonate the real owner, chang
 `node --test tests/test_first_player.mjs`
 
 The frontend uses no paid service, no AI API, no third-party JavaScript dependency and no external telemetry. Source authored with ChatGPT assistance under owner direction.
+
+
+## Optional public ReLiC ecology checkpoint observer (review branch only)
+
+The "External ReLiC Ecology" sidebar observes an **independent, synthetic** world
+from `ryanlcole/ReLiC-Continuity`'s publicly readable
+`experiment-autonomous-ecology-state` branch. The experiment runs Python
+through GitHub Actions and persists results on a separate branch. The browser
+fetches a checkpoint from `raw.githubusercontent.com` **only after the user clicks**
+"Read GitHub ecology checkpoint". No credentials, tokens, plugins, account
+identity, or privileged API scopes are required.
+
+**This is not synchronization or a bridge to game authority.** External
+organisms A/B/C are different identities from Endemar's existing NPCs. The
+remote simulation can neither create Endemar beings nor mutate the browser
+world, canonical project database, player save, privileges, or ReLiC lineage.
+Hash-like event fields are *not* declared verified cryptographic proof. The
+UI labels remote information "observed public synthetic state", not a claim
+that an NPC is conscious or a game server is always awake.
+
+Source:
+https://github.com/ryanlcole/ReLiC-Continuity/actions/workflows/autonomous-ecology.yml
+and
+https://github.com/ryanlcole/ReLiC-Continuity/tree/experiment-autonomous-ecology-state/experiments/continuity_ecology
+
+As inspected 2026-11-21, the public state branch contained **48 synthetic ticks,
+3 alive agents, and 146 reported events**, supported by 4 successful scheduled
+Actions executions. These numbers are a dated observation and are **not**
+hardcoded into the application; each manual refresh reads current public state.
+Runs can be skipped or delayed, and the public checkpoint may be stale or
+unavailable. A failed request displays a notice and does not break offline play.
+
+The reader refuses unknown schemas, non-read-only policies, invalid agent IDs,
+oversize responses, and malformed event metadata. Unit tests inject a fake
+fetcher without network access. External hosting and CORS behavior must still
+be tested from a deployed webpage; no HTTP endpoint for online gameplay is
+provided by the module.
+
+Run tests from the repository root:
+`node --test tests/test_relic_online_observer.mjs`
+
+**Governance:** This module and UI are on a human-reviewed draft PR stacked on
+#63/#62/#61/#60/#57. It has no license to publish unpublished Shaelvien
+source, and it does not change ReLiC or Shaelvien canonical records.
+AI assistance: ChatGPT, owner-directed, tests subject to CI verification.
