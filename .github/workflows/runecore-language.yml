@@ -1,0 +1,24 @@
+name: RuneCore language interpreter
+
+on:
+  push:
+    paths:
+      - 'experiments/runecore_language/**'
+      - '.github/workflows/runecore-language.yml'
+  pull_request:
+    paths:
+      - 'experiments/runecore_language/**'
+      - '.github/workflows/runecore-language.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Unit tests for RuneCore/1
+        working-directory: experiments/runecore_language
+        run: python -m unittest -v test_runecore_language test_old_relic_bridge test_corrected_terms test_scene3d
