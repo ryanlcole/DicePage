@@ -1,0 +1,146 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import edge from '../apps/rist-world/experimental-authority/worker.mjs';
+import {EndemarRoom} from '../apps/rist-world/experimental-authority/room.mjs';
+
+class MemoryStorage {
+  constructor(){this.items=new Map();this.nextAlarm=null;}
+  async get(k){return structuredClone(this.items.get(k));}
+  async put(k,v){this.items.set(k,structuredClone(v));}
+  async setAlarm(when){this.nextAlarm=when;}
+  async transaction(callback){
+    const shadow=new Map([...this.items].map(([k,v])=>[k,structuredClone(v)]));
+    const txn={get:async k=>structuredClone(shadow.get(k)),put:async(k,v)=>shadow.set(k,structuredClone(v))};
+    const result=await callback(txn);
+    this.items=shadow;
+    return result;
+  }
+}
+function fixture(){
+  const store=new MemoryStorage(),ctx={storage:store};
+  const room=new EndemarRoom(ctx,{});
+  const binding={idFromName:n=>n,get:id=>({fetch:request=>room.fetch(request)})};
+  const env={ENDEMAR_ROOM:binding,ENDEMAR_BOOTSTRAP_KEY:'random-private-key-'.padEnd(48,'x')};
+  return {room,store,ctx,env};
+}
+const request=(path,method='GET',body,token)=>new Request(`https://test.example${path}`,{
+  method,headers:{...(token?{authorization:`Bearer ${token}`}:{})},...(body!==undefined?{body:JSON.stringify(body),headers:{...(token?{authorization:`Bearer ${token}`}:{}),'content-type':'application/json'}}:{})
+});
+const asJson=async r=>({code:r.status,...await r.json()});
+async function session(env){const result=await asJson(await edge.fetch(request('/api/endemar/session','POST',undefined,env.ENDEMAR_BOOTSTRAP_KEY),env));assert.equal(result.code,200);return result.capability;}
+const move=id=>({version:'endemar-intent/1',requestId:id,verb:'move',arg:'north'});
+
+// Keep all behavior verified through the edge facade that would run in Cloudflare.
+test('bootstrap stays disabled without a deployment secret',async()=>{
+  const {env}=fixture();delete env.ENDEMAR_BOOTSTRAP_KEY;
+  const result=await asJson(await edge.fetch(request('/api/endemar/session','POST',undefined,'made-up-key'.padEnd(48,'a')),env));
+  assert.equal(result.code,503);assert.equal(result.error,'BOOTSTRAP_DISABLED');
+});
+test('bootstrap must match secret and never exposes it in responses',async()=>{
+  const {env}=fixture();let result=await asJson(await edge.fetch(request('/api/endemar/session','POST',undefined,'wrong-key'.padEnd(48,'a')),env));
+  assert.equal(result.code,403);const cap=await session(env);assert.match(cap,/^[a-f0-9]{64}$/);
+  const snap=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,cap),env));
+  assert.equal(snap.code,200);assert.equal(snap.view.player.id,'shaelvien:player:first');assert.equal(snap.revision,0);
+  assert.ok(!JSON.stringify(snap).includes(cap));assert.ok(!JSON.stringify(snap).includes(env.ENDEMAR_BOOTSTRAP_KEY));
+});
+test('untrusted intents cannot mutate and unknown action is rejected',async()=>{
+  const {env}=fixture(),token=await session(env);
+  for(const field of ['playerId','owner','role','gm','worldId','revision','tick','authority']){
+    const r=await asJson(await edge.fetch(request('/api/endemar/intent','POST',{...move(`bad-${field}`),[field]:'owner'},token),env));
+    assert.equal(r.code,400);assert.equal(r.error,'UNTRUSTED_FIELDS');
+  }
+  const bad=await asJson(await edge.fetch(request('/api/endemar/intent','POST',{version:'endemar-intent/1',requestId:'no',verb:'teleport'},token),env));
+  assert.equal(bad.code,400);
+  const snap=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));assert.equal(snap.revision,0);
+});
+test('accepted moves update only trusted world state and monotonic revision',async()=>{
+  const {env}=fixture(),token=await session(env);
+  const first=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('move-1'),token),env));
+  assert.equal(first.code,200);assert.equal(first.action.ok,true);assert.equal(first.revision,1);
+  const snap=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  assert.equal(snap.view.player.y,13);assert.equal(snap.view.player.id,'shaelvien:player:first');
+});
+test('request-id replay returns cached outcome without second mutation',async()=>{
+  const {env}=fixture(),token=await session(env);
+  const first=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('same-id'),token),env));
+  const second=await asJson(await edge.fetch(request('/api/endemar/intent','POST',{...move('same-id'),arg:'south'},token),env));
+  assert.equal(second.replayed,true);assert.equal(second.revision,first.revision);
+  const snap=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  assert.equal(snap.view.player.y,13);
+});
+test('prototype-like request ids do not receive special privileges',async()=>{
+  const {env}=fixture(),token=await session(env);
+  const r=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('constructor'),token),env));
+  assert.equal(r.code,200);assert.equal(r.action.ok,true);
+  const again=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('constructor'),token),env));
+  assert.equal(again.replayed,true);
+});
+test('revoking and rotating capability prevents stale token reuse',async()=>{
+  const {env}=fixture(),old=await session(env),fresh=await session(env);
+  assert.notEqual(old,fresh);
+  assert.equal((await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,old),env))).code,401);
+  assert.equal((await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,fresh),env))).code,200);
+});
+test('session expires and does not accept an action after expiry',async()=>{
+  const {env,store}=fixture(),token=await session(env);
+  const key='endemar:experimental-room-v1';const state=await store.get(key);state.session.expiresAt=1;await store.put(key,state);
+  const r=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('exp'),token),env));
+  assert.equal(r.code,401);
+});
+test('survives object recreation with identity and replay history intact',async()=>{
+  const {ctx,env}=fixture(),token=await session(env);
+  const prior=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('persist-1'),token),env));
+  const restarted=new EndemarRoom(ctx,{});
+  env.ENDEMAR_ROOM.get=()=>({fetch:req=>restarted.fetch(req)});
+  const snap=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  assert.equal(snap.revision,prior.revision);assert.equal(snap.view.player.y,13);
+  const replay=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('persist-1'),token),env));
+  assert.equal(replay.replayed,true);assert.equal(replay.revision,prior.revision);
+});
+test('alarm advances existing world with original weather and NPC engine',async()=>{
+  const {env,room,store}=fixture(),token=await session(env);
+  const before=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  await room.alarm();
+  const after=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  assert.equal(after.status.tick,before.status.tick+1);assert.equal(after.revision,before.revision+1);
+  assert.equal(after.view.actors.length,before.view.actors.length);
+  assert.equal(typeof after.status.weather.temperature,'number');assert.ok(store.nextAlarm>Date.now());
+});
+test('read-only inspection does not advance world or leak capability/hash',async()=>{
+  const {env,store}=fixture(),token=await session(env),key='endemar:experimental-room-v1';
+  const before=JSON.stringify(await store.get(key));
+  const a=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  const b=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  assert.equal(JSON.stringify(await store.get(key)),before);
+  assert.equal(a.revision,b.revision);assert.ok(!JSON.stringify(a).includes('hash'));
+});
+test('internal routes not exposed by edge worker',async()=>{
+  const {env}=fixture();
+  const r=await asJson(await edge.fetch(request('/internal/issue','POST'),env));assert.equal(r.code,404);
+});
+test('boundary enforces request size',async()=>{
+  const {env}=fixture(),token=await session(env);
+  const oversize={...move('size'),padding:'x'.repeat(1300)};
+  const r=await asJson(await edge.fetch(request('/api/endemar/intent','POST',oversize,token),env));assert.equal(r.code,413);
+});
+test('session request quota is bounded and cannot apply action on overflow',async()=>{
+  const {env,store}=fixture(),token=await session(env);
+  const key='endemar:experimental-room-v1';const state=await store.get(key);state.operations=512;await store.put(key,state);
+  const r=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('too-many'),token),env));
+  assert.equal(r.code,429);const after=await store.get(key);assert.equal(after.revision,0);
+});
+test('world is not reinitialized on rotated capability',async()=>{
+  const {env}=fixture(),first=await session(env);
+  const r=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('before-rotate'),first),env));
+  assert.equal(r.revision,1);
+  const second=await session(env);
+  const snap=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,second),env));
+  assert.equal(snap.view.player.y,13);assert.equal(snap.revision,1);
+});
+test('operator-only booth does not treat RIOT or ReLiC labels as authorization',async()=>{
+  const {env}=fixture();
+  for(const label of ['RIOT','ReLiC','owner','GM']){
+    const r=await asJson(await edge.fetch(new Request('https://test.example/api/endemar/session',{method:'POST',headers:{authorization:`Bearer ${label}`}}),env));
+    assert.equal(r.code,403);
+  }
+});
