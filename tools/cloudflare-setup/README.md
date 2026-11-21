@@ -70,6 +70,15 @@ The reviewable intended source is `tools/cloudflare-setup/preflight-worker.mjs` 
 
 In the Cloudflare dashboard, open **Workers & Pages → shaelvien-endemar-preflight → Edit code**, replace the entire starter Worker code with the reviewed contents of `tools/cloudflare-setup/preflight-worker.mjs`, then **Deploy**. Do not modify DNS, enable a paid plan, or copy account credentials into source. If the UI cannot edit on mobile, use the laptop or the official Wrangler workflow authenticated locally. No API token needs to be placed in the repository.
 
+If the dashboard editor is inaccessible, the equivalent owner-run **local CLI** sequence from the repository root is:
+
+```sh
+npx wrangler login
+npx wrangler deploy tools/cloudflare-setup/preflight-worker.mjs --name shaelvien-endemar-preflight
+```
+
+Wrangler's OAuth authorization happens locally in your browser. Review the deployment output before accepting any unexpected changes; this must target **only the already created preflight Worker** on the Free plan. Do not switch to the separate `experimental-authority/wrangler.jsonc` in this step. Never commit an API token or bypass consent prompts.
+
 Verify `GET /health` returns `classification: NONCANONICAL_PREFLIGHT` and `GET /` returns a 404 JSON response. Until that evidence exists, consider the Worker a generic Hello World deployment.
 
 This is distinct from PR #61's proposed Durable Object first-player server. Its dedicated bootstrap secret, authenticated user/permission integration, and explicit release review are still required before any server pilot deployment. Existing PR #57/60/61/62 review chains remain unmerged. No ReLiC or canonical database writes were performed.
