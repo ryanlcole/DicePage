@@ -60,13 +60,59 @@ test('accepted moves update only trusted world state and monotonic revision',asy
   const snap=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
   assert.equal(snap.view.player.y,13);assert.equal(snap.view.player.id,'shaelvien:player:first');
 });
-test('request-id replay returns cached outcome without second mutation',async()=>{
+test('exact request-id replay returns cached outcome without second mutation',async()=>{
   const {env}=fixture(),token=await session(env);
   const first=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('same-id'),token),env));
-  const second=await asJson(await edge.fetch(request('/api/endemar/intent','POST',{...move('same-id'),arg:'south'},token),env));
-  assert.equal(second.replayed,true);assert.equal(second.revision,first.revision);
+  const second=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('same-id'),token),env));
+  assert.equal(second.code,200);assert.equal(second.replayed,true);
+  assert.equal(second.revision,first.revision);assert.deepEqual(second.action,first.action);
   const snap=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
   assert.equal(snap.view.player.y,13);
+});
+
+test('same request id with changed movement is rejected, not reported as successful replay',async()=>{
+  const {env,store}=fixture(),token=await session(env);
+  const original=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('conflict'),token),env));
+  assert.equal(original.action.ok,true);
+  const stateBefore=JSON.stringify(await store.get('endemar:experimental-room-v1'));
+  const changed=await asJson(await edge.fetch(request('/api/endemar/intent','POST',{...move('conflict'),arg:'south'},token),env));
+  assert.deepEqual(changed,{code:409,error:'REQUEST_ID_CONFLICT'});
+  assert.equal(JSON.stringify(await store.get('endemar:experimental-room-v1')),stateBefore);
+  const snap=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  assert.equal(snap.view.player.y,13);assert.equal(snap.revision,original.revision);
+});
+
+test('same request id with changed verb never inherits an earlier success',async()=>{
+  const {env}=fixture(),token=await session(env);
+  const original=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('switch-verb'),token),env));
+  const changed=await asJson(await edge.fetch(request('/api/endemar/intent','POST',{version:'endemar-intent/1',requestId:'switch-verb',verb:'rest'},token),env));
+  assert.deepEqual(changed,{code:409,error:'REQUEST_ID_CONFLICT'});
+  const same=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('switch-verb'),token),env));
+  assert.equal(same.code,200);assert.equal(same.replayed,true);assert.equal(same.revision,original.revision);
+});
+
+test('unverifiable legacy request-id records fail closed without mutation',async()=>{
+  const {env,store}=fixture(),token=await session(env);
+  const key='endemar:experimental-room-v1',state=await store.get(key);
+  state.processed.legacy={classification:'VERIFIED_SIMULATION_RESULT',action:{ok:true},revision:999};
+  await store.put(key,state);
+  const before=JSON.stringify(await store.get(key));
+  const result=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('legacy'),token),env));
+  assert.deepEqual(result,{code:409,error:'REQUEST_ID_UNVERIFIABLE'});
+  assert.equal(JSON.stringify(await store.get(key)),before);
+});
+
+test('request IDs become reusable only after session rotation, not for the stale capability',async()=>{
+  const {env}=fixture(),old=await session(env);
+  const first=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('session-scoped'),old),env));
+  assert.equal(first.action.ok,true);
+  const next=await session(env);
+  const stale=await asJson(await edge.fetch(request('/api/endemar/intent','POST',{...move('session-scoped'),arg:'south'},old),env));
+  assert.equal(stale.code,401);
+  const fresh=await asJson(await edge.fetch(request('/api/endemar/intent','POST',{...move('session-scoped'),arg:'south'},next),env));
+  assert.equal(fresh.code,200);assert.equal(fresh.action.ok,true);
+  const snap=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,next),env));
+  assert.equal(snap.view.player.y,14);
 });
 test('prototype-like request ids do not receive special privileges',async()=>{
   const {env}=fixture(),token=await session(env);
