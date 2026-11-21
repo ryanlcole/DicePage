@@ -18,8 +18,14 @@ It contains no AWS dependency, paid API, telemetry, or NPC LLM.
 - **Session:** generated with 256 bits of randomness. Only its SHA-256 hash is
   stored. One active capability for the world, rotated on each new issuance;
   expiration is 2 hours, under the public AI session cap. Up to 512 unique
-  action requests are permitted per session. Replays are returned without a
-  second mutation. Capabilities are secrets, do not publish or commit them.
+  action requests are permitted per session. **Exact** request-id retries return
+  the cached result without a second mutation. Reusing an ID with a different
+  verb/argument returns HTTP 409 `REQUEST_ID_CONFLICT`; unreadable/legacy replay
+  records return HTTP 409 `REQUEST_ID_UNVERIFIABLE`. Neither conflict grants a
+  new action, reports an old success as a new action, or increments revision.
+  Replay IDs are scoped to one server-issued session and reset only on capability
+  rotation; the old capability then fails authentication. Capabilities are
+  secrets, do not publish or commit them.
 - **Intent:** reuses PR #60's allowlisted parser and the existing Endemar
   experimental Rion world engine; rejects client role/identity/world claims.
   No owner, GM, claims, transfers, protected content, or outside actions.
