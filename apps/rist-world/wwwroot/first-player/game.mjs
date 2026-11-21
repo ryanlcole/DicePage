@@ -1,4 +1,5 @@
 import {createWorld,advance,intent,terrain,cell,view,status,projection,riotIdeas,validate,SIZE,TIERS} from './core.mjs';
+import {readEcologyCheckpoint} from './relic-online-observer.mjs';
 const key='shaelvien:first-player:rions:v1';const $=s=>document.querySelector(s);const canvas=$('#map'),ctx=canvas.getContext('2d');let tier='LOCAL',w,toastTimer,visible={};
 const palette={water:'#235361',forest:'#2a6442',meadow:'#62885b',stone:'#667365',void:'#090e0d'};
 function restore(){try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved&&validate(saved.world)){w=saved.world;const now=Date.now(),elapsed=Math.max(0,now-Number(saved.at||now));const catchup=Math.min(240,Math.floor(elapsed/1200));if(catchup){advance(w,catchup);w.chronicle.push({tick:w.tick,kind:'continuity',message:`Recovered ${catchup} bounded offline ticks (estimated, not continuously hosted).`,actor:'engine'});}return}}catch{}w=createWorld()}
@@ -29,3 +30,33 @@ $('#exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({world:w,at:Dat
 $('#importFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{if(file.size>2000000)throw Error('File too large');const data=JSON.parse(await file.text());if(!validate(data.world))throw Error('Invalid world schema');w=data.world;save();draw();flash('World restored from export.')}catch(err){flash('Import rejected: '+err.message)}e.target.value=''};
 $('#resetBtn').onclick=()=>{if(confirm('Start a new experimental world? This replaces browser-local progress. Export your data first.')){w=createWorld();save();draw();flash('New world created.')}};
 $('#helpBtn').onclick=()=>$('#help').showModal();$('#closeHelp').onclick=()=>$('#help').close();
+
+
+// Separate read-only public ecology: neither this result nor a failure may alter w.
+const externalRelicButton=$('#externalRelicRefresh');
+externalRelicButton.addEventListener('click',async()=>{
+  externalRelicButton.disabled=true;
+  $('#externalRelicStatus').textContent='Reading public synthetic checkpoint…';
+  $('#externalRelicDetails').replaceChildren();
+  try {
+    const observed=await readEcologyCheckpoint();
+    $('#externalRelicStatus').textContent='Observed a public GitHub checkpoint, not continuously running server state.';
+    const descriptions=[
+      `External tick ${observed.tick}`,
+      `${observed.alive} / ${observed.agents.length} synthetic agents alive`,
+      `${observed.reportedEvents} reported events (hash lineage not independently verified)`,
+      `Last sequence ${observed.lastEventSequence ?? 'unknown'}`,
+      'SEPARATE EXPERIMENT — no Endemar NPCs or player data changed'
+    ];
+    const elements=descriptions.map(description=>{
+      const span=document.createElement('span');
+      span.textContent=description;
+      return span;
+    });
+    $('#externalRelicDetails').replaceChildren(...elements);
+  } catch {
+    $('#externalRelicStatus').textContent='Public checkpoint unavailable or unsupported; local Endemar game unaffected.';
+  } finally {
+    externalRelicButton.disabled=false;
+  }
+});
