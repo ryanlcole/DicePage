@@ -1,0 +1,22 @@
+name: Endemar experimental authority room tests
+on:
+  push:
+    branches:
+      - 'feature/endemar-durable-room-20261121'
+  pull_request:
+    paths:
+      - 'apps/rist-world/experimental-authority/**'
+      - 'tests/test_endemar_room.mjs'
+      - '.github/workflows/test-endemar-room.yml'
+permissions:
+  contents: read
+jobs:
+  endemar-room:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/test_first_player.mjs tests/test_first_player_authority.mjs tests/test_endemar_room.mjs

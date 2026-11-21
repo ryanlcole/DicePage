@@ -1,0 +1,11 @@
+{
+  // Draft only. Do not deploy without owner reviewing production isolation and auth.
+  "name": "shaelvien-endemar-experimental-pilot",
+  "main": "./worker.mjs",
+  "compatibility_date": "2026-11-21",
+  "durable_objects": {
+    "bindings": [{ "name": "ENDEMAR_ROOM", "class_name": "EndemarRoom" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EndemarRoom"] }],
+  "observability": { "enabled": false }
+}
