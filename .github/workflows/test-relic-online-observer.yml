@@ -1,0 +1,24 @@
+name: Test external ReLiC ecology observer
+on:
+  pull_request:
+    paths:
+      - 'apps/rist-world/wwwroot/first-player/relic-online-observer.mjs'
+      - 'apps/rist-world/wwwroot/first-player/index.html'
+      - 'apps/rist-world/wwwroot/first-player/game.mjs'
+      - 'tests/test_relic_online_observer.mjs'
+      - '.github/workflows/test-relic-online-observer.yml'
+  push:
+    branches:
+      - 'feature/endemar-relic-world-observer-20261121'
+permissions:
+  contents: read
+jobs:
+  observer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/test_relic_online_observer.mjs
