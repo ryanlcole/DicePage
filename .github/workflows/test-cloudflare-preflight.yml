@@ -1,0 +1,22 @@
+name: Test Cloudflare Endemar health preflight
+on:
+  pull_request:
+    paths:
+      - 'tools/cloudflare-setup/preflight-worker.mjs'
+      - 'tests/test_cloudflare_preflight.mjs'
+      - '.github/workflows/test-cloudflare-preflight.yml'
+  push:
+    branches:
+      - 'feature/cloudflare-agent-setup-20261121'
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/test_cloudflare_preflight.mjs
