@@ -11,12 +11,13 @@ class LanguageTests(unittest.TestCase):
     def test_no_offscreen_atoms(self):self.assertEqual(len(frame(self.atoms,0,(-4,-3,4,3))['atoms']),3)
     def test_pan_filters(self):self.assertEqual([a['slot'] for a in frame(self.atoms,0,(99,99,101,101))['atoms']],['RAM4'])
     def test_empty_view(self):self.assertEqual(frame(self.atoms,0,(50,50,60,60))['atoms'],[])
-    def test_glyph_stable_after_rotation(self):
+    def test_pattern_signature_stable_after_rotation(self):
         from runecore_language import Atom
         a=self.atoms[0]
         rotated=Atom('DIFFERENT','X',99.,99.,(Ring(1,'CW','0100'),))
-        self.assertEqual(a.glyph(),rotated.glyph())
-    def test_glyph_not_atom_identity(self):self.assertEqual(self.atoms[0].glyph(),self.atoms[1].glyph())
+        self.assertEqual(a.pattern_signature(),rotated.pattern_signature())
+        self.assertNotEqual(a.glyph(),rotated.glyph())
+    def test_glyph_is_periodic_element_type(self):self.assertEqual(self.atoms[0].glyph(),self.atoms[1].glyph())
     def test_bad_direction(self):
         with self.assertRaises(ValueError):parse('ATOM R1 H 0 0\nRING 1 CCW 1000\nENDATOM')
     def test_bad_ring_order(self):
