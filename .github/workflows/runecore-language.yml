@@ -21,4 +21,4 @@ jobs:
           python-version: '3.11'
       - name: Unit tests for RuneCore/1
         working-directory: experiments/runecore_language
-        run: python -m unittest -v test_runecore_language test_old_relic_bridge test_corrected_terms
+        run: python -m unittest -v test_runecore_language test_old_relic_bridge test_corrected_terms test_scene3d
