@@ -1,6 +1,6 @@
 # Cloudflare agent setup — Shaelvien Endemar
 
-Status: SETUP PREPARED; OAUTH AND DEPLOYMENT NOT CONFIRMED. Reviewed against Cloudflare's official instructions on 2026-11-21:
+Status: CLOUDFLARE FREE ACCOUNT VERIFIED; ISOLATED HELLO WORLD WORKER DEPLOYED; CUSTOM HEALTH PROBE NOT DEPLOYED; GAME SERVER NOT DEPLOYED. Reviewed against Cloudflare's official instructions on 2026-11-21:
 https://developers.cloudflare.com/agent-setup/prompt.md
 
 ## Scope
@@ -53,3 +53,25 @@ Installing skills in an isolated sandbox does not install them on the user's com
 Optional Cloudflare cf beta CLI is intentionally not installed. Do not auto-enroll in a paid plan, change domains, or deploy infrastructure during agent setup.
 
 Code and documentation drafted with ChatGPT assistance for owner review.
+
+## Live Cloudflare verification (2026-11-21)
+
+An authenticated, saved Cloudflare browser session was read-only inspected. The account's Workers plan is **Free**, Workers & Pages and Durable Objects sections are accessible, and the already configured `workers.dev` subdomain is `ryanlcole.workers.dev`. No billing, DNS, zones, domains or existing infrastructure were modified.
+
+As a separate $0 hosting preflight, a new Worker named `shaelvien-endemar-preflight` was created at:
+
+https://shaelvien-endemar-preflight.ryanlcole.workers.dev/
+
+**Critical verification:** independent HTTP content reads show both `/` and `/health` returning Cloudflare's starter `Hello World!`, so the intended health-only code **has NOT deployed**. The automated Cloudflare Quick Edit / Monaco code editor would not accept replacement text. This is `PARTIAL_DEPLOYMENT` evidence, not a working Endemar server or functional health-only probe.
+
+The reviewable intended source is `tools/cloudflare-setup/preflight-worker.mjs` with tests in `tests/test_cloudflare_preflight.mjs`. The tests verify that `GET /health` responds with `NONCANONICAL_PREFLIGHT` and that game routes and other requests fail closed. Three Node 22 tests and the GitHub compliance guard passed on the PR branch; this does **not** establish cloud runtime behavior.
+
+### Owner-only completion of the isolated health probe
+
+In the Cloudflare dashboard, open **Workers & Pages → shaelvien-endemar-preflight → Edit code**, replace the entire starter Worker code with the reviewed contents of `tools/cloudflare-setup/preflight-worker.mjs`, then **Deploy**. Do not modify DNS, enable a paid plan, or copy account credentials into source. If the UI cannot edit on mobile, use the laptop or the official Wrangler workflow authenticated locally. No API token needs to be placed in the repository.
+
+Verify `GET /health` returns `classification: NONCANONICAL_PREFLIGHT` and `GET /` returns a 404 JSON response. Until that evidence exists, consider the Worker a generic Hello World deployment.
+
+This is distinct from PR #61's proposed Durable Object first-player server. Its dedicated bootstrap secret, authenticated user/permission integration, and explicit release review are still required before any server pilot deployment. Existing PR #57/60/61/62 review chains remain unmerged. No ReLiC or canonical database writes were performed.
+
+Code and checks are ChatGPT-assisted; Cloudflare observations were made with the owner's connected browser and verified with independent HTTP content retrieval.
