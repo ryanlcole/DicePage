@@ -1,0 +1,35 @@
+name: Test RuneCore learned next-Rion baseline
+on:
+  push:
+    branches:
+      - feature/runecore-learned-transition-baseline-20261121
+  pull_request:
+    paths:
+      - 'experiments/runecore_language/next_pattern_model.py'
+      - 'experiments/runecore_language/test_next_pattern_model.py'
+      - '.github/workflows/test-runecore-learned.yml'
+permissions:
+  contents: read
+jobs:
+  symbolic-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test trained model on held-out synthetic rings
+        run: |
+          cd experiments/runecore_language
+          python -m unittest -v test_next_pattern_model
+      - name: Train and report a reproducible, non-LLM model
+        run: |
+          cd experiments/runecore_language
+          python next_pattern_model.py --out /tmp/runecore-next-rion-weights.json
+      - name: Store test-only weights (not production LLM)
+        uses: actions/upload-artifact@v4
+        with:
+          name: runecore-next-rion-synthetic-weights
+          path: /tmp/runecore-next-rion-weights.json
+          retention-days: 7
