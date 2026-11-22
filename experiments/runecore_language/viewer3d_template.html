@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#08121a"><title>RuneCore • 3D Scene</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#091721}*{box-sizing:border-box}canvas{width:100%;height:100%;display:block;touch-action:none}#stick{position:fixed;left:24px;bottom:calc(env(safe-area-inset-bottom) + 24px);width:104px;height:104px;border:1px solid #c9e0dd55;background:#ffffff0e;border-radius:50%;touch-action:none;user-select:none}#knob{position:absolute;left:34px;top:34px;width:36px;height:36px;border-radius:50%;background:#dae6e555;pointer-events:none;box-shadow:0 0 20px #89dbd01a}@media(pointer:fine){#stick{display:none}}
+</style></head>
+<body><canvas id="scene" aria-label="Traversable 3D lake, shoreline and building scene. Use WASD and drag mouse to look, or mobile left joystick and right-side drag."></canvas><div id="stick" aria-label="Movement joystick"><div id="knob"></div></div>
+<script type="application/json" id="stored-scene">
+__SCENE_JSON__
+</script><script>
+'use strict';
+// Rendered scene cells come from a storage-exported compact JSON, not physics atoms.
+// No debug text is drawn in the viewer. Exact user coordinate convention: X right, Y up, Z depth.
+const archive=JSON.parse(document.querySelector('#stored-scene').textContent);
+if(archive.schema!=='RuneCore.Scene3D/1')throw new Error('Unknown 3D storage schema');
+const cells=[];
+for(const [x,y,z0,z1,material,shaep] of archive.spans){
+ if(!Number.isSafeInteger(x)||!Number.isSafeInteger(y)||!Number.isSafeInteger(z0)||!Number.isSafeInteger(z1)||z1<z0)throw new Error('Invalid cell span');
+ for(let z=z0;z<=z1;z++)cells.push({x,y,z,material,shaep});
+}
+if(cells.length!==archive.voxel_count)throw new Error('Stored scene count mismatch');
+const canvas=document.querySelector('#scene'),gl=canvas.getContext('webgl',{antialias:true,powerPreference:'default',alpha:false});
+const software=gl?null:canvas.getContext('2d');
+const vs=`attribute vec3 aPosition;attribute vec3 aColor;attribute float aType;
+uniform mat4 uProjection,uView;varying vec3 vColor;varying float vType;varying vec3 vPosition;
+void main(){gl_Position=uProjection*uView*vec4(aPosition,1.0);vColor=aColor;vType=aType;vPosition=aPosition;}`;
+const fs=`precision mediump float;varying vec3 vColor;varying float vType;varying vec3 vPosition;uniform float uTime;
+void main(){float shimmer=(vType>0.5)?(0.88+0.12*sin(uTime*1.3+vPosition.x*0.74+vPosition.z*0.43)):1.0;
+gl_FragColor=vec4(vColor*shimmer,1.0);}`;
+function shader(kind,source){const s=gl.createShader(kind);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
+let program=null,att=null,uniform=null;
+if(gl){program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vs));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);
+att={p:gl.getAttribLocation(program,'aPosition'),c:gl.getAttribLocation(program,'aColor'),t:gl.getAttribLocation(program,'aType')};
+uniform={projection:gl.getUniformLocation(program,'uProjection'),view:gl.getUniformLocation(program,'uView'),time:gl.getUniformLocation(program,'uTime')};
+}
+const materials={grass:[.22,.44,.29],shore:[.73,.64,.42],sand:[.86,.73,.48],water:[.10,.45,.66],stone:[.31,.37,.41],wood:[.57,.34,.19],roof:[.55,.24,.23],glass:[.39,.72,.82],door:[.33,.22,.12]};
+const cellSet=new Set(cells.map(c=>`${c.x},${c.y},${c.z}`));
+const faces=[
+ {n:[0,1,0],shade:1.05,p:[[-1,1,-1],[1,1,-1],[1,1,1],[-1,1,1]]},
+ {n:[0,-1,0],shade:.48,p:[[-1,-1,-1],[-1,-1,1],[1,-1,1],[1,-1,-1]]},
+ {n:[0,0,-1],shade:.88,p:[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1]]},
+ {n:[0,0,1],shade:.72,p:[[1,-1,1],[-1,-1,1],[-1,1,1],[1,1,1]]},
+ {n:[-1,0,0],shade:.80,p:[[-1,-1,1],[-1,-1,-1],[-1,1,-1],[-1,1,1]]},
+ {n:[1,0,0],shade:.60,p:[[1,-1,-1],[1,-1,1],[1,1,1],[1,1,-1]]}
+];
+const mesh=[];
+for(const c of cells){for(const face of faces){
+  if(cellSet.has(`${c.x+face.n[0]},${c.y+face.n[1]},${c.z+face.n[2]}`))continue;
+  const base=materials[c.material];if(!base)throw Error('Unknown material');
+  const h=((Math.imul(c.x+512,73856093)^Math.imul(c.z+512,19349663)^Math.imul(c.y+512,83492791))>>>0)%11;
+  const shade=face.shade*(.94+h*.009);
+  const color=base.map(i=>Math.min(i*shade,1));
+  const order=[0,1,2,0,2,3];
+  for(const j of order){const v=face.p[j];mesh.push(c.x+.5*v[0],c.y+.5*v[1],c.z+.5*v[2],...color,c.material==='water'?1:0)}
+}}
+if(gl){const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(mesh),gl.STATIC_DRAW);
+const stride=7*4;
+for(const [loc,size,off] of [[att.p,3,0],[att.c,3,12],[att.t,1,24]]){gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,stride,off)}
+gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.clearColor(.07,.13,.18,1);
+}
+const cam={x:1,y:9,z:-29,yaw:0,pitch:-.28},keys=new Set();
+function viewMatrix(c){const sy=Math.sin(c.yaw),cy=Math.cos(c.yaw),sp=Math.sin(c.pitch),cp=Math.cos(c.pitch);
+const rx=cy,rz=-sy,ux=-sy*sp,uy=cp,uz=-cy*sp,fx=sy*cp,fy=sp,fz=cy*cp;
+return new Float32Array([rx,ux,-fx,0,0,uy,-fy,0,rz,uz,-fz,0,-(rx*c.x+rz*c.z),-(ux*c.x+uy*c.y+uz*c.z),fx*c.x+fy*c.y+fz*c.z,1]);}
+function perspective(fov,aspect,near,far){const f=1/Math.tan(fov/2);return new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0]);}
+let last=0,moveX=0,moveZ=0,lookPointer=null,lookXY=null;
+const stick=document.querySelector('#stick'),knob=document.querySelector('#knob');let stickPointer=null;
+function renderSoftware(now){
+  const ctx=software,W=innerWidth,H=innerHeight,dpr=canvas.width/W;
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#0d2430';ctx.fillRect(0,0,W,H);
+  const sy=Math.sin(cam.yaw),cy=Math.cos(cam.yaw),sp=Math.sin(cam.pitch),cp=Math.cos(cam.pitch);
+  const focal=H/(2*Math.tan(1.10/2));const faces=[];
+  function project(v){const dx=v[0]-cam.x,dy=v[1]-cam.y,dz=v[2]-cam.z;
+    const right=dx*cy-dz*sy,forward=dx*sy+dz*cy;
+    const up=dy*cp-forward*sp,depth=forward*cp+dy*sp;
+    if(depth<=.15||depth>340)return null;
+    return [W/2+focal*right/depth,H/2-focal*up/depth,depth];}
+  for(let i=0;i<mesh.length;i+=42){const a=[];let valid=true;
+    for(const j of [0,1,2,5]){const k=i+j*7,v=project([mesh[k],mesh[k+1],mesh[k+2]]);if(!v){valid=false;break;}a.push(v)}
+    if(!valid)continue;
+    const xs=a.map(v=>v[0]),ys=a.map(v=>v[1]);
+    if(Math.max(...xs)<0||Math.min(...xs)>W||Math.max(...ys)<0||Math.min(...ys)>H)continue;
+    const cols=mesh.slice(i+3,i+6);
+    const shade=mesh[i+6]>.5?.93+.07*Math.sin(now*.0013+mesh[i]*.7+mesh[i+2]*.4):1;
+    const color='rgb('+cols.map(v=>Math.round(Math.min(1,v*shade)*255)).join(',')+')';
+    faces.push({poly:a,depth:a.reduce((s,v)=>s+v[2],0)/a.length,color});
+  }
+  faces.sort((a,b)=>b.depth-a.depth);
+  for(const face of faces){const p=face.poly;ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);for(let i=1;i<4;i++)ctx.lineTo(p[i][0],p[i][1]);ctx.closePath();ctx.fillStyle=face.color;ctx.fill();}
+}
+let lastSoftwareDraw=0;
+function tick(now){const dt=Math.min(.06,(now-last)/1000||.016);last=now;
+const front=((keys.has('w')||keys.has('arrowup'))?1:0)-((keys.has('s')||keys.has('arrowdown'))?1:0)-moveZ;
+const side=((keys.has('d'))?1:0)-((keys.has('a'))?1:0)+moveX;
+const speed=dt*8;cam.x+=(side*Math.cos(cam.yaw)+front*Math.sin(cam.yaw))*speed;cam.z+=(front*Math.cos(cam.yaw)-side*Math.sin(cam.yaw))*speed;
+if(keys.has(' ')||keys.has('e'))cam.y+=speed;if(keys.has('shift')||keys.has('q'))cam.y-=speed;
+cam.y=Math.max(1,Math.min(60,cam.y));cam.x=Math.max(-70,Math.min(70,cam.x));cam.z=Math.max(-100,Math.min(100,cam.z));
+const dpr=Math.min(2,devicePixelRatio||1),w=Math.round(innerWidth*dpr),h=Math.round(innerHeight*dpr);
+if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;if(gl)gl.viewport(0,0,w,h)}
+if(gl){gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniformMatrix4fv(uniform.projection,false,perspective(1.10,w/h,.07,340));gl.uniformMatrix4fv(uniform.view,false,viewMatrix(cam));gl.uniform1f(uniform.time,now*.001);gl.drawArrays(gl.TRIANGLES,0,mesh.length/7);}
+else if(now-lastSoftwareDraw>45){renderSoftware(now);lastSoftwareDraw=now;}
+requestAnimationFrame(tick)}
+window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys.add(k);if(['arrowup','arrowdown',' '].includes(k))e.preventDefault();if(k==='r'){Object.assign(cam,{x:1,y:9,z:-29,yaw:0,pitch:-.28})}});
+window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+canvas.addEventListener('pointerdown',e=>{if(lookPointer!==null)return;lookPointer=e.pointerId;lookXY=[e.clientX,e.clientY];try{canvas.setPointerCapture(e.pointerId)}catch(_){/* synthetic test pointer */}});
+canvas.addEventListener('pointermove',e=>{if(lookPointer!==e.pointerId)return;cam.yaw+=(e.clientX-lookXY[0])*.006;cam.pitch=Math.max(-1.36,Math.min(1.36,cam.pitch-(e.clientY-lookXY[1])*.006));lookXY=[e.clientX,e.clientY]});
+for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,e=>{if(lookPointer===e.pointerId){lookPointer=null;lookXY=null}});
+function joystick(e){const rect=stick.getBoundingClientRect(),x=(e.clientX-rect.left-rect.width/2)/37,y=(e.clientY-rect.top-rect.height/2)/37;
+const length=Math.max(1,Math.hypot(x,y));moveX=x/length;moveZ=y/length;knob.style.transform=`translate(${moveX*30}px,${moveZ*30}px)`}
+stick.addEventListener('pointerdown',e=>{stickPointer=e.pointerId;try{stick.setPointerCapture(e.pointerId)}catch(_){/* synthetic test pointer */};joystick(e)});
+stick.addEventListener('pointermove',e=>{if(stickPointer===e.pointerId)joystick(e)});
+for(const event of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(event,e=>{if(stickPointer!==e.pointerId)return;stickPointer=null;moveX=moveZ=0;knob.style.transform=''});
+requestAnimationFrame(tick);
+</script></body></html>
