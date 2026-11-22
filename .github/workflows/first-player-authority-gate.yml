@@ -1,0 +1,23 @@
+name: Shaelvien synthetic authority gate checks
+on:
+  push:
+    branches:
+      - feature/shaelvien-authority-gate-prototype-20261122
+  pull_request:
+    paths:
+      - 'apps/rist-world/wwwroot/first-player/**'
+      - 'tests/test_first_player*.mjs'
+      - '.github/workflows/first-player-authority-gate.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Deterministic synthetic world and trusted gate tests
+        run: node --test tests/test_first_player.mjs tests/test_first_player_authority_gate.mjs
