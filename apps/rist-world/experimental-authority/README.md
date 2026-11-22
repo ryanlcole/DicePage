@@ -100,3 +100,37 @@ unaffected. Do not merge/release based on local unit tests alone.
 
 ChatGPT assisted source creation. Human owner approval and review remain required
 for account integration, Cloudflare activation and production publication.
+
+
+## Read-only client snapshot continuity (review branch)
+
+The experimental snapshot-observer.mjs now validates the actual room's
+serialized publicState projection before a client may treat it as an
+observation. This is a presentation/data-integrity aid, not an authentication
+mechanism. It intentionally does not import, mutate or save any canonical
+world, session, permissions or user records.
+
+- Requires expected pilot world, classification, scope, LOCAL tier, stable
+  player identity, bounded coordinates and tick, unique actor IDs.
+- Copies only coordinates, actor IDs, revision and weather phase into an
+  explicitly NONCANONICAL observed projection. No hidden server records or
+  role/GM claims are promoted.
+- Two clients holding the *same* already-authorized experimental capability
+  can observe equivalent projections after the server applies a move or alarm.
+  This demonstrates **two readers**, NOT two authenticated player identities.
+- Rejects stale revision, same-revision contradictory contents, time rewind,
+  wrong world ID, changed player ID, or unauthorized top-level claims.
+- Rejecting a snapshot retains the previous read-only view. Observer state
+  is returned by copy so caller mutation cannot write world truth.
+- "verifiedServerIdentity:false" is deliberate: only real account binding,
+  server authentication and production deployment can establish trusted
+  transport. A structurally valid JSON response cannot authenticate itself.
+
+Node tests:
+node --test tests/test_first_player.mjs tests/test_first_player_authority.mjs tests/test_endemar_room.mjs
+
+This pilot remains unhosted, one player, one session capability. No second
+player, WebSocket gateway, real owner login, browser UI connection, encrypted
+multi-user storage, live deployment, or 24/7 uptime is claimed. The next
+release gate remains owner-reviewed authenticated player sessions and actual
+Cloudflare Durable Object deployment test with privacy and permissions.
