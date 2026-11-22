@@ -196,7 +196,7 @@ test('operator-only booth does not treat RIOT or ReLiC labels as authorization',
 test('two independent read-only clients converge on the same server revision', async()=>{
   const {env}=fixture(),token=await session(env);
   const a=new SnapshotObserver(),b=new SnapshotObserver();
-  const initial=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  const initial=await (await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env)).json();
   assert.equal(a.accept(initial).status,'NEW_REVISION');
   assert.equal(b.accept(initial).status,'NEW_REVISION');
   assert.deepEqual(a.read(),b.read());
@@ -206,7 +206,7 @@ test('two independent read-only clients converge on the same server revision', a
 
   const moved=await asJson(await edge.fetch(request('/api/endemar/intent','POST',move('observer-move'),token),env));
   assert.equal(moved.action.ok,true);
-  const next=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  const next=await (await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env)).json();
   assert.equal(a.accept(next).status,'NEW_REVISION');
   assert.equal(b.accept(next).status,'NEW_REVISION');
   assert.deepEqual(a.read(),b.read());
@@ -216,10 +216,10 @@ test('two independent read-only clients converge on the same server revision', a
 
 test('stale and conflicting snapshots never roll a client back or invent updates',async()=>{
   const {env}=fixture(),token=await session(env),observer=new SnapshotObserver();
-  const before=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  const before=await (await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env)).json();
   assert.equal(observer.accept(before).ok,true);
   await edge.fetch(request('/api/endemar/intent','POST',move('snapshot-advance'),token),env);
-  const after=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  const after=await (await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env)).json();
   assert.equal(observer.accept(after).status,'NEW_REVISION');
   const valid=observer.read();
   assert.deepEqual(observer.accept(before),{ok:false,status:null,error:'STALE_REVISION'});
@@ -232,7 +232,7 @@ test('stale and conflicting snapshots never roll a client back or invent updates
 
 test('identity and injected authority claims fail closed',async()=>{
   const {env}=fixture(),token=await session(env);
-  const packet=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  const packet=await (await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env)).json();
   const injected={...packet,owner:true};
   assert.equal(parseServerSnapshot(injected).error,'UNEXPECTED_SNAPSHOT_FIELDS');
   const changed=structuredClone(packet);changed.view.playerId='admin';
@@ -245,7 +245,7 @@ test('identity and injected authority claims fail closed',async()=>{
 
 test('server alarm advances same observed entity IDs without client mutation',async()=>{
   const {env,room,store}=fixture(),token=await session(env),observer=new SnapshotObserver();
-  const initial=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  const initial=await (await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env)).json();
   observer.accept(initial);
   const ids=observer.read().actors.map(x=>x.id);
   const serverBefore=JSON.stringify(await store.get('endemar:experimental-room-v1'));
@@ -253,7 +253,7 @@ test('server alarm advances same observed entity IDs without client mutation',as
   assert.deepEqual(observer.read().actors.map(x=>x.id),ids);
   assert.equal(JSON.stringify(await store.get('endemar:experimental-room-v1')),serverBefore);
   await room.alarm();
-  const later=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  const later=await (await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env)).json();
   assert.equal(observer.accept(later).status,'NEW_REVISION');
   assert.equal(observer.read().tick,initial.view.tick+1);
   assert.deepEqual(observer.read().actors.map(x=>x.id),ids);
@@ -262,9 +262,9 @@ test('server alarm advances same observed entity IDs without client mutation',as
 
 test('time rewind and server world mismatch are rejected',async()=>{
   const {env,room}=fixture(),token=await session(env),observer=new SnapshotObserver();
-  const initial=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  const initial=await (await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env)).json();
   observer.accept(initial);await room.alarm();
-  const next=await asJson(await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env));
+  const next=await (await edge.fetch(request('/api/endemar/snapshot','GET',undefined,token),env)).json();
   observer.accept(next);
   const rewind=structuredClone(next);rewind.revision++;rewind.view.tick--;rewind.status.tick--;
   assert.equal(observer.accept(rewind).error,'TIME_REWIND');
