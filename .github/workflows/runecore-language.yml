@@ -19,6 +19,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Unit tests for RuneCore/1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Unit tests for RuneCore language, Old ReLiC and 3D Rune/Shaep storage
         working-directory: experiments/runecore_language
-        run: python -m unittest -v test_runecore_language test_old_relic_bridge test_corrected_terms test_scene3d
+        run: python -m unittest -v test_runecore_language test_old_relic_bridge test_corrected_terms test_scene3d test_scene3d_runes
+      - name: Rebuild identical storage snapshot and generated standalone viewer
+        working-directory: experiments/runecore_language
+        run: |
+          python scene3d_runes.py --database /tmp/runecore3d_runes.sqlite3 --export /tmp/runecore3d_runes.json
+          cmp scene3d_runes.json /tmp/runecore3d_runes.json
+          python build_viewer.py
+          git diff --exit-code -- viewer3d_runes.html
+      - name: Validate embedded renderer JavaScript syntax
+        working-directory: experiments/runecore_language
+        run: |
+          python -c "from pathlib import Path; s=Path('viewer3d_runes.html').read_text(); a=s.index('<script>')+len('<script>'); b=s.index('</script>',a); Path('/tmp/runecore3d_viewer.js').write_text(s[a:b])"
+          node --check /tmp/runecore3d_viewer.js
