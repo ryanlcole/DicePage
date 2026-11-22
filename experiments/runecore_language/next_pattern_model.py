@@ -142,7 +142,7 @@ def evaluate(model: dict, test: tuple[dict, ...], train: tuple[dict, ...]) -> di
 
 
 def experiment() -> tuple[dict, dict]:
-    train = generate(range(6, 13), examples_per_width=20, seed=17)
+    train = generate(range(7, 13), examples_per_width=16, seed=17)
     heldout = generate(range(13, 19), examples_per_width=20, seed=29)
     model = fit(train)
     return model, evaluate(model, heldout, train)
